@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
@@ -53,6 +54,9 @@ class PostCacheServiceTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
+    private FeaturedPostRepository featuredPostRepository;
+
+    @Mock
     private RedisSimplePostAdapter redisSimplePostAdapter;
 
     @Mock
@@ -76,6 +80,7 @@ class PostCacheServiceTest {
     void setUp() {
         postCacheService = new PostCacheService(
                 postQueryRepository,
+                featuredPostRepository,
                 redisSimplePostAdapter,
                 realtimeAdapter,
                 postCacheRefresh,
@@ -257,7 +262,6 @@ class PostCacheServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 게시글");
-        Page<PostSimpleDetail> fallbackPage = new PageImpl<>(List.of(post), pageable, 1);
 
         given(redisSimplePostAdapter.getAllCachedPostsList(flag)).willReturn(List.of());
 
@@ -274,11 +278,9 @@ class PostCacheServiceTest {
                     return supplier.get();
                 });
 
-        switch (flag) {
-            case WEEKLY -> given(postQueryRepository.findWeeklyPopularPosts(pageable)).willReturn(fallbackPage);
-            case LEGEND -> given(postQueryRepository.findLegendaryPosts(pageable)).willReturn(fallbackPage);
-            case NOTICE -> given(postQueryRepository.findNoticePosts(pageable)).willReturn(fallbackPage);
-        }
+        // featured_post 테이블에서 조회하도록 변경
+        given(featuredPostRepository.findPostIdsByType(flag)).willReturn(List.of(1L));
+        given(postQueryRepository.findPostSimpleDetailsByIds(List.of(1L))).willReturn(List.of(post));
 
         // When
         Page<PostSimpleDetail> result = switch (flag) {
@@ -339,7 +341,6 @@ class PostCacheServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, expectedTitle);
-        Page<PostSimpleDetail> fallbackPage = new PageImpl<>(List.of(post), pageable, 1);
 
         given(redisSimplePostAdapter.getAllCachedPostsList(cacheFlag))
                 .willThrow(new RuntimeException("Redis connection failed"));
@@ -350,13 +351,9 @@ class PostCacheServiceTest {
                     return supplier.get();
                 });
 
-        // 각 캐시 플래그에 따른 repository 메서드 Mock 설정 (Page 반환)
-        switch (cacheFlag) {
-            case WEEKLY -> given(postQueryRepository.findWeeklyPopularPosts(pageable)).willReturn(fallbackPage);
-            case LEGEND -> given(postQueryRepository.findLegendaryPosts(pageable)).willReturn(fallbackPage);
-            case NOTICE -> given(postQueryRepository.findNoticePosts(pageable)).willReturn(fallbackPage);
-            default -> throw new IllegalArgumentException("Unsupported flag: " + cacheFlag);
-        }
+        // featured_post 테이블에서 조회하도록 변경
+        given(featuredPostRepository.findPostIdsByType(cacheFlag)).willReturn(List.of(1L));
+        given(postQueryRepository.findPostSimpleDetailsByIds(List.of(1L))).willReturn(List.of(post));
 
         // When
         Page<PostSimpleDetail> result = switch (cacheFlag) {

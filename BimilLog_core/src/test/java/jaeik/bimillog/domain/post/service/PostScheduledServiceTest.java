@@ -1,10 +1,13 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.scheduler.PostScheduledService;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
@@ -64,6 +67,12 @@ class PostScheduledServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private FeaturedPostRepository featuredPostRepository;
+
+    @Mock
+    private PostRepository postRepository;
 
     @InjectMocks
     private PostScheduledService postScheduledService;

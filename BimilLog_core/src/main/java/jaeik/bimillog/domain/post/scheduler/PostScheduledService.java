@@ -1,10 +1,14 @@
 package jaeik.bimillog.domain.post.scheduler;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.post.entity.FeaturedPost;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
@@ -20,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <h2>PostScheduledService</h2>
@@ -39,6 +45,8 @@ public class PostScheduledService {
     private final ApplicationEventPublisher eventPublisher;
     private final PostQueryRepository postQueryRepository;
     private final PostToCommentAdapter postToCommentAdapter;
+    private final FeaturedPostRepository featuredPostRepository;
+    private final PostRepository postRepository;
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
@@ -65,6 +73,7 @@ public class PostScheduledService {
      * <p>1일마다 주간 인기 게시글을 갱신하고 PostSimpleDetail을 Redis Hash에 저장합니다.</p>
      * <p>지난 7일간의 조회수와 좋아요 종합 점수를 기반으로 주간 인기 게시글을 선정합니다.</p>
      * <p>인기 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 알림을 전송합니다.</p>
+     * <p>선정된 인기글은 featured_post 테이블에 영속화됩니다.</p>
      */
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
@@ -76,6 +85,9 @@ public class PostScheduledService {
             log.info("WEEKLY에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
         }
+
+        // DB에 특집 게시글 저장 (기존 WEEKLY 삭제 후 새로 저장)
+        saveFeaturedPosts(posts, PostCacheFlag.WEEKLY);
 
         try {
             // Tier1에 TTL 1일로 저장 (Tier2 제거됨)
@@ -94,6 +106,7 @@ public class PostScheduledService {
      * <h3>전설 게시글 스케줄링 갱신 및 명예의 전당 알림 발행</h3>
      * <p>PostSimpleDetail을 Redis Hash에 저장</p>
      * <p>전설 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 알림을 전송합니다.</p>
+     * <p>선정된 레전드는 featured_post 테이블에 영속화됩니다.</p>
      */
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
@@ -105,6 +118,9 @@ public class PostScheduledService {
             log.info("LEGEND에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
         }
+
+        // DB에 특집 게시글 저장 (기존 LEGEND 삭제 후 새로 저장)
+        saveFeaturedPosts(posts, PostCacheFlag.LEGEND);
 
         try {
             redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.LEGEND, posts, POST_CACHE_TTL_WEEKLY_LEGEND);
@@ -141,6 +157,41 @@ public class PostScheduledService {
                     log.info("게시글 ID {}에 대한 {} 알림 이벤트 발행: 회원 ID={}",
                         post.getId(), notificationType, post.getMemberId());
                 });
+    }
+
+    /**
+     * <h3>특집 게시글 DB 저장</h3>
+     * <p>기존 해당 유형의 특집 게시글을 모두 삭제하고 새로운 목록을 저장합니다.</p>
+     * <p>WEEKLY/LEGEND 스케줄러에서 호출됩니다.</p>
+     *
+     * @param posts 특집으로 선정된 게시글 목록
+     * @param type  특집 유형 (WEEKLY, LEGEND)
+     */
+    private void saveFeaturedPosts(List<PostSimpleDetail> posts, PostCacheFlag type) {
+        // 기존 특집 게시글 전체 삭제
+        featuredPostRepository.deleteAllByType(type);
+
+        // Post ID 목록 추출
+        Set<Long> postIds = posts.stream()
+                .map(PostSimpleDetail::getId)
+                .collect(Collectors.toSet());
+
+        // Post 엔티티 조회
+        List<Post> postEntities = postRepository.findAllById(postIds);
+
+        // FeaturedPost 엔티티 생성 및 저장
+        List<FeaturedPost> featuredPosts = postEntities.stream()
+                .map(post -> {
+                    if (type == PostCacheFlag.WEEKLY) {
+                        return FeaturedPost.createWeekly(post);
+                    } else {
+                        return FeaturedPost.createLegend(post);
+                    }
+                })
+                .toList();
+
+        featuredPostRepository.saveAll(featuredPosts);
+        log.info("{} 특집 게시글 DB 저장 완료: {}개", type, featuredPosts.size());
     }
 
     /**

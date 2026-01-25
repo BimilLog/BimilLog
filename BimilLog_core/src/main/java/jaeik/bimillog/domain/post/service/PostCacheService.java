@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
@@ -35,6 +36,7 @@ import static io.github.resilience4j.circuitbreaker.CircuitBreaker.State.OPEN;
 @RequiredArgsConstructor
 public class PostCacheService {
     private final PostQueryRepository postQueryRepository;
+    private final FeaturedPostRepository featuredPostRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final PostCacheRefresh postCacheRefresh;
@@ -55,7 +57,7 @@ public class PostCacheService {
      */
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
         return getCachedPostsDirect(PostCacheFlag.WEEKLY, FallbackType.WEEKLY, pageable,
-                () -> postQueryRepository.findWeeklyPopularPosts(pageable));
+                () -> findFeaturedPostsByType(PostCacheFlag.WEEKLY, pageable));
     }
 
     /**
@@ -63,7 +65,7 @@ public class PostCacheService {
      */
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
         return getCachedPostsDirect(PostCacheFlag.LEGEND, FallbackType.LEGEND, pageable,
-                () -> postQueryRepository.findLegendaryPosts(pageable));
+                () -> findFeaturedPostsByType(PostCacheFlag.LEGEND, pageable));
     }
 
     /**
@@ -71,7 +73,36 @@ public class PostCacheService {
      */
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
         return getCachedPostsDirect(PostCacheFlag.NOTICE, FallbackType.NOTICE, pageable,
-                () -> postQueryRepository.findNoticePosts(pageable));
+                () -> findFeaturedPostsByType(PostCacheFlag.NOTICE, pageable));
+    }
+
+    /**
+     * <h3>featured_post 테이블에서 조회 (DB 폴백용)</h3>
+     * <p>featured_post 테이블에서 postId 목록을 조회 후 PostSimpleDetail로 변환합니다.</p>
+     *
+     * @param type     특집 유형 (WEEKLY, LEGEND, NOTICE)
+     * @param pageable 페이징 정보
+     * @return PostSimpleDetail 페이지
+     */
+    private Page<PostSimpleDetail> findFeaturedPostsByType(PostCacheFlag type, Pageable pageable) {
+        List<Long> allPostIds = featuredPostRepository.findPostIdsByType(type);
+
+        if (allPostIds.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, 0);
+        }
+
+        // 페이징 처리
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), allPostIds.size());
+
+        if (start >= allPostIds.size()) {
+            return new PageImpl<>(List.of(), pageable, allPostIds.size());
+        }
+
+        List<Long> pagedPostIds = allPostIds.subList(start, end);
+        List<PostSimpleDetail> posts = postQueryRepository.findPostSimpleDetailsByIds(pagedPostIds);
+
+        return new PageImpl<>(posts, pageable, allPostIds.size());
     }
 
     /**

@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.entity.FeaturedPost;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -31,11 +33,12 @@ public class PostAdminService {
     private final PostRepository postRepository;
     private final PostQueryRepository postQueryRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final FeaturedPostRepository featuredPostRepository;
 
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
      * <p>일반 게시글이면 공지로 설정하고, 공지 게시글이면 일반으로 해제합니다.</p>
-     * <p>Tier1 Hash에 직접 추가/제거합니다 (Tier2 제거됨).</p>
+     * <p>Tier1 Hash에 직접 추가/제거하고, featured_post 테이블에도 반영합니다.</p>
      *
      * @param postId 공지 토글할 게시글 ID
      */
@@ -45,13 +48,16 @@ public class PostAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (post.isNotice()) {
-            // 공지 해제: DB 상태 변경 + Tier1 Hash에서 제거
+            // 공지 해제: DB 상태 변경 + featured_post 삭제 + Tier1 Hash에서 제거
             post.unsetAsNotice();
+            featuredPostRepository.deleteByPostIdAndType(postId, PostCacheFlag.NOTICE);
             redisSimplePostAdapter.removePostFromCache(PostCacheFlag.NOTICE, postId);
             log.info("공지 해제 완료: postId={}", postId);
         } else {
-            // 공지 설정: DB 상태 변경 + Tier1 Hash에 추가
+            // 공지 설정: DB 상태 변경 + featured_post 저장 + Tier1 Hash에 추가
             post.setAsNotice();
+            FeaturedPost featuredPost = FeaturedPost.createNotice(post);
+            featuredPostRepository.save(featuredPost);
 
             // PostSimpleDetail 조회 후 캐시에 추가
             List<PostSimpleDetail> details = postQueryRepository.findPostSimpleDetailsByIds(List.of(postId));
