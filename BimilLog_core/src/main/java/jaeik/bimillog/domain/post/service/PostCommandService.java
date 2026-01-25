@@ -4,15 +4,15 @@ import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,10 +37,9 @@ import java.util.List;
 @Log
 public class PostCommandService {
     private final PostRepository postRepository;
+    private final PostQueryRepository postQueryRepository;
     private final PostToMemberAdapter postToMemberAdapter;
-    private final RedisDetailPostAdapter redisDetailPostAdapter;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
-    private final RedisTier2PostAdapter redisTier2PostAdapter;
     private final CommentCommandService commentCommandService;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
@@ -66,9 +65,9 @@ public class PostCommandService {
 
 
     /**
-     * <h3>게시글 수정 (라이트 어라운드 패턴)</h3>
-     * <p>기존 게시글의 제목과 내용을 수정하고 모든 관련 캐시를 무효화합니다.</p>
-     * <p>작성자 권한 검증 → 게시글 업데이트 → 캐시 무효화 (다음 조회 시 캐시 어사이드로 재생성)</p>
+     * <h3>게시글 수정 (Write-Through 패턴)</h3>
+     * <p>기존 게시글의 제목과 내용을 수정하고 캐시를 업데이트합니다.</p>
+     * <p>작성자 권한 검증 → 게시글 업데이트 → 캐시 업데이트 (TTL 1일 동안 캐시 동기화)</p>
      * <p>{@link PostCommandController}에서 게시글 수정 API 처리 시 호출됩니다.</p>
      *
      * @param memberId  현재 로그인 사용자 ID
@@ -94,17 +93,21 @@ public class PostCommandService {
         // 글 수정
         post.updatePost(title, content);
 
-        // 모든 관련 캐시 무효화
+        // 캐시 업데이트 (Write-Through) - 인기글인 경우 Tier1 Hash 업데이트
         try {
-            redisDetailPostAdapter.deleteCachePost(postId);
-            redisSimplePostAdapter.removePostFromCache(postId);
+            if (redisSimplePostAdapter.isPopularPost(postId)) {
+                List<PostSimpleDetail> details = postQueryRepository.findPostSimpleDetailsByIds(List.of(postId));
+                if (!details.isEmpty()) {
+                    redisSimplePostAdapter.updatePostInCache(postId, details.get(0));
+                }
+            }
         } catch (Exception e) {
-            log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
+            log.warn("게시글 {} 캐시 업데이트 실패: {}", postId, e.getMessage());
         }
     }
 
     /**
-     * <h3>게시글 삭제 (라이트 어라운드 패턴)</h3>
+     * <h3>게시글 삭제</h3>
      * <p>게시글을 데이터베이스에서 완전히 삭제하고 캐시를 무효화합니다.</p>
      * <p>작성자 권한 검증 → 게시글 삭제 → 캐시 무효화</p>
      * <p>CASCADE로 Comment와 PostLike가 자동 삭제됩니다.</p>
@@ -125,28 +128,28 @@ public class PostCommandService {
         postRepository.delete(post);
 
         // 모든 관련 캐시 무효화
-            redisDetailPostAdapter.deleteCachePost(postId);
+        try {
             redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
             redisSimplePostAdapter.removePostFromCache(postId);
-            redisTier2PostAdapter.removePostIdFromStorage(postId);
+        } catch (Exception e) {
+            log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
+        }
     }
 
     /**
      * <h3>회원 작성 게시글 일괄 삭제 (라이트 어라운드 패턴)</h3>
      * <p>회원 탈퇴 시 사용자가 작성한 모든 게시글을 삭제하고 캐시를 무효화합니다.</p>
      * <p>FK 제약 조건 위반 방지를 위해 각 게시글의 댓글을 먼저 삭제합니다.</p>
-     * <p>삭제 순서: 댓글 삭제 → 캐시 무효화 → 게시글 삭제</p>
+     * <p>삭제 순서: 댓글 삭제 → 게시글 삭제</p>
      *
      * @param memberId 게시글을 삭제할 사용자 ID
      */
     @Transactional
     public void deleteAllPostsByMemberId(Long memberId) {
-        List<Long> postIds = postRepository.findIdsWithCacheFlagByMemberId(memberId);;
+        List<Long> postIds = postRepository.findIdsWithCacheFlagByMemberId(memberId);
         for (Long postId : postIds) {
             // FK 제약 조건 위반 방지: 게시글의 모든 댓글 먼저 삭제 (CommentClosure 포함)
             commentCommandService.deleteCommentsByPost(postId);
-            // 캐시 무효화
-            redisDetailPostAdapter.deleteCachePost(postId);
         }
         // 게시글 일괄 삭제
         postRepository.deleteAllByMemberId(memberId);

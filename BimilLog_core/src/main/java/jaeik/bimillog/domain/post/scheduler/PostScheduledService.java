@@ -8,7 +8,8 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
+
+import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.POST_CACHE_TTL_WEEKLY_LEGEND;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,6 @@ import java.util.Map;
 @Slf4j
 public class PostScheduledService {
     private final RedisSimplePostAdapter redisSimplePostAdapter;
-    private final RedisTier2PostAdapter redisTier2PostAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
     private final ApplicationEventPublisher eventPublisher;
@@ -77,11 +77,9 @@ public class PostScheduledService {
             return;
         }
 
-        List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
-
         try {
-            redisTier2PostAdapter.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
-            redisSimplePostAdapter.cachePosts(PostCacheFlag.WEEKLY, posts);
+            // Tier1에 TTL 1일로 저장 (Tier2 제거됨)
+            redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.WEEKLY, posts, POST_CACHE_TTL_WEEKLY_LEGEND);
             log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
         } catch (Exception e) {
             log.error("WEEKLY 캐시 업데이트 실패: {}", e.getMessage(), e);
@@ -108,11 +106,8 @@ public class PostScheduledService {
             return;
         }
 
-        List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
-
         try {
-            redisTier2PostAdapter.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
-            redisSimplePostAdapter.cachePosts(PostCacheFlag.LEGEND, posts);
+            redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.LEGEND, posts, POST_CACHE_TTL_WEEKLY_LEGEND);
             log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
         } catch (Exception e) {
             log.error("LEGEND 캐시 업데이트 실패: {}", e.getMessage(), e);

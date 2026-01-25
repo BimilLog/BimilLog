@@ -2,15 +2,14 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +21,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -36,10 +36,10 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>PostCommandService 테스트</h2>
  * <p>게시글 명령 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
+ * <p>Write-Through 캐시 전략을 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
- *
+ * @version 2.7.0
  */
 @DisplayName("PostCommandService 테스트")
 @Tag("unit")
@@ -47,12 +47,6 @@ class PostCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private PostToMemberAdapter postToMemberAdapter;
-
-    @Mock
-    private RedisDetailPostAdapter redisDetailPostAdapter;
-
-    @Mock
-    private RedisTier2PostAdapter redisTier2PostAdapter;
 
     @Mock
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
@@ -99,7 +93,7 @@ class PostCommandServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("게시글 수정 - 성공")
+    @DisplayName("게시글 수정 - 성공 (Write-Through)")
     void shouldUpdatePost_WhenValidAuthor() {
         // Given
         Long memberId = 1L;
@@ -109,6 +103,8 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(existingPost));
         given(existingPost.isAuthor(memberId, null)).willReturn(true);
+        // 인기글이 아닌 경우
+        given(redisSimplePostAdapter.isPopularPost(postId)).willReturn(false);
 
         // When
         postCommandService.updatePost(memberId, postId, "수정된 제목", "수정된 내용", null);
@@ -117,9 +113,41 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(postRepository, times(1)).findById(postId);
         verify(existingPost, times(1)).isAuthor(memberId, null);
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
-        verify(redisDetailPostAdapter, times(1)).deleteCachePost(postId);
-        verify(redisSimplePostAdapter, times(1)).removePostFromCache(postId);
-        verifyNoMoreInteractions(postRepository, redisDetailPostAdapter);
+        // Write-Through: 인기글 여부 확인 후 캐시 업데이트
+        verify(redisSimplePostAdapter, times(1)).isPopularPost(postId);
+    }
+
+    @Test
+    @DisplayName("게시글 수정 - 인기글인 경우 캐시 업데이트")
+    void shouldUpdatePost_WhenPopularPost() {
+        // Given
+        Long memberId = 1L;
+        Long postId = 123L;
+
+        Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "기존 제목", "기존 내용")));
+        PostSimpleDetail updatedSimple = PostSimpleDetail.builder()
+                .id(postId)
+                .title("수정된 제목")
+                .viewCount(100)
+                .likeCount(10)
+                .createdAt(Instant.now())
+                .memberId(memberId)
+                .memberName("테스트")
+                .commentCount(5)
+                .build();
+
+        given(postRepository.findById(postId)).willReturn(Optional.of(existingPost));
+        given(existingPost.isAuthor(memberId, null)).willReturn(true);
+        given(redisSimplePostAdapter.isPopularPost(postId)).willReturn(true);
+        given(postQueryRepository.findPostSimpleDetailsByIds(List.of(postId))).willReturn(List.of(updatedSimple));
+
+        // When
+        postCommandService.updatePost(memberId, postId, "수정된 제목", "수정된 내용", null);
+
+        // Then
+        verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
+        verify(redisSimplePostAdapter).isPopularPost(postId);
+        verify(redisSimplePostAdapter).updatePostInCache(postId, updatedSimple);
     }
 
     @ParameterizedTest(name = "게시글 {0} - 게시글 없음 예외")
@@ -144,7 +172,6 @@ class PostCommandServiceTest extends BaseUnitTest {
         }
 
         verify(postRepository, times(1)).findById(postId);
-        verify(redisDetailPostAdapter, never()).deleteCachePost(any());
     }
 
     @ParameterizedTest(name = "게시글 {0} - 권한 없음 예외")
@@ -175,7 +202,6 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         verify(postRepository, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId, null);
-        verify(redisDetailPostAdapter, never()).deleteCachePost(any());
     }
 
     private static Stream<Arguments> provideOperationTypes() {
@@ -206,11 +232,8 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(postToDelete, times(1)).isAuthor(memberId, null);
         // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
         verify(postRepository, times(1)).delete(postToDelete);
-        verify(redisDetailPostAdapter, times(1)).deleteCachePost(postId);
         verify(redisRealTimePostAdapter, times(1)).removePostIdFromRealtimeScore(postId);
         verify(redisSimplePostAdapter, times(1)).removePostFromCache(postId);
-        verify(redisTier2PostAdapter, times(1)).removePostIdFromStorage(postId);
-        verifyNoMoreInteractions(postRepository, redisDetailPostAdapter);
     }
 
     @Test
@@ -233,14 +256,10 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(commentCommandService, times(1)).deleteCommentsByPost(postId1);
         verify(commentCommandService, times(1)).deleteCommentsByPost(postId2);
 
-        // 캐시 삭제 확인
-        verify(redisDetailPostAdapter, times(1)).deleteCachePost(postId1);
-        verify(redisDetailPostAdapter, times(1)).deleteCachePost(postId2);
-
         // 게시글 일괄 삭제 확인
         verify(postRepository, times(1)).deleteAllByMemberId(memberId);
 
-        verifyNoMoreInteractions(postQueryRepository, postRepository, redisDetailPostAdapter, commentCommandService);
+        verifyNoMoreInteractions(postQueryRepository, postRepository, commentCommandService);
     }
 
     @Test
@@ -257,17 +276,16 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(postRepository, times(1)).findIdsWithCacheFlagByMemberId(memberId);
         verify(postRepository, times(1)).deleteAllByMemberId(memberId);
 
-        // 게시글이 없으므로 댓글 삭제와 캐시 삭제가 호출되지 않아야 함
+        // 게시글이 없으므로 댓글 삭제가 호출되지 않아야 함
         verify(commentCommandService, never()).deleteCommentsByPost(any());
-        verify(redisDetailPostAdapter, never()).deleteCachePost(any());
 
-        verifyNoMoreInteractions(postQueryRepository, postRepository, redisDetailPostAdapter, commentCommandService);
+        verifyNoMoreInteractions(postQueryRepository, postRepository, commentCommandService);
     }
 
 
     @Test
-    @DisplayName("게시글 수정 - 캐시 삭제 실패해도 정상 완료")
-    void shouldUpdatePostEvenWhenCacheDeleteFails() {
+    @DisplayName("게시글 수정 - 캐시 업데이트 실패해도 정상 완료")
+    void shouldUpdatePostEvenWhenCacheUpdateFails() {
         // Given
         Long memberId = 1L;
         Long postId = 123L;
@@ -276,13 +294,13 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(existingPost));
         given(existingPost.isAuthor(memberId, null)).willReturn(true);
-        doThrow(new RuntimeException("Cache delete failed")).when(redisDetailPostAdapter).deleteCachePost(postId);
+        doThrow(new RuntimeException("Cache update failed")).when(redisSimplePostAdapter).isPopularPost(postId);
 
         // When - 예외가 발생하지 않고 정상 완료되어야 함
         postCommandService.updatePost(memberId, postId, "title", "content", null);
 
-        // Then - 게시글 수정은 완료되고, 캐시 삭제도 시도됨
+        // Then - 게시글 수정은 완료되고, 캐시 업데이트도 시도됨
         verify(existingPost, times(1)).updatePost("title", "content");
-        verify(redisDetailPostAdapter, times(1)).deleteCachePost(postId);
+        verify(redisSimplePostAdapter, times(1)).isPopularPost(postId);
     }
 }

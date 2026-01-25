@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
 import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -42,7 +41,8 @@ import static org.mockito.Mockito.verify;
 
 /**
  * <h2>PostCacheService 테스트</h2>
- * <p>Hash 기반 캐시 조회 및 개수 비교/TTL 기반 PER 로직을 검증합니다.</p>
+ * <p>Hash 기반 캐시 조회 로직을 검증합니다.</p>
+ * <p>주간/레전드/공지는 Tier1 직접 조회, 실시간만 Score 저장소와 함께 사용합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostCacheService 테스트")
@@ -57,9 +57,6 @@ class PostCacheServiceTest {
 
     @Mock
     private RedisRealTimePostAdapter realtimeAdapter;
-
-    @Mock
-    private RedisTier2PostAdapter tier2Adapter;
 
     @Mock
     private PostCacheRefresh postCacheRefresh;
@@ -80,7 +77,6 @@ class PostCacheServiceTest {
         postCacheService = new PostCacheService(
                 postQueryRepository,
                 redisSimplePostAdapter,
-                tier2Adapter,
                 realtimeAdapter,
                 postCacheRefresh,
                 dbFallbackGateway,
@@ -101,8 +97,7 @@ class PostCacheServiceTest {
         cachedPosts.put(2L, simpleDetail2);
 
         given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0L, 5)).willReturn(List.of(1L, 2L));
-        given(realtimeAdapter.getAllPostId(PostCacheFlag.REALTIME)).willReturn(List.of());
-        given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME)).willReturn(cachedPosts);
+                given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME)).willReturn(cachedPosts);
         given(redisSimplePostAdapter.shouldRefreshHash(PostCacheFlag.REALTIME)).willReturn(false);
         given(circuitBreakerRegistry.circuitBreaker("realtimeRedis")).willReturn(circuitBreaker);
         given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.CLOSED);
@@ -132,8 +127,7 @@ class PostCacheServiceTest {
         cachedPosts.put(1L, simpleDetail1);
 
         given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0L, 5)).willReturn(List.of(1L, 2L));
-        given(realtimeAdapter.getAllPostId(PostCacheFlag.REALTIME)).willReturn(List.of());
-        given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME)).willReturn(cachedPosts);
+                given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME)).willReturn(cachedPosts);
         given(redisSimplePostAdapter.shouldRefreshOnMismatch(PostCacheFlag.REALTIME)).willReturn(true);
         given(circuitBreakerRegistry.circuitBreaker("realtimeRedis")).willReturn(circuitBreaker);
         given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.CLOSED);
@@ -158,8 +152,7 @@ class PostCacheServiceTest {
         cachedPosts.put(1L, simpleDetail1);
 
         given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0L, 5)).willReturn(List.of(1L, 2L));
-        given(realtimeAdapter.getAllPostId(PostCacheFlag.REALTIME)).willReturn(List.of());
-        given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME)).willReturn(cachedPosts);
+                given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME)).willReturn(cachedPosts);
         given(redisSimplePostAdapter.shouldRefreshOnMismatch(PostCacheFlag.REALTIME)).willReturn(false);
         given(circuitBreakerRegistry.circuitBreaker("realtimeRedis")).willReturn(circuitBreaker);
         given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.CLOSED);
@@ -183,8 +176,7 @@ class PostCacheServiceTest {
         cachedPosts.put(1L, simpleDetail1);
 
         given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0L, 5)).willReturn(List.of(1L));
-        given(realtimeAdapter.getAllPostId(PostCacheFlag.REALTIME)).willReturn(List.of());
-        given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME)).willReturn(cachedPosts);
+                given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME)).willReturn(cachedPosts);
         given(redisSimplePostAdapter.shouldRefreshHash(PostCacheFlag.REALTIME)).willReturn(true); // TTL 임박
         given(circuitBreakerRegistry.circuitBreaker("realtimeRedis")).willReturn(circuitBreaker);
         given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.CLOSED);
@@ -206,8 +198,7 @@ class PostCacheServiceTest {
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
 
         given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0L, 5)).willReturn(List.of(1L));
-        given(realtimeAdapter.getAllPostId(PostCacheFlag.REALTIME)).willReturn(List.of());
-        given(circuitBreakerRegistry.circuitBreaker("realtimeRedis")).willReturn(circuitBreaker);
+                given(circuitBreakerRegistry.circuitBreaker("realtimeRedis")).willReturn(circuitBreaker);
         given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.OPEN);
         given(postQueryRepository.findPostSimpleDetailsByIds(List.of(1L))).willReturn(List.of(simpleDetail1));
 
@@ -229,40 +220,57 @@ class PostCacheServiceTest {
     }
 
     @Test
-    @DisplayName("주간 인기글 조회 - 캐시 히트")
+    @DisplayName("주간 인기글 조회 - 캐시 히트 (Tier1 직접 조회)")
     void shouldGetWeeklyPosts_CacheHit() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail weeklyPost1 = PostTestDataBuilder.createPostSearchResult(1L, "주간 인기글 1");
         PostSimpleDetail weeklyPost2 = PostTestDataBuilder.createPostSearchResult(2L, "주간 인기글 2");
 
-        Map<Long, PostSimpleDetail> cachedPosts = new HashMap<>();
-        cachedPosts.put(1L, weeklyPost1);
-        cachedPosts.put(2L, weeklyPost2);
-
-        given(tier2Adapter.getRangePostId(PostCacheFlag.WEEKLY, 0L, 10)).willReturn(List.of(1L, 2L));
-        given(tier2Adapter.getAllPostId(PostCacheFlag.WEEKLY)).willReturn(List.of(1L, 2L));
-        given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.WEEKLY)).willReturn(cachedPosts);
-        given(redisSimplePostAdapter.shouldRefreshHash(PostCacheFlag.WEEKLY)).willReturn(false);
+        // Tier1에서 직접 List로 조회 (Tier2 제거됨)
+        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.WEEKLY))
+                .willReturn(List.of(weeklyPost2, weeklyPost1)); // ID 역순 정렬
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("주간 인기글 1");
-        assertThat(result.getContent().get(1).getTitle()).isEqualTo("주간 인기글 2");
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.WEEKLY);
         verify(postCacheRefresh, never()).asyncRefreshAllPosts(any(), any());
     }
 
-    @ParameterizedTest(name = "{0} - Tier2 비어있음")
+    @ParameterizedTest(name = "{0} - 캐시 비어있음 - DB 폴백")
     @EnumSource(value = PostCacheFlag.class, names = {"WEEKLY", "LEGEND", "NOTICE"})
-    @DisplayName("Tier2 캐시 비어있음 - 빈 페이지 반환")
-    void shouldReturnEmptyPage_WhenTier2Empty(PostCacheFlag flag) {
+    @DisplayName("캐시 비어있음 - DB 폴백 후 스케줄러 대기")
+    @SuppressWarnings("unchecked")
+    void shouldFallbackToDb_WhenCacheEmpty(PostCacheFlag flag) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        given(tier2Adapter.getRangePostId(flag, 0L, 10)).willReturn(List.of());
-        given(tier2Adapter.getAllPostId(flag)).willReturn(List.of());
+        PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 게시글");
+        Page<PostSimpleDetail> fallbackPage = new PageImpl<>(List.of(post), pageable, 1);
+
+        given(redisSimplePostAdapter.getAllCachedPostsList(flag)).willReturn(List.of());
+
+        FallbackType fallbackType = switch (flag) {
+            case WEEKLY -> FallbackType.WEEKLY;
+            case LEGEND -> FallbackType.LEGEND;
+            case NOTICE -> FallbackType.NOTICE;
+            default -> throw new IllegalArgumentException("Unsupported flag: " + flag);
+        };
+
+        given(dbFallbackGateway.execute(eq(fallbackType), any(Pageable.class), any(Supplier.class)))
+                .willAnswer(invocation -> {
+                    Supplier<Page<PostSimpleDetail>> supplier = invocation.getArgument(2);
+                    return supplier.get();
+                });
+
+        switch (flag) {
+            case WEEKLY -> given(postQueryRepository.findWeeklyPopularPosts(pageable)).willReturn(fallbackPage);
+            case LEGEND -> given(postQueryRepository.findLegendaryPosts(pageable)).willReturn(fallbackPage);
+            case NOTICE -> given(postQueryRepository.findNoticePosts(pageable)).willReturn(fallbackPage);
+        }
 
         // When
         Page<PostSimpleDetail> result = switch (flag) {
@@ -273,50 +281,38 @@ class PostCacheServiceTest {
         };
 
         // Then
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isZero();
+        assertThat(result.getContent()).hasSize(1);
+        verify(dbFallbackGateway).execute(eq(fallbackType), any(Pageable.class), any(Supplier.class));
     }
 
     @Test
-    @DisplayName("레전드 인기 게시글 페이징 조회")
+    @DisplayName("레전드 인기 게시글 페이징 조회 (Tier1 직접 조회)")
     void shouldGetPopularPostLegend() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail legendPost1 = PostTestDataBuilder.createPostSearchResult(1L, "레전드 게시글 1");
         PostSimpleDetail legendPost2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
 
-        Map<Long, PostSimpleDetail> cachedPosts = new HashMap<>();
-        cachedPosts.put(1L, legendPost1);
-        cachedPosts.put(2L, legendPost2);
-
-        given(tier2Adapter.getRangePostId(PostCacheFlag.LEGEND, 0L, 10)).willReturn(List.of(1L, 2L));
-        given(tier2Adapter.getAllPostId(PostCacheFlag.LEGEND)).willReturn(List.of(1L, 2L));
-        given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.LEGEND)).willReturn(cachedPosts);
-        given(redisSimplePostAdapter.shouldRefreshHash(PostCacheFlag.LEGEND)).willReturn(false);
+        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.LEGEND))
+                .willReturn(List.of(legendPost2, legendPost1));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("레전드 게시글 1");
-        assertThat(result.getContent().get(1).getTitle()).isEqualTo("레전드 게시글 2");
+        verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.LEGEND);
     }
 
     @Test
-    @DisplayName("공지사항 조회 - 캐시 히트")
+    @DisplayName("공지사항 조회 - 캐시 히트 (Tier1 직접 조회)")
     void shouldGetNoticePosts_CacheHit() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
 
-        Map<Long, PostSimpleDetail> cachedPosts = new HashMap<>();
-        cachedPosts.put(1L, noticePost);
-
-        given(tier2Adapter.getRangePostId(PostCacheFlag.NOTICE, 0L, 10)).willReturn(List.of(1L));
-        given(tier2Adapter.getAllPostId(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
-        given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.NOTICE)).willReturn(cachedPosts);
-        given(redisSimplePostAdapter.shouldRefreshHash(PostCacheFlag.NOTICE)).willReturn(false);
+        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.NOTICE))
+                .willReturn(List.of(noticePost));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getNoticePosts(pageable);
@@ -324,6 +320,7 @@ class PostCacheServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("공지사항");
+        verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.NOTICE);
     }
 
     @ParameterizedTest(name = "{0} - Redis 장애 시 DB fallback")
@@ -336,7 +333,7 @@ class PostCacheServiceTest {
         PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, expectedTitle);
         Page<PostSimpleDetail> fallbackPage = new PageImpl<>(List.of(post), pageable, 1);
 
-        given(tier2Adapter.getRangePostId(eq(cacheFlag), eq(0L), eq(10)))
+        given(redisSimplePostAdapter.getAllCachedPostsList(cacheFlag))
                 .willThrow(new RuntimeException("Redis connection failed"));
 
         given(dbFallbackGateway.execute(eq(fallbackType), any(Pageable.class), any(Supplier.class)))
@@ -381,8 +378,7 @@ class PostCacheServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0L, 5)).willReturn(List.of());
-        given(realtimeAdapter.getAllPostId(PostCacheFlag.REALTIME)).willReturn(List.of());
-
+        
         // When
         Page<PostSimpleDetail> result = postCacheService.getRealtimePosts(pageable);
 

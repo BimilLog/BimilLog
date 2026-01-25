@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.scheduler.PostScheduledService;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -21,32 +20,32 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.POST_CACHE_TTL_WEEKLY_LEGEND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
  * <h2>PostScheduledService 테스트</h2>
  * <p>게시글 캐시 동기화 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>스케줄링, 이벤트 처리, 캐시 무효화 등의 복잡한 시나리오를 다양하게 테스트합니다.</p>
+ * <p>주간/레전드는 Tier1 Hash에 TTL 1일로 직접 저장합니다 (Tier2 제거됨).</p>
  *
  * @author Jaeik
- * @version 2.5.0
+ * @version 2.7.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostScheduledService 테스트")
 @Tag("unit")
 class PostScheduledServiceTest {
-
-    @Mock
-    private RedisTier2PostAdapter redisTier2PostAdapter;
 
     @Mock
     private RedisSimplePostAdapter redisSimplePostAdapter;
@@ -86,7 +85,7 @@ class PostScheduledServiceTest {
     }
 
     @Test
-    @DisplayName("주간 인기 게시글 업데이트 - 성공 (이벤트 발행 포함)")
+    @DisplayName("주간 인기 게시글 업데이트 - 성공 (TTL 1일로 Tier1에 직접 저장)")
     void shouldUpdateWeeklyPopularPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail post1 = createPostSimpleDetail(1L, "주간인기글1", 1L);
@@ -100,8 +99,8 @@ class PostScheduledServiceTest {
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisTier2PostAdapter).cachePostIdsOnly(eq(PostCacheFlag.WEEKLY), eq(List.of(1L, 2L)));
-        verify(redisSimplePostAdapter).cachePosts(eq(PostCacheFlag.WEEKLY), any());
+        // Tier1에 TTL 1일로 직접 저장 (Tier2 제거됨)
+        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.WEEKLY), any(), eq(POST_CACHE_TTL_WEEKLY_LEGEND));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -130,8 +129,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisTier2PostAdapter).cachePostIdsOnly(eq(PostCacheFlag.WEEKLY), any());
-        verify(redisSimplePostAdapter).cachePosts(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.WEEKLY), any(), any(Duration.class));
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -143,7 +141,7 @@ class PostScheduledServiceTest {
     }
 
     @Test
-    @DisplayName("전설의 게시글 업데이트 - 성공 (명예의 전당 메시지)")
+    @DisplayName("전설의 게시글 업데이트 - 성공 (TTL 1일로 Tier1에 직접 저장)")
     void shouldUpdateLegendaryPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
@@ -156,8 +154,8 @@ class PostScheduledServiceTest {
         postScheduledService.updateLegendaryPosts();
 
         // Then
-        verify(redisTier2PostAdapter).cachePostIdsOnly(eq(PostCacheFlag.LEGEND), eq(List.of(1L)));
-        verify(redisSimplePostAdapter).cachePosts(eq(PostCacheFlag.LEGEND), any());
+        // Tier1에 TTL 1일로 직접 저장 (Tier2 제거됨)
+        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.LEGEND), any(), eq(POST_CACHE_TTL_WEEKLY_LEGEND));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -183,8 +181,7 @@ class PostScheduledServiceTest {
         verify(postQueryRepository).findLegendaryPosts();
 
         // 게시글이 없으면 캐시 및 이벤트 발행 안함
-        verify(redisTier2PostAdapter, never()).cachePostIdsOnly(any(), any());
-        verify(redisSimplePostAdapter, never()).cachePosts(any(), any());
+        verify(redisSimplePostAdapter, never()).cachePostsWithTtl(any(), any(), any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -221,8 +218,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisTier2PostAdapter).cachePostIdsOnly(eq(PostCacheFlag.WEEKLY), any());
-        verify(redisSimplePostAdapter).cachePosts(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.WEEKLY), any(), any(Duration.class));
 
         // 100개 게시글 중 userId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));
