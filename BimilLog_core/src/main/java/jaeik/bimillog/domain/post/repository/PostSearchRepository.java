@@ -5,7 +5,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.QPost;
+import jaeik.bimillog.domain.post.entity.QPost;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
