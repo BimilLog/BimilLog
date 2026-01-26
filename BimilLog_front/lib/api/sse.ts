@@ -14,6 +14,8 @@ export class SSEManager {
   private connectedToastShown = false
   private authChecker: (() => boolean) | null = null
   private connectionOpened = false
+  private consecutiveErrors = 0
+  private maxConsecutiveErrors = 5
 
   constructor() {
     this.setupNetworkListeners()
@@ -79,6 +81,7 @@ export class SSEManager {
         logger.log("SSE connection opened successfully", event)
         this.connectionOpened = true
         this.reconnectAttempts = 0
+        this.consecutiveErrors = 0
 
         // 재연결 성공인지 최초 연결 성공인지 구분
         if (this.wasConnected) {
@@ -202,7 +205,16 @@ export class SSEManager {
             this.disconnect()
             return
           }
-          logger.log("브라우저가 자동으로 재연결 중입니다 (5초 간격)")
+
+          // 연속 에러 횟수 제한 (토큰 만료 등으로 403 반복 시 무한 재연결 방지)
+          this.consecutiveErrors++
+          if (this.consecutiveErrors >= this.maxConsecutiveErrors) {
+            logger.error(`SSE 브라우저 자동 재연결 연속 에러 ${this.consecutiveErrors}회 초과 - 연결을 종료합니다.`)
+            this.disconnect()
+            return
+          }
+
+          logger.log(`브라우저가 자동으로 재연결 중입니다 (${this.consecutiveErrors}/${this.maxConsecutiveErrors})`)
           this.notifyStatusListeners('reconnecting')
         }
       }
@@ -218,6 +230,7 @@ export class SSEManager {
       this.eventSource.close()
       this.eventSource = null
       this.reconnectAttempts = 0
+      this.consecutiveErrors = 0
       this.wasConnected = false
       this.connectionOpened = false
       this.notifyStatusListeners('disconnected')
