@@ -40,7 +40,7 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>PostScheduledService 테스트</h2>
  * <p>게시글 캐시 동기화 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>주간/레전드는 Tier1 Hash에 TTL 1일로 직접 저장합니다 (Tier2 제거됨).</p>
+ * <p>주간/레전드는 Hash 캐시에 TTL 1일로 직접 저장합니다.</p>
  *
  * @author Jaeik
  * @version 2.7.0
@@ -94,7 +94,7 @@ class PostScheduledServiceTest {
     }
 
     @Test
-    @DisplayName("주간 인기 게시글 업데이트 - 성공 (TTL 1일로 Tier1에 직접 저장)")
+    @DisplayName("주간 인기 게시글 업데이트 - 성공 (TTL 1일로 Hash 캐시에 직접 저장)")
     void shouldUpdateWeeklyPopularPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail post1 = createPostSimpleDetail(1L, "주간인기글1", 1L);
@@ -108,7 +108,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        // Tier1에 TTL 1일로 직접 저장 (Tier2 제거됨)
+        // Hash 캐시에 TTL 1일로 직접 저장
         verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.WEEKLY), any(), eq(POST_CACHE_TTL_WEEKLY_LEGEND));
 
         // 이벤트 발행 검증
@@ -150,7 +150,7 @@ class PostScheduledServiceTest {
     }
 
     @Test
-    @DisplayName("전설의 게시글 업데이트 - 성공 (TTL 1일로 Tier1에 직접 저장)")
+    @DisplayName("전설의 게시글 업데이트 - 성공 (TTL 1일로 Hash 캐시에 직접 저장)")
     void shouldUpdateLegendaryPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
@@ -163,7 +163,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateLegendaryPosts();
 
         // Then
-        // Tier1에 TTL 1일로 직접 저장 (Tier2 제거됨)
+        // Hash 캐시에 TTL 1일로 직접 저장
         verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.LEGEND), any(), eq(POST_CACHE_TTL_WEEKLY_LEGEND));
 
         // 명예의 전당 이벤트 검증

@@ -90,7 +90,7 @@ public class PostScheduledService {
         saveFeaturedPosts(posts, PostCacheFlag.WEEKLY);
 
         try {
-            // Tier1에 TTL 1일로 저장 (Tier2 제거됨)
+            // Hash 캐시에 TTL 1분으로 저장
             redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.WEEKLY, posts, POST_CACHE_TTL_WEEKLY_LEGEND);
             log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
         } catch (Exception e) {

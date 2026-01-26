@@ -44,15 +44,20 @@ public final class RedisPostKeys {
     // ===================== 2. TTL (Time To Live, 만료 시간) =====================
 
     /**
-     * 실시간 인기글 캐시 TTL (5분)
+     * 실시간 인기글 캐시 TTL (1분)
      */
-    public static final Duration POST_CACHE_TTL_REALTIME = Duration.ofMinutes(5);
+    public static final Duration POST_CACHE_TTL_REALTIME = Duration.ofMinutes(1);
 
     /**
-     * 주간/레전드 인기글 캐시 TTL (1일)
-     * <p>Tier1 Hash에 직접 적용되며, Tier2는 제거됨</p>
+     * 주간/레전드 인기글 캐시 TTL (1분)
+     * <p>Hash 캐시에 직접 적용</p>
      */
-    public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofDays(1);
+    public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofMinutes(1);
+
+    /**
+     * 공지사항 캐시 TTL (5분)
+     */
+    public static final Duration POST_CACHE_TTL_NOTICE = Duration.ofMinutes(5);
 
 
     // ===================== 3. SCORE CONSTANTS (점수 관련 상수) =====================
@@ -69,18 +74,27 @@ public final class RedisPostKeys {
      */
     public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
 
-    // ===================== 4. LOCK (분산 락) =====================
+    // ===================== 4. PER (Probabilistic Early Refresh) =====================
 
     /**
-     * 실시간 인기글 캐시 갱신 락 키
-     * <p>ID 불일치 시 중복 갱신을 방지하기 위한 분산 락</p>
+     * PER 갱신 임계값 (15초)
+     * <p>TTL이 이 값 미만일 때 확률적으로 캐시를 선제 갱신합니다.</p>
+     * <p>공식: (현재TTL - (랜덤값(0~1) × 15)) ≤ 0 이면 갱신</p>
      */
-    public static final String REALTIME_REFRESH_LOCK_KEY = "post:realtime:refresh:lock";
+    public static final int PER_EXPIRY_GAP_SECONDS = 15;
+
+    // ===================== 5. LOCK (분산 락) =====================
 
     /**
-     * 실시간 인기글 캐시 갱신 락 TTL (30초)
+     * 캐시 갱신 락 키 접미사
+     * <p>전체 키 형식: post:{type}:refresh:lock</p>
      */
-    public static final Duration REALTIME_REFRESH_LOCK_TTL = Duration.ofSeconds(30);
+    public static final String REFRESH_LOCK_SUFFIX = ":refresh:lock";
+
+    /**
+     * 캐시 갱신 락 TTL (5초)
+     */
+    public static final Duration REFRESH_LOCK_TTL = Duration.ofSeconds(5);
 
     // ===================== 6. KEY GENERATION METHODS (키 생성 유틸리티) =====================
 
@@ -109,5 +123,17 @@ public final class RedisPostKeys {
      */
     public static String getSimplePostHashKey(PostCacheFlag type) {
         return POST_PREFIX + type.name().toLowerCase() + SIMPLE_POST_HASH_SUFFIX;
+    }
+
+    /**
+     * <h3>캐시 갱신 락 키 생성</h3>
+     * <p>타입별 분산 락 키를 생성합니다.</p>
+     * <p>예: post:weekly:refresh:lock, post:realtime:refresh:lock</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @return 생성된 락 키 (형식: post:{type}:refresh:lock)
+     */
+    public static String getRefreshLockKey(PostCacheFlag type) {
+        return POST_PREFIX + type.name().toLowerCase() + REFRESH_LOCK_SUFFIX;
     }
 }

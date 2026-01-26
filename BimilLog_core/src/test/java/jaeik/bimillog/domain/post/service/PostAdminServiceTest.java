@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>PostAdminService 테스트</h2>
  * <p>게시글 공지사항 서비스의 핵심 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>공지 설정/해제 시 Tier1 Hash에 직접 추가/제거합니다 (Tier2 제거됨).</p>
+ * <p>공지 설정/해제 시 Hash 캐시에 직접 추가/제거합니다.</p>
  *
  * @author Jaeik
  * @version 2.7.0
@@ -83,7 +84,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).setAsNotice();
         verify(postQueryRepository).findPostSimpleDetailsByIds(List.of(postId));
-        verify(redisSimplePostAdapter).addPostToCache(PostCacheFlag.NOTICE, postId, mockDetail);
+        verify(redisSimplePostAdapter).addPostToCache(PostCacheFlag.NOTICE, postId, mockDetail, RedisPostKeys.POST_CACHE_TTL_NOTICE);
     }
 
     @Test

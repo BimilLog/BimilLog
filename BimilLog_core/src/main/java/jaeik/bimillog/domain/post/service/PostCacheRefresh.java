@@ -40,31 +40,9 @@ public class PostCacheRefresh {
     private final DbFallbackGateway dbFallbackGateway;
 
     /**
-     * <h3>타입별 전체 Hash 캐시 비동기 갱신 (PER 기반)</h3>
-     * <p>TTL 만료 임박 시 확률적으로 호출됩니다.</p>
-     * <p>PER은 이미 확률적으로 분산되어 있어 락을 사용하지 않습니다.</p>
-     *
-     * @param type 캐시 유형
-     */
-    @Async("cacheRefreshExecutor")
-    @Retryable(
-            retryFor = RedisConnectionFailureException.class,
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 500, multiplier = 1)
-    )
-    public void asyncRefreshAllPosts(PostCacheFlag type, List<Long> allPostIds) {
-        refreshInternal(type, allPostIds);
-    }
-
-    @Recover
-    public void recoverRefreshAllPosts(RedisConnectionFailureException e, PostCacheFlag type, List<Long> allPostIds) {
-        log.debug("목록 캐시 갱신 스킵: type={}", type);
-    }
-
-    /**
      * <h3>타입별 전체 Hash 캐시 비동기 갱신 (락 해제 포함)</h3>
-     * <p>ID 불일치 시 SET NX 락을 획득한 스레드가 호출합니다.</p>
-     * <p>갱신 완료 후 락을 해제하여 다음 불일치 시 다시 갱신할 수 있도록 합니다.</p>
+     * <p>캐시 미스 시 SET NX 락을 획득한 스레드가 호출합니다.</p>
+     * <p>갱신 완료 후 락을 해제하여 다음 캐시 미스 시 다시 갱신할 수 있도록 합니다.</p>
      *
      * @param type       캐시 유형
      * @param allPostIds 갱신할 postId 목록
@@ -79,14 +57,32 @@ public class PostCacheRefresh {
         try {
             refreshInternal(type, allPostIds);
         } finally {
-            redisSimplePostAdapter.releaseRefreshLock();
+            redisSimplePostAdapter.releaseRefreshLock(type);
         }
     }
 
     @Recover
     public void recoverRefreshAllPostsWithLock(RedisConnectionFailureException e, PostCacheFlag type, List<Long> allPostIds) {
         log.debug("목록 캐시 갱신 스킵 (락 해제): type={}", type);
-        redisSimplePostAdapter.releaseRefreshLock();
+        redisSimplePostAdapter.releaseRefreshLock(type);
+    }
+
+    /**
+     * <h3>타입별 전체 Hash 캐시 비동기 갱신 (PER용, 락 없음)</h3>
+     * <p>PER 선제 갱신 시 호출됩니다. 락 없이 비동기로 갱신합니다.</p>
+     * <p>PER은 확률적 메커니즘이므로 자체적으로 동시 갱신이 제한되며, 스레드풀이 자연스러운 스로틀링 역할을 합니다.</p>
+     * <p>실패 시 재시도하지 않습니다. 캐시 만료 시 캐시 미스 경로에서 락 기반 갱신이 실행됩니다.</p>
+     *
+     * @param type       캐시 유형
+     * @param allPostIds 갱신할 postId 목록 (REALTIME: ZSet에서 조회한 ID, 그 외: 빈 리스트)
+     */
+    @Async("cacheRefreshExecutor")
+    public void asyncRefreshAllPosts(PostCacheFlag type, List<Long> allPostIds) {
+        try {
+            refreshInternal(type, allPostIds);
+        } catch (Exception e) {
+            log.debug("[PER] 목록 캐시 갱신 실패: type={}, error={}", type, e.getMessage());
+        }
     }
 
     /**

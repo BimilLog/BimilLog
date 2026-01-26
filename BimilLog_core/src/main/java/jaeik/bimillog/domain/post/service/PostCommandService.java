@@ -4,8 +4,6 @@ import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -37,7 +35,6 @@ import java.util.List;
 @Log
 public class PostCommandService {
     private final PostRepository postRepository;
-    private final PostQueryRepository postQueryRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final CommentCommandService commentCommandService;
@@ -65,9 +62,9 @@ public class PostCommandService {
 
 
     /**
-     * <h3>게시글 수정 (Write-Through 패턴)</h3>
-     * <p>기존 게시글의 제목과 내용을 수정하고 캐시를 업데이트합니다.</p>
-     * <p>작성자 권한 검증 → 게시글 업데이트 → 캐시 업데이트 (TTL 1일 동안 캐시 동기화)</p>
+     * <h3>게시글 수정 (Cache Invalidation 패턴)</h3>
+     * <p>기존 게시글의 제목과 내용을 수정하고 캐시를 무효화합니다.</p>
+     * <p>작성자 권한 검증 → 게시글 업데이트 → 캐시 무효화</p>
      * <p>{@link PostCommandController}에서 게시글 수정 API 처리 시 호출됩니다.</p>
      *
      * @param memberId  현재 로그인 사용자 ID
@@ -93,16 +90,11 @@ public class PostCommandService {
         // 글 수정
         post.updatePost(title, content);
 
-        // 캐시 업데이트 (Write-Through) - 인기글인 경우 Tier1 Hash 업데이트
+        // 캐시 무효화 - 인기글인 경우 해당 Hash 필드 삭제
         try {
-            if (redisSimplePostAdapter.isPopularPost(postId)) {
-                List<PostSimpleDetail> details = postQueryRepository.findPostSimpleDetailsByIds(List.of(postId));
-                if (!details.isEmpty()) {
-                    redisSimplePostAdapter.updatePostInCache(postId, details.get(0));
-                }
-            }
+            redisSimplePostAdapter.removePostFromCache(postId);
         } catch (Exception e) {
-            log.warn("게시글 {} 캐시 업데이트 실패: {}", postId, e.getMessage());
+            log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
         }
     }
 

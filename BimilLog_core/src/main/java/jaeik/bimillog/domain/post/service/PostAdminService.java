@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.POST_CACHE_TTL_NOTICE;
+
 /**
  * <h2>게시글 관리자 서비스</h2>
  * <p>게시글 도메인의 관리자 전용 기능을 처리하는 서비스입니다.</p>
@@ -38,7 +40,7 @@ public class PostAdminService {
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
      * <p>일반 게시글이면 공지로 설정하고, 공지 게시글이면 일반으로 해제합니다.</p>
-     * <p>Tier1 Hash에 직접 추가/제거하고, featured_post 테이블에도 반영합니다.</p>
+     * <p>Hash 캐시에 직접 추가/제거하고, featured_post 테이블에도 반영합니다.</p>
      *
      * @param postId 공지 토글할 게시글 ID
      */
@@ -48,13 +50,13 @@ public class PostAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (post.isNotice()) {
-            // 공지 해제: DB 상태 변경 + featured_post 삭제 + Tier1 Hash에서 제거
+            // 공지 해제: DB 상태 변경 + featured_post 삭제 + Hash 캐시에서 제거
             post.unsetAsNotice();
             featuredPostRepository.deleteByPostIdAndType(postId, PostCacheFlag.NOTICE);
             redisSimplePostAdapter.removePostFromCache(PostCacheFlag.NOTICE, postId);
             log.info("공지 해제 완료: postId={}", postId);
         } else {
-            // 공지 설정: DB 상태 변경 + featured_post 저장 + Tier1 Hash에 추가
+            // 공지 설정: DB 상태 변경 + featured_post 저장 + Hash 캐시에 추가
             post.setAsNotice();
             FeaturedPost featuredPost = FeaturedPost.createNotice(post);
             featuredPostRepository.save(featuredPost);
@@ -62,7 +64,7 @@ public class PostAdminService {
             // PostSimpleDetail 조회 후 캐시에 추가
             List<PostSimpleDetail> details = postQueryRepository.findPostSimpleDetailsByIds(List.of(postId));
             if (!details.isEmpty()) {
-                redisSimplePostAdapter.addPostToCache(PostCacheFlag.NOTICE, postId, details.get(0));
+                redisSimplePostAdapter.addPostToCache(PostCacheFlag.NOTICE, postId, details.get(0), POST_CACHE_TTL_NOTICE);
             }
             log.info("공지 설정 완료: postId={}", postId);
         }

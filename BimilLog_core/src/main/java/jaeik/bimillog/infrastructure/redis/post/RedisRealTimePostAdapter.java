@@ -16,7 +16,7 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 
 /**
  * <h2>레디스 실시간 인기글 저장소 어댑터</h2>
- * <p>티어2 이자 실시간 인기글 ID를 관리한다.</p>
+ * <p>실시간 인기글 ZSet 기반으로 인기글 ID를 관리합니다.</p>
  *
  * @author Jaeik
  * @version 2.5.1
