@@ -45,7 +45,7 @@ import static org.mockito.Mockito.*;
  * <p>상세 캐시 제거됨 - 모든 상세 조회는 DB에서 직접 수행</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.6.0
  */
 @DisplayName("PostQueryService 테스트")
 @Tag("unit")

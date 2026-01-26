@@ -15,7 +15,9 @@ import org.springframework.stereotype.Component;
  * @version 2.6.0
  * @see HotKeyMonitor
  * @see HotKeyAccessRecorder
+ * @deprecated 2.7.0부터 사용 중단. 스케줄러 기반 캐시 갱신으로 대체.
  */
+@Deprecated(since = "2.7.0", forRemoval = true)
 @Aspect
 @Component
 @RequiredArgsConstructor

@@ -75,23 +75,6 @@ public class AsyncConfig {
     }
 
     /**
-     * 캐시 갱신 전용 스레드 풀
-     * <p>PER 기법에서 비동기 캐시 갱신에 사용됩니다.</p>
-     */
-    @Bean(name = "cacheRefreshExecutor")
-    public Executor cacheRefreshExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2); // 기본 스레드 수
-        executor.setMaxPoolSize(5); // 최대 스레드 수
-        executor.setQueueCapacity(50); // 대기열 크기
-        executor.setThreadNamePrefix("cache-refresh-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy()); // 대기열 가득 차면 호출 스레드에서 실행
-        executor.initialize();
-        return executor;
-    }
-
-
-    /**
      * 멤버 로그아웃, 회원탈퇴, 밴 전용 스레드 풀
      * <p>회원 상태 변경 시 발생하는 정리 작업을 처리합니다.</p>
      * <p>SSE 연결 해제, 토큰 삭제, 소셜 계정 연동 해제 등의 작업을 포함합니다.</p>
@@ -141,6 +124,24 @@ public class AsyncConfig {
         executor.setMaxPoolSize(10); // 최대 스레드 수
         executor.setQueueCapacity(200); // 대기열 크기 (조회수는 지연되어도 괜찮음)
         executor.setThreadNamePrefix("view-count-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
+        return executor;
+    }
+
+    /**
+     * 캐시 갱신 전용 스레드 풀
+     * <p>조회 시 HASH-ZSET 불일치 감지 후 비동기 HASH 갱신에 사용됩니다.</p>
+     */
+    @Bean(name = "cacheRefreshExecutor")
+    public Executor cacheRefreshExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(10);
+        executor.setThreadNamePrefix("cache-refresh-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());

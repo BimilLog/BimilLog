@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>로컬 Redis 환경에서 Hash 기반 게시글 캐시 어댑터의 핵심 기능을 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.6.0
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("local-integration")
@@ -115,7 +115,7 @@ class RedisSimplePostAdapterIntegrationTest {
                 toSimpleDetail(testPostDetail1),
                 toSimpleDetail(testPostDetail2)
         );
-        redisSimplePostAdapter.cachePosts(type, posts);
+        redisSimplePostAdapter.cachePostsWithTtl(type, posts, RedisPostKeys.getTtlForType(type));
 
         // When: HGETALL로 조회
         Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getAllCachedPosts(type);
@@ -147,14 +147,14 @@ class RedisSimplePostAdapterIntegrationTest {
         List<PostSimpleDetail> posts = List.of(toSimpleDetail(testPostDetail1));
 
         // When: 저장
-        redisSimplePostAdapter.cachePosts(type, posts);
+        redisSimplePostAdapter.cachePostsWithTtl(type, posts, RedisPostKeys.getTtlForType(type));
 
         // Then: Hash 키 존재 및 TTL 확인
         String hashKey = RedisPostKeys.getSimplePostHashKey(type);
         assertThat(redisTemplate.hasKey(hashKey)).isTrue();
 
         Long ttl = redisTemplate.getExpire(hashKey, TimeUnit.SECONDS);
-        assertThat(ttl).isBetween(290L, 300L); // 5분 TTL
+        assertThat(ttl).isBetween(88190L, 88200L); // 24시간 30분 TTL
 
         // Hash 필드 확인
         Object cachedValue = redisTemplate.opsForHash().get(hashKey, "1");
@@ -173,7 +173,7 @@ class RedisSimplePostAdapterIntegrationTest {
         );
 
         // When: 여러 개 저장 (HMSET)
-        redisSimplePostAdapter.cachePosts(type, posts);
+        redisSimplePostAdapter.cachePostsWithTtl(type, posts, RedisPostKeys.getTtlForType(type));
 
         // Then: Hash 키 존재 확인
         String hashKey = RedisPostKeys.getSimplePostHashKey(type);
@@ -197,7 +197,7 @@ class RedisSimplePostAdapterIntegrationTest {
         List<PostSimpleDetail> posts = List.of(toSimpleDetail(testPostDetail1));
 
         for (PostCacheFlag type : PostCacheFlag.values()) {
-            redisSimplePostAdapter.cachePosts(type, posts);
+            redisSimplePostAdapter.cachePostsWithTtl(type, posts, RedisPostKeys.getTtlForType(type));
         }
 
         // 저장 확인
@@ -223,8 +223,8 @@ class RedisSimplePostAdapterIntegrationTest {
         Long postId = 1L;
         List<PostSimpleDetail> posts = List.of(toSimpleDetail(testPostDetail1));
 
-        redisSimplePostAdapter.cachePosts(PostCacheFlag.WEEKLY, posts);
-        redisSimplePostAdapter.cachePosts(PostCacheFlag.LEGEND, posts);
+        redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.WEEKLY, posts, RedisPostKeys.getTtlForType(PostCacheFlag.WEEKLY));
+        redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.LEGEND, posts, RedisPostKeys.getTtlForType(PostCacheFlag.LEGEND));
 
         // When: WEEKLY만 삭제
         redisSimplePostAdapter.removePostFromCache(PostCacheFlag.WEEKLY, postId);
@@ -264,92 +264,4 @@ class RedisSimplePostAdapterIntegrationTest {
                 .isEqualTo("post:realtime:simple");
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 타입별 갱신 락 획득 성공 (SET NX)")
-    void shouldAcquireRefreshLock_WhenLockNotExists() {
-        // Given: 락이 없는 상태
-        PostCacheFlag type = PostCacheFlag.REALTIME;
-
-        // When
-        boolean acquired = redisSimplePostAdapter.tryAcquireRefreshLock(type);
-
-        // Then
-        assertThat(acquired).isTrue();
-        assertThat(redisTemplate.hasKey(RedisPostKeys.getRefreshLockKey(type))).isTrue();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 갱신 락 획득 실패 (이미 존재)")
-    void shouldFailToAcquireLock_WhenLockExists() {
-        // Given: 이미 락이 존재
-        PostCacheFlag type = PostCacheFlag.WEEKLY;
-        redisSimplePostAdapter.tryAcquireRefreshLock(type);
-
-        // When: 두 번째 획득 시도
-        boolean acquired = redisSimplePostAdapter.tryAcquireRefreshLock(type);
-
-        // Then
-        assertThat(acquired).isFalse();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 갱신 락 해제")
-    void shouldReleaseLock() {
-        // Given: 락 획득
-        PostCacheFlag type = PostCacheFlag.LEGEND;
-        redisSimplePostAdapter.tryAcquireRefreshLock(type);
-        assertThat(redisTemplate.hasKey(RedisPostKeys.getRefreshLockKey(type))).isTrue();
-
-        // When: 락 해제
-        redisSimplePostAdapter.releaseRefreshLock(type);
-
-        // Then
-        assertThat(redisTemplate.hasKey(RedisPostKeys.getRefreshLockKey(type))).isFalse();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 락 해제 후 재획득 가능")
-    void shouldAcquireLockAgain_AfterRelease() {
-        // Given: 락 획득 후 해제
-        PostCacheFlag type = PostCacheFlag.NOTICE;
-        redisSimplePostAdapter.tryAcquireRefreshLock(type);
-        redisSimplePostAdapter.releaseRefreshLock(type);
-
-        // When: 재획득 시도
-        boolean acquired = redisSimplePostAdapter.tryAcquireRefreshLock(type);
-
-        // Then
-        assertThat(acquired).isTrue();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 락 TTL 확인 (5초)")
-    void shouldHaveCorrectLockTTL() {
-        // Given & When
-        PostCacheFlag type = PostCacheFlag.REALTIME;
-        redisSimplePostAdapter.tryAcquireRefreshLock(type);
-
-        // Then
-        Long ttl = redisTemplate.getExpire(RedisPostKeys.getRefreshLockKey(type), TimeUnit.SECONDS);
-        assertThat(ttl).isBetween(3L, 5L); // 약간의 오차 허용
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 타입별 락은 독립적으로 동작")
-    void shouldAcquireLocksIndependently_ForDifferentTypes() {
-        // Given & When: 서로 다른 타입의 락 획득
-        boolean realtimeLock = redisSimplePostAdapter.tryAcquireRefreshLock(PostCacheFlag.REALTIME);
-        boolean weeklyLock = redisSimplePostAdapter.tryAcquireRefreshLock(PostCacheFlag.WEEKLY);
-        boolean legendLock = redisSimplePostAdapter.tryAcquireRefreshLock(PostCacheFlag.LEGEND);
-        boolean noticeLock = redisSimplePostAdapter.tryAcquireRefreshLock(PostCacheFlag.NOTICE);
-
-        // Then: 모두 독립적으로 획득 성공
-        assertThat(realtimeLock).isTrue();
-        assertThat(weeklyLock).isTrue();
-        assertThat(legendLock).isTrue();
-        assertThat(noticeLock).isTrue();
-
-        // 같은 타입의 락은 이미 존재하므로 획득 실패
-        assertThat(redisSimplePostAdapter.tryAcquireRefreshLock(PostCacheFlag.REALTIME)).isFalse();
-    }
 }

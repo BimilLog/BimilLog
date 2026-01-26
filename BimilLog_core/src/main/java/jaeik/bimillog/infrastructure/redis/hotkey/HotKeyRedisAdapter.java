@@ -17,7 +17,9 @@ import static jaeik.bimillog.infrastructure.redis.hotkey.RedisHotKeyKeys.*;
  *
  * @author Jaeik
  * @version 2.6.0
+ * @deprecated 2.7.0부터 사용 중단. 스케줄러 기반 캐시 갱신으로 대체.
  */
+@Deprecated(since = "2.7.0", forRemoval = true)
 @Component
 @RequiredArgsConstructor
 @Slf4j

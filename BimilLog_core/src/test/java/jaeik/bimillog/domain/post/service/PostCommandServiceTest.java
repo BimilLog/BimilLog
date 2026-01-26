@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
  * <p>Cache Invalidation 전략을 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.6.0
  */
 @DisplayName("PostCommandService 테스트")
 @Tag("unit")

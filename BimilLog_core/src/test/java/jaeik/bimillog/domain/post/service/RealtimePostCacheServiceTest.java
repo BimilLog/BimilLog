@@ -28,6 +28,7 @@ import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -36,7 +37,7 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>RealtimePostCacheService 테스트</h2>
  * <p>실시간 인기글 캐시 조회 로직을 검증합니다.</p>
- * <p>Hash 캐시 조회, PER 선제 갱신, 캐시 미스 시 ZSet → DB 폴백, 서킷 OPEN 시 Caffeine 폴백을 검증합니다.</p>
+ * <p>Hash 캐시 조회, 캐시 미스 시 빈 페이지 반환, 예외 시 DB 서킷 경로를 검증합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RealtimePostCacheService 테스트")
@@ -49,8 +50,8 @@ class RealtimePostCacheServiceTest {
     @Mock
     private RedisSimplePostAdapter redisSimplePostAdapter;
 
-    @Mock
-    private RedisRealTimePostAdapter realtimeAdapter;
+    @Mock(strictness = Mock.Strictness.LENIENT)
+    private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Mock
     private PostCacheRefresh postCacheRefresh;
@@ -75,10 +76,13 @@ class RealtimePostCacheServiceTest {
         given(circuitBreakerRegistry.circuitBreaker("realtimeRedis")).willReturn(realtimeRedisCircuitBreaker);
         given(realtimeRedisCircuitBreaker.getState()).willReturn(CircuitBreaker.State.CLOSED);
 
+        // 기본: ZSET 조회 시 빈 리스트 반환 (비교 로직에서 사용)
+        given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong())).willReturn(List.of());
+
         realtimePostCacheService = new RealtimePostCacheService(
                 postQueryRepository,
                 redisSimplePostAdapter,
-                realtimeAdapter,
+                redisRealTimePostAdapter,
                 postCacheRefresh,
                 dbFallbackGateway,
                 circuitBreakerRegistry,
@@ -87,8 +91,8 @@ class RealtimePostCacheServiceTest {
     }
 
     @Test
-    @DisplayName("실시간 인기글 조회 - 캐시 히트 + PER 미트리거")
-    void shouldGetRealtimePosts_CacheHit() {
+    @DisplayName("실시간 인기글 조회 - 캐시 히트 + HASH-ZSET ID 일치 → 비동기 갱신 없음")
+    void shouldGetRealtimePosts_CacheHit_IdsMatch() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
@@ -96,7 +100,8 @@ class RealtimePostCacheServiceTest {
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
                 .willReturn(List.of(simpleDetail2, simpleDetail1));
-        given(redisSimplePostAdapter.shouldRefreshByPer(PostCacheFlag.REALTIME)).willReturn(false);
+        given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
+                .willReturn(List.of(2L, 1L));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
@@ -108,81 +113,67 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(2);
 
         verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.REALTIME);
-        verify(redisSimplePostAdapter).shouldRefreshByPer(PostCacheFlag.REALTIME);
-        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock(any());
-        verify(postCacheRefresh, never()).asyncRefreshAllPosts(any(), any());
+        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock();
     }
 
     @Test
-    @DisplayName("실시간 인기글 조회 - 캐시 히트 + PER 트리거 시 비동기 갱신 (락 없음)")
-    void shouldGetRealtimePosts_CacheHit_PerTriggered() {
+    @DisplayName("실시간 인기글 조회 - 캐시 히트 + HASH-ZSET ID 불일치 → 비동기 갱신 트리거")
+    void shouldGetRealtimePosts_CacheHit_IdsMismatch_TriggerRefresh() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 5);
+        PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
+        PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2");
+
+        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
+                .willReturn(List.of(simpleDetail2, simpleDetail1));
+        // ZSET에는 다른 ID 세트 반환
+        given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
+                .willReturn(List.of(3L, 2L));
+
+        // When
+        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
+
+        // Then: 기존 HASH 데이터 반환 + 비동기 갱신 트리거
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getTotalElements()).isEqualTo(2);
+
+        verify(postCacheRefresh).asyncRefreshRealtimeWithLock();
+    }
+
+    @Test
+    @DisplayName("실시간 인기글 조회 - ZSET 조회 실패 → 비교 스킵, HASH 데이터 그대로 반환")
+    void shouldGetRealtimePosts_ZSetFails_SkipComparison() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
                 .willReturn(List.of(simpleDetail1));
-        given(redisSimplePostAdapter.shouldRefreshByPer(PostCacheFlag.REALTIME)).willReturn(true);
-        given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5)).willReturn(List.of(1L, 2L));
+        given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
+                .willThrow(new RuntimeException("ZSET 조회 실패"));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
 
-        // Then: 캐시 데이터 반환 + PER 비동기 갱신 트리거 (락 없음)
+        // Then: HASH 데이터 그대로 반환, 비동기 갱신 미트리거
         assertThat(result.getContent()).hasSize(1);
-        verify(redisSimplePostAdapter).shouldRefreshByPer(PostCacheFlag.REALTIME);
-        verify(redisSimplePostAdapter, never()).tryAcquireRefreshLock(any());
-        verify(postCacheRefresh).asyncRefreshAllPosts(eq(PostCacheFlag.REALTIME), eq(List.of(1L, 2L)));
-        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock(any());
+        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock();
     }
 
     @Test
-    @DisplayName("실시간 인기글 조회 - 캐시 미스 + ZSet 데이터 있음 → DB 폴백 반환 + 비동기 갱신")
-    @SuppressWarnings("unchecked")
-    void shouldGetRealtimePosts_CacheMiss_ZSetHasData_FallbackToDb() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 5);
-        PostSimpleDetail post1 = PostTestDataBuilder.createPostSearchResult(1L, "인기글 1");
-        PostSimpleDetail post2 = PostTestDataBuilder.createPostSearchResult(2L, "인기글 2");
-
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME)).willReturn(List.of());
-        given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5)).willReturn(List.of(2L, 1L));
-        given(dbFallbackGateway.executeList(eq(FallbackType.REALTIME), eq(List.of(2L, 1L)), any(Supplier.class)))
-                .willAnswer(invocation -> {
-                    Supplier<List<PostSimpleDetail>> supplier = invocation.getArgument(2);
-                    return supplier.get();
-                });
-        given(postQueryRepository.findPostSimpleDetailsByIds(List.of(2L, 1L)))
-                .willReturn(List.of(post2, post1));
-
-        // When
-        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
-
-        // Then: ZSet ID로 DB 조회 반환 + 조회된 데이터로 비동기 캐시 갱신 트리거
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("인기글 2");
-        verify(realtimeAdapter).getRangePostId(PostCacheFlag.REALTIME, 0, 5);
-        verify(dbFallbackGateway).executeList(eq(FallbackType.REALTIME), eq(List.of(2L, 1L)), any(Supplier.class));
-        verify(postCacheRefresh).asyncRefreshRealtimeWithLock(List.of(post2, post1));
-    }
-
-    @Test
-    @DisplayName("실시간 인기글 조회 - 캐시 미스 + ZSet 비어있음 → 빈 페이지 반환, 비동기 없음")
-    void shouldGetRealtimePosts_CacheMiss_ZSetEmpty_ReturnEmptyPage() {
+    @DisplayName("실시간 인기글 조회 - 캐시 미스 → 빈 페이지 반환 (스케줄러 갱신 예정)")
+    void shouldGetRealtimePosts_CacheMiss_ReturnEmptyPage() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME)).willReturn(List.of());
-        given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5)).willReturn(List.of());
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
 
-        // Then: 빈 페이지 반환, 비동기 갱신 트리거 없음
+        // Then: 빈 페이지 즉시 반환 (비동기 갱신 트리거 없음)
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isZero();
-        verify(realtimeAdapter).getRangePostId(PostCacheFlag.REALTIME, 0, 5);
-        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock(any());
     }
 
     @Test
@@ -215,36 +206,24 @@ class RealtimePostCacheServiceTest {
     // ========== 서킷 OPEN 테스트 ==========
 
     @Test
-    @DisplayName("실시간 인기글 조회 - 서킷 OPEN + Caffeine 데이터 있음 → Caffeine → DB")
-    @SuppressWarnings("unchecked")
-    void shouldGetRealtimePosts_CircuitOpen_CaffeineHasData() {
+    @DisplayName("실시간 인기글 조회 - 서킷 OPEN + Caffeine 데이터 있음 → 빈 페이지 반환")
+    void shouldGetRealtimePosts_CircuitOpen_CaffeineHasData_ReturnEmptyPage() {
         // Given: 서킷 OPEN
         given(realtimeRedisCircuitBreaker.getState()).willReturn(CircuitBreaker.State.OPEN);
 
         Pageable pageable = PageRequest.of(0, 5);
-        PostSimpleDetail post1 = PostTestDataBuilder.createPostSearchResult(1L, "인기글 1");
-        PostSimpleDetail post2 = PostTestDataBuilder.createPostSearchResult(2L, "인기글 2");
 
         given(realtimeScoreFallbackStore.getTopPostIds(0, 5)).willReturn(List.of(2L, 1L));
-        given(dbFallbackGateway.executeList(eq(FallbackType.REALTIME), eq(List.of(2L, 1L)), any(Supplier.class)))
-                .willAnswer(invocation -> {
-                    Supplier<List<PostSimpleDetail>> supplier = invocation.getArgument(2);
-                    return supplier.get();
-                });
-        given(postQueryRepository.findPostSimpleDetailsByIds(List.of(2L, 1L)))
-                .willReturn(List.of(post2, post1));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
 
-        // Then: Redis 접근 없이 Caffeine → DB 경로 사용
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("인기글 2");
-        assertThat(result.getContent().get(1).getTitle()).isEqualTo("인기글 1");
+        // Then: Redis 접근 없이 빈 페이지 반환
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
 
         verify(redisSimplePostAdapter, never()).getAllCachedPostsList(any());
         verify(realtimeScoreFallbackStore).getTopPostIds(0, 5);
-        verify(dbFallbackGateway).executeList(eq(FallbackType.REALTIME), eq(List.of(2L, 1L)), any(Supplier.class));
     }
 
     @Test

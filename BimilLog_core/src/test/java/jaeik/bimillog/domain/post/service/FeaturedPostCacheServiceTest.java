@@ -31,13 +31,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
  * <h2>FeaturedPostCacheService 테스트</h2>
  * <p>주간/레전드/공지 인기글 캐시 조회 로직을 검증합니다.</p>
- * <p>Hash 캐시 조회, PER 선제 갱신, 캐시 미스 시 DB 폴백 + 비동기 갱신을 검증합니다.</p>
+ * <p>Hash 캐시 조회, 캐시 미스 시 빈 페이지 반환, 예외 시 DB 서킷 경로를 검증합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("FeaturedPostCacheService 테스트")
@@ -54,9 +53,6 @@ class FeaturedPostCacheServiceTest {
     private RedisSimplePostAdapter redisSimplePostAdapter;
 
     @Mock
-    private PostCacheRefresh postCacheRefresh;
-
-    @Mock
     private DbFallbackGateway dbFallbackGateway;
 
     private FeaturedPostCacheService featuredPostCacheService;
@@ -67,13 +63,12 @@ class FeaturedPostCacheServiceTest {
                 postQueryRepository,
                 featuredPostRepository,
                 redisSimplePostAdapter,
-                postCacheRefresh,
                 dbFallbackGateway
         );
     }
 
     @Test
-    @DisplayName("주간 인기글 조회 - 캐시 히트 + PER 미트리거")
+    @DisplayName("주간 인기글 조회 - 캐시 히트")
     void shouldGetWeeklyPosts_CacheHit() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
@@ -82,7 +77,6 @@ class FeaturedPostCacheServiceTest {
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.WEEKLY))
                 .willReturn(List.of(weeklyPost2, weeklyPost1));
-        given(redisSimplePostAdapter.shouldRefreshByPer(PostCacheFlag.WEEKLY)).willReturn(false);
 
         // When
         Page<PostSimpleDetail> result = featuredPostCacheService.getWeeklyPosts(pageable);
@@ -91,13 +85,10 @@ class FeaturedPostCacheServiceTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
         verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.WEEKLY);
-        verify(redisSimplePostAdapter).shouldRefreshByPer(PostCacheFlag.WEEKLY);
-        verify(postCacheRefresh, never()).asyncRefreshFeaturedWithLock(any());
-        verify(postCacheRefresh, never()).asyncRefreshAllPosts(any(), any());
     }
 
     @Test
-    @DisplayName("레전드 인기 게시글 페이징 조회 - 캐시 히트 + PER 미트리거")
+    @DisplayName("레전드 인기 게시글 페이징 조회 - 캐시 히트")
     void shouldGetPopularPostLegend() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
@@ -106,7 +97,6 @@ class FeaturedPostCacheServiceTest {
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.LEGEND))
                 .willReturn(List.of(legendPost2, legendPost1));
-        given(redisSimplePostAdapter.shouldRefreshByPer(PostCacheFlag.LEGEND)).willReturn(false);
 
         // When
         Page<PostSimpleDetail> result = featuredPostCacheService.getPopularPostLegend(pageable);
@@ -114,13 +104,10 @@ class FeaturedPostCacheServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(2);
         verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.LEGEND);
-        verify(redisSimplePostAdapter).shouldRefreshByPer(PostCacheFlag.LEGEND);
-        verify(postCacheRefresh, never()).asyncRefreshFeaturedWithLock(any());
-        verify(postCacheRefresh, never()).asyncRefreshAllPosts(any(), any());
     }
 
     @Test
-    @DisplayName("공지사항 조회 - 캐시 히트 + PER 미트리거")
+    @DisplayName("공지사항 조회 - 캐시 히트")
     void shouldGetNoticePosts_CacheHit() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
@@ -128,7 +115,6 @@ class FeaturedPostCacheServiceTest {
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.NOTICE))
                 .willReturn(List.of(noticePost));
-        given(redisSimplePostAdapter.shouldRefreshByPer(PostCacheFlag.NOTICE)).willReturn(false);
 
         // When
         Page<PostSimpleDetail> result = featuredPostCacheService.getNoticePosts(pageable);
@@ -137,38 +123,17 @@ class FeaturedPostCacheServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("공지사항");
         verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.NOTICE);
-        verify(redisSimplePostAdapter).shouldRefreshByPer(PostCacheFlag.NOTICE);
-        verify(postCacheRefresh, never()).asyncRefreshFeaturedWithLock(any());
-        verify(postCacheRefresh, never()).asyncRefreshAllPosts(any(), any());
     }
 
-    @ParameterizedTest(name = "{0} - 캐시 비어있음 - 비동기 갱신 트리거 + DB 폴백")
+    @ParameterizedTest(name = "{0} - 캐시 비어있음 - 빈 페이지 반환 (스케줄러 갱신 예정)")
     @EnumSource(value = PostCacheFlag.class, names = {"WEEKLY", "LEGEND", "NOTICE"})
-    @DisplayName("캐시 비어있음 - 비동기 갱신 트리거 + DB 폴백")
-    @SuppressWarnings("unchecked")
-    void shouldTriggerAsyncRefreshAndFallbackToDb_WhenCacheEmpty(PostCacheFlag flag) {
+    @DisplayName("캐시 비어있음 - 빈 페이지 반환 (스케줄러 갱신 예정)")
+    void shouldReturnEmptyPage_WhenCacheEmpty(PostCacheFlag flag) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 게시글");
 
         given(redisSimplePostAdapter.getAllCachedPostsList(flag)).willReturn(List.of());
 
-        FallbackType fallbackType = switch (flag) {
-            case WEEKLY -> FallbackType.WEEKLY;
-            case LEGEND -> FallbackType.LEGEND;
-            case NOTICE -> FallbackType.NOTICE;
-            default -> throw new IllegalArgumentException("Unsupported flag: " + flag);
-        };
-
-        given(dbFallbackGateway.execute(eq(fallbackType), any(Pageable.class), any(Supplier.class)))
-                .willAnswer(invocation -> {
-                    Supplier<Page<PostSimpleDetail>> supplier = invocation.getArgument(2);
-                    return supplier.get();
-                });
-
-        given(featuredPostRepository.findPostIdsByType(flag)).willReturn(List.of(1L));
-        given(postQueryRepository.findPostSimpleDetailsByIds(List.of(1L))).willReturn(List.of(post));
-
         // When
         Page<PostSimpleDetail> result = switch (flag) {
             case WEEKLY -> featuredPostCacheService.getWeeklyPosts(pageable);
@@ -177,37 +142,9 @@ class FeaturedPostCacheServiceTest {
             default -> throw new IllegalArgumentException("Unsupported flag: " + flag);
         };
 
-        // Then: 비동기 갱신 트리거 + DB 폴백 반환 (락은 비동기 내부에서 처리)
-        assertThat(result.getContent()).hasSize(1);
-        verify(postCacheRefresh).asyncRefreshFeaturedWithLock(flag);
-        verify(dbFallbackGateway).execute(eq(fallbackType), any(Pageable.class), any(Supplier.class));
-    }
-
-    @ParameterizedTest(name = "{0} - 캐시 히트 + PER 트리거 시 비동기 갱신 (락 없음)")
-    @EnumSource(value = PostCacheFlag.class, names = {"WEEKLY", "LEGEND", "NOTICE"})
-    @DisplayName("캐시 히트 + PER 트리거 시 비동기 갱신 (락 없음)")
-    void shouldTriggerAsyncRefresh_WhenPerTriggered(PostCacheFlag flag) {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, "캐시된 게시글");
-
-        given(redisSimplePostAdapter.getAllCachedPostsList(flag)).willReturn(List.of(post));
-        given(redisSimplePostAdapter.shouldRefreshByPer(flag)).willReturn(true);
-
-        // When
-        Page<PostSimpleDetail> result = switch (flag) {
-            case WEEKLY -> featuredPostCacheService.getWeeklyPosts(pageable);
-            case LEGEND -> featuredPostCacheService.getPopularPostLegend(pageable);
-            case NOTICE -> featuredPostCacheService.getNoticePosts(pageable);
-            default -> throw new IllegalArgumentException("Unsupported flag: " + flag);
-        };
-
-        // Then: 캐시 데이터 반환 + PER 비동기 갱신 트리거 (락 없음)
-        assertThat(result.getContent()).hasSize(1);
-        verify(redisSimplePostAdapter).shouldRefreshByPer(flag);
-        verify(redisSimplePostAdapter, never()).tryAcquireRefreshLock(any());
-        verify(postCacheRefresh).asyncRefreshAllPosts(eq(flag), eq(List.of()));
-        verify(postCacheRefresh, never()).asyncRefreshFeaturedWithLock(any());
+        // Then: 빈 페이지 즉시 반환 (비동기 갱신 트리거 없음)
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
     }
 
     @ParameterizedTest(name = "{0} - Redis 장애 시 DB fallback")

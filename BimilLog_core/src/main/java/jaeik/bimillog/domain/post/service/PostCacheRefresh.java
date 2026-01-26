@@ -1,16 +1,23 @@
 package jaeik.bimillog.domain.post.service;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
 import jaeik.bimillog.infrastructure.resilience.FallbackType;
+import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -19,77 +26,118 @@ import java.util.Objects;
 
 /**
  * <h2>글 캐시 갱신 클래스</h2>
- * <p>인기글(공지/실시간/주간/레전드) 목록 캐시의 비동기 갱신을 담당합니다.</p>
- * <p>PER(Probabilistic Early Refresh) 기반으로 목록 API에서 호출됩니다.</p>
+ * <p>인기글(실시간/주간/레전드) 목록 캐시의 동기 갱신을 담당합니다.</p>
+ * <p>스케줄러({@link jaeik.bimillog.domain.post.scheduler.PostCacheRefreshScheduler})에서 호출됩니다.</p>
  * <p>DB 조회 후 {@link PostCacheRefreshExecutor}에 캐시 저장을 위임합니다.</p>
  *
  * @author Jaeik
- * @version 2.9.0
+ * @version 2.7.0
  */
 @Log(logResult = false, logExecutionTime = true, message = "캐시 갱신")
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PostCacheRefresh {
+    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final PostCacheRefreshExecutor postCacheRefreshExecutor;
     private final PostQueryRepository postQueryRepository;
     private final FeaturedPostRepository featuredPostRepository;
     private final DbFallbackGateway dbFallbackGateway;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
+    private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
+
+    private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
+    private static final int REALTIME_FALLBACK_LIMIT = 5;
 
     /**
-     * <h3>실시간 인기글 캐시 비동기 갱신 (락 기반)</h3>
-     * <p>비동기 스레드에서 SET NX 락을 획득하고, 동기 스레드에서 이미 조회한 데이터로 캐시를 저장합니다.</p>
-     * <p>DB 재조회 없이 전달받은 PostSimpleDetail 목록을 그대로 캐시에 저장합니다.</p>
-     * <p>락 획득 실패 시 다른 스레드가 갱신 중이므로 스킵합니다.</p>
-     *
-     * @param posts 동기 스레드에서 이미 DB 조회한 실시간 인기글 목록
+     * <h3>실시간 인기글 캐시 동기 갱신</h3>
+     * <p>서킷 상태에 따라 Redis ZSet 또는 Caffeine에서 인기글 ID를 조회한 뒤
+     * DB에서 상세 정보를 가져와 캐시에 저장합니다.</p>
+     * <p>실패 시 최대 3회 재시도합니다 (2s → 4s 지수 백오프).</p>
      */
-    @Async("cacheRefreshExecutor")
-    public void asyncRefreshRealtimeWithLock(List<PostSimpleDetail> posts) {
-        if (!redisSimplePostAdapter.tryAcquireRefreshLock(PostCacheFlag.REALTIME)) {
+    @Retryable(
+            retryFor = Exception.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000, multiplier = 2)
+    )
+    public void refreshRealtime() {
+        List<Long> postIds;
+
+        if (isRealtimeRedisCircuitOpen()) {
+            log.info("[SCHEDULER] REALTIME 서킷 OPEN - Caffeine 폴백으로 갱신");
+            postIds = realtimeScoreFallbackStore.getTopPostIds(0, REALTIME_FALLBACK_LIMIT);
+        } else {
+            postIds = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
+        }
+
+        if (postIds.isEmpty()) {
+            log.debug("[SCHEDULER] REALTIME 갱신 스킵 - 인기글 ID 없음");
             return;
         }
-        try {
-            postCacheRefreshExecutor.cachePosts(PostCacheFlag.REALTIME, posts);
-        } finally {
-            redisSimplePostAdapter.releaseRefreshLock(PostCacheFlag.REALTIME);
-        }
+
+        List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, postIds);
+        postCacheRefreshExecutor.cachePostsWithType(PostCacheFlag.REALTIME, posts);
+        log.info("[SCHEDULER] REALTIME 캐시 갱신 완료: {}건", posts.size());
+    }
+
+    @Recover
+    public void recoverRefreshRealtime(Exception e) {
+        log.error("[SCHEDULER] REALTIME 캐시 갱신 최종 실패 (3회 시도): {}", e.getMessage());
     }
 
     /**
-     * <h3>주간/레전드/공지 캐시 비동기 갱신 (락 기반)</h3>
-     * <p>비동기 스레드에서 SET NX 락을 획득하고 featured_post -> DB 조회 -> 캐시 갱신합니다.</p>
-     * <p>락 획득 실패 시 다른 스레드가 갱신 중이므로 스킵합니다.</p>
+     * <h3>주간/레전드 캐시 동기 갱신</h3>
+     * <p>featured_post 테이블에서 postId 조회 후 DB에서 상세 정보를 가져와 캐시에 저장합니다.</p>
+     * <p>실패 시 최대 3회 재시도합니다 (2s → 4s 지수 백오프).</p>
      *
-     * @param type 캐시 유형 (WEEKLY, LEGEND, NOTICE)
+     * @param type 캐시 유형 (WEEKLY, LEGEND)
      */
-    @Async("cacheRefreshExecutor")
-    public void asyncRefreshFeaturedWithLock(PostCacheFlag type) {
-        if (!redisSimplePostAdapter.tryAcquireRefreshLock(type)) {
-            return;
-        }
-        try {
-            List<PostSimpleDetail> posts = queryPostsByType(type, List.of());
-            postCacheRefreshExecutor.cachePosts(type, posts);
-        } finally {
-            redisSimplePostAdapter.releaseRefreshLock(type);
-        }
+    @Retryable(
+            retryFor = Exception.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000, multiplier = 2)
+    )
+    public void refreshFeatured(PostCacheFlag type) {
+        List<PostSimpleDetail> posts = queryPostsByType(type, List.of());
+        postCacheRefreshExecutor.cachePostsWithType(type, posts);
+        log.info("[SCHEDULER] {} 캐시 갱신 완료: {}건", type, posts.size());
+    }
+
+    @Recover
+    public void recoverRefreshFeatured(Exception e, PostCacheFlag type) {
+        log.error("[SCHEDULER] {} 캐시 갱신 최종 실패 (3회 시도): {}", type, e.getMessage());
     }
 
     /**
-     * <h3>타입별 전체 Hash 캐시 비동기 갱신 (PER용, 락 없음)</h3>
-     * <p>PER 선제 갱신 시 호출됩니다. 락 없이 비동기로 갱신합니다.</p>
-     * <p>PER은 확률적 메커니즘이므로 자체적으로 동시 갱신이 제한되며, 스레드풀이 자연스러운 스로틀링 역할을 합니다.</p>
-     * <p>실패 시 재시도하지 않습니다. 캐시 만료 시 캐시 미스 경로에서 락 기반 갱신이 실행됩니다.</p>
-     *
-     * @param type       캐시 유형
-     * @param allPostIds 갱신할 postId 목록 (REALTIME: ZSet에서 조회한 ID, 그 외: 빈 리스트)
+     * <h3>조회 시 HASH-ZSET 불일치 감지 → 비동기 HASH 갱신</h3>
+     * <p>조회 경로에서 HASH와 ZSET의 글 ID가 불일치할 때 호출됩니다.</p>
+     * <p>분산 락을 획득한 뒤 ZSET에서 인기글 ID를 조회하고 DB에서 상세 정보를 가져와 HASH를 갱신합니다.</p>
+     * <p>락 획득 실패 시 다른 스레드가 이미 갱신 중이므로 스킵합니다.</p>
      */
     @Async("cacheRefreshExecutor")
-    public void asyncRefreshAllPosts(PostCacheFlag type, List<Long> allPostIds) {
-        List<PostSimpleDetail> posts = queryPostsByType(type, allPostIds);
-        postCacheRefreshExecutor.cachePosts(type, posts);
+    public void asyncRefreshRealtimeWithLock() {
+        if (!redisSimplePostAdapter.tryAcquireRealtimeRefreshLock()) {
+            log.debug("[ASYNC_REFRESH] 락 획득 실패 - 다른 스레드가 갱신 중");
+            return;
+        }
+
+        try {
+            List<Long> postIds = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
+
+            if (postIds.isEmpty()) {
+                log.debug("[ASYNC_REFRESH] REALTIME 갱신 스킵 - 인기글 ID 없음");
+                return;
+            }
+
+            List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, postIds);
+            postCacheRefreshExecutor.cachePostsWithType(PostCacheFlag.REALTIME, posts);
+            log.info("[ASYNC_REFRESH] REALTIME HASH 갱신 완료: {}건", posts.size());
+        } catch (Exception e) {
+            log.warn("[ASYNC_REFRESH] REALTIME HASH 갱신 실패: {}", e.getMessage());
+        } finally {
+            redisSimplePostAdapter.releaseRealtimeRefreshLock();
+        }
     }
 
     /**
@@ -119,5 +167,16 @@ public class PostCacheRefresh {
                 .filter(Objects::nonNull)
                 .map(PostDetail::toSimpleDetail)
                 .toList();
+    }
+
+    /**
+     * <h3>realtimeRedis 서킷 상태 확인</h3>
+     *
+     * @return Redis 서킷이 열려있으면 true
+     */
+    private boolean isRealtimeRedisCircuitOpen() {
+        CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(REALTIME_REDIS_CIRCUIT);
+        CircuitBreaker.State state = cb.getState();
+        return state == CircuitBreaker.State.OPEN || state == CircuitBreaker.State.FORCED_OPEN;
     }
 }
