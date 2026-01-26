@@ -1,5 +1,7 @@
 package jaeik.bimillog.infrastructure.resilience;
 
+import io.github.resilience4j.bulkhead.BulkheadFullException;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
@@ -16,10 +18,11 @@ import java.util.function.Supplier;
 /**
  * <h2>DB Fallback Gateway</h2>
  * <p>모든 DB 요청을 단일 게이트웨이로 통합하여 DB를 보호합니다.</p>
- * <p>Circuit Breaker로 연속 실패 시 차단합니다.</p>
+ * <p>Bulkhead로 동시 호출 수를 제한하고, Circuit Breaker로 연속 실패 시 차단합니다.</p>
  *
  * <h3>동작 방식:</h3>
  * <ul>
+ *     <li>Bulkhead: 동시 최대 15개 호출 허용 (Semaphore 방식)</li>
  *     <li>Circuit Breaker: 최근 15개 중 최소 10개 검사, 실패율 80% 이상 시 30초 차단</li>
  * </ul>
  *
@@ -40,6 +43,7 @@ public class DbFallbackGateway {
      * @return 조회된 게시글 페이지
      */
     @CircuitBreaker(name = "dbFallback", fallbackMethod = "circuitBreakerFallback")
+    @Bulkhead(name = "dbFallback")
     public Page<PostSimpleDetail> execute(
             FallbackType type,
             Pageable pageable,
@@ -61,6 +65,7 @@ public class DbFallbackGateway {
      * @return 조회된 게시글 상세 (Optional)
      */
     @CircuitBreaker(name = "dbFallback", fallbackMethod = "circuitBreakerDetailFallback")
+    @Bulkhead(name = "dbFallback")
     public Optional<PostDetail> executeDetail(
             FallbackType type,
             Long postId,
@@ -83,6 +88,7 @@ public class DbFallbackGateway {
      * @return 조회된 게시글 목록
      */
     @CircuitBreaker(name = "dbFallback", fallbackMethod = "circuitBreakerListFallback")
+    @Bulkhead(name = "dbFallback")
     public List<PostSimpleDetail> executeList(
             FallbackType type,
             List<Long> postIds,
@@ -107,7 +113,7 @@ public class DbFallbackGateway {
             Supplier<Page<PostSimpleDetail>> dbQuery,
             Throwable e
     ) {
-        log.error("[DB_FALLBACK] Circuit Breaker OPEN - type={}, error={}", type.getDescription(), e.getMessage());
+        logFallbackReason("목록 조회", type.getDescription(), e);
         return new PageImpl<>(List.of(), pageable, 0);
     }
 
@@ -122,7 +128,7 @@ public class DbFallbackGateway {
             Supplier<Optional<PostDetail>> dbQuery,
             Throwable e
     ) {
-        log.error("[DB_FALLBACK] Circuit Breaker OPEN (상세) - type={}, postId={}, error={}", type.getDescription(), postId, e.getMessage());
+        logFallbackReason("상세 조회, postId=" + postId, type.getDescription(), e);
         return Optional.empty();
     }
 
@@ -137,7 +143,17 @@ public class DbFallbackGateway {
             Supplier<List<PostSimpleDetail>> dbQuery,
             Throwable e
     ) {
-        log.error("[DB_FALLBACK] Circuit Breaker OPEN (ID 목록) - type={}, count={}", type.getDescription(), postIds.size(), e.getMessage());
+        logFallbackReason("ID 목록 조회, count=" + postIds.size(), type.getDescription(), e);
         return List.of();
+    }
+
+    // ========== Private Utility ==========
+
+    private void logFallbackReason(String operation, String typeDescription, Throwable e) {
+        if (e instanceof BulkheadFullException) {
+            log.warn("[DB_FALLBACK] Bulkhead FULL ({}) - type={}", operation, typeDescription);
+        } else {
+            log.error("[DB_FALLBACK] Circuit Breaker OPEN ({}) - type={}, error={}", operation, typeDescription, e.getMessage());
+        }
     }
 }
