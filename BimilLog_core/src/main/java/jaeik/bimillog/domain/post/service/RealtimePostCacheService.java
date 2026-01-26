@@ -55,7 +55,6 @@ public class RealtimePostCacheService {
      * <p>realtimeRedis 서킷이 OPEN이면 Redis를 스킵하고 빈 페이지를 반환합니다.</p>
      * <p>서킷이 닫혀있으면 Hash 캐시에서 조회하고, ZSET과 ID를 비교합니다.</p>
      * <p>HASH-ZSET ID가 불일치하면 비동기로 락을 획득하여 HASH를 갱신합니다.</p>
-     * <p>캐시 미스 시에도 ZSET에 데이터가 있으면 비동기 갱신을 트리거합니다.</p>
      */
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
         if (isRealtimeRedisCircuitOpen()) {
