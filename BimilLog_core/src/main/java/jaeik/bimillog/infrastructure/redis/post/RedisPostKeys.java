@@ -1,8 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 
 import java.time.Duration;
 

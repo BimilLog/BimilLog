@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
@@ -26,7 +26,7 @@ import java.util.Objects;
  * @author Jaeik
  * @version 2.9.0
  */
-@Log(logResult = false, message = "캐시 갱신")
+@Log(logResult = false, logExecutionTime = true, message = "캐시 갱신")
 @Service
 @RequiredArgsConstructor
 @Slf4j

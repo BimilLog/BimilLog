@@ -1,7 +1,7 @@
 package jaeik.bimillog.testutil.builder;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 

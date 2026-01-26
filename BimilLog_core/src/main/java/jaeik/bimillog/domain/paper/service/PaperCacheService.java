@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
+import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ import static jaeik.bimillog.infrastructure.redis.paper.RedisPaperKeys.REALTIME_
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(logResult = false, logExecutionTime = true)
 @Service
 @RequiredArgsConstructor
 @Slf4j

@@ -300,6 +300,13 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
+// SSEManager에 인증 상태 체커 등록
+// SSE 재연결 시 인증 만료된 사용자의 무한 재시도를 방지
+sseManager.setAuthChecker(() => {
+  const state = useAuthStore.getState();
+  return state.isAuthenticated && !!state.user?.memberName?.trim();
+});
+
 export const __authStoreInternals = {
   reset: () => {
     resetRefreshCache();

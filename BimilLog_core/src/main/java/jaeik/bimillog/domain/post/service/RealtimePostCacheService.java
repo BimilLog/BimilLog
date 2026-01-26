@@ -2,8 +2,9 @@ package jaeik.bimillog.domain.post.service;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
@@ -29,6 +30,7 @@ import java.util.List;
  * @author Jaeik
  * @version 2.8.0
  */
+@Log(logResult = false, logExecutionTime = true)
 @Service
 @Slf4j
 @RequiredArgsConstructor
