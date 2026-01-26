@@ -21,7 +21,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * <p>Redis 장애 시 @CircuitBreaker가 자동으로 ConcurrentHashMap 폴백을 처리합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.6.0
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "실시간 인기글 점수")
 @Component

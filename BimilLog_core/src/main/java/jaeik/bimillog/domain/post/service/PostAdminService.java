@@ -26,7 +26,7 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.POST_CACHE_
  * <p>공지 상태 조회: 게시글의 현재 공지 여부 확인</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.6.0
  */
 @Service
 @RequiredArgsConstructor

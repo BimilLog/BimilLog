@@ -24,12 +24,12 @@ import java.util.List;
 /**
  * <h2>RealtimePostCacheService</h2>
  * <p>실시간 인기글 목록 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
- * <p>Hash 캐시에서 직접 조회하며, PER(Probabilistic Early Refresh)로 TTL 15초 미만 시 선제 갱신합니다.</p>
+ * <p>Hash 캐시에서 직접 조회하며, 캐시 미스 시 SET NX 락 기반으로 비동기 갱신을 트리거합니다.</p>
  * <p>캐시 미스 시 동기적으로 ZSet을 확인하고, 데이터가 있으면 DB 조회 후 비동기 갱신을 트리거합니다.</p>
  * <p>realtimeRedis 서킷이 OPEN이면 Redis를 스킵하고 Caffeine -> DB 경로를 사용합니다.</p>
  *
  * @author Jaeik
- * @version 2.8.0
+ * @version 2.6.0
  */
 @Log(logResult = false, logExecutionTime = true)
 @Service
@@ -50,8 +50,8 @@ public class RealtimePostCacheService {
     /**
      * 실시간 인기글 목록 조회
      * <p>realtimeRedis 서킷이 OPEN이면 Redis를 스킵하고 Caffeine -> DB 경로를 사용합니다.</p>
-     * <p>서킷이 닫혀있으면 Hash 캐시에서 조회하고, PER로 TTL 15초 미만 시 선제 갱신합니다.</p>
-     * <p>캐시 미스 시 동기적으로 ZSet을 확인하고 DB 조회 후 비동기 갱신을 트리거합니다.</p>
+     * <p>서킷이 닫혀있으면 Hash 캐시에서 조회합니다.</p>
+     * <p>캐시 미스 시 동기적으로 ZSet을 확인하고 DB 조회 후 SET NX 락 기반 비동기 갱신을 트리거합니다.</p>
      */
     @HotKeyMonitor(PostCacheFlag.REALTIME)
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
@@ -69,9 +69,6 @@ public class RealtimePostCacheService {
             List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME);
 
             if (!cachedPosts.isEmpty()) {
-                if (redisSimplePostAdapter.shouldRefreshByPer(PostCacheFlag.REALTIME)) {
-                    triggerPerRealtimeCacheRefresh();
-                }
                 return paginate(cachedPosts, pageable);
             }
 
@@ -149,16 +146,4 @@ public class RealtimePostCacheService {
         return new PageImpl<>(posts.subList(start, end), pageable, posts.size());
     }
 
-    /**
-     * <h3>실시간 PER 선제 갱신 트리거</h3>
-     * <p>PER 확률 조건을 만족할 때 락 없이 비동기로 갱신합니다.</p>
-     */
-    private void triggerPerRealtimeCacheRefresh() {
-        List<Long> postIds = redisRealTimePostAdapter.getRangePostId(
-                PostCacheFlag.REALTIME, 0, 5);
-
-        if (!postIds.isEmpty()) {
-            postCacheRefresh.asyncRefreshAllPosts(PostCacheFlag.REALTIME, postIds);
-        }
-    }
 }

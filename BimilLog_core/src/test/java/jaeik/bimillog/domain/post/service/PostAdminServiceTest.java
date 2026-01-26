@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verify;
  * <p>공지 설정/해제 시 Hash 캐시에 직접 추가/제거합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.6.0
  */
 @DisplayName("PostAdminService 테스트")
 @Tag("unit")

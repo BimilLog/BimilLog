@@ -21,11 +21,11 @@ import java.util.List;
 /**
  * <h2>FeaturedPostCacheService</h2>
  * <p>주간/레전드/공지 인기글 목록 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
- * <p>Hash 캐시에서 직접 조회하며, PER(Probabilistic Early Refresh)로 TTL 15초 미만 시 선제 갱신합니다.</p>
- * <p>캐시 미스 시 SET NX 락 기반으로 비동기 캐시 갱신을 트리거하고, featured_post 테이블에서 DB 폴백합니다.</p>
+ * <p>Hash 캐시에서 직접 조회하며, 캐시 미스 시 SET NX 락 기반으로 비동기 캐시 갱신을 트리거합니다.</p>
+ * <p>featured_post 테이블에서 DB 폴백합니다.</p>
  *
  * @author Jaeik
- * @version 2.8.0
+ * @version 2.6.0
  */
 @Log(logResult = false, logExecutionTime = true)
 @Service
@@ -66,8 +66,8 @@ public class FeaturedPostCacheService {
 
     /**
      * <h3>주간/레전드/공지 캐시 조회</h3>
-     * <p>Hash 캐시에서 직접 조회하고, PER로 TTL 15초 미만 시 선제 갱신합니다.</p>
-     * <p>캐시 미스 시 비동기 갱신 트리거 + DB 폴백합니다.</p>
+     * <p>Hash 캐시에서 직접 조회합니다.</p>
+     * <p>캐시 미스 시 SET NX 락 기반 비동기 갱신 트리거 + DB 폴백합니다.</p>
      *
      * @param type         캐시 유형 (WEEKLY, LEGEND, NOTICE)
      * @param fallbackType 폴백 유형
@@ -84,10 +84,6 @@ public class FeaturedPostCacheService {
                 log.info("[CACHE_MISS] {} 캐시 미스 - DB 폴백, 비동기 갱신 트리거", type);
                 return dbFallbackGateway.execute(fallbackType, pageable,
                         () -> findFeaturedPostsByType(type, pageable));
-            }
-
-            if (redisSimplePostAdapter.shouldRefreshByPer(type)) {
-                triggerPerFeaturedCacheRefresh(type);
             }
 
             return paginate(cachedPosts, pageable);
@@ -145,21 +141,11 @@ public class FeaturedPostCacheService {
 
     /**
      * <h3>주간/레전드/공지 캐시 비동기 갱신 트리거 (캐시 미스용)</h3>
-     * <p>캐시 미스 시 비동기로 락 획득 -> featured_post -> DB -> 캐시 갱신을 트리거합니다.</p>
+     * <p>캐시 미스 시 비동기로 SET NX 락 획득 -> featured_post -> DB -> 캐시 갱신을 트리거합니다.</p>
      *
      * @param type 캐시 유형 (WEEKLY, LEGEND, NOTICE)
      */
     private void triggerAsyncFeaturedCacheRefresh(PostCacheFlag type) {
         postCacheRefresh.asyncRefreshFeaturedWithLock(type);
-    }
-
-    /**
-     * <h3>주간/레전드/공지 PER 선제 갱신 트리거</h3>
-     * <p>PER 확률 조건을 만족할 때 락 없이 비동기로 갱신합니다.</p>
-     *
-     * @param type 캐시 유형 (WEEKLY, LEGEND, NOTICE)
-     */
-    private void triggerPerFeaturedCacheRefresh(PostCacheFlag type) {
-        postCacheRefresh.asyncRefreshAllPosts(type, List.of());
     }
 }

@@ -20,11 +20,11 @@ import java.util.Objects;
 /**
  * <h2>글 캐시 갱신 클래스</h2>
  * <p>인기글(공지/실시간/주간/레전드) 목록 캐시의 비동기 갱신을 담당합니다.</p>
- * <p>PER(Probabilistic Early Refresh) 기반으로 목록 API에서 호출됩니다.</p>
+ * <p>캐시 미스 시 SET NX 락 기반으로 목록 API에서 호출됩니다.</p>
  * <p>DB 조회 후 {@link PostCacheRefreshExecutor}에 캐시 저장을 위임합니다.</p>
  *
  * @author Jaeik
- * @version 2.9.0
+ * @version 2.6.0
  */
 @Log(logResult = false, logExecutionTime = true, message = "캐시 갱신")
 @Service
@@ -75,21 +75,6 @@ public class PostCacheRefresh {
         } finally {
             redisSimplePostAdapter.releaseRefreshLock(type);
         }
-    }
-
-    /**
-     * <h3>타입별 전체 Hash 캐시 비동기 갱신 (PER용, 락 없음)</h3>
-     * <p>PER 선제 갱신 시 호출됩니다. 락 없이 비동기로 갱신합니다.</p>
-     * <p>PER은 확률적 메커니즘이므로 자체적으로 동시 갱신이 제한되며, 스레드풀이 자연스러운 스로틀링 역할을 합니다.</p>
-     * <p>실패 시 재시도하지 않습니다. 캐시 만료 시 캐시 미스 경로에서 락 기반 갱신이 실행됩니다.</p>
-     *
-     * @param type       캐시 유형
-     * @param allPostIds 갱신할 postId 목록 (REALTIME: ZSet에서 조회한 ID, 그 외: 빈 리스트)
-     */
-    @Async("cacheRefreshExecutor")
-    public void asyncRefreshAllPosts(PostCacheFlag type, List<Long> allPostIds) {
-        List<PostSimpleDetail> posts = queryPostsByType(type, allPostIds);
-        postCacheRefreshExecutor.cachePosts(type, posts);
     }
 
     /**

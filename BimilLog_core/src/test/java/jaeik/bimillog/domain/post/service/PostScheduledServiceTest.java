@@ -6,10 +6,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
-import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
-import jaeik.bimillog.domain.post.repository.PostQueryRepository;
-import jaeik.bimillog.domain.post.repository.PostRepository;
-import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
+import jaeik.bimillog.domain.post.scheduler.FeaturedPostScheduleExecutor;
 import jaeik.bimillog.domain.post.scheduler.PostScheduledService;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
@@ -28,12 +25,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.POST_CACHE_TTL_WEEKLY_LEGEND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -44,7 +39,7 @@ import static org.mockito.Mockito.*;
  * <p>주간/레전드는 Hash 캐시에 TTL 1일로 직접 저장합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.6.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostScheduledService 테스트")
@@ -67,19 +62,10 @@ class PostScheduledServiceTest {
     private CircuitBreaker realtimeRedisCircuitBreaker;
 
     @Mock
-    private PostQueryRepository postQueryRepository;
-
-    @Mock
-    private PostToCommentAdapter postToCommentAdapter;
+    private FeaturedPostScheduleExecutor featuredPostScheduleExecutor;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
-
-    @Mock
-    private FeaturedPostRepository featuredPostRepository;
-
-    @Mock
-    private PostRepository postRepository;
 
     private PostScheduledService postScheduledService;
 
@@ -94,10 +80,7 @@ class PostScheduledServiceTest {
                 realtimeScoreFallbackStore,
                 circuitBreakerRegistry,
                 eventPublisher,
-                postQueryRepository,
-                postToCommentAdapter,
-                featuredPostRepository,
-                postRepository
+                featuredPostScheduleExecutor
         );
     }
 
@@ -136,13 +119,14 @@ class PostScheduledServiceTest {
         PostSimpleDetail post2 = createPostSimpleDetail(2L, "주간인기글2", 2L);
         List<PostSimpleDetail> posts = List.of(post1, post2);
 
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
-        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L, 2L))).willReturn(Map.of(1L, 0, 2L, 0));
+        given(featuredPostScheduleExecutor.fetchWeeklyPosts()).willReturn(posts);
 
         // When
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
+        // DB에 특집 게시글 저장
+        verify(featuredPostScheduleExecutor).saveFeaturedPosts(any(), eq(PostCacheFlag.WEEKLY));
         // Hash 캐시에 TTL 1일로 직접 저장
         verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.WEEKLY), any(), eq(POST_CACHE_TTL_WEEKLY_LEGEND));
 
@@ -166,13 +150,13 @@ class PostScheduledServiceTest {
         PostSimpleDetail userPost = createPostSimpleDetail(2L, "회원글", 2L);
         List<PostSimpleDetail> posts = List.of(anonymousPost, userPost);
 
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
-        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L, 2L))).willReturn(Map.of(1L, 0, 2L, 0));
+        given(featuredPostScheduleExecutor.fetchWeeklyPosts()).willReturn(posts);
 
         // When
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
+        verify(featuredPostScheduleExecutor).saveFeaturedPosts(any(), eq(PostCacheFlag.WEEKLY));
         verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.WEEKLY), any(), any(Duration.class));
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
@@ -191,13 +175,14 @@ class PostScheduledServiceTest {
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
         List<PostSimpleDetail> posts = List.of(legendPost);
 
-        given(postQueryRepository.findLegendaryPosts()).willReturn(posts);
-        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L))).willReturn(Map.of(1L, 0));
+        given(featuredPostScheduleExecutor.fetchLegendaryPosts()).willReturn(posts);
 
         // When
         postScheduledService.updateLegendaryPosts();
 
         // Then
+        // DB에 특집 게시글 저장
+        verify(featuredPostScheduleExecutor).saveFeaturedPosts(any(), eq(PostCacheFlag.LEGEND));
         // Hash 캐시에 TTL 1일로 직접 저장
         verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.LEGEND), any(), eq(POST_CACHE_TTL_WEEKLY_LEGEND));
 
@@ -216,15 +201,16 @@ class PostScheduledServiceTest {
     @DisplayName("전설의 게시글 업데이트 - 게시글 목록 비어있는 경우")
     void shouldUpdateLegendaryPosts_WhenPostListIsEmpty() {
         // Given
-        given(postQueryRepository.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(featuredPostScheduleExecutor.fetchLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When
         postScheduledService.updateLegendaryPosts();
 
         // Then
-        verify(postQueryRepository).findLegendaryPosts();
+        verify(featuredPostScheduleExecutor).fetchLegendaryPosts();
 
-        // 게시글이 없으면 캐시 및 이벤트 발행 안함
+        // 게시글이 없으면 저장, 캐시, 이벤트 발행 안함
+        verify(featuredPostScheduleExecutor, never()).saveFeaturedPosts(any(), any());
         verify(redisSimplePostAdapter, never()).cachePostsWithTtl(any(), any(), any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -234,8 +220,8 @@ class PostScheduledServiceTest {
     @DisplayName("스케줄링 메서드들의 트랜잭션 동작 검증")
     void shouldVerifyTransactionalBehavior() {
         // Given: 기본 setUp에서 서킷 CLOSED
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(Collections.emptyList());
-        given(postQueryRepository.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(featuredPostScheduleExecutor.fetchWeeklyPosts()).willReturn(Collections.emptyList());
+        given(featuredPostScheduleExecutor.fetchLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When - 모든 스케줄링 메서드 호출
         postScheduledService.applyRealtimeScoreDecay();
@@ -245,8 +231,8 @@ class PostScheduledServiceTest {
         // Then - 서킷 CLOSED이므로 Redis에만 감쇠 적용
         verify(redisRealTimePostAdapter).applyRealtimePopularScoreDecay();
         verify(realtimeScoreFallbackStore, never()).applyDecay();
-        verify(postQueryRepository).findWeeklyPopularPosts();
-        verify(postQueryRepository).findLegendaryPosts();
+        verify(featuredPostScheduleExecutor).fetchWeeklyPosts();
+        verify(featuredPostScheduleExecutor).fetchLegendaryPosts();
     }
 
     @Test
@@ -255,8 +241,7 @@ class PostScheduledServiceTest {
         // Given - 대량의 게시글 생성 (100개)
         List<PostSimpleDetail> largePosts = createLargePostList(100);
 
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(largePosts);
-        given(postToCommentAdapter.findCommentCountsByPostIds(anyList())).willReturn(Collections.emptyMap());
+        given(featuredPostScheduleExecutor.fetchWeeklyPosts()).willReturn(largePosts);
 
         // When
         postScheduledService.updateWeeklyPopularPosts();

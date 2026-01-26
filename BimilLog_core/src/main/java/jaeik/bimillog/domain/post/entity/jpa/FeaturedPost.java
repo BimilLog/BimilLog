@@ -18,7 +18,7 @@ import java.time.temporal.ChronoUnit;
  * <p>PostCacheFlag Enum을 DB 타입으로도 재사용합니다 (REALTIME은 DB에 저장하지 않음).</p>
  *
  * @author Jaeik
- * @version 2.12.0
+ * @version 2.6.0
  */
 @Entity
 @Getter

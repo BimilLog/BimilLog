@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
  * <p>서킷브레이커 동작은 RedisRealTimePostAdapter에서 테스트합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.6.0
  */
 @Tag("unit")
 @DisplayName("RealtimePopularScoreListener 단위 테스트")

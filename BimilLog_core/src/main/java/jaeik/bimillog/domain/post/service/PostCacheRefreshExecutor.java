@@ -21,7 +21,7 @@ import java.util.List;
  * <p>DB 조회는 {@link PostCacheRefresh}에서 수행하고, 조회된 데이터를 전달받아 캐시에 저장합니다.</p>
  *
  * @author Jaeik
- * @version 2.9.0
+ * @version 2.6.0
  */
 @Log(logResult = false, logExecutionTime = true, message = "캐시 저장")
 @Component

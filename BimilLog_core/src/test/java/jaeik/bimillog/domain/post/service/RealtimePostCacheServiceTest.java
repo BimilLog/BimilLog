@@ -36,7 +36,7 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>RealtimePostCacheService 테스트</h2>
  * <p>실시간 인기글 캐시 조회 로직을 검증합니다.</p>
- * <p>Hash 캐시 조회, PER 선제 갱신, 캐시 미스 시 ZSet → DB 폴백, 서킷 OPEN 시 Caffeine 폴백을 검증합니다.</p>
+ * <p>Hash 캐시 조회, 캐시 미스 시 SET NX 락 기반 비동기 갱신 + ZSet → DB 폴백, 서킷 OPEN 시 Caffeine 폴백을 검증합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RealtimePostCacheService 테스트")
@@ -87,7 +87,7 @@ class RealtimePostCacheServiceTest {
     }
 
     @Test
-    @DisplayName("실시간 인기글 조회 - 캐시 히트 + PER 미트리거")
+    @DisplayName("실시간 인기글 조회 - 캐시 히트")
     void shouldGetRealtimePosts_CacheHit() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
@@ -96,7 +96,6 @@ class RealtimePostCacheServiceTest {
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
                 .willReturn(List.of(simpleDetail2, simpleDetail1));
-        given(redisSimplePostAdapter.shouldRefreshByPer(PostCacheFlag.REALTIME)).willReturn(false);
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
@@ -108,31 +107,6 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(2);
 
         verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.REALTIME);
-        verify(redisSimplePostAdapter).shouldRefreshByPer(PostCacheFlag.REALTIME);
-        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock(any());
-        verify(postCacheRefresh, never()).asyncRefreshAllPosts(any(), any());
-    }
-
-    @Test
-    @DisplayName("실시간 인기글 조회 - 캐시 히트 + PER 트리거 시 비동기 갱신 (락 없음)")
-    void shouldGetRealtimePosts_CacheHit_PerTriggered() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 5);
-        PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
-
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
-                .willReturn(List.of(simpleDetail1));
-        given(redisSimplePostAdapter.shouldRefreshByPer(PostCacheFlag.REALTIME)).willReturn(true);
-        given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5)).willReturn(List.of(1L, 2L));
-
-        // When
-        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
-
-        // Then: 캐시 데이터 반환 + PER 비동기 갱신 트리거 (락 없음)
-        assertThat(result.getContent()).hasSize(1);
-        verify(redisSimplePostAdapter).shouldRefreshByPer(PostCacheFlag.REALTIME);
-        verify(redisSimplePostAdapter, never()).tryAcquireRefreshLock(any());
-        verify(postCacheRefresh).asyncRefreshAllPosts(eq(PostCacheFlag.REALTIME), eq(List.of(1L, 2L)));
         verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock(any());
     }
 

@@ -72,16 +72,7 @@ public final class RedisPostKeys {
      */
     public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
 
-    // ===================== 4. PER (Probabilistic Early Refresh) =====================
-
-    /**
-     * PER 갱신 임계값 (15초)
-     * <p>TTL이 이 값 미만일 때 확률적으로 캐시를 선제 갱신합니다.</p>
-     * <p>공식: (현재TTL - (랜덤값(0~1) × 15)) ≤ 0 이면 갱신</p>
-     */
-    public static final int PER_EXPIRY_GAP_SECONDS = 15;
-
-    // ===================== 5. LOCK (분산 락) =====================
+    // ===================== 4. LOCK (분산 락) =====================
 
     /**
      * 캐시 갱신 락 키 접미사
@@ -94,7 +85,7 @@ public final class RedisPostKeys {
      */
     public static final Duration REFRESH_LOCK_TTL = Duration.ofSeconds(5);
 
-    // ===================== 6. KEY GENERATION METHODS (키 생성 유틸리티) =====================
+    // ===================== 5. KEY GENERATION METHODS (키 생성 유틸리티) =====================
 
     /**
      * <h3>점수 저장소 키 생성</h3>
