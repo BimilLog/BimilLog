@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.hotkey.HotKeyMonitor;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
 import jaeik.bimillog.infrastructure.resilience.FallbackType;
@@ -40,6 +41,7 @@ public class FeaturedPostCacheService {
     /**
      * 주간 인기글 목록 조회
      */
+    @HotKeyMonitor(PostCacheFlag.WEEKLY)
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
         return getFeaturedCachedPosts(PostCacheFlag.WEEKLY, FallbackType.WEEKLY, pageable);
     }
@@ -47,6 +49,7 @@ public class FeaturedPostCacheService {
     /**
      * 전설 인기글 목록 조회
      */
+    @HotKeyMonitor(PostCacheFlag.LEGEND)
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
         return getFeaturedCachedPosts(PostCacheFlag.LEGEND, FallbackType.LEGEND, pageable);
     }
@@ -54,6 +57,7 @@ public class FeaturedPostCacheService {
     /**
      * 공지사항 목록 조회
      */
+    @HotKeyMonitor(PostCacheFlag.NOTICE)
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
         return getFeaturedCachedPosts(PostCacheFlag.NOTICE, FallbackType.NOTICE, pageable);
     }

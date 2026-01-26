@@ -5,6 +5,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.hotkey.HotKeyMonitor;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
@@ -52,6 +53,7 @@ public class RealtimePostCacheService {
      * <p>서킷이 닫혀있으면 Hash 캐시에서 조회하고, PER로 TTL 15초 미만 시 선제 갱신합니다.</p>
      * <p>캐시 미스 시 동기적으로 ZSet을 확인하고 DB 조회 후 비동기 갱신을 트리거합니다.</p>
      */
+    @HotKeyMonitor(PostCacheFlag.REALTIME)
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
         if (isRealtimeRedisCircuitOpen()) {
             try {
