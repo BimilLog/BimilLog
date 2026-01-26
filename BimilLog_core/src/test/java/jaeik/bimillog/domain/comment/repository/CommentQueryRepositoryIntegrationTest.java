@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;

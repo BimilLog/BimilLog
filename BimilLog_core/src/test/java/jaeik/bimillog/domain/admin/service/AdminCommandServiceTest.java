@@ -12,7 +12,7 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;

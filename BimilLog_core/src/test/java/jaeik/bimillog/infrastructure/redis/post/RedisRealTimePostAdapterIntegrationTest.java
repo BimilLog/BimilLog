@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

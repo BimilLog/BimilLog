@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.repository;
 
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.comment.repository.*;
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;

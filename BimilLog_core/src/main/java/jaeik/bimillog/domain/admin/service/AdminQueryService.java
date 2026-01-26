@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.admin.adapter.AdminToCommentAdapter;
 import jaeik.bimillog.domain.admin.adapter.AdminToPostAdapter;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

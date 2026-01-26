@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;

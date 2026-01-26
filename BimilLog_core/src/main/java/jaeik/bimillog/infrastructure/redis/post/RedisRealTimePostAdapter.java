@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

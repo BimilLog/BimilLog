@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;

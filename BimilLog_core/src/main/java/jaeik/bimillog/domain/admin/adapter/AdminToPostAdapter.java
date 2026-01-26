@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.admin.adapter;
 
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;

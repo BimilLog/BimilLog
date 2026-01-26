@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.entity;
+package jaeik.bimillog.domain.post.entity.jpa;
 
 /**
  * <h2>게시글 캐시 플래그</h2>

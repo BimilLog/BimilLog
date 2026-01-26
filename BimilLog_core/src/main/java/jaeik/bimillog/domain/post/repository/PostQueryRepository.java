@@ -9,7 +9,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.member.entity.QMember;
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.QPost;
