@@ -6,11 +6,9 @@ import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -23,14 +21,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * <p>Redis 장애 시 @CircuitBreaker가 자동으로 ConcurrentHashMap 폴백을 처리합니다.</p>
  *
  * @author Jaeik
- * @version 2.5.1
+ * @version 2.7.0
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "실시간 인기글 점수")
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class RealtimePopularScoreListener {
-    private final RedisDetailPostAdapter redisDetailPostAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     private static final double VIEW_SCORE = 2.0;
@@ -63,7 +60,7 @@ public class RealtimePopularScoreListener {
 
     /**
      * <h3>게시글 추천 이벤트 처리</h3>
-     * <p>게시글 추천 시 실시간 인기글 점수를 4점 증가시키고 캐시를 무효화합니다.</p>
+     * <p>게시글 추천 시 실시간 인기글 점수를 4점 증가시킵니다.</p>
      *
      * @param event 게시글 추천 이벤트
      */
@@ -71,16 +68,11 @@ public class RealtimePopularScoreListener {
     @Async("realtimeEventExecutor")
     public void handlePostLiked(PostLikeEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
-        try {
-            redisDetailPostAdapter.deleteCachePost(event.postId());
-        } catch (Exception ignored) {
-            // 캐시 삭제 실패는 무시
-        }
     }
 
     /**
      * <h3>게시글 추천 취소 이벤트 처리</h3>
-     * <p>게시글 추천 취소 시 실시간 인기글 점수를 4점 감소시키고 캐시를 무효화합니다.</p>
+     * <p>게시글 추천 취소 시 실시간 인기글 점수를 4점 감소시킵니다.</p>
      *
      * @param event 게시글 추천 취소 이벤트
      */
@@ -88,11 +80,6 @@ public class RealtimePopularScoreListener {
     @Async("realtimeEventExecutor")
     public void handlePostUnliked(PostUnlikeEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
-        try {
-            redisDetailPostAdapter.deleteCachePost(event.postId());
-        } catch (Exception ignored) {
-            // 캐시 삭제 실패는 무시
-        }
     }
 
     /**

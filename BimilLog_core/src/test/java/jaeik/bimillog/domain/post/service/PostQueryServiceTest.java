@@ -6,9 +6,6 @@ import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
 import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -36,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -44,10 +40,11 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>PostQueryService 테스트</h2>
  * <p>게시글 조회 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>게시판 조회, 인기글 조회, 검색, 캐시 처리 등의 복잡한 시나리오를 테스트합니다.</p>
+ * <p>게시판 조회, 상세 조회, 검색 기능을 테스트합니다.</p>
+ * <p>상세 캐시 제거됨 - 모든 상세 조회는 DB에서 직접 수행</p>
  *
  * @author Jaeik
- * @version 2.5.0
+ * @version 2.7.0
  */
 @DisplayName("PostQueryService 테스트")
 @Tag("unit")
@@ -61,18 +58,6 @@ class PostQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private PostLikeRepository postLikeRepository;
-
-    @Mock
-    private RedisDetailPostAdapter redisDetailPostAdapter;
-
-    @Mock
-    private RedisTier2PostAdapter redisTier2PostAdapter;
-
-    @Mock
-    private RedisRealTimePostAdapter redisRealTimePostAdapter;
-
-    @Mock
-    private PostCacheRefresh postCacheRefresh;
 
     @Mock
     private PostRepository postRepository;
@@ -119,27 +104,19 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(postQueryRepository).findByPage(pageable, null);
     }
 
-
     @Test
-    @DisplayName("인기글 상세 조회 - 캐시 미스 후 DB 조회 및 캐시 저장 (회원)")
+    @DisplayName("게시글 상세 조회 - DB 직접 조회 (회원)")
     @SuppressWarnings("unchecked")
-    void shouldGetPopularPost_WhenCacheMiss_SaveToCache_Member() {
+    void shouldGetPostDetail_WhenMember() {
         // Given
         Long postId = 1L;
         Long memberId = 2L;
         Long postAuthorId = 1L;
 
-        // 인기글 여부 확인 - 2티어에 존재
-        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(true);
-
-        // 캐시 미스
-        given(redisDetailPostAdapter.getCachedPostIfExists(postId)).willReturn(null);
-
-        // DB 조회
         PostDetail mockPostDetail = PostDetail.builder()
                 .id(postId)
-                .title("인기글 제목")
-                .content("인기글 내용")
+                .title("게시글 제목")
+                .content("게시글 내용")
                 .memberId(postAuthorId)
                 .isLiked(false)
                 .viewCount(100)
@@ -153,7 +130,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .willReturn(Optional.of(mockPostDetail));
 
         // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
-        given(dbFallbackGateway.executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class)))
+        given(dbFallbackGateway.executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class)))
                 .willAnswer(invocation -> {
                     Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
                     return supplier.get();
@@ -169,78 +146,23 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isTrue();
 
-        verify(redisTier2PostAdapter).isPopularPost(postId);
-        verify(redisDetailPostAdapter).getCachedPostIfExists(postId);
-        verify(dbFallbackGateway).executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class));
-        verify(redisDetailPostAdapter).saveCachePost(any(PostDetail.class)); // 인기글이므로 캐시 저장
+        verify(dbFallbackGateway).executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class));
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
     }
 
     @Test
-    @DisplayName("인기글 상세 조회 - 캐시 히트 (회원, isLiked 주입)")
-    void shouldGetPopularPost_WhenCacheHit_InjectIsLiked() {
-        // Given
-        Long postId = 1L;
-        Long memberId = 2L;
-        Long postAuthorId = 1L;
-
-        // 인기글 여부 확인 - 실시간 인기글
-        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(false);
-        given(redisRealTimePostAdapter.isRealtimePopularPost(postId)).willReturn(true);
-
-        PostDetail cachedFullPost = PostDetail.builder()
-                .id(postId)
-                .title("캐시된 인기글")
-                .content("캐시된 내용")
-                .viewCount(100)
-                .likeCount(50)
-                .createdAt(Instant.now())
-                .memberId(postAuthorId)
-                .memberName("testMember")
-                .commentCount(10)
-                .isLiked(false)
-                .isNotice(false)
-                .build();
-
-        // 캐시 히트
-        given(redisDetailPostAdapter.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
-        given(redisDetailPostAdapter.shouldRefresh(postId)).willReturn(false);
-
-        // 회원이므로 isLiked 조회
-        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
-
-        // When
-        PostDetail result = postQueryService.getPost(postId, memberId);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.isLiked()).isTrue();
-
-        verify(redisTier2PostAdapter).isPopularPost(postId);
-        verify(redisRealTimePostAdapter).isRealtimePopularPost(postId);
-        verify(redisDetailPostAdapter).getCachedPostIfExists(postId);
-        verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(postQueryRepository, never()).findPostDetail(any(), any()); // DB 조회 없음
-        verify(redisDetailPostAdapter, never()).saveCachePost(any()); // 캐시 저장 없음
-    }
-
-    @Test
-    @DisplayName("일반글 상세 조회 - DB 직접 조회 (캐시 사용 안함, 비회원)")
-    void shouldGetNormalPost_DirectDbQuery_Anonymous() {
+    @DisplayName("게시글 상세 조회 - DB 직접 조회 (비회원)")
+    @SuppressWarnings("unchecked")
+    void shouldGetPostDetail_WhenAnonymous() {
         // Given
         Long postId = 1L;
         Long memberId = null;
         Long postAuthorId = 1L;
 
-        // 인기글 아님
-        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(false);
-        given(redisRealTimePostAdapter.isRealtimePopularPost(postId)).willReturn(false);
-
-        // DB 조회
         PostDetail mockPostDetail = PostDetail.builder()
                 .id(postId)
-                .title("일반 게시글")
-                .content("일반 내용")
+                .title("게시글 제목")
+                .content("게시글 내용")
                 .memberId(postAuthorId)
                 .isLiked(false)
                 .viewCount(10)
@@ -253,6 +175,13 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(postQueryRepository.findPostDetail(postId, null))
                 .willReturn(Optional.of(mockPostDetail));
 
+        // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
+        given(dbFallbackGateway.executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class)))
+                .willAnswer(invocation -> {
+                    Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
+                    return supplier.get();
+                });
+
         // When
         PostDetail result = postQueryService.getPost(postId, memberId);
 
@@ -260,96 +189,23 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isFalse();
 
-        verify(redisTier2PostAdapter).isPopularPost(postId);
-        verify(redisRealTimePostAdapter).isRealtimePopularPost(postId);
-        verify(redisDetailPostAdapter, never()).getCachedPostIfExists(any()); // 캐시 조회 안함
-        verify(postQueryRepository).findPostDetail(postId, null);
-        verify(redisDetailPostAdapter, never()).saveCachePost(any()); // 캐시 저장 안함
+        verify(dbFallbackGateway).executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class));
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
     }
 
     @Test
-    @DisplayName("인기글 상세 조회 - 캐시 히트 시 PER 트리거")
-    void shouldGetPopularPost_TriggerPER_WhenCacheHit() {
-        // Given
-        Long postId = 1L;
-        Long memberId = null;
-        Long postAuthorId = 1L;
-
-        // 인기글 여부 확인
-        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(true);
-
-        PostDetail cachedFullPost = PostDetail.builder()
-                .id(postId)
-                .title("캐시된 인기글")
-                .content("캐시된 내용")
-                .viewCount(100)
-                .likeCount(50)
-                .createdAt(Instant.now())
-                .memberId(postAuthorId)
-                .memberName("testMember")
-                .commentCount(10)
-                .isLiked(false)
-                .isNotice(false)
-                .build();
-
-        // 캐시 히트
-        given(redisDetailPostAdapter.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
-        // PER 조건 만족
-        given(redisDetailPostAdapter.shouldRefresh(postId)).willReturn(true);
-
-        // When
-        PostDetail result = postQueryService.getPost(postId, memberId);
-
-        // Then
-        assertThat(result).isNotNull();
-
-        verify(redisDetailPostAdapter).shouldRefresh(postId);
-        verify(postCacheRefresh).asyncRefreshDetailPost(postId); // PER 비동기 갱신 호출
-    }
-
-    @Test
-    @DisplayName("게시글 상세 조회 - 존재하지 않는 게시글 (일반글)")
-    void shouldThrowException_WhenNormalPostNotFound() {
-        // Given
-        Long postId = 999L;
-        Long memberId = 1L;
-
-        // 인기글 아님
-        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(false);
-        given(redisRealTimePostAdapter.isRealtimePopularPost(postId)).willReturn(false);
-
-        // DB에도 없음
-        given(postQueryRepository.findPostDetail(postId, null)).willReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> postQueryService.getPost(postId, memberId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
-
-        verify(postQueryRepository).findPostDetail(postId, null);
-        verify(redisDetailPostAdapter, never()).saveCachePost(any());
-    }
-
-    @Test
-    @DisplayName("게시글 상세 조회 - 존재하지 않는 게시글 (인기글)")
+    @DisplayName("게시글 상세 조회 - 존재하지 않는 게시글")
     @SuppressWarnings("unchecked")
-    void shouldThrowException_WhenPopularPostNotFound() {
+    void shouldThrowException_WhenPostNotFound() {
         // Given
         Long postId = 999L;
         Long memberId = 1L;
-
-        // 인기글 여부 확인
-        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(true);
-
-        // 캐시 미스
-        given(redisDetailPostAdapter.getCachedPostIfExists(postId)).willReturn(null);
 
         // DB에도 없음
         given(postQueryRepository.findPostDetail(postId, null)).willReturn(Optional.empty());
 
         // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
-        given(dbFallbackGateway.executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class)))
+        given(dbFallbackGateway.executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class)))
                 .willAnswer(invocation -> {
                     Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
                     return supplier.get();
@@ -360,9 +216,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(redisDetailPostAdapter).getCachedPostIfExists(postId);
-        verify(dbFallbackGateway).executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class));
-        verify(redisDetailPostAdapter, never()).saveCachePost(any());
+        verify(dbFallbackGateway).executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class));
     }
 
     @Test

@@ -10,12 +10,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
-import org.springframework.data.redis.core.HashOperations;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,69 +42,56 @@ class FriendEventDlqSchedulerTest {
     private RedisTemplate<String, Object> redisTemplate;
 
     @Mock
-    private HealthEndpoint healthEndpoint;
+    private RedisConnectionFactory connectionFactory;
 
     @Mock
-    private SetOperations<String, Object> setOperations;
-
-    @Mock
-    private HashOperations<String, Object, Object> hashOperations;
+    private RedisConnection redisConnection;
 
     @BeforeEach
     void setUp() {
-        lenient().when(redisTemplate.opsForSet()).thenReturn(setOperations);
-        lenient().when(redisTemplate.opsForHash()).thenReturn(hashOperations);
+        lenient().when(redisTemplate.getConnectionFactory()).thenReturn(connectionFactory);
+        lenient().when(connectionFactory.getConnection()).thenReturn(redisConnection);
     }
 
     @Test
     @DisplayName("Redis 비정상 상태면 재처리 건너뜀")
     void processDlq_shouldSkipWhenRedisUnhealthy() {
         // Given
-        Health unhealthyRedis = Health.down().build();
-        Health compositeHealth = Health.up()
-                .withDetail("redis", unhealthyRedis)
-                .build();
-        given(healthEndpoint.health()).willReturn(compositeHealth);
+        FriendEventDlq event = FriendEventDlq.createFriendAdd(1L, 2L);
+        given(repository.findPendingEvents(anyInt())).willReturn(List.of(event));
+        given(redisConnection.ping()).willReturn(null); // Redis 비정상
 
         // When
         scheduler.processDlq();
 
-        // Then
-        verify(repository, never()).findPendingEvents(anyInt());
+        // Then - 파이프라인 실행 안됨
+        verify(redisTemplate, never()).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
     }
 
     @Test
     @DisplayName("PENDING 이벤트가 없으면 처리 없음")
     void processDlq_shouldDoNothingWhenNoEvents() {
         // Given
-        Health healthyRedis = Health.up().build();
-        Health compositeHealth = Health.up()
-                .withDetail("redis", healthyRedis)
-                .build();
-        given(healthEndpoint.health()).willReturn(compositeHealth);
         given(repository.findPendingEvents(anyInt())).willReturn(Collections.emptyList());
 
         // When
         scheduler.processDlq();
 
-        // Then
+        // Then - Redis 체크도 안하고 바로 리턴
+        verify(redisTemplate, never()).getConnectionFactory();
         verify(redisTemplate, never()).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
-        verify(repository, never()).saveAll(anyList());
     }
 
     @Test
     @DisplayName("FRIEND_ADD 이벤트 재처리 성공")
     void processDlq_shouldProcessFriendAddEvent() {
         // Given
-        Health healthyRedis = Health.up().build();
-        Health compositeHealth = Health.up()
-                .withDetail("redis", healthyRedis)
-                .build();
-        given(healthEndpoint.health()).willReturn(compositeHealth);
+        given(redisConnection.ping()).willReturn("PONG");
 
         FriendEventDlq event = FriendEventDlq.createFriendAdd(1L, 2L);
         given(repository.findPendingEvents(anyInt())).willReturn(List.of(event));
-        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class))).willReturn(Collections.emptyList());
+        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
+                .willReturn(Collections.emptyList());
 
         // When
         scheduler.processDlq();
@@ -121,15 +106,12 @@ class FriendEventDlqSchedulerTest {
     @DisplayName("FRIEND_REMOVE 이벤트 재처리 성공")
     void processDlq_shouldProcessFriendRemoveEvent() {
         // Given
-        Health healthyRedis = Health.up().build();
-        Health compositeHealth = Health.up()
-                .withDetail("redis", healthyRedis)
-                .build();
-        given(healthEndpoint.health()).willReturn(compositeHealth);
+        given(redisConnection.ping()).willReturn("PONG");
 
         FriendEventDlq event = FriendEventDlq.createFriendRemove(1L, 2L);
         given(repository.findPendingEvents(anyInt())).willReturn(List.of(event));
-        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class))).willReturn(Collections.emptyList());
+        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
+                .willReturn(Collections.emptyList());
 
         // When
         scheduler.processDlq();
@@ -144,15 +126,12 @@ class FriendEventDlqSchedulerTest {
     @DisplayName("SCORE_UP 이벤트 재처리 성공")
     void processDlq_shouldProcessScoreUpEvent() {
         // Given
-        Health healthyRedis = Health.up().build();
-        Health compositeHealth = Health.up()
-                .withDetail("redis", healthyRedis)
-                .build();
-        given(healthEndpoint.health()).willReturn(compositeHealth);
+        given(redisConnection.ping()).willReturn("PONG");
 
         FriendEventDlq event = FriendEventDlq.createScoreUp("test-score-event-id", 1L, 2L, 0.5);
         given(repository.findPendingEvents(anyInt())).willReturn(List.of(event));
-        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class))).willReturn(Collections.emptyList());
+        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
+                .willReturn(Collections.emptyList());
 
         // When
         scheduler.processDlq();
@@ -165,20 +144,21 @@ class FriendEventDlqSchedulerTest {
 
     @Test
     @DisplayName("파이프라인 실패 시 개별 재처리 후 retryCount 증가")
+    @SuppressWarnings("unchecked")
     void processDlq_shouldIncrementRetryCountOnFailure() {
         // Given
-        Health healthyRedis = Health.up().build();
-        Health compositeHealth = Health.up()
-                .withDetail("redis", healthyRedis)
-                .build();
-        given(healthEndpoint.health()).willReturn(compositeHealth);
+        given(redisConnection.ping()).willReturn("PONG");
 
         FriendEventDlq event = FriendEventDlq.createFriendAdd(1L, 2L);
         given(repository.findPendingEvents(anyInt())).willReturn(List.of(event));
         given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
                 .willThrow(new RedisConnectionFailureException("파이프라인 실패"));
-        doThrow(new RedisConnectionFailureException("개별 처리 실패"))
-                .when(setOperations).add(anyString(), any());
+
+        // 개별 처리도 실패하도록 설정
+        var setOperations = mock(org.springframework.data.redis.core.SetOperations.class);
+        given(redisTemplate.opsForSet()).willReturn(setOperations);
+        given(setOperations.add(anyString(), any()))
+                .willThrow(new RedisConnectionFailureException("개별 처리 실패"));
 
         // When
         scheduler.processDlq();
@@ -190,13 +170,10 @@ class FriendEventDlqSchedulerTest {
 
     @Test
     @DisplayName("최대 재시도 초과 시 FAILED 상태로 변경")
+    @SuppressWarnings("unchecked")
     void processDlq_shouldMarkAsFailedAfterMaxRetries() {
         // Given
-        Health healthyRedis = Health.up().build();
-        Health compositeHealth = Health.up()
-                .withDetail("redis", healthyRedis)
-                .build();
-        given(healthEndpoint.health()).willReturn(compositeHealth);
+        given(redisConnection.ping()).willReturn("PONG");
 
         FriendEventDlq event = FriendEventDlq.createFriendAdd(1L, 2L);
         // 이미 2회 재시도한 상태 시뮬레이션
@@ -206,8 +183,12 @@ class FriendEventDlqSchedulerTest {
         given(repository.findPendingEvents(anyInt())).willReturn(List.of(event));
         given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
                 .willThrow(new RedisConnectionFailureException("파이프라인 실패"));
-        doThrow(new RedisConnectionFailureException("개별 처리 실패"))
-                .when(setOperations).add(anyString(), any());
+
+        // 개별 처리도 실패하도록 설정
+        var setOperations = mock(org.springframework.data.redis.core.SetOperations.class);
+        given(redisTemplate.opsForSet()).willReturn(setOperations);
+        given(setOperations.add(anyString(), any()))
+                .willThrow(new RedisConnectionFailureException("개별 처리 실패"));
 
         // When
         scheduler.processDlq();
@@ -221,18 +202,15 @@ class FriendEventDlqSchedulerTest {
     @DisplayName("여러 이벤트 동시 처리")
     void processDlq_shouldProcessMultipleEvents() {
         // Given
-        Health healthyRedis = Health.up().build();
-        Health compositeHealth = Health.up()
-                .withDetail("redis", healthyRedis)
-                .build();
-        given(healthEndpoint.health()).willReturn(compositeHealth);
+        given(redisConnection.ping()).willReturn("PONG");
 
         FriendEventDlq addEvent = FriendEventDlq.createFriendAdd(1L, 2L);
         FriendEventDlq removeEvent = FriendEventDlq.createFriendRemove(3L, 4L);
         FriendEventDlq scoreEvent = FriendEventDlq.createScoreUp("test-score-event-id-2", 5L, 6L, 0.5);
 
         given(repository.findPendingEvents(anyInt())).willReturn(List.of(addEvent, removeEvent, scoreEvent));
-        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class))).willReturn(Collections.emptyList());
+        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
+                .willReturn(Collections.emptyList());
 
         // When
         scheduler.processDlq();

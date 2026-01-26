@@ -17,7 +17,8 @@ public enum FallbackType {
     WEEKLY("주간 인기글"),
     LEGEND("레전드 인기글"),
     NOTICE("공지사항"),
-    DETAIL("인기글 상세");
+    POPULAR_DETAIL("인기글 상세"),
+    NORMAL_DETAIL("일반글 상세");
 
     private final String description;
 }
