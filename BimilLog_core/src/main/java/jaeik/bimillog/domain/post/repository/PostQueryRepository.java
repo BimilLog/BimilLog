@@ -11,6 +11,8 @@ import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.entity.jpa.QPost;
+import jaeik.bimillog.domain.post.entity.jpa.QPostLike;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
