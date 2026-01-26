@@ -17,6 +17,7 @@ vi.mock('@/lib/api', async () => {
     sseManager: {
       connect: vi.fn(),
       disconnect: vi.fn(),
+      setAuthChecker: vi.fn(),
     },
   };
 });

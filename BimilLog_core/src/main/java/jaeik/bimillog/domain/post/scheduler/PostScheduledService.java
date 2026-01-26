@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.scheduler;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.jpa.FeaturedPost;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(logResult = false, logExecutionTime = true, message = "스케줄 캐시 갱신")
 @Service
 @RequiredArgsConstructor
 @Slf4j

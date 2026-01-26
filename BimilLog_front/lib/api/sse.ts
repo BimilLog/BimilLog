@@ -12,6 +12,8 @@ export class SSEManager {
   private wasConnected = false
   private networkListenersAdded = false
   private connectedToastShown = false
+  private authChecker: (() => boolean) | null = null
+  private connectionOpened = false
 
   constructor() {
     this.setupNetworkListeners()
@@ -22,6 +24,10 @@ export class SSEManager {
 
     // 네트워크 복구 감지 시 자동 재연결
     window.addEventListener('online', () => {
+      if (!this.isAuthValid()) {
+        logger.log('네트워크 복구 감지 - 인증되지 않은 상태로 SSE 재연결을 생략합니다.')
+        return
+      }
       logger.log('네트워크 복구 감지 - SSE 재연결 시도')
       this.reconnectAttempts = 0 // 재시도 카운터 초기화
       this.connect()
@@ -37,6 +43,12 @@ export class SSEManager {
   }
 
   connect() {
+    if (!this.isAuthValid()) {
+      logger.log("인증되지 않은 상태 - SSE 연결을 생략합니다.")
+      this.notifyStatusListeners('disconnected')
+      return
+    }
+
     if (this.eventSource) {
       const readyState = this.eventSource.readyState
       if (readyState === EventSource.OPEN) {
@@ -57,6 +69,7 @@ export class SSEManager {
 
       logger.log("SSE 연결 시도:", sseUrl)
       this.notifyStatusListeners('connecting')
+      this.connectionOpened = false
 
       this.eventSource = new EventSource(sseUrl, {
         withCredentials: true,
@@ -64,6 +77,7 @@ export class SSEManager {
 
       this.eventSource.onopen = (event) => {
         logger.log("SSE connection opened successfully", event)
+        this.connectionOpened = true
         this.reconnectAttempts = 0
 
         // 재연결 성공인지 최초 연결 성공인지 구분
@@ -132,6 +146,31 @@ export class SSEManager {
 
         this.notifyStatusListeners('error')
 
+        // 연결이 한 번도 열리지 않은 경우 (403/401 인증 실패 등)
+        // 브라우저의 자동 재연결을 중단하고 수동 재연결로 전환
+        if (!this.connectionOpened) {
+          logger.log("SSE 연결이 열리지 않음 - 브라우저 자동 재연결을 중단합니다.")
+          this.eventSource?.close()
+          this.eventSource = null
+
+          if (this.reconnectAttempts < this.maxReconnectAttempts) {
+            this.reconnectAttempts++
+            const delay = Math.min(
+              this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+              this.maxReconnectDelay
+            )
+            logger.log(`SSE 수동 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts} (${delay}ms 후)`)
+            this.notifyStatusListeners('reconnecting')
+            setTimeout(() => {
+              this.connect() // connect()에서 인증 상태를 재검증
+            }, delay)
+          } else {
+            logger.error("SSE 재연결 시도 초과됨")
+            this.notifyStatusListeners('disconnected')
+          }
+          return
+        }
+
         // EventSource.CLOSED (2): 서버가 명시적으로 연결 종료 시
         // EventSource.CONNECTING (0): 브라우저가 자동 재연결 중 (서버의 reconnectTime 5초 사용)
         if (readyState === EventSource.CLOSED) {
@@ -157,7 +196,12 @@ export class SSEManager {
             this.disconnect()
           }
         } else if (readyState === EventSource.CONNECTING) {
-          // 브라우저가 자동으로 재연결 중 (서버의 reconnectTime=5000ms 사용)
+          // 브라우저가 자동으로 재연결 중 - 인증 만료 시 중단
+          if (!this.isAuthValid()) {
+            logger.log("인증 만료 감지 - SSE 브라우저 자동 재연결을 중단합니다.")
+            this.disconnect()
+            return
+          }
           logger.log("브라우저가 자동으로 재연결 중입니다 (5초 간격)")
           this.notifyStatusListeners('reconnecting')
         }
@@ -175,11 +219,20 @@ export class SSEManager {
       this.eventSource = null
       this.reconnectAttempts = 0
       this.wasConnected = false
+      this.connectionOpened = false
       this.notifyStatusListeners('disconnected')
     }
     if (resetToast) {
       this.resetConnectedToastFlag()
     }
+  }
+
+  setAuthChecker(checker: () => boolean) {
+    this.authChecker = checker
+  }
+
+  private isAuthValid(): boolean {
+    return this.authChecker ? this.authChecker() : true
   }
 
   addEventListener(type: string, listener: (data: Notification) => void) {

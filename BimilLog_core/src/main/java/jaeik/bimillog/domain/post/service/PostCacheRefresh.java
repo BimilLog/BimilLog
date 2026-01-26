@@ -26,7 +26,7 @@ import java.util.Objects;
  * @author Jaeik
  * @version 2.9.0
  */
-@Log(logResult = false, message = "캐시 갱신")
+@Log(logResult = false, logExecutionTime = true, message = "캐시 갱신")
 @Service
 @RequiredArgsConstructor
 @Slf4j
