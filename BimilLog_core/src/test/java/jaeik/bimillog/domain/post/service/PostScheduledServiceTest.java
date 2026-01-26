@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
@@ -13,12 +15,12 @@ import jaeik.bimillog.domain.post.scheduler.PostScheduledService;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -59,6 +61,12 @@ class PostScheduledServiceTest {
     @Mock
     private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
 
+    @Mock(strictness = Mock.Strictness.LENIENT)
+    private CircuitBreakerRegistry circuitBreakerRegistry;
+
+    @Mock(strictness = Mock.Strictness.LENIENT)
+    private CircuitBreaker realtimeRedisCircuitBreaker;
+
     @Mock
     private PostQueryRepository postQueryRepository;
 
@@ -74,23 +82,51 @@ class PostScheduledServiceTest {
     @Mock
     private PostRepository postRepository;
 
-    @InjectMocks
     private PostScheduledService postScheduledService;
 
+    @BeforeEach
+    void setUp() {
+        given(circuitBreakerRegistry.circuitBreaker("realtimeRedis")).willReturn(realtimeRedisCircuitBreaker);
+        given(realtimeRedisCircuitBreaker.getState()).willReturn(CircuitBreaker.State.CLOSED);
+
+        postScheduledService = new PostScheduledService(
+                redisSimplePostAdapter,
+                redisRealTimePostAdapter,
+                realtimeScoreFallbackStore,
+                circuitBreakerRegistry,
+                eventPublisher,
+                postQueryRepository,
+                postToCommentAdapter,
+                featuredPostRepository,
+                postRepository
+        );
+    }
+
     @Test
-    @DisplayName("실시간 인기글 점수 지수감쇠 적용 - applyRealtimeScoreDecay")
-    void shouldApplyRealtimeScoreDecay() {
-        // Given
-        doNothing().when(redisRealTimePostAdapter).applyRealtimePopularScoreDecay();
-        doNothing().when(realtimeScoreFallbackStore).applyDecay();
+    @DisplayName("실시간 인기글 점수 지수감쇠 - 서킷 닫힘 → Redis에 감쇠 적용")
+    void shouldApplyDecayToRedis_WhenCircuitClosed() {
+        // Given: 기본 setUp에서 서킷 CLOSED
 
         // When
         postScheduledService.applyRealtimeScoreDecay();
 
-        // Then
-        verify(redisRealTimePostAdapter, times(1)).applyRealtimePopularScoreDecay();
-        verify(realtimeScoreFallbackStore, times(1)).applyDecay();
-        verifyNoInteractions(eventPublisher); // 실시간 감쇠는 이벤트 발행 안함
+        // Then: Redis에만 감쇠 적용
+        verify(redisRealTimePostAdapter).applyRealtimePopularScoreDecay();
+        verify(realtimeScoreFallbackStore, never()).applyDecay();
+    }
+
+    @Test
+    @DisplayName("실시간 인기글 점수 지수감쇠 - 서킷 열림 → Caffeine에 감쇠 적용")
+    void shouldApplyDecayToCaffeine_WhenCircuitOpen() {
+        // Given: 서킷 OPEN
+        given(realtimeRedisCircuitBreaker.getState()).willReturn(CircuitBreaker.State.OPEN);
+
+        // When
+        postScheduledService.applyRealtimeScoreDecay();
+
+        // Then: Caffeine에만 감쇠 적용
+        verify(realtimeScoreFallbackStore).applyDecay();
+        verify(redisRealTimePostAdapter, never()).applyRealtimePopularScoreDecay();
     }
 
     @Test
@@ -198,7 +234,7 @@ class PostScheduledServiceTest {
     @Test
     @DisplayName("스케줄링 메서드들의 트랜잭션 동작 검증")
     void shouldVerifyTransactionalBehavior() {
-        // Given
+        // Given: 기본 setUp에서 서킷 CLOSED
         given(postQueryRepository.findWeeklyPopularPosts()).willReturn(Collections.emptyList());
         given(postQueryRepository.findLegendaryPosts()).willReturn(Collections.emptyList());
 
@@ -207,9 +243,9 @@ class PostScheduledServiceTest {
         postScheduledService.updateWeeklyPopularPosts();
         postScheduledService.updateLegendaryPosts();
 
-        // Then - @Transactional 동작을 위한 port 호출 검증
+        // Then - 서킷 CLOSED이므로 Redis에만 감쇠 적용
         verify(redisRealTimePostAdapter).applyRealtimePopularScoreDecay();
-        verify(realtimeScoreFallbackStore).applyDecay();
+        verify(realtimeScoreFallbackStore, never()).applyDecay();
         verify(postQueryRepository).findWeeklyPopularPosts();
         verify(postQueryRepository).findLegendaryPosts();
     }

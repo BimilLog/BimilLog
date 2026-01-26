@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.post.scheduler;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.FeaturedPost;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -42,30 +44,42 @@ public class PostScheduledService {
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final ApplicationEventPublisher eventPublisher;
     private final PostQueryRepository postQueryRepository;
     private final PostToCommentAdapter postToCommentAdapter;
     private final FeaturedPostRepository featuredPostRepository;
     private final PostRepository postRepository;
 
+    private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
+
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
-     * <p>스프링 스케줄러를 통해 10분마다 실시간 인기글 점수에 0.9를 곱하고, 1점 이하 게시글을 제거합니다.</p>
-     * <p>Redis와 Caffeine 폴백 저장소 모두에 감쇠를 적용합니다.</p>
+     * <p>스프링 스케줄러를 통해 10분마다 실시간 인기글 점수에 감쇠를 적용합니다.</p>
+     * <p>서킷 닫힘(Redis 정상): Redis ZSet에 감쇠 적용</p>
+     * <p>서킷 열림(Redis 장애): Caffeine 폴백 저장소에 감쇠 적용</p>
      */
     @Scheduled(fixedRate = 60000 * 10) // 10분마다
     public void applyRealtimeScoreDecay() {
-        try {
-            redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
-        } catch (Exception e) {
-            log.error("Redis 실시간 인기글 점수 지수감쇠 적용 실패", e);
+        if (isRealtimeRedisCircuitOpen()) {
+            try {
+                realtimeScoreFallbackStore.applyDecay();
+            } catch (Exception e) {
+                log.error("Fallback 저장소 지수감쇠 적용 실패", e);
+            }
+        } else {
+            try {
+                redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
+            } catch (Exception e) {
+                log.error("Redis 실시간 인기글 점수 지수감쇠 적용 실패", e);
+            }
         }
+    }
 
-        try {
-            realtimeScoreFallbackStore.applyDecay();
-        } catch (Exception e) {
-            log.error("Fallback 저장소 지수감쇠 적용 실패", e);
-        }
+    private boolean isRealtimeRedisCircuitOpen() {
+        CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(REALTIME_REDIS_CIRCUIT);
+        CircuitBreaker.State state = cb.getState();
+        return state == CircuitBreaker.State.OPEN || state == CircuitBreaker.State.FORCED_OPEN;
     }
 
     /**
