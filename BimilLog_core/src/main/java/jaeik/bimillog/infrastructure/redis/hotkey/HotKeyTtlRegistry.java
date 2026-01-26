@@ -19,7 +19,9 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
  *
  * @author Jaeik
  * @version 2.6.0
+ * @deprecated 2.7.0부터 사용 중단. 스케줄러 기반 캐시 갱신으로 대체.
  */
+@Deprecated(since = "2.7.0", forRemoval = true)
 @Component
 public class HotKeyTtlRegistry {
 
@@ -28,10 +30,9 @@ public class HotKeyTtlRegistry {
     @PostConstruct
     void init() {
         Map<String, Duration> map = new HashMap<>();
-        map.put(getSimplePostHashKey(PostCacheFlag.REALTIME), POST_CACHE_TTL_REALTIME);
         map.put(getSimplePostHashKey(PostCacheFlag.WEEKLY), POST_CACHE_TTL_WEEKLY_LEGEND);
         map.put(getSimplePostHashKey(PostCacheFlag.LEGEND), POST_CACHE_TTL_WEEKLY_LEGEND);
-        map.put(getSimplePostHashKey(PostCacheFlag.NOTICE), POST_CACHE_TTL_NOTICE);
+        // REALTIME, NOTICE는 영구 TTL이므로 핫키 갱신 대상에서 제외
         keyTtlMap = Collections.unmodifiableMap(map);
     }
 

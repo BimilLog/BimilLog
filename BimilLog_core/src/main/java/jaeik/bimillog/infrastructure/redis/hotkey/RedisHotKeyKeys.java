@@ -8,7 +8,9 @@ import java.time.Duration;
  *
  * @author Jaeik
  * @version 2.6.0
+ * @deprecated 2.7.0부터 사용 중단. 스케줄러 기반 캐시 갱신으로 대체.
  */
+@Deprecated(since = "2.7.0", forRemoval = true)
 public final class RedisHotKeyKeys {
 
     // ===================== 1. KEYS =====================

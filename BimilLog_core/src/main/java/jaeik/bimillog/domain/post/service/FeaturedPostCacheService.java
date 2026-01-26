@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.scheduler.PostCacheRefreshScheduler;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.hotkey.HotKeyMonitor;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
 import jaeik.bimillog.infrastructure.resilience.FallbackType;
@@ -21,11 +21,12 @@ import java.util.List;
 /**
  * <h2>FeaturedPostCacheService</h2>
  * <p>주간/레전드/공지 인기글 목록 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
- * <p>Hash 캐시에서 직접 조회하며, 캐시 미스 시 SET NX 락 기반으로 비동기 캐시 갱신을 트리거합니다.</p>
+ * <p>Hash 캐시에서 직접 조회하며, 캐시 미스 시 빈 페이지를 반환합니다.</p>
+ * <p>캐시 갱신은 {@link PostCacheRefreshScheduler}가 담당합니다.</p>
  * <p>featured_post 테이블에서 DB 폴백합니다.</p>
  *
  * @author Jaeik
- * @version 2.6.0
+ * @version 2.7.0
  */
 @Log(logResult = false, logExecutionTime = true)
 @Service
@@ -35,13 +36,11 @@ public class FeaturedPostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final FeaturedPostRepository featuredPostRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
-    private final PostCacheRefresh postCacheRefresh;
     private final DbFallbackGateway dbFallbackGateway;
 
     /**
      * 주간 인기글 목록 조회
      */
-    @HotKeyMonitor(PostCacheFlag.WEEKLY)
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
         return getFeaturedCachedPosts(PostCacheFlag.WEEKLY, FallbackType.WEEKLY, pageable);
     }
@@ -49,7 +48,6 @@ public class FeaturedPostCacheService {
     /**
      * 전설 인기글 목록 조회
      */
-    @HotKeyMonitor(PostCacheFlag.LEGEND)
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
         return getFeaturedCachedPosts(PostCacheFlag.LEGEND, FallbackType.LEGEND, pageable);
     }
@@ -57,7 +55,6 @@ public class FeaturedPostCacheService {
     /**
      * 공지사항 목록 조회
      */
-    @HotKeyMonitor(PostCacheFlag.NOTICE)
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
         return getFeaturedCachedPosts(PostCacheFlag.NOTICE, FallbackType.NOTICE, pageable);
     }
@@ -67,7 +64,7 @@ public class FeaturedPostCacheService {
     /**
      * <h3>주간/레전드/공지 캐시 조회</h3>
      * <p>Hash 캐시에서 직접 조회합니다.</p>
-     * <p>캐시 미스 시 SET NX 락 기반 비동기 갱신 트리거 + DB 폴백합니다.</p>
+     * <p>캐시 미스 시 빈 페이지를 반환합니다. (스케줄러가 갱신 예정)</p>
      *
      * @param type         캐시 유형 (WEEKLY, LEGEND, NOTICE)
      * @param fallbackType 폴백 유형
@@ -80,10 +77,8 @@ public class FeaturedPostCacheService {
             List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(type);
 
             if (cachedPosts.isEmpty()) {
-                triggerAsyncFeaturedCacheRefresh(type);
-                log.info("[CACHE_MISS] {} 캐시 미스 - DB 폴백, 비동기 갱신 트리거", type);
-                return dbFallbackGateway.execute(fallbackType, pageable,
-                        () -> findFeaturedPostsByType(type, pageable));
+                log.info("[CACHE_MISS] {} 캐시 미스 - 빈 페이지 반환 (스케줄러 갱신 예정)", type);
+                return new PageImpl<>(List.of(), pageable, 0);
             }
 
             return paginate(cachedPosts, pageable);
@@ -135,17 +130,5 @@ public class FeaturedPostCacheService {
         }
 
         return new PageImpl<>(posts.subList(start, end), pageable, posts.size());
-    }
-
-    // ========== 캐시 갱신 트리거 ==========
-
-    /**
-     * <h3>주간/레전드/공지 캐시 비동기 갱신 트리거 (캐시 미스용)</h3>
-     * <p>캐시 미스 시 비동기로 SET NX 락 획득 -> featured_post -> DB -> 캐시 갱신을 트리거합니다.</p>
-     *
-     * @param type 캐시 유형 (WEEKLY, LEGEND, NOTICE)
-     */
-    private void triggerAsyncFeaturedCacheRefresh(PostCacheFlag type) {
-        postCacheRefresh.asyncRefreshFeaturedWithLock(type);
     }
 }

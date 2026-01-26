@@ -42,20 +42,10 @@ public final class RedisPostKeys {
     // ===================== 2. TTL (Time To Live, 만료 시간) =====================
 
     /**
-     * 실시간 인기글 캐시 TTL (1분)
-     */
-    public static final Duration POST_CACHE_TTL_REALTIME = Duration.ofMinutes(1);
-
-    /**
-     * 주간/레전드 인기글 캐시 TTL (1분)
+     * 주간/레전드 인기글 캐시 TTL (24시간 30분)
      * <p>Hash 캐시에 직접 적용</p>
      */
-    public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofMinutes(1);
-
-    /**
-     * 공지사항 캐시 TTL (5분)
-     */
-    public static final Duration POST_CACHE_TTL_NOTICE = Duration.ofMinutes(5);
+    public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofHours(24).plusMinutes(30);
 
 
     // ===================== 3. SCORE CONSTANTS (점수 관련 상수) =====================
@@ -75,15 +65,27 @@ public final class RedisPostKeys {
     // ===================== 4. LOCK (분산 락) =====================
 
     /**
-     * 캐시 갱신 락 키 접미사
-     * <p>전체 키 형식: post:{type}:refresh:lock</p>
+     * 스케줄러 분산 락 키
+     * <p>다중 인스턴스 환경에서 하나의 스케줄러만 캐시를 갱신하도록 보장합니다.</p>
      */
-    public static final String REFRESH_LOCK_SUFFIX = ":refresh:lock";
+    public static final String SCHEDULER_LOCK_KEY = "post:cache:scheduler:lock";
 
     /**
-     * 캐시 갱신 락 TTL (5초)
+     * 스케줄러 분산 락 TTL (90초)
+     * <p>스케줄러 주기(60초)보다 길게 설정하여 락 해제 전 다른 인스턴스가 획득하지 못하게 합니다.</p>
      */
-    public static final Duration REFRESH_LOCK_TTL = Duration.ofSeconds(5);
+    public static final Duration SCHEDULER_LOCK_TTL = Duration.ofSeconds(90);
+
+    /**
+     * 조회 시 HASH 갱신 분산 락 키
+     * <p>HASH-ZSET ID 불일치 감지 시 비동기 갱신을 위한 락입니다.</p>
+     */
+    public static final String REALTIME_REFRESH_LOCK_KEY = "post:realtime:refresh:lock";
+
+    /**
+     * 조회 시 HASH 갱신 분산 락 TTL (10초)
+     */
+    public static final Duration REALTIME_REFRESH_LOCK_TTL = Duration.ofSeconds(10);
 
     // ===================== 5. KEY GENERATION METHODS (키 생성 유틸리티) =====================
 
@@ -115,14 +117,17 @@ public final class RedisPostKeys {
     }
 
     /**
-     * <h3>캐시 갱신 락 키 생성</h3>
-     * <p>타입별 분산 락 키를 생성합니다.</p>
-     * <p>예: post:weekly:refresh:lock, post:realtime:refresh:lock</p>
+     * <h3>타입별 캐시 TTL 반환</h3>
+     * <p>REALTIME: null (영구 저장), WEEKLY/LEGEND: 24시간 30분, NOTICE: null (영구 저장)</p>
      *
      * @param type 게시글 캐시 유형
-     * @return 생성된 락 키 (형식: post:{type}:refresh:lock)
+     * @return 해당 타입의 TTL (NOTICE는 null 반환 → 영구 저장)
      */
-    public static String getRefreshLockKey(PostCacheFlag type) {
-        return POST_PREFIX + type.name().toLowerCase() + REFRESH_LOCK_SUFFIX;
+    public static Duration getTtlForType(PostCacheFlag type) {
+        return switch (type) {
+            case REALTIME -> null;
+            case WEEKLY, LEGEND -> POST_CACHE_TTL_WEEKLY_LEGEND;
+            case NOTICE -> null;
+        };
     }
 }

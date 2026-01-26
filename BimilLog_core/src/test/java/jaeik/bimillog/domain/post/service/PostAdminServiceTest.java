@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +21,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -29,10 +31,10 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>PostAdminService 테스트</h2>
  * <p>게시글 공지사항 서비스의 핵심 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>공지 설정/해제 시 Hash 캐시에 직접 추가/제거합니다.</p>
+ * <p>공지 설정/해제 시 NOTICE 전체 캐시를 재구성합니다 (영구 TTL).</p>
  *
  * @author Jaeik
- * @version 2.6.0
+ * @version 2.7.0
  */
 @DisplayName("PostAdminService 테스트")
 @Tag("unit")
@@ -57,7 +59,7 @@ class PostAdminServiceTest extends BaseUnitTest {
     private PostAdminService postAdminService;
 
     @Test
-    @DisplayName("게시글 공지 토글 - 일반 게시글을 공지로 설정")
+    @DisplayName("게시글 공지 토글 - 일반 게시글을 공지로 설정 → NOTICE 전체 캐시 재구성")
     void shouldTogglePostNotice_WhenNormalPostToNotice() {
         // Given
         Long postId = 123L;
@@ -73,7 +75,9 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .build();
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
-        given(post.isNotice()).willReturn(false); // 현재 공지 아님
+        given(post.isNotice()).willReturn(false);
+        // refreshNoticeCache() 에서 호출
+        given(featuredPostRepository.findPostIdsByType(PostCacheFlag.NOTICE)).willReturn(List.of(postId));
         given(postQueryRepository.findPostSimpleDetailsByIds(List.of(postId))).willReturn(List.of(mockDetail));
 
         // When
@@ -81,10 +85,10 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        verify(post).isNotice(); // 상태 확인 (if문)
+        verify(post).isNotice();
         verify(post).setAsNotice();
-        verify(postQueryRepository).findPostSimpleDetailsByIds(List.of(postId));
-        verify(redisSimplePostAdapter).addPostToCache(PostCacheFlag.NOTICE, postId, mockDetail, RedisPostKeys.POST_CACHE_TTL_NOTICE);
+        // NOTICE 전체 캐시 재구성 (영구 TTL)
+        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.NOTICE), eq(List.of(mockDetail)), isNull());
     }
 
     @Test
@@ -123,23 +127,24 @@ class PostAdminServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제")
+    @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제 → NOTICE Hash 삭제")
     void shouldTogglePostNotice_WhenNoticePostToNormal() {
         // Given
         Long postId = 123L;
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
-        given(post.isNotice()).willReturn(true); // 현재 공지임
+        given(post.isNotice()).willReturn(true);
+        // refreshNoticeCache() 에서 호출 - 공지 없음
+        given(featuredPostRepository.findPostIdsByType(PostCacheFlag.NOTICE)).willReturn(List.of());
 
         // When
         postAdminService.togglePostNotice(postId);
 
         // Then
         verify(postRepository).findById(postId);
-        verify(post).isNotice(); // 상태 확인 (if문)
+        verify(post).isNotice();
         verify(post).unsetAsNotice();
-        verify(redisSimplePostAdapter).removePostFromCache(PostCacheFlag.NOTICE, postId);
+        // NOTICE Hash 삭제
+        verify(redisSimplePostAdapter).deleteHash(PostCacheFlag.NOTICE);
     }
-
-
 }

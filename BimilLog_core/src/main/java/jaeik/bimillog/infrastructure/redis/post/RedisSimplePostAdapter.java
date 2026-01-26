@@ -62,38 +62,6 @@ public class RedisSimplePostAdapter {
 
 
     /**
-     * <h3>여러 게시글 Hash 캐시 저장 (HMSET 1회)</h3>
-     * <p>HMSET으로 한 번에 저장하여 N+1 문제를 해결합니다.</p>
-     *
-     * @param type  캐시 유형
-     * @param posts 저장할 게시글 목록
-     */
-    public void cachePosts(PostCacheFlag type, List<PostSimpleDetail> posts) {
-        if (posts == null || posts.isEmpty()) {
-            return;
-        }
-
-        String hashKey = getSimplePostHashKey(type);
-
-        log.info("[CACHE_WRITE] START - hashKey={}, count={}", hashKey, posts.size());
-
-        // Map<String, PostSimpleDetail>로 변환
-        Map<String, PostSimpleDetail> hashData = posts.stream()
-                .filter(post -> post != null && post.getId() != null)
-                .collect(Collectors.toMap(
-                        p -> p.getId().toString(),
-                        p -> p
-                ));
-
-        // HMSET 1회로 저장
-        redisTemplate.opsForHash().putAll(hashKey, hashData);
-        redisTemplate.expire(hashKey, POST_CACHE_TTL_REALTIME);
-
-        log.info("[CACHE_WRITE] SUCCESS - hashKey={}, count={}, ttl={}min",
-                hashKey, hashData.size(), POST_CACHE_TTL_REALTIME.toMinutes());
-    }
-
-    /**
      * <h3>단일 캐시 삭제 (HDEL)</h3>
      * <p>모든 캐시 유형의 Hash에서 특정 postId 필드를 삭제합니다.</p>
      *
@@ -197,66 +165,74 @@ public class RedisSimplePostAdapter {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * <h3>단일 게시글 캐시 추가</h3>
-     * <p>특정 타입의 Hash에 게시글을 추가하고 TTL을 설정합니다.</p>
-     * <p>공지사항 설정 시 사용됩니다.</p>
-     *
-     * @param type   캐시 유형
-     * @param postId 추가할 게시글 ID
-     * @param post   추가할 게시글 정보
-     * @param ttl    캐시 TTL (null이면 TTL 미설정)
-     */
-    public void addPostToCache(PostCacheFlag type, Long postId, PostSimpleDetail post, Duration ttl) {
-        if (postId == null || post == null) {
-            return;
-        }
-
-        String hashKey = getSimplePostHashKey(type);
-        String field = postId.toString();
-
-        redisTemplate.opsForHash().put(hashKey, field, post);
-
-        if (ttl != null) {
-            redisTemplate.expire(hashKey, ttl);
-        }
-
-        log.info("[CACHE_ADD] hashKey={}, postId={}, ttl={}", hashKey, postId, ttl != null ? ttl : "NONE");
-    }
-
-    // ===================== 캐시 갱신 락 관련 메서드 =====================
+    // ===================== 스케줄러 분산 락 관련 메서드 =====================
 
     /**
-     * <h3>타입별 캐시 갱신 락 획득 시도 (SET NX)</h3>
-     * <p>캐시 미스 시 중복 갱신을 방지하기 위해 분산 락을 획득합니다.</p>
-     * <p>락 TTL은 5초이며, 락 획득 실패 시 다른 스레드가 이미 갱신 중임을 의미합니다.</p>
+     * <h3>스케줄러 분산 락 획득 시도 (SET NX)</h3>
+     * <p>다중 인스턴스 환경에서 하나의 스케줄러만 캐시를 갱신하도록 보장합니다.</p>
      *
-     * @param type 캐시 유형
      * @return 락 획득 성공 시 true
      */
-    public boolean tryAcquireRefreshLock(PostCacheFlag type) {
-        String lockKey = getRefreshLockKey(type);
+    public boolean tryAcquireSchedulerLock() {
         Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
-                lockKey,
+                SCHEDULER_LOCK_KEY,
                 "1",
-                REFRESH_LOCK_TTL
+                SCHEDULER_LOCK_TTL
         );
         boolean result = Boolean.TRUE.equals(acquired);
         if (result) {
-            log.debug("[LOCK_ACQUIRED] {} 캐시 갱신 락 획득", type);
+            log.debug("[SCHEDULER_LOCK_ACQUIRED] 스케줄러 분산 락 획득");
         }
         return result;
     }
 
     /**
-     * <h3>타입별 캐시 갱신 락 해제</h3>
-     * <p>갱신 완료 후 락을 해제합니다.</p>
-     *
-     * @param type 캐시 유형
+     * <h3>스케줄러 분산 락 해제</h3>
+     * <p>스케줄러 실행 완료 후 락을 해제합니다.</p>
      */
-    public void releaseRefreshLock(PostCacheFlag type) {
-        String lockKey = getRefreshLockKey(type);
-        redisTemplate.delete(lockKey);
-        log.debug("[LOCK_RELEASED] {} 캐시 갱신 락 해제", type);
+    public void releaseSchedulerLock() {
+        redisTemplate.delete(SCHEDULER_LOCK_KEY);
+        log.debug("[SCHEDULER_LOCK_RELEASED] 스케줄러 분산 락 해제");
     }
+
+    /**
+     * <h3>조회 시 HASH 갱신 분산 락 획득 시도 (SET NX)</h3>
+     * <p>HASH-ZSET ID 불일치 감지 시 비동기 갱신을 위한 락입니다.</p>
+     * <p>스케줄러 락과 별도로 동작합니다.</p>
+     *
+     * @return 락 획득 성공 시 true
+     */
+    public boolean tryAcquireRealtimeRefreshLock() {
+        Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
+                REALTIME_REFRESH_LOCK_KEY,
+                "1",
+                REALTIME_REFRESH_LOCK_TTL
+        );
+        boolean result = Boolean.TRUE.equals(acquired);
+        if (result) {
+            log.debug("[REALTIME_REFRESH_LOCK_ACQUIRED] 조회 갱신 분산 락 획득");
+        }
+        return result;
+    }
+
+    /**
+     * <h3>조회 시 HASH 갱신 분산 락 해제</h3>
+     */
+    public void releaseRealtimeRefreshLock() {
+        redisTemplate.delete(REALTIME_REFRESH_LOCK_KEY);
+        log.debug("[REALTIME_REFRESH_LOCK_RELEASED] 조회 갱신 분산 락 해제");
+    }
+
+    /**
+     * <h3>Hash 키 전체 삭제</h3>
+     * <p>특정 타입의 Hash 캐시를 전체 삭제합니다.</p>
+     *
+     * @param type 삭제할 캐시 유형
+     */
+    public void deleteHash(PostCacheFlag type) {
+        String hashKey = getSimplePostHashKey(type);
+        redisTemplate.delete(hashKey);
+        log.info("[CACHE_DELETE_HASH] hashKey={}", hashKey);
+    }
+
 }

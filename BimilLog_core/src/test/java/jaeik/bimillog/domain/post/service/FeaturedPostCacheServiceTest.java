@@ -31,13 +31,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
  * <h2>FeaturedPostCacheService 테스트</h2>
  * <p>주간/레전드/공지 인기글 캐시 조회 로직을 검증합니다.</p>
- * <p>Hash 캐시 조회, 캐시 미스 시 SET NX 락 기반 비동기 갱신 + DB 폴백을 검증합니다.</p>
+ * <p>Hash 캐시 조회, 캐시 미스 시 빈 페이지 반환, 예외 시 DB 서킷 경로를 검증합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("FeaturedPostCacheService 테스트")
@@ -54,9 +53,6 @@ class FeaturedPostCacheServiceTest {
     private RedisSimplePostAdapter redisSimplePostAdapter;
 
     @Mock
-    private PostCacheRefresh postCacheRefresh;
-
-    @Mock
     private DbFallbackGateway dbFallbackGateway;
 
     private FeaturedPostCacheService featuredPostCacheService;
@@ -67,7 +63,6 @@ class FeaturedPostCacheServiceTest {
                 postQueryRepository,
                 featuredPostRepository,
                 redisSimplePostAdapter,
-                postCacheRefresh,
                 dbFallbackGateway
         );
     }
@@ -90,7 +85,6 @@ class FeaturedPostCacheServiceTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
         verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.WEEKLY);
-        verify(postCacheRefresh, never()).asyncRefreshFeaturedWithLock(any());
     }
 
     @Test
@@ -110,7 +104,6 @@ class FeaturedPostCacheServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(2);
         verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.LEGEND);
-        verify(postCacheRefresh, never()).asyncRefreshFeaturedWithLock(any());
     }
 
     @Test
@@ -130,35 +123,16 @@ class FeaturedPostCacheServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("공지사항");
         verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.NOTICE);
-        verify(postCacheRefresh, never()).asyncRefreshFeaturedWithLock(any());
     }
 
-    @ParameterizedTest(name = "{0} - 캐시 비어있음 - 비동기 갱신 트리거 + DB 폴백")
+    @ParameterizedTest(name = "{0} - 캐시 비어있음 - 빈 페이지 반환 (스케줄러 갱신 예정)")
     @EnumSource(value = PostCacheFlag.class, names = {"WEEKLY", "LEGEND", "NOTICE"})
-    @DisplayName("캐시 비어있음 - 비동기 갱신 트리거 + DB 폴백")
-    @SuppressWarnings("unchecked")
-    void shouldTriggerAsyncRefreshAndFallbackToDb_WhenCacheEmpty(PostCacheFlag flag) {
+    @DisplayName("캐시 비어있음 - 빈 페이지 반환 (스케줄러 갱신 예정)")
+    void shouldReturnEmptyPage_WhenCacheEmpty(PostCacheFlag flag) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 게시글");
 
         given(redisSimplePostAdapter.getAllCachedPostsList(flag)).willReturn(List.of());
-
-        FallbackType fallbackType = switch (flag) {
-            case WEEKLY -> FallbackType.WEEKLY;
-            case LEGEND -> FallbackType.LEGEND;
-            case NOTICE -> FallbackType.NOTICE;
-            default -> throw new IllegalArgumentException("Unsupported flag: " + flag);
-        };
-
-        given(dbFallbackGateway.execute(eq(fallbackType), any(Pageable.class), any(Supplier.class)))
-                .willAnswer(invocation -> {
-                    Supplier<Page<PostSimpleDetail>> supplier = invocation.getArgument(2);
-                    return supplier.get();
-                });
-
-        given(featuredPostRepository.findPostIdsByType(flag)).willReturn(List.of(1L));
-        given(postQueryRepository.findPostSimpleDetailsByIds(List.of(1L))).willReturn(List.of(post));
 
         // When
         Page<PostSimpleDetail> result = switch (flag) {
@@ -168,10 +142,9 @@ class FeaturedPostCacheServiceTest {
             default -> throw new IllegalArgumentException("Unsupported flag: " + flag);
         };
 
-        // Then: 비동기 갱신 트리거 + DB 폴백 반환 (락은 비동기 내부에서 처리)
-        assertThat(result.getContent()).hasSize(1);
-        verify(postCacheRefresh).asyncRefreshFeaturedWithLock(flag);
-        verify(dbFallbackGateway).execute(eq(fallbackType), any(Pageable.class), any(Supplier.class));
+        // Then: 빈 페이지 즉시 반환 (비동기 갱신 트리거 없음)
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
     }
 
     @ParameterizedTest(name = "{0} - Redis 장애 시 DB fallback")

@@ -40,10 +40,8 @@ class HotKeyTtlRegistryTest {
 
     private static Stream<Arguments> provideCacheKeyAndTtl() {
         return Stream.of(
-                Arguments.of(getSimplePostHashKey(PostCacheFlag.REALTIME), POST_CACHE_TTL_REALTIME),
                 Arguments.of(getSimplePostHashKey(PostCacheFlag.WEEKLY), POST_CACHE_TTL_WEEKLY_LEGEND),
-                Arguments.of(getSimplePostHashKey(PostCacheFlag.LEGEND), POST_CACHE_TTL_WEEKLY_LEGEND),
-                Arguments.of(getSimplePostHashKey(PostCacheFlag.NOTICE), POST_CACHE_TTL_NOTICE)
+                Arguments.of(getSimplePostHashKey(PostCacheFlag.LEGEND), POST_CACHE_TTL_WEEKLY_LEGEND)
         );
     }
 
@@ -57,10 +55,8 @@ class HotKeyTtlRegistryTest {
 
     private static Stream<Arguments> provideRefreshableKeys() {
         return Stream.of(
-                Arguments.of(getSimplePostHashKey(PostCacheFlag.REALTIME)),
                 Arguments.of(getSimplePostHashKey(PostCacheFlag.WEEKLY)),
-                Arguments.of(getSimplePostHashKey(PostCacheFlag.LEGEND)),
-                Arguments.of(getSimplePostHashKey(PostCacheFlag.NOTICE))
+                Arguments.of(getSimplePostHashKey(PostCacheFlag.LEGEND))
         );
     }
 
@@ -70,6 +66,9 @@ class HotKeyTtlRegistryTest {
         // when & then
         assertThat(registry.isRefreshable("paper:realtime:score")).isFalse();
         assertThat(registry.isRefreshable("unknown:key")).isFalse();
+        // REALTIME, NOTICE는 영구 TTL이므로 핫키 갱신 대상에서 제외됨
+        assertThat(registry.isRefreshable(getSimplePostHashKey(PostCacheFlag.REALTIME))).isFalse();
+        assertThat(registry.isRefreshable(getSimplePostHashKey(PostCacheFlag.NOTICE))).isFalse();
     }
 
     @Test
