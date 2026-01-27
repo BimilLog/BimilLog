@@ -29,6 +29,7 @@ public class RedisInteractionScoreRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
+    private final int PIPELINE_BATCH_SIZE = 500;
 
     // 상호 작용 점수 증가 Lua Script (멱등성 보장)
     public static final RedisScript<Long> INTERACTION_SCORE_ADD_SCRIPT;
@@ -112,30 +113,35 @@ public class RedisInteractionScoreRepository {
         }
 
         String key = INTERACTION_PREFIX + memberId;
+        byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
         List<Long> targetIdList = new ArrayList<>(targetIds);
         Map<Long, Double> resultMap = new HashMap<>();
 
         try {
-            List<Object> results = redisTemplate.executePipelined((RedisConnection connection) -> {
-                byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-                for (Long targetId : targetIdList) {
-                    String member = INTERACTION_SUFFIX + targetId;
-                    connection.hashCommands().hGet(keyBytes, member.getBytes(StandardCharsets.UTF_8));
-                }
-                return null;
-            });
+            for (int batchStart = 0; batchStart < targetIdList.size(); batchStart += PIPELINE_BATCH_SIZE) {
+                int batchEnd = Math.min(batchStart + PIPELINE_BATCH_SIZE, targetIdList.size());
+                List<Long> batch = targetIdList.subList(batchStart, batchEnd);
 
-            for (int i = 0; i < targetIdList.size(); i++) {
-                Object scoreObj = results.get(i);
-                if (scoreObj != null) {
-                    String scoreValue;
-                    if (scoreObj instanceof byte[] bytes) {
-                        scoreValue = new String(bytes, StandardCharsets.UTF_8);
-                    } else {
-                        scoreValue = scoreObj.toString();
+                List<Object> results = redisTemplate.executePipelined((RedisConnection connection) -> {
+                    for (Long targetId : batch) {
+                        String member = INTERACTION_SUFFIX + targetId;
+                        connection.hashCommands().hGet(keyBytes, member.getBytes(StandardCharsets.UTF_8));
                     }
-                    Double score = Double.valueOf(scoreValue);
-                    resultMap.put(targetIdList.get(i), score);
+                    return null;
+                });
+
+                for (int i = 0; i < batch.size(); i++) {
+                    Object scoreObj = results.get(i);
+                    if (scoreObj != null) {
+                        String scoreValue;
+                        if (scoreObj instanceof byte[] bytes) {
+                            scoreValue = new String(bytes, StandardCharsets.UTF_8);
+                        } else {
+                            scoreValue = scoreObj.toString();
+                        }
+                        Double score = Double.valueOf(scoreValue);
+                        resultMap.put(batch.get(i), score);
+                    }
                 }
             }
 

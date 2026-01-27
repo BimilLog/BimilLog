@@ -1,9 +1,12 @@
 package jaeik.bimillog.domain.friend.recommend;
 
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
+import jaeik.bimillog.domain.friend.repository.FriendshipQueryRepository;
 import jaeik.bimillog.domain.member.repository.MemberBlacklistRepository;
 import jaeik.bimillog.domain.member.repository.MemberQueryRepository;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * <h2>친구 추천 서비스</h2>
@@ -46,15 +47,16 @@ import java.util.stream.Collectors;
 public class FriendRecommendService {
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
+    private final FriendshipQueryRepository friendshipQueryRepository;
     private final MemberQueryRepository memberQueryRepository;
     private final MemberRepository memberRepository;
     private final MemberBlacklistRepository memberBlacklistRepository;
 
-    // 1촌 조회 시 최대 스캔 수
-    private static final int FIRST_FRIEND_SCAN_LIMIT = 50;
 
     // 최종 추천 인원 수
     private static final int RECOMMEND_LIMIT = 10;
+    private static final int FIRST_FRIEND_SCAN_LIMIT = 50;
+
 
     /**
      * 친구 추천 목록을 조회합니다.
@@ -69,24 +71,34 @@ public class FriendRecommendService {
      */
     @Transactional(readOnly = true)
     public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
-        // 1. 내 친구(1촌) 조회
-        Set<Long> myFriends = redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_SCAN_LIMIT);
+        try {
+            // 1. 내 친구(1촌) 조회
+            Set<Long> myFriends = redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_SCAN_LIMIT);
 
-        // 2. 후보자 탐색 (2촌 -> 3촌 순차 확장) 및 점수 계산
-        List<RecommendCandidate> candidates = findAndScoreCandidates(memberId, myFriends);
+            // 2. 후보자 탐색 (2촌 -> 3촌 순차 확장) 및 점수 계산
+            List<RecommendCandidate> candidates = findAndScoreCandidates(memberId, myFriends);
 
-        // 3. 상호작용 점수 주입
-        injectInteractionScores(memberId, candidates);
+            // 3. 상호작용 점수 주입
+            injectInteractionScores(memberId, candidates);
 
-        // 4. 점수순 정렬 및 상위 N명 추출
-        candidates.sort(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed());
-        List<RecommendCandidate> topCandidates = candidates.stream().limit(RECOMMEND_LIMIT).collect(Collectors.toList());
+            // 4. 점수순 정렬 및 상위 N명 추출
+            candidates.sort(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed());
+            List<RecommendCandidate> topCandidates = new ArrayList<>(candidates.subList(0, Math.min(candidates.size(), RECOMMEND_LIMIT)));
 
-        // 5. 부족한 인원 보충 (최근 가입자) 및 블랙리스트 필터링
-        fillAndFilter(memberId, myFriends, topCandidates);
+            // 5. 부족한 인원 보충 (최근 가입자) 및 블랙리스트 필터링
+            fillAndFilter(memberId, myFriends, topCandidates);
 
-        // 6. 회원 정보 조회 및 응답 DTO 변환
-        return toResponsePage(topCandidates, pageable);
+            // 6. 회원 정보 조회 및 응답 DTO 변환
+            return toResponsePage(topCandidates, pageable);
+        } catch (CustomException e) {
+            ErrorCode code = e.getErrorCode();
+            if (code == ErrorCode.FRIEND_REDIS_SHIP_QUERY_ERROR
+                    || code == ErrorCode.FRIEND_REDIS_INTERACTION_QUERY_ERROR) {
+                log.warn("Redis 실패로 DB 폴백 실행: memberId={}, errorCode={}", memberId, code, e);
+                return getRecommendFromDb(memberId, pageable);
+            }
+            throw e;
+        }
     }
 
     /**
@@ -113,32 +125,44 @@ public class FriendRecommendService {
 
         // A. 2촌 탐색
         Map<Long, Set<Long>> friendsOfFriends = redisFriendshipRepository.getFriendsBatch(myFriends);
-        friendsOfFriends.forEach((friendId, friendsSet) -> {
-            if (friendsSet == null) return;
+        for (Map.Entry<Long, Set<Long>> entry : friendsOfFriends.entrySet()) {
+            Long friendId = entry.getKey();
+            Set<Long> friendsSet = entry.getValue();
+            if (friendsSet == null) continue;
             for (Long targetId : friendsSet) {
                 if (targetId.equals(memberId) || myFriends.contains(targetId)) continue; // 나 자신이거나 이미 친구면 제외
 
-                candidateMap.computeIfAbsent(targetId, id -> RecommendCandidate.of(id, 2))
-                        .addCommonFriend(friendId); // 공통친구(friendId) 추가
+                RecommendCandidate candidate = candidateMap.get(targetId);
+                if (candidate == null) {
+                    candidate = RecommendCandidate.of(targetId, 2);
+                    candidateMap.put(targetId, candidate);
+                }
+                candidate.addCommonFriend(friendId); // 공통친구(friendId) 추가
             }
-        });
+        }
 
         // B. 3촌 탐색 (2촌이 부족할 경우에만 수행)
         if (candidateMap.size() < RECOMMEND_LIMIT) {
             Set<Long> secondDegreeIds = candidateMap.keySet();
             Map<Long, Set<Long>> friendsOfSeconds = redisFriendshipRepository.getFriendsBatchForThirdDegree(secondDegreeIds);
 
-            friendsOfSeconds.forEach((secondDegreeId, friendsSet) -> {
-                if (friendsSet == null) return;
+            for (Map.Entry<Long, Set<Long>> entry : friendsOfSeconds.entrySet()) {
+                Long secondDegreeId = entry.getKey();
+                Set<Long> friendsSet = entry.getValue();
+                if (friendsSet == null) continue;
                 for (Long targetId : friendsSet) {
                     if (targetId.equals(memberId) || myFriends.contains(targetId) || candidateMap.containsKey(targetId)) continue;
 
                     // 3촌은 '연결고리가 되는 2촌'이 가지고 있는 '나와의 공통친구 수'를 더함
                     int bridgeScore = candidateMap.get(secondDegreeId).getCommonFriends().size();
-                    candidateMap.computeIfAbsent(targetId, id -> RecommendCandidate.of(id, 3))
-                            .addVirtualScore(bridgeScore);
+                    RecommendCandidate candidate = candidateMap.get(targetId);
+                    if (candidate == null) {
+                        candidate = RecommendCandidate.of(targetId, 3);
+                        candidateMap.put(targetId, candidate);
+                    }
+                    candidate.addVirtualScore(bridgeScore);
                 }
-            });
+            }
         }
 
         return new ArrayList<>(candidateMap.values());
@@ -157,9 +181,14 @@ public class FriendRecommendService {
      */
     private void injectInteractionScores(Long memberId, List<RecommendCandidate> candidates) {
         if (candidates.isEmpty()) return;
-        Set<Long> candidateIds = candidates.stream().map(RecommendCandidate::getMemberId).collect(Collectors.toSet());
+        Set<Long> candidateIds = new HashSet<>();
+        for (RecommendCandidate c : candidates) {
+            candidateIds.add(c.getMemberId());
+        }
         Map<Long, Double> scores = redisInteractionScoreRepository.getInteractionScoresBatch(memberId, candidateIds);
-        candidates.forEach(c -> c.setInteractionScore(scores.getOrDefault(c.getMemberId(), 0.0)));
+        for (RecommendCandidate c : candidates) {
+            c.setInteractionScore(scores.getOrDefault(c.getMemberId(), 0.0));
+        }
     }
 
     /**
@@ -182,19 +211,23 @@ public class FriendRecommendService {
         if (candidates.size() < RECOMMEND_LIMIT) {
             Set<Long> excludeIds = new HashSet<>(myFriends);
             excludeIds.add(memberId);
-            candidates.forEach(c -> excludeIds.add(c.getMemberId()));
+            for (RecommendCandidate c : candidates) {
+                excludeIds.add(c.getMemberId());
+            }
 
             // 상호작용 점수 전체 조회 (Fallback)
             Map<Long, Double> allInteractions = redisInteractionScoreRepository.getAllInteractionScores(memberId);
 
             // 1. 상호작용 점수 기반 추가
-            allInteractions.forEach((id, score) -> {
-                if (candidates.size() >= RECOMMEND_LIMIT) return;
+            for (Map.Entry<Long, Double> entry : allInteractions.entrySet()) {
+                if (candidates.size() >= RECOMMEND_LIMIT) break;
+                Long id = entry.getKey();
+                Double score = entry.getValue();
                 if (!excludeIds.contains(id)) {
                     candidates.add(RecommendCandidate.builder().memberId(id).interactionScore(score).depth(0).build());
                     excludeIds.add(id);
                 }
-            });
+            }
 
             // 2. 그래도 부족하면 최근 가입자 추가
             if (candidates.size() < RECOMMEND_LIMIT) {
@@ -202,13 +235,149 @@ public class FriendRecommendService {
                         excludeIds,
                         org.springframework.data.domain.PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
                 );
-                newMembers.forEach(id -> candidates.add(RecommendCandidate.of(id, 0)));
+                for (Long id : newMembers) {
+                    candidates.add(RecommendCandidate.of(id, 0));
+                }
             }
         }
 
         // 블랙리스트 제거 (마지막에 처리)
         Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
-        candidates.removeIf(c -> blacklist.contains(c.getMemberId()));
+        Iterator<RecommendCandidate> it = candidates.iterator();
+        while (it.hasNext()) {
+            if (blacklist.contains(it.next().getMemberId())) {
+                it.remove();
+            }
+        }
+    }
+
+    /**
+     * <h3>Redis 실패 시 DB 기반으로 친구 추천 목록을 조회합니다.</h3>
+     * <p>
+     * Redis 경로와 동일한 BFS 알고리즘을 DB에서 수행하되,
+     * 상호작용 점수 계산은 제외합니다.
+     * </p>
+     *
+     * @param memberId 추천을 요청한 회원 ID
+     * @param pageable 페이지네이션 정보
+     * @return 추천 친구 목록 (페이지)
+     */
+    private Page<RecommendedFriend> getRecommendFromDb(Long memberId, Pageable pageable) {
+        // 1. DB로 1촌 조회
+        Set<Long> myFriends = friendshipQueryRepository.getMyFriendIdsSet(memberId, FIRST_FRIEND_SCAN_LIMIT);
+
+        // 2. DB로 2촌/3촌 탐색
+        List<RecommendCandidate> candidates = findAndScoreCandidatesFromDb(memberId, myFriends);
+
+        // 3. 상호작용 점수 주입 생략
+
+        // 4. 점수순 정렬 + 상위 N명 추출
+        candidates.sort(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed());
+        List<RecommendCandidate> topCandidates = new ArrayList<>(candidates.subList(0, Math.min(candidates.size(), RECOMMEND_LIMIT)));
+
+        // 5. 상호작용 제외 보충 + 블랙리스트 필터링
+        fillAndFilterWithoutInteraction(memberId, myFriends, topCandidates);
+
+        // 6. 응답 변환
+        return toResponsePage(topCandidates, pageable);
+    }
+
+    /**
+     * <h3>DB 기반으로 2촌, 3촌 후보자를 탐색하고 점수를 계산합니다.</h3>
+     * <p>
+     * {@link #findAndScoreCandidates}와 동일한 BFS 로직이지만
+     * Redis 대신 {@link FriendshipQueryRepository#getFriendIdsBatch}를 사용합니다.
+     * </p>
+     *
+     * @param memberId  현재 회원 ID
+     * @param myFriends 내 친구(1촌) ID 집합
+     * @return 추천 후보자 목록 (점수 계산 완료)
+     */
+    private List<RecommendCandidate> findAndScoreCandidatesFromDb(Long memberId, Set<Long> myFriends) {
+        Map<Long, RecommendCandidate> candidateMap = new HashMap<>();
+
+        if (myFriends.isEmpty()) return new ArrayList<>();
+
+        // A. 2촌 탐색
+        Map<Long, Set<Long>> friendsOfFriends = friendshipQueryRepository.getFriendIdsBatch(myFriends);
+        for (Map.Entry<Long, Set<Long>> entry : friendsOfFriends.entrySet()) {
+            Long friendId = entry.getKey();
+            Set<Long> friendsSet = entry.getValue();
+            if (friendsSet == null) continue;
+            for (Long targetId : friendsSet) {
+                if (targetId.equals(memberId) || myFriends.contains(targetId)) continue;
+
+                RecommendCandidate candidate = candidateMap.get(targetId);
+                if (candidate == null) {
+                    candidate = RecommendCandidate.of(targetId, 2);
+                    candidateMap.put(targetId, candidate);
+                }
+                candidate.addCommonFriend(friendId);
+            }
+        }
+
+        // B. 3촌 탐색 (2촌이 부족할 경우에만 수행)
+        if (candidateMap.size() < RECOMMEND_LIMIT) {
+            Set<Long> secondDegreeIds = candidateMap.keySet();
+            Map<Long, Set<Long>> friendsOfSeconds = friendshipQueryRepository.getFriendIdsBatch(secondDegreeIds);
+
+            for (Map.Entry<Long, Set<Long>> entry : friendsOfSeconds.entrySet()) {
+                Long secondDegreeId = entry.getKey();
+                Set<Long> friendsSet = entry.getValue();
+                if (friendsSet == null) continue;
+                for (Long targetId : friendsSet) {
+                    if (targetId.equals(memberId) || myFriends.contains(targetId) || candidateMap.containsKey(targetId)) continue;
+
+                    int bridgeScore = candidateMap.get(secondDegreeId).getCommonFriends().size();
+                    RecommendCandidate candidate = candidateMap.get(targetId);
+                    if (candidate == null) {
+                        candidate = RecommendCandidate.of(targetId, 3);
+                        candidateMap.put(targetId, candidate);
+                    }
+                    candidate.addVirtualScore(bridgeScore);
+                }
+            }
+        }
+
+        return new ArrayList<>(candidateMap.values());
+    }
+
+    /**
+     * <h3>상호작용 점수 없이 부족한 추천 인원을 보충하고 블랙리스트를 필터링합니다.</h3>
+     * <p>
+     * Redis 폴백 경로에서 사용되며, 상호작용 점수 조회 없이 최근 가입자로만 보충합니다.
+     * </p>
+     *
+     * @param memberId   현재 회원 ID
+     * @param myFriends  내 친구(1촌) ID 집합
+     * @param candidates 추천 후보자 목록 (수정됨)
+     */
+    private void fillAndFilterWithoutInteraction(Long memberId, Set<Long> myFriends, List<RecommendCandidate> candidates) {
+        if (candidates.size() < RECOMMEND_LIMIT) {
+            Set<Long> excludeIds = new HashSet<>(myFriends);
+            excludeIds.add(memberId);
+            for (RecommendCandidate c : candidates) {
+                excludeIds.add(c.getMemberId());
+            }
+
+            // 최근 가입자로 보충
+            List<Long> newMembers = memberRepository.findIdByIdNotInOrderByCreatedAtDesc(
+                    excludeIds,
+                    org.springframework.data.domain.PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
+            );
+            for (Long id : newMembers) {
+                candidates.add(RecommendCandidate.of(id, 0));
+            }
+        }
+
+        // 블랙리스트 제거
+        Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
+        Iterator<RecommendCandidate> it = candidates.iterator();
+        while (it.hasNext()) {
+            if (blacklist.contains(it.next().getMemberId())) {
+                it.remove();
+            }
+        }
     }
 
     /**
@@ -225,35 +394,44 @@ public class FriendRecommendService {
     private Page<RecommendedFriend> toResponsePage(List<RecommendCandidate> candidates, Pageable pageable) {
         if (candidates.isEmpty()) return Page.empty(pageable);
 
-        List<Long> memberIds = candidates.stream().map(RecommendCandidate::getMemberId).toList();
-
-        // 2촌인 경우 표시할 '함께 아는 친구' ID 수집
-        Set<Long> acqIds = candidates.stream()
-                .map(RecommendCandidate::getAcquaintanceId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        List<Long> memberIds = new ArrayList<>();
+        Set<Long> acqIds = new HashSet<>();
+        for (RecommendCandidate c : candidates) {
+            memberIds.add(c.getMemberId());
+            if (c.getAcquaintanceId() != null) {
+                acqIds.add(c.getAcquaintanceId());
+            }
+        }
 
         // Bulk Fetch
-        Map<Long, RecommendedFriend.RecommendedFriendInfo> friendInfos = memberQueryRepository.addRecommendedFriendInfo(memberIds).stream()
-                .collect(Collectors.toMap(RecommendedFriend.RecommendedFriendInfo::friendMemberId, Function.identity()));
+        Map<Long, RecommendedFriend.RecommendedFriendInfo> friendInfos = new HashMap<>();
+        for (RecommendedFriend.RecommendedFriendInfo info : memberQueryRepository.addRecommendedFriendInfo(memberIds)) {
+            friendInfos.put(info.friendMemberId(), info);
+        }
 
-        Map<Long, RecommendedFriend.AcquaintanceInfo> acqInfos = acqIds.isEmpty() ? Collections.emptyMap() :
-                memberQueryRepository.addAcquaintanceInfo(new ArrayList<>(acqIds)).stream()
-                        .collect(Collectors.toMap(RecommendedFriend.AcquaintanceInfo::acquaintanceId, Function.identity()));
+        Map<Long, RecommendedFriend.AcquaintanceInfo> acqInfos;
+        if (acqIds.isEmpty()) {
+            acqInfos = Collections.emptyMap();
+        } else {
+            acqInfos = new HashMap<>();
+            for (RecommendedFriend.AcquaintanceInfo info : memberQueryRepository.addAcquaintanceInfo(new ArrayList<>(acqIds))) {
+                acqInfos.put(info.acquaintanceId(), info);
+            }
+        }
 
         // Mapping
-        List<RecommendedFriend> result = candidates.stream()
-                .filter(c -> friendInfos.containsKey(c.getMemberId()))
-                .map(c -> {
-                    RecommendedFriend.RecommendedFriendInfo info = friendInfos.get(c.getMemberId());
-                    RecommendedFriend.AcquaintanceInfo acqInfo = acqInfos.get(c.getAcquaintanceId());
+        List<RecommendedFriend> result = new ArrayList<>();
+        for (RecommendCandidate c : candidates) {
+            if (!friendInfos.containsKey(c.getMemberId())) continue;
 
-                    RecommendedFriend friend = new RecommendedFriend(c.getMemberId(), c.getAcquaintanceId(), c.isManyAcquaintance(), c.getDepth());
-                    friend.setRecommendedFriendName(info);
-                    if (acqInfo != null) friend.setAcquaintanceFriendName(acqInfo);
-                    return friend;
-                })
-                .collect(Collectors.toList());
+            RecommendedFriend.RecommendedFriendInfo info = friendInfos.get(c.getMemberId());
+            RecommendedFriend.AcquaintanceInfo acqInfo = acqInfos.get(c.getAcquaintanceId());
+
+            RecommendedFriend friend = new RecommendedFriend(c.getMemberId(), c.getAcquaintanceId(), c.isManyAcquaintance(), c.getDepth());
+            friend.setRecommendedFriendName(info);
+            if (acqInfo != null) friend.setAcquaintanceFriendName(acqInfo);
+            result.add(friend);
+        }
 
         return new PageImpl<>(result, pageable, result.size());
     }
