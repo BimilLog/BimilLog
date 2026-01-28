@@ -187,6 +187,8 @@ services:
     volumes:
       - grafana-data-local:/var/lib/grafana
       - ./local/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./local/grafana/dashboard-provisioning.yml:/etc/grafana/provisioning/dashboards/dashboard-provisioning.yml
+      - ./local/grafana/dashboards:/etc/grafana/provisioning/dashboards/json
     depends_on:
       - prometheus
       - loki

@@ -5,7 +5,7 @@ import { MessageCircle, Trash2 } from "lucide-react";
 import { Avatar } from "flowbite-react";
 import { Button } from "@/components";
 import { Friend } from "@/types/domains/friend";
-import { useRemoveFriend } from "@/hooks/api/useFriendMutations";
+import { useRemoveFriendAction } from "@/hooks/actions/useFriendActions";
 import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 import { getInitials } from "@/lib/utils/format";
 import { useRouter } from "next/navigation";
@@ -19,7 +19,7 @@ interface FriendListItemProps {
  */
 export const FriendListItem: React.FC<FriendListItemProps> = ({ friend }) => {
   const router = useRouter();
-  const { mutate: removeFriend, isPending } = useRemoveFriend();
+  const { removeFriend, isPending } = useRemoveFriendAction();
   const { confirm, ConfirmModalComponent } = useConfirmModal();
 
   const handleRemove = async () => {

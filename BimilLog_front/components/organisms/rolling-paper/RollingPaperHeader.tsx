@@ -10,11 +10,11 @@ import { useFriendRelationshipCheck } from "@/hooks/features/friend/useFriendRel
 import { useBlacklistCheck } from "@/hooks/features/blacklist/useBlacklistCheck";
 import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 import {
-  useSendFriendRequest,
-  useCancelFriendRequest,
-  useAcceptFriendRequest,
-  useRejectFriendRequest,
-} from "@/hooks/api/useFriendMutations";
+  useSendFriendRequestAction,
+  useCancelFriendRequestAction,
+  useAcceptFriendRequestAction,
+  useRejectFriendRequestAction,
+} from "@/hooks/actions/useFriendActions";
 import { useToastStore } from "@/stores/toast.store";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 
@@ -61,11 +61,11 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
   // 블랙리스트 확인
   const { isBlacklisted } = useBlacklistCheck(nickname);
 
-  // 친구 요청 Mutations
-  const sendMutation = useSendFriendRequest();
-  const cancelMutation = useCancelFriendRequest();
-  const acceptMutation = useAcceptFriendRequest();
-  const rejectMutation = useRejectFriendRequest();
+  // 친구 요청 Actions
+  const { sendRequest, isPending: isSendPending } = useSendFriendRequestAction();
+  const { cancelRequest, isPending: isCancelPending } = useCancelFriendRequestAction();
+  const { acceptRequest, isPending: isAcceptPending } = useAcceptFriendRequestAction();
+  const { rejectRequest, isPending: isRejectPending } = useRejectFriendRequestAction();
 
   // targetMemberId가 없으면 messages에서 추출한 ownerId 사용
   const finalMemberId = targetMemberId ?? ownerId;
@@ -86,7 +86,7 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
     });
 
     if (confirmed) {
-      sendMutation.mutate({ receiverMemberId: finalMemberId });
+      sendRequest(finalMemberId);
     }
   };
 
@@ -104,14 +104,14 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
     });
 
     if (confirmed) {
-      cancelMutation.mutate(sentRequestId);
+      cancelRequest(sentRequestId);
     }
   };
 
   // 친구 요청 수락
   const handleAcceptRequest = () => {
     if (!receivedRequestId) return;
-    acceptMutation.mutate(receivedRequestId);
+    acceptRequest(receivedRequestId);
   };
 
   // 친구 요청 거절
@@ -128,15 +128,15 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
     });
 
     if (confirmed) {
-      rejectMutation.mutate(receivedRequestId);
+      rejectRequest(receivedRequestId);
     }
   };
 
   const isPending =
-    sendMutation.isPending ||
-    cancelMutation.isPending ||
-    acceptMutation.isPending ||
-    rejectMutation.isPending;
+    isSendPending ||
+    isCancelPending ||
+    isAcceptPending ||
+    isRejectPending;
 
   // 친구 요청 버튼 렌더링 로직
   const renderFriendButton = () => {

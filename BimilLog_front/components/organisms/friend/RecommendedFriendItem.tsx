@@ -5,7 +5,7 @@ import { UserPlus, UsersRound } from "lucide-react";
 import { Avatar } from "flowbite-react";
 import { Badge, Button } from "@/components";
 import { RecommendedFriend } from "@/types/domains/friend";
-import { useSendFriendRequest } from "@/hooks/api/useFriendMutations";
+import { useSendFriendRequestAction } from "@/hooks/actions/useFriendActions";
 import { getInitials } from "@/lib/utils/format";
 
 interface RecommendedFriendItemProps {
@@ -17,10 +17,10 @@ interface RecommendedFriendItemProps {
  * 2촌/3촌 표시 및 공통 친구 소개 문구 포함
  */
 export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = ({ friend }) => {
-  const { mutate: sendRequest, isPending } = useSendFriendRequest();
+  const { sendRequest, isPending } = useSendFriendRequestAction();
 
   const handleAddFriend = () => {
-    sendRequest({ receiverMemberId: friend.friendMemberId });
+    sendRequest(friend.friendMemberId);
   };
 
   return (
