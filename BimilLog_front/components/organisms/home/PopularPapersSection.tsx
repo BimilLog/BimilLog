@@ -1,13 +1,17 @@
 "use client";
 
-import { Card, Button, Spinner } from "flowbite-react";
+import { Card, Button } from "flowbite-react";
 import { TrendingUp, MessageSquare, MessageCircle } from "lucide-react";
-import { usePopularPapers } from "@/hooks/api/useRollingPaperQueries";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import type { PageResponse } from "@/types/common";
+import type { PopularPaperInfo } from "@/types/domains/paper";
 
-export const PopularPapersSection: React.FC = () => {
-  const { data, isLoading, isError } = usePopularPapers(0, 10);
+interface PopularPapersSectionProps {
+  initialData: PageResponse<PopularPaperInfo> | null;
+}
+
+export const PopularPapersSection: React.FC<PopularPapersSectionProps> = ({ initialData }) => {
   const router = useRouter();
 
   const handlePaperClick = (memberName: string) => {
@@ -26,16 +30,7 @@ export const PopularPapersSection: React.FC = () => {
           </h2>
         </div>
 
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-10 gap-3">
-            <Spinner size="xl" color="purple" />
-            <p className="text-sm text-muted-foreground">
-              실시간 인기 롤링페이퍼를 불러오는 중입니다
-            </p>
-          </div>
-        )}
-
-        {isError && (
+        {!initialData && (
           <div className="text-center py-8">
             <p className="text-muted-foreground">
               인기 롤링페이퍼를 불러올 수 없습니다
@@ -43,16 +38,16 @@ export const PopularPapersSection: React.FC = () => {
           </div>
         )}
 
-        {!isLoading && !isError && data && (
+        {initialData && (
           <div className="space-y-2">
-            {data.content.length === 0 ? (
+            {initialData.content.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
                   아직 인기 롤링페이퍼가 없습니다
                 </p>
               </div>
             ) : (
-              data.content.map((paper) => (
+              initialData.content.map((paper) => (
                 <div key={paper.memberId} className="space-y-2">
                   <div className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
                     <div

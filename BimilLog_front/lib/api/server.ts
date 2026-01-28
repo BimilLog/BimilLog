@@ -5,6 +5,7 @@
 
 import { ApiResponse, PageResponse } from '@/types/common'
 import { SimplePost } from '@/types/domains/post'
+import { PopularPaperInfo } from '@/types/domains/paper'
 
 const getServerApiUrl = () => {
   return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -107,4 +108,9 @@ export async function searchPostsServer(
   return serverFetch<ApiResponse<PageResponse<SimplePost>>>(
     `/api/post/search?type=${type}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`
   )
+}
+
+// 인기 롤링페이퍼 조회
+export async function getPopularPapersServer(page = 0, size = 10) {
+  return serverFetch<ApiResponse<PageResponse<PopularPaperInfo>>>(`/api/paper/popular?page=${page}&size=${size}`)
 }

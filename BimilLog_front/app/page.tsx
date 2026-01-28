@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { HomeClient } from "@/components/organisms/home";
+import { getPopularPapersServer } from "@/lib/api/server";
 
 export const metadata: Metadata = {
   title: "비밀로그 - 익명 롤링페이퍼 & 커뮤니티",
@@ -89,7 +90,11 @@ const jsonLd = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  // 인기 롤링페이퍼 SSR
+  const popularPapersResponse = await getPopularPapersServer(0, 10);
+  const popularPapers = popularPapersResponse?.data || null;
+
   return (
     <>
       <script
@@ -98,7 +103,7 @@ export default function HomePage() {
           __html: JSON.stringify(jsonLd),
         }}
       />
-      <HomeClient />
+      <HomeClient popularPapers={popularPapers} />
     </>
   );
 }
