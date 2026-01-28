@@ -20,6 +20,19 @@ const pwaConfig = {
             },
         },
         {
+            // API 호출은 Route Handler로 프록시되므로 NetworkFirst 전략 사용
+            urlPattern: /\/api\//,
+            handler: "NetworkFirst",
+            options: {
+                cacheName: "api-cache",
+                expiration: {
+                    maxEntries: 50,
+                    maxAgeSeconds: 60, // 1분 캐시
+                },
+                networkTimeoutSeconds: 10,
+            },
+        },
+        {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
             handler: "CacheFirst",
             options: {
@@ -62,7 +75,8 @@ const nextConfig = withPWA(pwaConfig)({
             },
         ];
     },
-    // rewrites 제거됨: 모든 API 호출이 Server Actions/SSR로 마이그레이션됨
+    // API 프록시: app/api/[...path]/route.ts Route Handler가 처리
+    // 브라우저 → Next.js Route Handler → 백엔드 (내부 통신)
     // SSE 알림만 브라우저에서 직접 백엔드로 연결 (lib/api/sse.ts)
     headers: async () => {
         return [
