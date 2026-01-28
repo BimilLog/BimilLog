@@ -279,8 +279,16 @@ export class ApiClient {
   }
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-export const apiClient = new ApiClient(API_BASE_URL)
+const getApiBaseUrl = () => {
+  // SSR (서버): 내부 주소 직접 사용
+  if (typeof window === 'undefined') {
+    return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+  }
+  // 브라우저: 상대 경로 사용 (rewrites가 프록시)
+  return ''
+}
+
+export const apiClient = new ApiClient(getApiBaseUrl())
 
 export const csrfDebugUtils = {
   getCurrentToken: () => getCookie("XSRF-TOKEN"),

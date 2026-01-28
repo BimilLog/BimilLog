@@ -12,6 +12,7 @@ const pwaConfig = {
     buildExcludes: [/app-build-manifest\.json$/],
     runtimeCaching: [
         {
+            // SSE 알림은 프록시를 거치지 않고 직접 백엔드로 연결
             urlPattern: /^https:\/\/grow-farm\.com\/api\/notification\/subscribe$/,
             handler: "NetworkOnly",
             options: {
@@ -19,7 +20,8 @@ const pwaConfig = {
             },
         },
         {
-            urlPattern: /^https:\/\/grow-farm\.com\/api\/(?!notification\/subscribe(?:\/|$))/,
+            // 프록시를 통한 API 요청 (상대 경로 /api/*)
+            urlPattern: /^\/api\/(?!notification\/subscribe(?:\/|$))/,
             handler: "NetworkFirst",
             options: {
                 cacheName: "api-cache",
@@ -69,6 +71,16 @@ const nextConfig = withPWA(pwaConfig)({
                 source: '/admin/',
                 destination: '/admin',
                 permanent: true,
+            },
+        ];
+    },
+    async rewrites() {
+        const internalApiUrl = process.env.INTERNAL_API_URL || 'http://localhost:8080';
+
+        return [
+            {
+                source: '/api/:path*',
+                destination: `${internalApiUrl}/api/:path*`,
             },
         ];
     },
