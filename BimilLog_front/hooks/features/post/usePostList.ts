@@ -6,11 +6,13 @@ import { postQuery } from '@/lib/api';
 import { usePagination } from '@/hooks/common/usePagination';
 import { useDebounce } from '@/hooks/common/useDebounce';
 import { queryKeys } from '@/lib/tanstack-query/keys';
+import { PageResponse } from '@/types/common';
+import { SimplePost } from '@/types/domains/post';
 
 // ============ POST LIST HOOKS ============
 
 // 게시글 목록 조회 - TanStack Query 통합
-export function usePostList(pageSize = 30) {
+export function usePostList(pageSize = 30, initialData?: PageResponse<SimplePost> | null) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'WRITER'>('TITLE');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -37,6 +39,10 @@ export function usePostList(pageSize = 30) {
       }
       return await postQuery.getAll(pagination.currentPage, pagination.pageSize);
     },
+    // SSR에서 전달받은 초기 데이터 사용 (첫 페이지, 검색 아닐 때만)
+    initialData: initialData && pagination.currentPage === 0 && !actualSearch
+      ? { success: true, data: initialData }
+      : undefined,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
   });
@@ -76,7 +82,7 @@ export function usePostList(pageSize = 30) {
 }
 
 // 인기 게시글 조회 - TanStack Query 통합 (탭 데이터 캐싱 개선)
-export function usePopularPostsTabs() {
+export function usePopularPostsTabs(initialRealtimeData?: PageResponse<SimplePost> | null) {
   const [activeTab, setActiveTab] = useState<'realtime' | 'weekly' | 'legend'>('realtime');
 
   // 각 탭별 페이지네이션
@@ -94,6 +100,10 @@ export function usePopularPostsTabs() {
       realtimePagination.currentPage,
       realtimePagination.pageSize
     ),
+    // SSR에서 전달받은 초기 데이터 사용 (첫 페이지만)
+    initialData: initialRealtimeData && realtimePagination.currentPage === 0
+      ? { success: true, data: initialRealtimeData }
+      : undefined,
     enabled: activeTab === 'realtime',
     placeholderData: (previousData) => previousData, // 탭 전환 시 이전 데이터 유지
     staleTime: 2 * 60 * 1000, // 2분 (실시간성 강화)
@@ -194,7 +204,7 @@ export function usePopularPostsTabs() {
 }
 
 // 공지사항 조회 - 페이징 적용
-export function useNoticePosts(enabled = true) {
+export function useNoticePosts(enabled = true, initialData?: PageResponse<SimplePost> | null) {
   const pagination = usePagination({ pageSize: 10 });
 
   const { data, isLoading, refetch } = useQuery({
@@ -206,6 +216,10 @@ export function useNoticePosts(enabled = true) {
       pagination.currentPage,
       pagination.pageSize
     ),
+    // SSR에서 전달받은 초기 데이터 사용 (첫 페이지만)
+    initialData: initialData && pagination.currentPage === 0
+      ? { success: true, data: initialData }
+      : undefined,
     enabled, // 조건부 조회 (기본값: true)
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
