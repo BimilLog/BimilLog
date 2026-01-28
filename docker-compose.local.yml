@@ -20,9 +20,11 @@ services:
       - --ngram-token-size=2
     volumes:
       - mysql-data-local:/var/lib/mysql
-      # 초기화 스크립트 (알파벳순 실행: 01-migrations -> 99-seed)
-      - ./BimilLog_core/src/main/resources/db/migration:/docker-entrypoint-initdb.d/01-migrations
-      - ./BimilLog_core/src/test/resources/bimillogTest-seed.sql:/docker-entrypoint-initdb.d/99-seed.sql
+      # 마이그레이션 파일들을 별도 디렉토리에 마운트
+      - ./BimilLog_core/src/main/resources/db/migration:/migrations:ro
+      # 초기화 스크립트 (알파벳순 실행: 01-init-migrations.sh -> 99-seed.sql)
+      - ./local/mysql/init-migrations.sh:/docker-entrypoint-initdb.d/01-init-migrations.sh:ro
+      - ./BimilLog_core/src/test/resources/bimillogTest-seed.sql:/docker-entrypoint-initdb.d/99-seed.sql:ro
     networks:
       - bimillog-local
     healthcheck:

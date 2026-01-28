@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { useAuth } from "@/hooks";
 import { useAuthStore } from "@/stores/auth.store";
-import { notificationCommand } from "@/lib/api";
 import { logger, isMobileOrTablet, isKakaoInAppBrowser } from '@/lib/utils';
 import { LazyKakaoFriendsModal } from "@/lib/utils/lazy-components";
 import { NotificationPermissionModal } from "@/components/organisms/notification";
+import { registerFcmTokenAction } from "@/lib/actions/notification";
 
 // 분리된 컴포넌트들 import - 직접 파일에서 import하여 circular dependency 방지
 import { HomeHero } from "./HomeHero";
@@ -76,20 +76,21 @@ export default function HomeClient() {
     setIsFriendsModalOpen(true);
   };
 
-  const handleNotificationSuccess = (token: string) => {
+  const handleNotificationSuccess = async (token: string) => {
     logger.log("FCM 토큰 획득 성공:", token.substring(0, 20) + "...");
 
     localStorage.setItem("fcm_token", token);
     localStorage.removeItem("notification_permission_skipped");
 
     if (isAuthenticated) {
-      notificationCommand.registerFcmToken(token).then(result => {
+      try {
+        const result = await registerFcmTokenAction(token);
         if (!result.success) {
           logger.warn("FCM 토큰 서버 등록 실패:", result.error);
         }
-      }).catch(error => {
+      } catch (error) {
         logger.error("FCM 토큰 서버 등록 중 오류:", error);
-      });
+      }
     }
   };
 

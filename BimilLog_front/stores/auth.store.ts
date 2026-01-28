@@ -1,8 +1,9 @@
 import { create, type StoreApi } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { authQuery, authCommand, userCommand, sseManager, notificationCommand, type Member, type SocialProvider } from '@/lib/api';
+import { authQuery, authCommand, userCommand, sseManager, type Member, type SocialProvider } from '@/lib/api';
 import { logger } from '@/lib/utils';
 import { fcmManager } from '@/lib/auth/fcm';
+import { registerFcmTokenAction } from '@/lib/actions/notification';
 
 interface AuthState {
   user: Member | null;
@@ -63,7 +64,7 @@ const autoRegisterFcmToken = async () => {
   }
 
   try {
-    const result = await notificationCommand.registerFcmToken(token);
+    const result = await registerFcmTokenAction(token);
     if (result.success) {
       lastRegisteredFcmToken = token;
       logger.log('FCM token automatically registered with server');

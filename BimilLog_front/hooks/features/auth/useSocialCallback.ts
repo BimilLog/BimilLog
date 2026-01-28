@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authCommand, notificationCommand, type SocialProvider } from "@/lib/api";
+import { authCommand, type SocialProvider } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth.store";
 import { logger } from "@/lib/utils/logger";
+import { registerFcmTokenAction } from "@/lib/actions/notification";
 
 /**
  * 소셜 OAuth callback 처리 통합 훅
@@ -81,7 +82,7 @@ export const useSocialCallback = (provider: SocialProvider) => {
 
           if (savedFcmToken) {
             try {
-              const registerResult = await notificationCommand.registerFcmToken(savedFcmToken);
+              const registerResult = await registerFcmTokenAction(savedFcmToken);
               if (!registerResult.success) {
                 logger.warn("FCM 토큰 등록 실패:", registerResult.error);
               }
