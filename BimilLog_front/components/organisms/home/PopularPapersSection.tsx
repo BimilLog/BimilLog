@@ -1,18 +1,27 @@
 "use client";
 
-import { Card, Button } from "flowbite-react";
+import { Card, Button, Spinner } from "flowbite-react";
 import { TrendingUp, MessageSquare, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { usePopularPapers } from "@/hooks/api/useRollingPaperQueries";
 import type { PageResponse } from "@/types/common";
 import type { PopularPaperInfo } from "@/types/domains/paper";
 
 interface PopularPapersSectionProps {
-  initialData: PageResponse<PopularPaperInfo> | null;
+  initialData?: PageResponse<PopularPaperInfo> | null;
 }
 
 export const PopularPapersSection: React.FC<PopularPapersSectionProps> = ({ initialData }) => {
   const router = useRouter();
+
+  // SSR 데이터가 없으면 클라이언트에서 fetch (fallback)
+  const { data: clientData, isLoading, isError } = usePopularPapers(0, 10, {
+    enabled: !initialData, // SSR 데이터가 없을 때만 활성화
+  });
+
+  // SSR 데이터 우선, 없으면 클라이언트 데이터 사용
+  const data = initialData || clientData;
 
   const handlePaperClick = (memberName: string) => {
     router.push(`/rolling-paper/${encodeURIComponent(memberName)}`);
@@ -30,7 +39,18 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = ({ init
           </h2>
         </div>
 
-        {!initialData && (
+        {/* 로딩 상태 (클라이언트 fallback 시) */}
+        {!initialData && isLoading && (
+          <div className="flex flex-col items-center justify-center py-10 gap-3">
+            <Spinner size="xl" color="purple" />
+            <p className="text-sm text-muted-foreground">
+              실시간 인기 롤링페이퍼를 불러오는 중입니다
+            </p>
+          </div>
+        )}
+
+        {/* 에러 상태 */}
+        {!data && !isLoading && (
           <div className="text-center py-8">
             <p className="text-muted-foreground">
               인기 롤링페이퍼를 불러올 수 없습니다
@@ -38,16 +58,16 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = ({ init
           </div>
         )}
 
-        {initialData && (
+        {data && (
           <div className="space-y-2">
-            {initialData.content.length === 0 ? (
+            {data.content.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
                   아직 인기 롤링페이퍼가 없습니다
                 </p>
               </div>
             ) : (
-              initialData.content.map((paper) => (
+              data.content.map((paper) => (
                 <div key={paper.memberId} className="space-y-2">
                   <div className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
                     <div

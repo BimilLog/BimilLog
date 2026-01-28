@@ -24,7 +24,11 @@ export const useRollingPaper = (userName: string, enabled: boolean = true) => {
 /**
  * 실시간 인기 롤링페이퍼 조회
  */
-export const usePopularPapers = (page: number = 0, size: number = 10) => {
+export const usePopularPapers = (
+  page: number = 0,
+  size: number = 10,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: queryKeys.paper.popular(page, size),
     queryFn: async () => {
@@ -34,6 +38,7 @@ export const usePopularPapers = (page: number = 0, size: number = 10) => {
       }
       return response.data;
     },
+    enabled: options?.enabled ?? true,
     staleTime: 60 * 1000, // 1분
     gcTime: 5 * 60 * 1000, // 5분
     retry: 1,

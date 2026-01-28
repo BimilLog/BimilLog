@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.scheduler.PostCacheRefreshScheduler;
+import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
@@ -77,10 +78,11 @@ public class FeaturedPostCacheService {
             List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(type);
 
             if (cachedPosts.isEmpty()) {
-                log.info("[CACHE_MISS] {} 캐시 미스 - 빈 페이지 반환 (스케줄러 갱신 예정)", type);
+                CacheMetricsLogger.miss(log, type.name().toLowerCase(), "simple", "empty");
                 return new PageImpl<>(List.of(), pageable, 0);
             }
 
+            CacheMetricsLogger.hit(log, type.name().toLowerCase(), "simple", cachedPosts.size());
             return paginate(cachedPosts, pageable);
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", type, e.getMessage());

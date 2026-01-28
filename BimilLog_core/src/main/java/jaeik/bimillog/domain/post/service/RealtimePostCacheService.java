@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
@@ -71,13 +72,13 @@ public class RealtimePostCacheService {
             List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME);
 
             if (!cachedPosts.isEmpty()) {
+                CacheMetricsLogger.hit(log, "realtime", "simple", cachedPosts.size());
                 // HASH-ZSET ID 비교 → 불일치 시 비동기 갱신 트리거
                 compareAndTriggerRefreshIfNeeded(cachedPosts);
                 return paginate(cachedPosts, pageable);
             }
 
-            log.info("[CACHE_EMPTY] REALTIME 실시간 인기글 없음 - 빈 페이지 반환");
-            return new PageImpl<>(List.of(), pageable, 0);
+            CacheMetricsLogger.miss(log, "realtime", "simple", "empty");            return new PageImpl<>(List.of(), pageable, 0);
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] REALTIME Redis 장애: {}", e.getMessage());
             return dbFallbackGateway.execute(FallbackType.REALTIME, pageable,
