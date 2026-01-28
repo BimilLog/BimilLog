@@ -15,6 +15,6 @@ export const mypageQuery = {
    * @returns MyPageDTO
    */
   getMyPageInfo: async (page = 0, size = 10): Promise<ApiResponse<MyPageDTO>> => {
-    return apiClient.get(`/api/mypage?page=${page}&size=${size}`);
+    return apiClient.get(`/api/mypage/?page=${page}&size=${size}`);
   },
 };
