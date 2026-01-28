@@ -14,6 +14,34 @@ const getInternalApiUrl = () => {
 // 전달할 쿠키 이름들
 const COOKIE_NAMES = ['jwt_access_token', 'jwt_refresh_token', 'XSRF-TOKEN', 'SCOUTER']
 
+async function buildProxyResponse(response: Response): Promise<NextResponse> {
+  const responseHeaders = new Headers()
+
+  // Set-Cookie 헤더 전달
+  const setCookieHeaders = response.headers.getSetCookie?.() || []
+  for (const cookie of setCookieHeaders) {
+    responseHeaders.append('Set-Cookie', cookie)
+  }
+
+  // Content-Type 전달
+  const contentType = response.headers.get('Content-Type')
+  if (contentType) {
+    responseHeaders.set('Content-Type', contentType)
+  }
+
+  // Location 헤더 전달 (201 Created 등)
+  const location = response.headers.get('Location')
+  if (location) {
+    responseHeaders.set('Location', location)
+  }
+
+  const responseBody = await response.text()
+  return new NextResponse(responseBody || null, {
+    status: response.status,
+    headers: responseHeaders,
+  })
+}
+
 async function proxyRequest(request: NextRequest, method: string) {
   const url = new URL(request.url)
   const path = url.pathname // /api/...
@@ -62,36 +90,26 @@ async function proxyRequest(request: NextRequest, method: string) {
       method,
       headers,
       body,
+      redirect: 'manual',
     })
 
-    // 응답 헤더 복사 (Set-Cookie 포함)
-    const responseHeaders = new Headers()
-
-    // Set-Cookie 헤더 전달
-    const setCookieHeaders = response.headers.getSetCookie?.() || []
-    for (const cookie of setCookieHeaders) {
-      responseHeaders.append('Set-Cookie', cookie)
+    // Spring이 trailing slash로 redirect하는 경우 (301/302/307/308)
+    // 수동으로 follow하여 Cookie 등 헤더가 유실되지 않도록 처리
+    if ([301, 302, 307, 308].includes(response.status)) {
+      const redirectLocation = response.headers.get('Location')
+      if (redirectLocation) {
+        const redirectUrl = new URL(redirectLocation, backendUrl)
+        const redirectResponse = await fetch(redirectUrl.toString(), {
+          method: [301, 302].includes(response.status) ? 'GET' : method,
+          headers,
+          body: [301, 302].includes(response.status) ? undefined : body,
+          redirect: 'manual',
+        })
+        return buildProxyResponse(redirectResponse)
+      }
     }
 
-    // Content-Type 전달
-    const contentType = response.headers.get('Content-Type')
-    if (contentType) {
-      responseHeaders.set('Content-Type', contentType)
-    }
-
-    // Location 헤더 전달 (201 Created 등)
-    const location = response.headers.get('Location')
-    if (location) {
-      responseHeaders.set('Location', location)
-    }
-
-    // 응답 본문 처리
-    const responseBody = await response.text()
-
-    return new NextResponse(responseBody || null, {
-      status: response.status,
-      headers: responseHeaders,
-    })
+    return buildProxyResponse(response)
   } catch (error) {
     console.error('[API Proxy] Error:', error)
     return NextResponse.json(
