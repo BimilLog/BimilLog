@@ -3,17 +3,17 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { DecoType } from '@/types/domains/paper';
 
-// Import TanStack Query hooks for local usage
+// Server Actions 훅 사용
 import {
-  useCreateRollingPaperMessage,
-  useDeleteRollingPaperMessage
-} from '@/hooks/api/useRollingPaperMutations';
+  useCreateMessageAction,
+  useDeleteMessageAction
+} from '@/hooks/actions/usePaperActions';
 
 // 롤링페이퍼 액션 Hook - 메시지 작성/삭제/선택 기능만 제공
 export function useRollingPaperActions(userName: string) {
   const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
-  const createMessageMutation = useCreateRollingPaperMessage();
-  const deleteMessageMutation = useDeleteRollingPaperMessage();
+  const { createMessage, isPending: isCreating } = useCreateMessageAction();
+  const { deleteMessage, isPending: isDeleting } = useDeleteMessageAction();
 
   // 메시지 작성 - Promise 반환
   const handleCreateMessage = useCallback((messageData: {
@@ -25,34 +25,34 @@ export function useRollingPaperActions(userName: string) {
     y: number;
   }): Promise<void> => {
     return new Promise((resolve, reject) => {
-      createMessageMutation.mutate({
-        userName: messageData.userName,
-        message: {
+      createMessage(
+        {
+          userName: messageData.userName,
           decoType: messageData.decoType,
           anonymity: messageData.anonymity,
           content: messageData.content,
           x: messageData.x,
-          y: messageData.y
-        }
-      }, {
-        onSuccess: () => {
-          resolve();
+          y: messageData.y,
         },
-        onError: (error) => {
-          reject(error);
+        {
+          onSuccess: () => resolve(),
+          onError: (error) => reject(new Error(error)),
         }
-      });
+      );
     });
-  }, [createMessageMutation]);
+  }, [createMessage]);
 
   // 메시지 삭제
   const handleDeleteMessage = useCallback((messageId: number) => {
-    deleteMessageMutation.mutate(messageId, {
-      onSuccess: () => {
-        setSelectedMessages(prev => prev.filter(id => id !== messageId));
+    deleteMessage(
+      { messageId, userName },
+      {
+        onSuccess: () => {
+          setSelectedMessages(prev => prev.filter(id => id !== messageId));
+        },
       }
-    });
-  }, [deleteMessageMutation]);
+    );
+  }, [deleteMessage, userName]);
 
   // 메시지 선택/해제
   const toggleMessageSelection = useCallback((messageId: number) => {
@@ -69,8 +69,8 @@ export function useRollingPaperActions(userName: string) {
     handleDeleteMessage,
     toggleMessageSelection,
     selectedMessages,
-    isCreating: createMessageMutation.isPending,
-    isDeleting: deleteMessageMutation.isPending
+    isCreating,
+    isDeleting
   };
 }
 

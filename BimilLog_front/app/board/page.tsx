@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { BoardClient } from "@/components/organisms/board";
 import { generateStructuredData, generateKeywords, generateDynamicOgImage } from "@/lib/seo";
-import { getBoardInitialData } from "@/lib/api/server";
+import { getBoardInitialData, getSearchInitialData } from "@/lib/api/server";
 
 type Props = {
   searchParams: Promise<{
@@ -161,7 +161,10 @@ export default async function BoardPage({ searchParams }: Props) {
   const page = params.page ? parseInt(params.page) - 1 : 0; // URL은 1-based, API는 0-based
 
   // SSR: 서버에서 초기 데이터 fetch (내부 통신)
-  const initialData = !query ? await getBoardInitialData(page, 30) : undefined;
+  // 검색 쿼리가 있으면 검색 결과, 없으면 일반 목록
+  const initialData = query
+    ? await getSearchInitialData(searchType, query, page, 30)
+    : await getBoardInitialData(page, 30);
 
   // 검색 결과 페이지인 경우 구조화된 데이터 추가
   const searchJsonLd = query

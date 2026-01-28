@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/common/useToast";
 import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 import { useBlacklistCheck } from "@/hooks/features/blacklist/useBlacklistCheck";
 import { useFriendRelationshipCheck } from "@/hooks/features/friend/useFriendRelationshipCheck";
-import { useAddToBlacklist, useRemoveFromBlacklist } from "@/hooks/api/useBlacklistMutations";
+import { useAddToBlacklistAction, useRemoveFromBlacklistAction } from "@/hooks/actions/useBlacklistActions";
 import {
   useSendFriendRequest,
   useCancelFriendRequest,
@@ -61,9 +61,9 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
   const acceptMutation = useAcceptFriendRequest();
   const rejectMutation = useRejectFriendRequest();
 
-  // 블랙리스트 Mutations
-  const addMutation = useAddToBlacklist();
-  const removeMutation = useRemoveFromBlacklist();
+  // 블랙리스트 Server Actions
+  const { addToBlacklist, isPending: isAddingToBlacklist } = useAddToBlacklistAction();
+  const { removeFromBlacklist, isPending: isRemovingFromBlacklist } = useRemoveFromBlacklistAction();
 
   // 본인 여부 확인
   const isOwnProfile = user?.memberName === memberName;
@@ -145,7 +145,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     });
 
     if (confirmed) {
-      addMutation.mutate(memberName);
+      addToBlacklist(memberName);
     }
   };
 
@@ -162,7 +162,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     });
 
     if (confirmed) {
-      removeMutation.mutate({ id: blacklistId, page: 0, size: 100 });
+      removeFromBlacklist(blacklistId);
     }
   };
 
@@ -171,8 +171,8 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     cancelMutation.isPending ||
     acceptMutation.isPending ||
     rejectMutation.isPending ||
-    addMutation.isPending ||
-    removeMutation.isPending;
+    isAddingToBlacklist ||
+    isRemovingFromBlacklist;
 
   const popoverContent = (
     <div className="p-3 w-56">
@@ -256,7 +256,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
                 disabled={isPending}
               >
                 <UserCheck className="w-4 h-4 mr-2" />
-                {removeMutation.isPending ? "처리 중..." : "블랙리스트에서 제거"}
+                {isRemovingFromBlacklist ? "처리 중..." : "블랙리스트에서 제거"}
               </Button>
             ) : (
               // 6. 일반 → 블랙리스트 추가 버튼
@@ -268,7 +268,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
                 disabled={isPending}
               >
                 <UserX className="w-4 h-4 mr-2" />
-                {addMutation.isPending ? "처리 중..." : "블랙리스트 추가"}
+                {isAddingToBlacklist ? "처리 중..." : "블랙리스트 추가"}
               </Button>
             )}
           </>

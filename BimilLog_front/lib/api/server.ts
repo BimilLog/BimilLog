@@ -69,6 +69,31 @@ export async function getBoardInitialData(page = 0, size = 30) {
     noticePosts: noticePosts?.data || null,
     currentPage: page,
     pageSize: size,
+    isSearch: false,
+  }
+}
+
+// 검색 결과 초기 데이터 조회 (SSR)
+export async function getSearchInitialData(
+  type: 'TITLE' | 'TITLE_CONTENT' | 'WRITER',
+  query: string,
+  page = 0,
+  size = 30
+) {
+  const [searchResults, realtimePosts] = await Promise.all([
+    searchPostsServer(type, query, page, size),
+    getRealtimePostsServer(0, 5),
+  ])
+
+  return {
+    posts: searchResults?.data || null,
+    realtimePosts: realtimePosts?.data || null,
+    noticePosts: null,
+    currentPage: page,
+    pageSize: size,
+    isSearch: true,
+    searchQuery: query,
+    searchType: type,
   }
 }
 
