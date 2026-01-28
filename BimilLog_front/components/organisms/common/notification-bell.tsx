@@ -18,14 +18,14 @@ import { Button } from "@/components";
 import { Card } from "@/components";
 import { TimeBadge } from "@/components";
 import { useNotifications } from "@/hooks/features";
-import { notificationCommand } from "@/lib/api";
+import { useNotificationList } from "@/hooks/api";
 import {
-  useNotificationList,
-  useMarkNotificationAsRead,
-  useDeleteNotification,
-  useMarkAllNotificationsAsRead,
-  useDeleteAllNotifications
-} from "@/hooks/api";
+  useMarkNotificationAsReadAction,
+  useDeleteNotificationAction,
+  useMarkAllNotificationsAsReadAction,
+  useDeleteAllNotificationsAction,
+  useRegisterFcmTokenAction,
+} from "@/hooks/actions";
 import { useAuth } from "@/hooks";
 import { isKakaoInAppBrowser } from "@/lib/utils";
 import { Spinner as FlowbiteSpinner, Badge, Drawer } from "flowbite-react";
@@ -57,10 +57,11 @@ export function NotificationBell() {
     isRefetching,
     refetch,
   } = useNotificationList({ enabled: canUseNotifications });
-  const markAsReadMutation = useMarkNotificationAsRead();
-  const deleteNotificationMutation = useDeleteNotification();
-  const markAllAsReadMutation = useMarkAllNotificationsAsRead();
-  const deleteAllNotificationsMutation = useDeleteAllNotifications();
+  const { markAsRead, isPending: isMarkingAsRead } = useMarkNotificationAsReadAction();
+  const { deleteNotification, isPending: isDeletingNotification } = useDeleteNotificationAction();
+  const { markAllAsRead, isPending: isMarkingAllAsRead } = useMarkAllNotificationsAsReadAction();
+  const { deleteAllNotifications, isPending: isDeletingAllNotifications } = useDeleteAllNotificationsAction();
+  const { registerFcmToken } = useRegisterFcmTokenAction();
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -127,12 +128,12 @@ export function NotificationBell() {
   const isInitialLoading = status === "pending" && isFetchingList;
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const handleMarkAsRead = async (notificationId: number) => {
-    await markAsReadMutation.mutateAsync(notificationId);
+  const handleMarkAsRead = (notificationId: number) => {
+    markAsRead(notificationId);
   };
 
   const handleDeleteNotification = (notificationId: number) => {
-    deleteNotificationMutation.mutate(notificationId);
+    deleteNotification(notificationId);
   };
 
   const handleMarkAllAsRead = (e?: React.MouseEvent) => {
@@ -146,7 +147,7 @@ export function NotificationBell() {
 
     if (unreadIds.length === 0) return;
 
-    markAllAsReadMutation.mutate(unreadIds);
+    markAllAsRead(unreadIds);
   };
 
   const handleDeleteAllNotifications = (e?: React.MouseEvent) => {
@@ -158,7 +159,7 @@ export function NotificationBell() {
     const deleteIds = notifications.map((notification) => notification.id);
     if (deleteIds.length === 0) return;
 
-    deleteAllNotificationsMutation.mutate(deleteIds);
+    deleteAllNotifications(deleteIds);
   };
 
   const handleFetchNotifications = () => {
@@ -183,9 +184,9 @@ export function NotificationBell() {
     }
   };
 
-  const handleNotificationClick = async (notification: { id: number; read: boolean; url?: string }) => {
+  const handleNotificationClick = (notification: { id: number; read: boolean; url?: string }) => {
     if (!notification.read) {
-      await handleMarkAsRead(notification.id);
+      handleMarkAsRead(notification.id);
     }
     if (notification.url) {
       window.location.href = notification.url;
@@ -470,12 +471,10 @@ export function NotificationBell() {
             localStorage.removeItem("notification_permission_skipped");
 
             if (isAuthenticated) {
-              notificationCommand.registerFcmToken(token).then(result => {
-                if (!result.success) {
-                  console.warn("FCM 토큰 서버 등록 실패:", result.error);
-                }
-              }).catch(error => {
-                console.error("FCM 토큰 서버 등록 중 오류:", error);
+              registerFcmToken(token, {
+                onError: (error) => {
+                  console.warn("FCM 토큰 서버 등록 실패:", error);
+                },
               });
             }
 

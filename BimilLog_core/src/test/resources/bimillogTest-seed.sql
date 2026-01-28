@@ -129,7 +129,7 @@ INSERT INTO post (
 SELECT
     ts.n,
     1 + FLOOR(RAND(ts.n * 41) * @member_cnt),
-    CONCAT('🔥 주간 인기글 테스트 ', ts.n - 10000),
+    CONCAT('[주간] 인기글 테스트 ', ts.n - 10000),
     CONCAT('주간 인기글 콘텐츠 ', ts.n - 10000, ' - 부하 테스트용 주간 인기 게시글입니다. 최근 3일 이내 작성, 추천 5개 이상'),
     1000 + FLOOR(RAND(ts.n * 43) * 4000),
     0,
@@ -154,7 +154,7 @@ INSERT INTO post (
 SELECT
     ts.n,
     1 + FLOOR(RAND(ts.n * 59) * @member_cnt),
-    CONCAT('⭐ 레전드 인기글 테스트 ', ts.n - 10010),
+    CONCAT('[레전드] 인기글 테스트 ', ts.n - 10010),
     CONCAT('레전드 인기글 콘텐츠 ', ts.n - 10010, ' - 부하 테스트용 레전드 게시글입니다. 추천 20개 이상의 명예의 전당 게시글'),
     5000 + FLOOR(RAND(ts.n * 61) * 45000),
     0,

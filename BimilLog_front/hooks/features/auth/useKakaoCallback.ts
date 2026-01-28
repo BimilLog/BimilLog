@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authCommand, notificationCommand } from "@/lib/api";
+import { authCommand } from "@/lib/api";
 import { logger } from "@/lib/utils/logger";
 import { useAuthStore } from "@/stores/auth.store";
+import { registerFcmTokenAction } from "@/lib/actions/notification";
 
 /**
  * Kakao OAuth callback 처리 훅
@@ -66,7 +67,7 @@ export const useKakaoCallback = () => {
 
           if (savedFcmToken) {
             try {
-              const registerResult = await notificationCommand.registerFcmToken(savedFcmToken);
+              const registerResult = await registerFcmTokenAction(savedFcmToken);
               if (!registerResult.success) {
                 logger.warn("FCM 토큰 등록 실패:", registerResult.error);
               }
