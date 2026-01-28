@@ -11,7 +11,6 @@ import {
   Breadcrumb,
 } from "@/components";
 import { Post, Comment } from "@/lib/api";
-import { ErrorHandler } from "@/lib/api/helpers";
 
 // 분리된 컴포넌트들 import
 import { PostHeader } from "./PostHeader";
@@ -27,16 +26,14 @@ import { usePostDetail } from "@/hooks/features";
 import { useReadingProgress } from "@/hooks/features/useReadingProgress";
 import { useAuth, useToast } from "@/hooks";
 
-// TanStack Query mutation hooks
-import { useDeletePost } from "@/hooks/api/usePostMutations";
-// Server Action hooks
-import { useLikePostAction } from "@/hooks/actions/usePostActions";
+// Server Action hooks (브라우저에서 백엔드 직접 호출 방지)
+import { useLikePostAction, useDeletePostAction } from "@/hooks/actions/usePostActions";
 import {
-  useCreateComment,
-  useUpdateComment,
-  useDeleteComment,
-  useLikeCommentOptimized,
-} from "@/hooks/api/useCommentMutations";
+  useLikeCommentAction,
+  useCreateCommentAction,
+  useUpdateCommentAction,
+  useDeleteCommentAction,
+} from "@/hooks/actions/useCommentActions";
 
 interface Props {
   initialPost: Post;
@@ -80,11 +77,11 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // Server Action hooks (브라우저에서 백엔드 직접 호출 방지)
   const { likePost, isPending: isLikingPost } = useLikePostAction();
-  const { mutate: deletePost, isPending: isDeletingPost } = useDeletePost();
-  const { mutate: createComment, isPending: isCreatingComment } = useCreateComment();
-  const { mutate: updateComment, isPending: isUpdatingComment } = useUpdateComment();
-  const { mutate: deleteComment, isPending: isDeletingComment } = useDeleteComment();
-  const { mutate: likeComment } = useLikeCommentOptimized(Number(postId));
+  const { deletePost, isPending: isDeletingPost } = useDeletePostAction();
+  const { createComment, isPending: isCreatingComment } = useCreateCommentAction();
+  const { updateComment, isPending: isUpdatingComment } = useUpdateCommentAction();
+  const { deleteComment, isPending: isDeletingComment } = useDeleteCommentAction();
+  const { likeComment } = useLikeCommentAction(Number(postId));
 
   // 댓글 편집 및 답글 상태 관리
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
@@ -104,18 +101,11 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // 댓글 작성 핸들러
   const handleCommentSubmitForSection = (content: string, password: string) => {
-    createComment(
-      {
-        postId: Number(postId),
-        content,
-        password: password ? Number(password) : undefined,
-      },
-      {
-        onSuccess: () => {
-          // 성공 시 추가 작업 (TanStack Query가 자동으로 캐시 무효화)
-        },
-      }
-    );
+    createComment({
+      postId: Number(postId),
+      content,
+      password: password ? Number(password) : undefined,
+    });
   };
 
   // 댓글 수정 상태 관리 - 수정 모드 진입 시 기존 내용을 대입
@@ -163,14 +153,9 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
       },
       {
         onSuccess: () => {
-          // 수정 완료 후 상태 초기화
           setEditingComment(null);
           setEditContent("");
           setEditPassword("");
-        },
-        onError: () => {
-          // 에러 발생 시에도 상태 초기화하지 않음 (사용자가 다시 시도할 수 있도록)
-          // 토스트 메시지는 mutation hook에서 처리됨
         },
       }
     );
@@ -215,18 +200,9 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
       },
       {
         onSuccess: () => {
-          // 답글 작성 완료 후 답글 상태 초기화
           setReplyingTo(null);
           setReplyContent("");
           setReplyPassword("");
-        },
-        onError: (err) => {
-          const appError = ErrorHandler.mapApiError(err);
-          showToast({
-            type: 'error',
-            message: appError.userMessage || appError.message || '답글 작성에 실패했습니다.',
-          });
-          // 상태는 유지해 사용자가 수정 후 재시도 가능
         },
       }
     );
@@ -275,15 +251,17 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // 삭제 확인 후 실제 삭제 실행
   const handleConfirmDelete = async () => {
-    deletePost({ postId: Number(postId) }, {
-      onSuccess: () => {
-        setShowDeleteModal(false);
-      },
-      onError: () => {
-        // 에러 발생 시 모달 닫기 (토스트는 mutation hook에서 처리)
-        setShowDeleteModal(false);
-      },
-    });
+    deletePost(
+      { postId: Number(postId) },
+      {
+        onSuccess: () => {
+          setShowDeleteModal(false);
+        },
+        onError: () => {
+          setShowDeleteModal(false);
+        },
+      }
+    );
   };
 
   // 댓글 삭제 핸들러
@@ -307,20 +285,22 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   const handleConfirmCommentDelete = async () => {
     if (!targetDeleteComment) return;
 
-    deleteComment({
-      commentId: targetDeleteComment.id,
-      postId: Number(postId),
-    }, {
-      onSuccess: () => {
-        setShowCommentDeleteModal(false);
-        setTargetDeleteComment(null);
+    deleteComment(
+      {
+        commentId: targetDeleteComment.id,
+        postId: Number(postId),
       },
-      onError: () => {
-        // 에러 발생 시 모달 닫기 (토스트는 mutation hook에서 처리)
-        setShowCommentDeleteModal(false);
-        setTargetDeleteComment(null);
-      },
-    });
+      {
+        onSuccess: () => {
+          setShowCommentDeleteModal(false);
+          setTargetDeleteComment(null);
+        },
+        onError: () => {
+          setShowCommentDeleteModal(false);
+          setTargetDeleteComment(null);
+        },
+      }
+    );
   };
 
   // 댓글 좋아요 핸들러
@@ -338,48 +318,38 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     setPasswordError("");
 
     if (deleteMode === "post") {
-      deletePost({
-        postId: Number(postId),
-        password: modalPassword ? Number(modalPassword) : undefined,
-      }, {
-        onSuccess: () => {
-          // 삭제 성공 시 모달 상태 초기화
-          resetPasswordModal();
-          setPasswordError("");
+      deletePost(
+        {
+          postId: Number(postId),
+          password: modalPassword ? Number(modalPassword) : undefined,
         },
-        onError: (error: unknown) => {
-          // 에러 발생 시 에러 메시지 표시 (모달은 닫지 않음)
-          const errorMessage =
-            (error && typeof error === 'object' && 'error' in error && typeof error.error === 'string')
-              ? error.error
-              : (error instanceof Error)
-                ? error.message
-                : "비밀번호가 올바르지 않습니다.";
-          setPasswordError(errorMessage);
-        },
-      });
+        {
+          onSuccess: () => {
+            resetPasswordModal();
+            setPasswordError("");
+          },
+          onError: (error: string) => {
+            setPasswordError(error || "비밀번호가 올바르지 않습니다.");
+          },
+        }
+      );
     } else if (deleteMode === "comment" && targetComment) {
-      deleteComment({
-        commentId: targetComment.id,
-        postId: Number(postId),
-        password: modalPassword ? Number(modalPassword) : undefined,
-      }, {
-        onSuccess: () => {
-          // 삭제 성공 시 모달 상태 초기화
-          resetPasswordModal();
-          setPasswordError("");
+      deleteComment(
+        {
+          commentId: targetComment.id,
+          postId: Number(postId),
+          password: modalPassword ? Number(modalPassword) : undefined,
         },
-        onError: (error: unknown) => {
-          // 에러 발생 시 에러 메시지 표시 (모달은 닫지 않음)
-          const errorMessage =
-            (error && typeof error === 'object' && 'error' in error && typeof error.error === 'string')
-              ? error.error
-              : (error instanceof Error)
-                ? error.message
-                : "비밀번호가 올바르지 않습니다.";
-          setPasswordError(errorMessage);
-        },
-      });
+        {
+          onSuccess: () => {
+            resetPasswordModal();
+            setPasswordError("");
+          },
+          onError: (error: string) => {
+            setPasswordError(error || "비밀번호가 올바르지 않습니다.");
+          },
+        }
+      );
     }
   };
 
