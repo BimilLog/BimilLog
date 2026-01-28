@@ -2,13 +2,14 @@
 
 import { SafeHTML, TimeBadge, Button } from "@/components";
 import { ThumbsUp, MessageSquare, Flag, User, ExternalLink } from "lucide-react";
-import { Comment, userCommand } from "@/lib/api";
+import { Comment } from "@/lib/api";
 import { Button as FlowbiteButton } from "flowbite-react";
 import { useAuth } from "@/hooks";
 import React from "react";
 import { useToast } from "@/hooks";
 import { Popover } from "flowbite-react";
 import Link from "next/link";
+import { submitReportAction } from "@/lib/actions/user";
 
 interface PopularCommentItemProps {
   comment: Comment;
@@ -37,7 +38,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
     }
 
     try {
-      const response = await userCommand.submitReport({
+      const response = await submitReportAction({
         reportType: "COMMENT",
         targetId: comment.id,
         content: `댓글 신고: ${comment.content.substring(0, 50)}...`,

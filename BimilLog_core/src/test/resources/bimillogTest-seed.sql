@@ -14,10 +14,14 @@
 -- 실행 방법:
 --   mysql -u <user> -p bimillogTest < src/test/resources/bimillogTest-seed.sql
 --
--- ⚠️ 주의: 스크립트는 대상 테이블을 TRUNCATE 하므로 실행 전에 백업을 권장합니다.
+-- 주의: 스크립트는 대상 테이블을 TRUNCATE 하므로 실행 전에 백업을 권장합니다.
 -- ====================================================================================
 
 USE bimillogTest;
+
+-- 인코딩 설정
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 
 SET @previous_autocommit = @@autocommit;
 SET autocommit = 0;
@@ -104,8 +108,8 @@ INSERT INTO post (
 )
 SELECT
     1 + FLOOR(RAND(ts.n * 23) * @member_cnt),
-    CONCAT('시드 게시글 제목 ', ts.n),
-    CONCAT('시드 게시글 콘텐츠 ', ts.n, ' - 성능 검증용 텍스트입니다.'),
+    CONCAT('Seed Post Title ', ts.n),
+    CONCAT('Seed post content ', ts.n, ' - Test content for performance.'),
     FLOOR(RAND(ts.n * 29) * 50000),
     0,
     NULL,
@@ -129,8 +133,8 @@ INSERT INTO post (
 SELECT
     ts.n,
     1 + FLOOR(RAND(ts.n * 41) * @member_cnt),
-    CONCAT('[주간] 인기글 테스트 ', ts.n - 10000),
-    CONCAT('주간 인기글 콘텐츠 ', ts.n - 10000, ' - 부하 테스트용 주간 인기 게시글입니다. 최근 3일 이내 작성, 추천 5개 이상'),
+    CONCAT('Weekly Popular Post ', ts.n - 10000),
+    CONCAT('Weekly popular content ', ts.n - 10000, ' - Load test weekly post. Created within 3 days, 5+ likes'),
     1000 + FLOOR(RAND(ts.n * 43) * 4000),
     0,
     NULL,
@@ -154,8 +158,8 @@ INSERT INTO post (
 SELECT
     ts.n,
     1 + FLOOR(RAND(ts.n * 59) * @member_cnt),
-    CONCAT('[레전드] 인기글 테스트 ', ts.n - 10010),
-    CONCAT('레전드 인기글 콘텐츠 ', ts.n - 10010, ' - 부하 테스트용 레전드 게시글입니다. 추천 20개 이상의 명예의 전당 게시글'),
+    CONCAT('Legend Post ', ts.n - 10010),
+    CONCAT('Legend post content ', ts.n - 10010, ' - Load test legend post. Hall of fame with 20+ likes'),
     5000 + FLOOR(RAND(ts.n * 61) * 45000),
     0,
     NULL,
@@ -177,7 +181,7 @@ INSERT INTO comment (
 SELECT
     1 + FLOOR(RAND(ts.n * 41) * @post_cnt),
     1 + FLOOR(RAND(ts.n * 43) * @member_cnt),
-    CONCAT('이것은 시드 댓글 ', ts.n, ' 입니다. 성능 테스트용으로 생성되었습니다.'),
+    CONCAT('This is seed comment ', ts.n, '. Created for performance testing.'),
     0,
     NULL,
     DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 47) * 120) DAY),

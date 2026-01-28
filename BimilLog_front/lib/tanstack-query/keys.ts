@@ -75,6 +75,12 @@ export const queryKeys = {
     receivedRequests: (page: number, size: number) => [...queryKeys.friend.all, 'received', page, size] as const,
     recommended: (page: number, size: number) => [...queryKeys.friend.all, 'recommended', page, size] as const,
   },
+
+  // Blacklist
+  blacklist: {
+    all: ['blacklist'] as const,
+    list: (page?: number, size?: number) => ['blacklist', 'list', page, size] as const,
+  },
 } as const;
 
 /**

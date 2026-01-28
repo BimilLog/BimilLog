@@ -1,9 +1,10 @@
 import { create, type StoreApi } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { authQuery, authCommand, userCommand, sseManager, type Member, type SocialProvider } from '@/lib/api';
+import { authQuery, authCommand, sseManager, type Member, type SocialProvider } from '@/lib/api';
 import { logger } from '@/lib/utils';
 import { fcmManager } from '@/lib/auth/fcm';
 import { registerFcmTokenAction } from '@/lib/actions/notification';
+import { updateUserNameAction } from '@/lib/actions/user';
 
 interface AuthState {
   user: Member | null;
@@ -266,7 +267,7 @@ export const useAuthStore = create<AuthState>()(
             }
 
             try {
-              const response = await userCommand.updateUserName(userName);
+              const response = await updateUserNameAction(userName);
               if (response.success) {
                 await get().refreshUser();
                 return true;
