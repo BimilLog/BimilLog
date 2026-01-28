@@ -55,10 +55,10 @@ export async function getNoticePostsServer(page = 0, size = 10) {
   return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post/notice?page=${page}&size=${size}`)
 }
 
-// 게시판 초기 데이터 한 번에 조회
-export async function getBoardInitialData() {
+// 게시판 초기 데이터 한 번에 조회 (페이지 파라미터 지원)
+export async function getBoardInitialData(page = 0, size = 30) {
   const [posts, realtimePosts, noticePosts] = await Promise.all([
-    getPostsServer(0, 30),
+    getPostsServer(page, size),
     getRealtimePostsServer(0, 5),
     getNoticePostsServer(0, 10),
   ])
@@ -67,5 +67,19 @@ export async function getBoardInitialData() {
     posts: posts?.data || null,
     realtimePosts: realtimePosts?.data || null,
     noticePosts: noticePosts?.data || null,
+    currentPage: page,
+    pageSize: size,
   }
+}
+
+// 검색 결과 조회 (서버)
+export async function searchPostsServer(
+  type: 'TITLE' | 'TITLE_CONTENT' | 'WRITER',
+  query: string,
+  page = 0,
+  size = 30
+) {
+  return serverFetch<ApiResponse<PageResponse<SimplePost>>>(
+    `/api/post/search?type=${type}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`
+  )
 }

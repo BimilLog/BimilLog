@@ -37,6 +37,9 @@ services:
     container_name: bimillog-backend-local
     ports:
       - "8080:8080"
+    # 운영 서버 시뮬레이션: 1GB RAM, 1 CPU 코어
+    mem_limit: 1g
+    cpus: 1.0
     environment:
       - SPRING_PROFILES_ACTIVE=local
       - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/bimillogTest?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
