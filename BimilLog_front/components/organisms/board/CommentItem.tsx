@@ -5,8 +5,9 @@ import { Button, Input, SafeHTML, Spinner, TimeBadge } from "@/components";
 import { LazyEditor, LazyReportModal } from "@/lib/utils/lazy-components";
 import { Button as FlowbiteButton } from "flowbite-react";
 import { ThumbsUp, Reply, MoreHorizontal, User, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
-import { Comment, userCommand } from "@/lib/api";
+import { Comment } from "@/lib/api";
 import { useAuth } from "@/hooks";
+import { submitReportAction } from "@/lib/actions/user";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,7 +121,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   const handleReport = async (reason: string) => {
     try {
       // v2 신고 API 사용 - 익명 사용자도 신고 가능
-      const response = await userCommand.submitReport({
+      const response = await submitReportAction({
         reportType: "COMMENT",
         targetId: comment.id,
         content: reason,

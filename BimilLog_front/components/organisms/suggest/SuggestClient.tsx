@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { Label } from "@/components";
 import { Spinner } from "@/components";
 import { Lightbulb, Send, Bug, FileText } from "lucide-react";
-import { userCommand } from "@/lib/api";
 import { useToast } from "@/hooks";
 import { logger } from '@/lib/utils/logger';
 import { useAuthStore } from "@/stores/auth.store";
+import { submitReportAction } from "@/lib/actions/user";
 
 // Dynamic import for heavy components
 const Textarea = dynamic(
@@ -87,7 +87,7 @@ export default function SuggestClient() {
     setIsSubmitting(true);
 
     try {
-      const response = await userCommand.submitReport({
+      const response = await submitReportAction({
         reportType: suggestionType,
         content: content.trim(),
         reporterId: isAuthenticated && user?.memberId ? user.memberId : null,

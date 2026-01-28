@@ -24,10 +24,11 @@ import {
   Shield,
   Star,
 } from "lucide-react";
-import { Member, userQuery, userCommand } from "@/lib/api";
+import { Member, userQuery } from "@/lib/api";
 import { validationRules } from "@/lib/utils/validation-helpers";
 import { useToast } from "@/hooks";
 import { logger } from '@/lib/utils/logger';
+import { updateUserNameAction } from "@/lib/actions/user";
 import { ToastContainer } from "@/components";
 
 interface ProfileCardProps {
@@ -106,7 +107,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
 
     setIsNicknameChangeSubmitting(true);
     try {
-      const response = await userCommand.updateUserName(nicknameInput.trim());
+      const response = await updateUserNameAction(nicknameInput.trim());
       if (response.success) {
         await onNicknameChange(nicknameInput.trim());
         setIsNicknameDialogOpen(false);

@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks";
-import { userQuery, userCommand, Setting } from "@/lib/api";
+import { userQuery, Setting } from "@/lib/api";
 import { logger } from '@/lib/utils/logger';
 import { useDebouncedCallback } from "@/hooks/common";
+import { updateSettingsAction, withdrawAction } from "@/lib/actions/user";
 
 type SettingField = keyof Setting;
 
@@ -105,7 +106,7 @@ export function useUserSettings() {
           return updated;
         });
 
-        const response = await userCommand.updateSettings(settingsToSave);
+        const response = await updateSettingsAction(settingsToSave);
         if (!isMounted.current) return;
 
         if (response.success) {
@@ -234,7 +235,7 @@ export function useUserSettings() {
   const handleConfirmWithdraw = async () => {
     try {
       setWithdrawing(true);
-      const response = await userCommand.withdraw();
+      const response = await withdrawAction();
       if (!isMounted.current) return;
 
       if (response.success) {

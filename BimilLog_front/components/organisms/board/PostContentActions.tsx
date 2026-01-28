@@ -2,10 +2,11 @@
 
 import { Button, Tooltip } from "flowbite-react";
 import { ThumbsUp, Flag } from "lucide-react";
-import { Post, userCommand } from "@/lib/api";
+import { Post } from "@/lib/api";
 import { useAuth, useToast } from "@/hooks";
 import { useState } from "react";
 import { LazyReportModal } from "@/lib/utils/lazy-components";
+import { submitReportAction } from "@/lib/actions/user";
 
 interface PostContentActionsProps {
   post: Post;
@@ -26,7 +27,7 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
   const handleReport = async (reason: string) => {
     try {
       // v2 신고 API 사용 - 익명 사용자도 신고 가능
-      const response = await userCommand.submitReport({
+      const response = await submitReportAction({
         reportType: "POST",
         targetId: post.id, // v2에서는 post.id 사용
         content: reason,
