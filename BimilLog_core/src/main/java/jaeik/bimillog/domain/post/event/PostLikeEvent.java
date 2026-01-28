@@ -23,7 +23,7 @@ public record PostLikeEvent(
         String eventId
 ) {
     public PostLikeEvent(Long postId, Long postAuthorId, Long likerId) {
-        this(postId, postAuthorId, likerId, UUID.randomUUID().toString());
+        this(postId, postAuthorId, likerId, UUID.randomUUID().toString().replace("-", "").substring(0, 16));
     }
 
     public PostLikeEvent {
