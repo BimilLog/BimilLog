@@ -23,7 +23,7 @@ public record CommentLikeEvent(
         String eventId
 ) {
     public CommentLikeEvent(Long commentId, Long commentAuthorId, Long likerId) {
-        this(commentId, commentAuthorId, likerId, UUID.randomUUID().toString());
+        this(commentId, commentAuthorId, likerId, UUID.randomUUID().toString().replace("-", "").substring(0, 16));
     }
 
     public CommentLikeEvent {

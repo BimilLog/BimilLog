@@ -25,7 +25,8 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_
 @RequiredArgsConstructor
 public class RedisFriendshipRepository {
     private final RedisTemplate<String, Long> redisTemplate;
-    private static final int PIPELINE_BATCH_SIZE = 1000;
+    private static final int PIPELINE_BATCH_SIZE = 500;
+    private static final int FIRST_FRIEND_SCAN_LIMIT = 50;
     private static final int SECOND_DEGREE_SAMPLE_SIZE = 30;
     private static final int THIRD_DEGREE_SAMPLE_SIZE = 100;
 
@@ -53,7 +54,6 @@ public class RedisFriendshipRepository {
                 int batchEnd = Math.min(batchStart + PIPELINE_BATCH_SIZE, memberIdList.size());
                 List<Long> batch = memberIdList.subList(batchStart, batchEnd);
 
-                // Pipeline 실행 (랜덤 100명씩 조회)
                 List<Object> results = redisTemplate.executePipelined((RedisConnection connection) -> {
                     for (Long memberId : batch) {
                         String key = FRIEND_SHIP_PREFIX + memberId;

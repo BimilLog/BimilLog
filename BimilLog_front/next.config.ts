@@ -112,42 +112,9 @@ const nextConfig = withPWA(pwaConfig)({
             },
             {
                 // 모든 페이지에 보안 헤더 적용
+                // CSP는 middleware.ts에서 nonce 기반으로 동적 설정
                 source: '/:path*',
                 headers: [
-                    {
-                        key: 'Content-Security-Policy',
-                        value: [
-                            "default-src 'self'",
-                            // 스크립트 소스 허용 (개발환경에서만 unsafe-eval 허용)
-                            "script-src 'self' 'unsafe-inline'" +
-                            (process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "") +
-                            " https://cdn.jsdelivr.net https://*.kakao.com https://accounts.kakao.com https://dapi.kakao.com https://display.ad.daum.net https://*.kakaocdn.net https://t1.daumcdn.net https://postfiles.pstatic.net https://aem-kakao-collector.onkakao.net https://www.gstatic.com https://www.gstatic.com/firebasejs/ https://www.googletagmanager.com https://accounts.google.com http://clients2.google.com https://ssl.pstatic.net",
-                            // 스타일시트 허용
-                            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
-                            // 이미지 소스 허용 (구체적 도메인만 명시)
-                            "img-src 'self' data: https://*.kakaocdn.net https://postfiles.pstatic.net https://t1.daumcdn.net https://display.ad.daum.net https://kaat.daum.net https://serv.ds.kakao.com https://tr.ad.daum.net https://ssl.pstatic.net https://lh3.googleusercontent.com" +
-                            (process.env.NODE_ENV === "development"
-                                ? " http://*.kakaocdn.net"
-                                : ""),
-                            // 폰트 소스 허용
-                            "font-src 'self' data: https://cdn.jsdelivr.net",
-                            // API 연결 허용 (개발환경에서는 localhost 포함)
-                            "connect-src 'self' https://grow-farm.com ws://grow-farm.com" +
-                            (process.env.NODE_ENV === "development" ? " http://localhost:* ws://localhost:*" : "") +
-                            " https://cdn.jsdelivr.net https://*.kakao.com https://accounts.kakao.com https://dapi.kakao.com https://analytics.ad.daum.net https://display.ad.daum.net https://kaat.daum.net https://kuid-provider.ds.kakao.com https://t1.daumcdn.net https://aem-kakao-collector.onkakao.net https://www.google-analytics.com https://analytics.google.com https://accounts.google.com https://*.googleapis.com https://www.gstatic.com",
-                            // 프레임 허용 (구체적 도메인만 명시)
-                            "frame-src 'self' https://*.kakao.com https://accounts.kakao.com https://postfiles.pstatic.net https://t1.daumcdn.net https://analytics.ad.daum.net https://display.ad.daum.net about: chrome-extension:",
-                            "object-src 'none'",
-                            "base-uri 'self'",
-                            "form-action 'self' https://accounts.kakao.com https://sharer.kakao.com",
-                            // 클릭재킹 방지 (X-Frame-Options와 중복이지만 더 정확한 제어)
-                            "frame-ancestors 'self'",
-                            // 미디어 소스 허용
-                            "media-src 'self' https://*.kakaocdn.net https://t1.daumcdn.net https://postfiles.pstatic.net",
-                            // 카카오 공유 팝업 허용
-                            "child-src 'self' https://*.kakao.com https://accounts.kakao.com https://display.ad.daum.net about: chrome-extension:",
-                        ].join('; '),
-                    },
                     {
                         key: 'X-XSS-Protection',
                         value: '1; mode=block',
