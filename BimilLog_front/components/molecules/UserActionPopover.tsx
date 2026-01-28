@@ -12,11 +12,11 @@ import { useBlacklistCheck } from "@/hooks/features/blacklist/useBlacklistCheck"
 import { useFriendRelationshipCheck } from "@/hooks/features/friend/useFriendRelationshipCheck";
 import { useAddToBlacklistAction, useRemoveFromBlacklistAction } from "@/hooks/actions/useBlacklistActions";
 import {
-  useSendFriendRequest,
-  useCancelFriendRequest,
-  useAcceptFriendRequest,
-  useRejectFriendRequest,
-} from "@/hooks/api/useFriendMutations";
+  useSendFriendRequestAction,
+  useCancelFriendRequestAction,
+  useAcceptFriendRequestAction,
+  useRejectFriendRequestAction,
+} from "@/hooks/actions/useFriendActions";
 
 interface UserActionPopoverProps {
   memberName: string;
@@ -55,11 +55,11 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     isLoading: isLoadingRelationship,
   } = useFriendRelationshipCheck(memberName, shouldFetchData);
 
-  // 친구 요청 Mutations
-  const sendMutation = useSendFriendRequest();
-  const cancelMutation = useCancelFriendRequest();
-  const acceptMutation = useAcceptFriendRequest();
-  const rejectMutation = useRejectFriendRequest();
+  // 친구 요청 Actions
+  const { sendRequest, isPending: isSendPending } = useSendFriendRequestAction();
+  const { cancelRequest, isPending: isCancelPending } = useCancelFriendRequestAction();
+  const { acceptRequest, isPending: isAcceptPending } = useAcceptFriendRequestAction();
+  const { rejectRequest, isPending: isRejectPending } = useRejectFriendRequestAction();
 
   // 블랙리스트 Server Actions
   const { addToBlacklist, isPending: isAddingToBlacklist } = useAddToBlacklistAction();
@@ -87,7 +87,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     });
 
     if (confirmed) {
-      sendMutation.mutate({ receiverMemberId: finalMemberId });
+      sendRequest(finalMemberId);
     }
   };
 
@@ -105,14 +105,14 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     });
 
     if (confirmed) {
-      cancelMutation.mutate(sentRequestId);
+      cancelRequest(sentRequestId);
     }
   };
 
   // 핸들러 3: 친구 요청 수락 (모달 없음)
   const handleAcceptRequest = () => {
     if (!receivedRequestId) return;
-    acceptMutation.mutate(receivedRequestId);
+    acceptRequest(receivedRequestId);
   };
 
   // 핸들러 4: 친구 요청 거절
@@ -129,7 +129,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     });
 
     if (confirmed) {
-      rejectMutation.mutate(receivedRequestId);
+      rejectRequest(receivedRequestId);
     }
   };
 
@@ -167,10 +167,10 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
   };
 
   const isPending =
-    sendMutation.isPending ||
-    cancelMutation.isPending ||
-    acceptMutation.isPending ||
-    rejectMutation.isPending ||
+    isSendPending ||
+    isCancelPending ||
+    isAcceptPending ||
+    isRejectPending ||
     isAddingToBlacklist ||
     isRemovingFromBlacklist;
 
@@ -206,7 +206,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
                   disabled={isPending}
                 >
                   <UserCheck className="w-4 h-4 mr-2" />
-                  {acceptMutation.isPending ? "처리 중..." : "친구 요청 수락"}
+                  {isAcceptPending ? "처리 중..." : "친구 요청 수락"}
                 </Button>
                 <Button
                   size="sm"
@@ -216,7 +216,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
                   disabled={isPending}
                 >
                   <X className="w-4 h-4 mr-2" />
-                  {rejectMutation.isPending ? "처리 중..." : "거절"}
+                  {isRejectPending ? "처리 중..." : "거절"}
                 </Button>
               </>
             ) : hasSentRequest ? (
@@ -229,7 +229,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
                 disabled={isPending}
               >
                 <UserMinus className="w-4 h-4 mr-2" />
-                {cancelMutation.isPending ? "처리 중..." : "친구 요청 취소"}
+                {isCancelPending ? "처리 중..." : "친구 요청 취소"}
               </Button>
             ) : !isBlacklisted ? (
               // 6. 일반 → 친구 요청 버튼
@@ -241,7 +241,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
                 disabled={isPending || !finalMemberId}
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                {sendMutation.isPending ? "처리 중..." : "친구 요청"}
+                {isSendPending ? "처리 중..." : "친구 요청"}
               </Button>
             ) : null}
 

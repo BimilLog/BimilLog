@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { Avatar } from "flowbite-react";
 import { Button, Badge } from "@/components";
 import { SentFriendRequest } from "@/types/domains/friend";
-import { useCancelFriendRequest } from "@/hooks/api/useFriendMutations";
+import { useCancelFriendRequestAction } from "@/hooks/actions/useFriendActions";
 import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 import { getInitials } from "@/lib/utils/format";
 import { formatDate } from "@/lib/utils";
@@ -18,7 +18,7 @@ interface SentRequestItemProps {
  * 보낸 친구 요청 아이템 컴포넌트
  */
 export const SentRequestItem: React.FC<SentRequestItemProps> = ({ request }) => {
-  const { mutate: cancelRequest, isPending } = useCancelFriendRequest();
+  const { cancelRequest, isPending } = useCancelFriendRequestAction();
   const { confirm, ConfirmModalComponent } = useConfirmModal();
 
   const handleCancel = async () => {

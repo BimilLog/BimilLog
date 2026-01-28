@@ -4,7 +4,7 @@ import React from "react";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components";
 import { ReceivedFriendRequest } from "@/types/domains/friend";
-import { useAcceptFriendRequest, useRejectFriendRequest } from "@/hooks/api/useFriendMutations";
+import { useAcceptFriendRequestAction, useRejectFriendRequestAction } from "@/hooks/actions/useFriendActions";
 import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 
 interface ReceivedRequestItemProps {
@@ -15,8 +15,8 @@ interface ReceivedRequestItemProps {
  * 받은 친구 요청 아이템 컴포넌트
  */
 export const ReceivedRequestItem: React.FC<ReceivedRequestItemProps> = ({ request }) => {
-  const { mutate: acceptRequest, isPending: isAccepting } = useAcceptFriendRequest();
-  const { mutate: rejectRequest, isPending: isRejecting } = useRejectFriendRequest();
+  const { acceptRequest, isPending: isAccepting } = useAcceptFriendRequestAction();
+  const { rejectRequest, isPending: isRejecting } = useRejectFriendRequestAction();
   const { confirm, ConfirmModalComponent } = useConfirmModal();
 
   const handleAccept = () => {

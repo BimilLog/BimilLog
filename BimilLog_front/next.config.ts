@@ -12,23 +12,11 @@ const pwaConfig = {
     buildExcludes: [/app-build-manifest\.json$/],
     runtimeCaching: [
         {
-            // SSE 알림은 프록시를 거치지 않고 직접 백엔드로 연결
+            // SSE 알림은 브라우저에서 직접 백엔드로 연결 (Server Action 불가)
             urlPattern: /^https:\/\/grow-farm\.com\/api\/notification\/subscribe$/,
             handler: "NetworkOnly",
             options: {
                 cacheName: "sse-bypass",
-            },
-        },
-        {
-            // 프록시를 통한 API 요청 (상대 경로 /api/*)
-            urlPattern: /^\/api\/(?!notification\/subscribe(?:\/|$))/,
-            handler: "NetworkFirst",
-            options: {
-                cacheName: "api-cache",
-                expiration: {
-                    maxEntries: 32,
-                    maxAgeSeconds: 24 * 60 * 60, // 24 hours
-                },
             },
         },
         {
@@ -74,16 +62,8 @@ const nextConfig = withPWA(pwaConfig)({
             },
         ];
     },
-    async rewrites() {
-        const internalApiUrl = process.env.INTERNAL_API_URL || 'http://localhost:8080';
-
-        return [
-            {
-                source: '/api/:path*',
-                destination: `${internalApiUrl}/api/:path*`,
-            },
-        ];
-    },
+    // rewrites 제거됨: 모든 API 호출이 Server Actions/SSR로 마이그레이션됨
+    // SSE 알림만 브라우저에서 직접 백엔드로 연결 (lib/api/sse.ts)
     headers: async () => {
         return [
             {
