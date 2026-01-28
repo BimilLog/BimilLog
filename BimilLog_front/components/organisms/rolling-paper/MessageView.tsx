@@ -8,8 +8,7 @@ import { Spinner } from "@/components";
 import { Lock, Trash2 } from "lucide-react";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
-import { ErrorHandler } from "@/lib/api/helpers";
-import { useDeleteRollingPaperMessage } from "@/hooks/api/useRollingPaperMutations";
+import { useDeleteMessageAction } from "@/hooks/actions/usePaperActions";
 
 interface MessageViewProps {
   message: RollingPaperMessage | VisitMessage;
@@ -27,7 +26,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
   onDeleteError,
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const deleteMutation = useDeleteRollingPaperMessage();
+  const { deleteMessage, isPending: isDeleting } = useDeleteMessageAction();
 
   // RollingPaperMessage 타입 가드: content와 anonymity 필드 존재로 구분
   // VisitMessage는 작성자만 볼 수 있는 메시지이므로 구조가 다름
@@ -46,18 +45,20 @@ export const MessageView: React.FC<MessageViewProps> = ({
   const handleDeleteConfirm = () => {
     if (!isRollingPaperMessage(message)) return;
 
-    deleteMutation.mutate(message.id, {
-      onSuccess: () => {
-        setShowDeleteConfirm(false);
-        onDelete?.(); // 상위 컴포넌트에 삭제 완료 알림 (목록 새로고침 등)
-        onDeleteSuccess?.("메시지가 성공적으로 삭제되었습니다.");
-      },
-      onError: (error) => {
-        setShowDeleteConfirm(false);
-        const appError = ErrorHandler.mapApiError(error);
-        onDeleteError?.(appError.message);
+    deleteMessage(
+      { messageId: message.id },
+      {
+        onSuccess: () => {
+          setShowDeleteConfirm(false);
+          onDelete?.(); // 상위 컴포넌트에 삭제 완료 알림 (목록 새로고침 등)
+          onDeleteSuccess?.("메시지가 성공적으로 삭제되었습니다.");
+        },
+        onError: (errorMsg) => {
+          setShowDeleteConfirm(false);
+          onDeleteError?.(errorMsg);
+        }
       }
-    });
+    );
   };
 
   return (
@@ -106,10 +107,10 @@ export const MessageView: React.FC<MessageViewProps> = ({
             <Button
               size="sm"
               onClick={handleDeleteClick}
-              disabled={deleteMutation.isPending}
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700 text-white border-0 min-h-[44px] touch-manipulation text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-[0.98] transition-all"
             >
-              {deleteMutation.isPending ? (
+              {isDeleting ? (
                 <span className="flex items-center gap-2">
                   <Spinner size="sm" />
                   삭제 중...
@@ -133,7 +134,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
         cancelText="취소"
         confirmButtonVariant="destructive"
         icon={<Trash2 className="h-8 w-8 text-red-500" />}
-        isLoading={deleteMutation.isPending}
+        isLoading={isDeleting}
       />
     </>
   );

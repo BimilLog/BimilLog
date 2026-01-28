@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { UserX, Trash2 } from "lucide-react";
 import { Button, Spinner } from "@/components";
 import { useBlacklist } from "@/hooks/api/useBlacklistQueries";
-import { useRemoveFromBlacklist } from "@/hooks/api/useBlacklistMutations";
+import { useRemoveFromBlacklistAction } from "@/hooks/actions/useBlacklistActions";
 import { BlacklistDTO } from "@/types/domains/blacklist";
 import { formatDate } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ export const BlacklistManager: React.FC<BlacklistManagerProps> = ({ className })
 
   // 쿼리 및 뮤테이션 hooks
   const { data: blacklistResponse, isLoading, error } = useBlacklist(page, size);
-  const removeMutation = useRemoveFromBlacklist();
+  const { removeFromBlacklist, isPending: isRemoving } = useRemoveFromBlacklistAction();
 
   // 블랙리스트 데이터
   const blacklistData = blacklistResponse?.data;
@@ -32,7 +32,7 @@ export const BlacklistManager: React.FC<BlacklistManagerProps> = ({ className })
       return;
     }
 
-    removeMutation.mutate({ id, page, size });
+    removeFromBlacklist(id);
   };
 
   // 로딩 상태
@@ -95,7 +95,7 @@ export const BlacklistManager: React.FC<BlacklistManagerProps> = ({ className })
                     variant="ghost"
                     size="sm"
                     onClick={() => handleRemoveUser(item.id!, item.memberName)}
-                    disabled={removeMutation.isPending}
+                    disabled={isRemoving}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="w-4 h-4 mr-1" />

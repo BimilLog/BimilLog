@@ -12,18 +12,32 @@ import { SimplePost } from '@/types/domains/post';
 // ============ POST LIST HOOKS ============
 
 // 게시글 목록 조회 - TanStack Query 통합
-export function usePostList(pageSize = 30, initialData?: PageResponse<SimplePost> | null, initialPage = 0) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'WRITER'>('TITLE');
+export function usePostList(
+  pageSize = 30,
+  initialData?: PageResponse<SimplePost> | null,
+  initialPage = 0,
+  initialSearchTerm = '',
+  initialSearchType: 'TITLE' | 'TITLE_CONTENT' | 'WRITER' = 'TITLE'
+) {
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'WRITER'>(initialSearchType);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  // 서버에서 전달받은 초기 페이지 저장 (마운트 시에만)
+  // 서버에서 전달받은 초기 값 저장 (마운트 시에만)
   const [serverInitialPage] = useState(initialPage);
+  const [serverInitialSearch] = useState(initialSearchTerm);
 
   // X 버튼 클릭 시 즉시 목록으로 복귀하기 위해 실제 searchTerm도 체크
   const actualSearch = searchTerm.trim();
 
   const pagination = usePagination({ pageSize, initialPage });
+
+  // SSR 초기 데이터 사용 조건:
+  // 1. 현재 페이지가 서버에서 fetch한 페이지와 같아야 함
+  // 2. 현재 검색어가 서버에서 fetch한 검색어와 같아야 함
+  const isInitialDataValid = initialData &&
+    pagination.currentPage === serverInitialPage &&
+    actualSearch === serverInitialSearch;
 
   // TanStack Query로 게시글 목록/검색 통합 처리: 검색어가 있으면 검색, 없으면 일반 목록 조회
   // actualSearch가 비어있으면 디바운스 무시하고 즉시 일반 목록 조회
@@ -42,8 +56,8 @@ export function usePostList(pageSize = 30, initialData?: PageResponse<SimplePost
       }
       return await postQuery.getAll(pagination.currentPage, pagination.pageSize);
     },
-    // SSR에서 전달받은 초기 데이터 사용 (서버에서 fetch한 페이지, 검색 아닐 때만)
-    initialData: initialData && pagination.currentPage === serverInitialPage && !actualSearch
+    // SSR에서 전달받은 초기 데이터 사용
+    initialData: isInitialDataValid
       ? { success: true, data: initialData }
       : undefined,
     staleTime: 5 * 60 * 1000, // 5분
@@ -57,19 +71,22 @@ export function usePostList(pageSize = 30, initialData?: PageResponse<SimplePost
     }
   }, [data?.data?.totalElements]);
 
-  // URL 페이지 변경 시 내부 상태 동기화 (SSR 지원)
+  // URL 변경 시 내부 상태 동기화 (SSR 지원)
+  // 검색어와 페이지 모두 URL에서 관리
   useEffect(() => {
-    if (pagination.currentPage !== initialPage && !actualSearch) {
+    // 페이지 동기화
+    if (pagination.currentPage !== initialPage) {
       pagination.goToPage(initialPage);
     }
-  }, [initialPage]);
-
-  // 검색어 변경 시 페이지를 0으로 리셋
-  useEffect(() => {
-    if (debouncedSearchTerm.trim()) {
-      pagination.setCurrentPage(0);
+    // 검색어 동기화 (URL에서 검색어가 변경된 경우)
+    if (searchTerm !== initialSearchTerm) {
+      setSearchTerm(initialSearchTerm);
     }
-  }, [debouncedSearchTerm]);
+    // 검색 타입 동기화
+    if (searchType !== initialSearchType) {
+      setSearchType(initialSearchType);
+    }
+  }, [initialPage, initialSearchTerm, initialSearchType]);
 
   // 즉시 검색 함수 (debounce 무시)
   const immediateSearch = useCallback(() => {

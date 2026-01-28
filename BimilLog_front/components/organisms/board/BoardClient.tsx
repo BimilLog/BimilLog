@@ -22,6 +22,9 @@ export interface BoardInitialData {
   noticePosts: PageResponse<SimplePost> | null;
   currentPage?: number;
   pageSize?: number;
+  isSearch?: boolean;
+  searchQuery?: string;
+  searchType?: 'TITLE' | 'TITLE_CONTENT' | 'WRITER';
 }
 
 interface BoardClientProps {
@@ -36,6 +39,8 @@ function BoardClient({ initialData }: BoardClientProps) {
 
   // URL에서 현재 페이지 가져오기 (1-based → 0-based 변환)
   const urlPage = searchParams.get('page');
+  const urlQuery = searchParams.get('q');
+  const urlType = searchParams.get('type') as 'TITLE' | 'TITLE_CONTENT' | 'WRITER' | null;
   const initialPage = urlPage ? parseInt(urlPage) - 1 : (initialData?.currentPage ?? 0);
 
   // 게시판 데이터 관리
@@ -49,8 +54,13 @@ function BoardClient({ initialData }: BoardClientProps) {
     setSearchTerm,
     searchType,
     setSearchType,
-    search: handleSearch,
-  } = usePostList(Number(postsPerPage), initialData?.posts, initialPage);
+  } = usePostList(
+    Number(postsPerPage),
+    initialData?.posts,
+    initialPage,
+    initialData?.searchQuery || urlQuery || '',
+    initialData?.searchType || urlType || 'TITLE'
+  );
 
   // 인기글 데이터 관리 - 각 탭 데이터 개별 제공
   const {
@@ -82,28 +92,43 @@ function BoardClient({ initialData }: BoardClientProps) {
   }, [setPopularTab]);
 
   // URL 기반 페이지 변경 핸들러 (SSR 지원)
-  // 검색 중일 때는 클라이언트 사이드 페이지네이션 사용
   const handlePageChange = useCallback((newPage: number) => {
-    // 검색 중이면 클라이언트 사이드 페이지네이션
-    if (searchTerm.trim()) {
-      pagination.setCurrentPage(newPage);
-      return;
-    }
+    const params = new URLSearchParams();
 
-    const params = new URLSearchParams(searchParams.toString());
+    // 검색 중이면 검색 파라미터 유지
+    if (searchTerm.trim()) {
+      params.set('q', searchTerm.trim());
+      if (searchType !== 'TITLE') {
+        params.set('type', searchType);
+      }
+    }
 
     // 0-based → 1-based 변환 (URL은 1-based)
     const displayPage = newPage + 1;
 
-    if (displayPage === 1) {
-      params.delete('page'); // 첫 페이지는 page 파라미터 제거
-    } else {
+    if (displayPage > 1) {
       params.set('page', String(displayPage));
     }
 
     const queryString = params.toString();
     router.push(`/board${queryString ? `?${queryString}` : ''}`, { scroll: false });
-  }, [router, searchParams, searchTerm, pagination]);
+  }, [router, searchTerm, searchType]);
+
+  // URL 기반 검색 핸들러 (SSR 지원)
+  const handleSearch = useCallback(() => {
+    const params = new URLSearchParams();
+
+    if (searchTerm.trim()) {
+      params.set('q', searchTerm.trim());
+      if (searchType !== 'TITLE') {
+        params.set('type', searchType);
+      }
+    }
+    // 검색 시 페이지는 1로 리셋 (page 파라미터 제거)
+
+    const queryString = params.toString();
+    router.push(`/board${queryString ? `?${queryString}` : ''}`, { scroll: true });
+  }, [router, searchTerm, searchType]);
 
   // 탭 변경 시 메인 데이터 조회 - '전체' 탭일 때만 일반 게시글 API 호출
   // 인기글 탭들은 usePopularPostsTabs 훅에서 별도로 관리됨
