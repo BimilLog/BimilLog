@@ -9,13 +9,19 @@ import { logger, isMobileOrTablet, isKakaoInAppBrowser } from '@/lib/utils';
 import { LazyKakaoFriendsModal } from "@/lib/utils/lazy-components";
 import { NotificationPermissionModal } from "@/components/organisms/notification";
 import { registerFcmTokenAction } from "@/lib/actions/notification";
+import type { PageResponse } from "@/types/common";
+import type { PopularPaperInfo } from "@/types/domains/paper";
 
 // 분리된 컴포넌트들 import - 직접 파일에서 import하여 circular dependency 방지
 import { HomeHero } from "./HomeHero";
 import { HomeFeatures } from "./HomeFeatures";
 import { PopularPapersSection } from "./PopularPapersSection";
 
-export default function HomeClient() {
+interface HomeClientProps {
+  popularPapers: PageResponse<PopularPaperInfo> | null;
+}
+
+export default function HomeClient({ popularPapers }: HomeClientProps) {
   const { isAuthenticated, user } = useAuth();
   const provider = useAuthStore((state) => state.provider);
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
@@ -116,13 +122,13 @@ export default function HomeClient() {
 
           {/* Popular Papers Section - Hidden on mobile */}
           <div className="hidden lg:block">
-            <PopularPapersSection />
+            <PopularPapersSection initialData={popularPapers} />
           </div>
         </div>
 
         {/* Popular Papers Section - Visible on mobile only */}
         <div className="lg:hidden mt-8">
-          <PopularPapersSection />
+          <PopularPapersSection initialData={popularPapers} />
         </div>
       </div>
 
