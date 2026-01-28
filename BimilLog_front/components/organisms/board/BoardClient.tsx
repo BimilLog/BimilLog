@@ -12,7 +12,20 @@ import { usePostList, usePopularPostsTabs, useNoticePosts } from "@/hooks/featur
 import { BoardHeader } from "@/components/organisms/board/BoardHeader";
 import { BoardTabs } from "@/components/organisms/board/BoardTabs";
 
-function BoardClient() {
+import { PageResponse } from "@/types/common";
+import { SimplePost } from "@/types/domains/post";
+
+export interface BoardInitialData {
+  posts: PageResponse<SimplePost> | null;
+  realtimePosts: PageResponse<SimplePost> | null;
+  noticePosts: PageResponse<SimplePost> | null;
+}
+
+interface BoardClientProps {
+  initialData?: BoardInitialData;
+}
+
+function BoardClient({ initialData }: BoardClientProps) {
   const [activeTab, setActiveTab] = useState("all");
   const [postsPerPage, setPostsPerPage] = useState("30");
 
@@ -28,7 +41,7 @@ function BoardClient() {
     searchType,
     setSearchType,
     search: handleSearch,
-  } = usePostList(Number(postsPerPage));
+  } = usePostList(Number(postsPerPage), initialData?.posts);
 
   // 인기글 데이터 관리 - 각 탭 데이터 개별 제공
   const {
@@ -39,10 +52,10 @@ function BoardClient() {
     legendPagination,
     isLoading: popularLoading,
     error: popularError,
-  } = usePopularPostsTabs();
+  } = usePopularPostsTabs(initialData?.realtimePosts);
 
   // 공지사항 데이터 관리 - '전체' 탭에서만 조회
-  const { noticePosts } = useNoticePosts(activeTab === "all");
+  const { noticePosts } = useNoticePosts(activeTab === "all", initialData?.noticePosts);
 
   const { currentPage, setPageSize, setCurrentPage } = pagination;
 

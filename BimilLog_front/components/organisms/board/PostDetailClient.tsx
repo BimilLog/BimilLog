@@ -28,7 +28,9 @@ import { useReadingProgress } from "@/hooks/features/useReadingProgress";
 import { useAuth, useToast } from "@/hooks";
 
 // TanStack Query mutation hooks
-import { useLikePost, useDeletePost } from "@/hooks/api/usePostMutations";
+import { useDeletePost } from "@/hooks/api/usePostMutations";
+// Server Action hooks
+import { useLikePostAction } from "@/hooks/actions/usePostActions";
 import {
   useCreateComment,
   useUpdateComment,
@@ -76,8 +78,8 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     setModalPassword,
   } = usePostDetail(postId, initialPost);
 
-  // TanStack Query mutation hooks
-  const { mutate: likePost } = useLikePost();
+  // Server Action hooks (브라우저에서 백엔드 직접 호출 방지)
+  const { likePost, isPending: isLikingPost } = useLikePostAction();
   const { mutate: deletePost, isPending: isDeletingPost } = useDeletePost();
   const { mutate: createComment, isPending: isCreatingComment } = useCreateComment();
   const { mutate: updateComment, isPending: isUpdatingComment } = useUpdateComment();
