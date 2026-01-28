@@ -12,15 +12,18 @@ import { SimplePost } from '@/types/domains/post';
 // ============ POST LIST HOOKS ============
 
 // 게시글 목록 조회 - TanStack Query 통합
-export function usePostList(pageSize = 30, initialData?: PageResponse<SimplePost> | null) {
+export function usePostList(pageSize = 30, initialData?: PageResponse<SimplePost> | null, initialPage = 0) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'WRITER'>('TITLE');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
+  // 서버에서 전달받은 초기 페이지 저장 (마운트 시에만)
+  const [serverInitialPage] = useState(initialPage);
+
   // X 버튼 클릭 시 즉시 목록으로 복귀하기 위해 실제 searchTerm도 체크
   const actualSearch = searchTerm.trim();
 
-  const pagination = usePagination({ pageSize });
+  const pagination = usePagination({ pageSize, initialPage });
 
   // TanStack Query로 게시글 목록/검색 통합 처리: 검색어가 있으면 검색, 없으면 일반 목록 조회
   // actualSearch가 비어있으면 디바운스 무시하고 즉시 일반 목록 조회
@@ -39,8 +42,8 @@ export function usePostList(pageSize = 30, initialData?: PageResponse<SimplePost
       }
       return await postQuery.getAll(pagination.currentPage, pagination.pageSize);
     },
-    // SSR에서 전달받은 초기 데이터 사용 (첫 페이지, 검색 아닐 때만)
-    initialData: initialData && pagination.currentPage === 0 && !actualSearch
+    // SSR에서 전달받은 초기 데이터 사용 (서버에서 fetch한 페이지, 검색 아닐 때만)
+    initialData: initialData && pagination.currentPage === serverInitialPage && !actualSearch
       ? { success: true, data: initialData }
       : undefined,
     staleTime: 5 * 60 * 1000, // 5분
@@ -53,6 +56,13 @@ export function usePostList(pageSize = 30, initialData?: PageResponse<SimplePost
       pagination.setTotalItems(data.data.totalElements);
     }
   }, [data?.data?.totalElements]);
+
+  // URL 페이지 변경 시 내부 상태 동기화 (SSR 지원)
+  useEffect(() => {
+    if (pagination.currentPage !== initialPage && !actualSearch) {
+      pagination.goToPage(initialPage);
+    }
+  }, [initialPage]);
 
   // 검색어 변경 시 페이지를 0으로 리셋
   useEffect(() => {

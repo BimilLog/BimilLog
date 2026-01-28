@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, memo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { BoardSearch } from "@/components/organisms/board";
 import { Breadcrumb } from "@/components";
@@ -19,6 +20,8 @@ export interface BoardInitialData {
   posts: PageResponse<SimplePost> | null;
   realtimePosts: PageResponse<SimplePost> | null;
   noticePosts: PageResponse<SimplePost> | null;
+  currentPage?: number;
+  pageSize?: number;
 }
 
 interface BoardClientProps {
@@ -26,8 +29,14 @@ interface BoardClientProps {
 }
 
 function BoardClient({ initialData }: BoardClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("all");
   const [postsPerPage, setPostsPerPage] = useState("30");
+
+  // URL에서 현재 페이지 가져오기 (1-based → 0-based 변환)
+  const urlPage = searchParams.get('page');
+  const initialPage = urlPage ? parseInt(urlPage) - 1 : (initialData?.currentPage ?? 0);
 
   // 게시판 데이터 관리
   const {
@@ -41,7 +50,7 @@ function BoardClient({ initialData }: BoardClientProps) {
     searchType,
     setSearchType,
     search: handleSearch,
-  } = usePostList(Number(postsPerPage), initialData?.posts);
+  } = usePostList(Number(postsPerPage), initialData?.posts, initialPage);
 
   // 인기글 데이터 관리 - 각 탭 데이터 개별 제공
   const {
@@ -71,6 +80,30 @@ function BoardClient({ initialData }: BoardClientProps) {
       setPopularTab('legend');
     }
   }, [setPopularTab]);
+
+  // URL 기반 페이지 변경 핸들러 (SSR 지원)
+  // 검색 중일 때는 클라이언트 사이드 페이지네이션 사용
+  const handlePageChange = useCallback((newPage: number) => {
+    // 검색 중이면 클라이언트 사이드 페이지네이션
+    if (searchTerm.trim()) {
+      pagination.setCurrentPage(newPage);
+      return;
+    }
+
+    const params = new URLSearchParams(searchParams.toString());
+
+    // 0-based → 1-based 변환 (URL은 1-based)
+    const displayPage = newPage + 1;
+
+    if (displayPage === 1) {
+      params.delete('page'); // 첫 페이지는 page 파라미터 제거
+    } else {
+      params.set('page', String(displayPage));
+    }
+
+    const queryString = params.toString();
+    router.push(`/board${queryString ? `?${queryString}` : ''}`, { scroll: false });
+  }, [router, searchParams, searchTerm, pagination]);
 
   // 탭 변경 시 메인 데이터 조회 - '전체' 탭일 때만 일반 게시글 API 호출
   // 인기글 탭들은 usePopularPostsTabs 훅에서 별도로 관리됨
@@ -125,7 +158,7 @@ function BoardClient({ initialData }: BoardClientProps) {
           searchTerm={searchTerm}
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
-          onPageChange={pagination.setCurrentPage}
+          onPageChange={handlePageChange}
           realtimePosts={realtimePosts}
           weeklyPosts={weeklyPosts}
           legendPosts={legendPosts}

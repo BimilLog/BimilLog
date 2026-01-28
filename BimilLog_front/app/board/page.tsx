@@ -157,10 +157,11 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function BoardPage({ searchParams }: Props) {
   const params = await searchParams;
   const query = params.q;
+  const searchType = (params.type as 'TITLE' | 'TITLE_CONTENT' | 'WRITER') || 'TITLE';
+  const page = params.page ? parseInt(params.page) - 1 : 0; // URL은 1-based, API는 0-based
 
   // SSR: 서버에서 초기 데이터 fetch (내부 통신)
-  // 검색 쿼리가 없을 때만 초기 데이터 로드
-  const initialData = !query ? await getBoardInitialData() : undefined;
+  const initialData = !query ? await getBoardInitialData(page, 30) : undefined;
 
   // 검색 결과 페이지인 경우 구조화된 데이터 추가
   const searchJsonLd = query
