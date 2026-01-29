@@ -1,11 +1,8 @@
 import { apiClient } from '../client'
-import { Comment } from '@/types/domains/comment'
-import { ApiResponse, PageResponse } from '@/types/common'
+import { CommentDTO } from '@/types/domains/comment'
+import { ApiResponse } from '@/types/common'
 
 export const commentQuery = {
-  getByPostId: (postId: number, page = 0): Promise<ApiResponse<PageResponse<Comment>>> => 
+  getByPostId: (postId: number, page = 0): Promise<ApiResponse<CommentDTO>> =>
     apiClient.get(`/api/comment/${postId}?page=${page}`),
-  
-  getPopular: (postId: number): Promise<ApiResponse<Comment[]>> => 
-    apiClient.get(`/api/comment/${postId}/popular`),
 }

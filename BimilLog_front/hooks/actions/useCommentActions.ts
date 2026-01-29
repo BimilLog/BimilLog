@@ -25,7 +25,7 @@ export function useLikeCommentAction(postId: number) {
 
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(postId) })
-        queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(postId) })
+
         showToast({ type: 'success', message: result.message || '추천 처리가 완료되었습니다.' })
       } else {
         showToast({ type: 'error', message: result.error || '추천 처리 중 오류가 발생했습니다.' })
@@ -53,7 +53,7 @@ export function useCreateCommentAction() {
 
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(data.postId) })
-        queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(data.postId) })
+
         queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(data.postId) })
         showToast({ type: 'success', message: result.message || '댓글이 작성되었습니다.' })
         callbacks?.onSuccess?.()
@@ -84,7 +84,7 @@ export function useUpdateCommentAction() {
 
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(data.postId) })
-        queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(data.postId) })
+
         queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(data.postId) })
         showToast({ type: 'success', message: result.message || '댓글이 수정되었습니다.' })
         callbacks?.onSuccess?.()
@@ -115,7 +115,7 @@ export function useDeleteCommentAction() {
 
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(data.postId) })
-        queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(data.postId) })
+
         queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(data.postId) })
         showToast({ type: 'success', message: result.message || '댓글이 삭제되었습니다.' })
         callbacks?.onSuccess?.()

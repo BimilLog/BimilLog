@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { postQuery } from '@/lib/api';
 import { queryKeys } from '@/lib/tanstack-query/keys';
 import { useAuth, useToast, usePasswordModal } from '@/hooks';
-import { usePopularComments, useCommentsQuery, type CommentWithReplies } from '@/hooks/api/useCommentQueries';
+import { useCommentsQuery, type CommentWithReplies } from '@/hooks/api/useCommentQueries';
 import type { Post } from '@/types/domains/post';
 import type { Comment } from '@/types/domains/comment';
 
@@ -43,13 +43,10 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
   const { data: postData, isLoading, error } = usePostDetailQuery(postId, initialPost);
   const post = postData?.data || null;
 
-  // TanStack Query - 인기 댓글 조회
-  const { data: popularCommentsData } = usePopularComments(postId);
-  const popularComments = popularCommentsData?.data || [];
-
-  // TanStack Query - 댓글 목록 조회 (무한 스크롤)
+  // TanStack Query - 댓글 목록 조회 (BFF 통합: 인기댓글 + 일반댓글)
   const {
     comments,
+    popularComments,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,

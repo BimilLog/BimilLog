@@ -3,7 +3,10 @@ import { mutationKeys, queryKeys } from '@/lib/tanstack-query/keys';
 import { commentCommand } from '@/lib/api';
 import { useToast } from '@/hooks';
 import { ErrorHandler } from '@/lib/api/helpers';
-import type { Comment, ApiResponse } from '@/types';
+import type { Comment } from '@/types';
+import type { CommentDTO } from '@/types/domains/comment';
+import type { ApiResponse } from '@/types/common';
+import type { InfiniteData } from '@tanstack/react-query';
 
 /**
  * Comment 관련 Mutation hooks
@@ -66,7 +69,7 @@ export const useCreateComment = () => {
 
       // 댓글 목록 캐시 무효화
       queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(variables.postId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(variables.postId) });
+
 
       // 게시글 상세 정보도 갱신 (댓글 수 반영)
       queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(variables.postId) });
@@ -96,7 +99,7 @@ export const useUpdateComment = () => {
       if (response.success) {
         // 특정 게시글의 댓글 캐시만 무효화
         queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(variables.postId) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(variables.postId) });
+  
         queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(variables.postId) });
 
         showToast({ type: 'success', message: '댓글이 수정되었습니다.' });
@@ -127,56 +130,63 @@ export const useDeleteComment = () => {
     onMutate: async ({ commentId, postId }) => {
       // 진행 중인 refetch 취소 - 경합 상태(race condition) 방지
       await queryClient.cancelQueries({ queryKey: queryKeys.comment.list(postId) });
-      await queryClient.cancelQueries({ queryKey: queryKeys.comment.popular(postId) });
 
       // 이전 값 스냅샷 - 에러 시 롤백용
       const previousComments = queryClient.getQueryData(queryKeys.comment.list(postId));
-      const previousPopularComments = queryClient.getQueryData(queryKeys.comment.popular(postId));
 
       // 낙관적 업데이트: 서버 응답 전에 UI에서 댓글 제거 또는 소프트 삭제 표시
-      queryClient.setQueryData(queryKeys.comment.list(postId), (old: ApiResponse<Comment[]>) => {
-        if (!old?.success || !old?.data) return old;
-
-        const removeComment = (comments: Comment[]): Comment[] => {
-          return comments.map(comment => {
-            if (comment.id === commentId) {
-              // 답글이 있는 경우 소프트 삭제 표시, 없으면 제거
-              if (comment.replies && comment.replies.length > 0) {
-                return { ...comment, deleted: true, content: '삭제된 댓글입니다' };
-              }
-              return null; // 제거 대상
-            }
-            // 재귀적으로 답글도 처리
+      const removeComment = (comments: Comment[]): Comment[] => {
+        return comments.map(comment => {
+          if (comment.id === commentId) {
+            // 답글이 있는 경우 소프트 삭제 표시, 없으면 제거
             if (comment.replies && comment.replies.length > 0) {
-              return { ...comment, replies: removeComment(comment.replies).filter(Boolean) as Comment[] };
+              return { ...comment, deleted: true, content: '삭제된 댓글입니다' };
             }
-            return comment;
-          }).filter(Boolean) as Comment[];
-        };
+            return null; // 제거 대상
+          }
+          // 재귀적으로 답글도 처리
+          if (comment.replies && comment.replies.length > 0) {
+            return { ...comment, replies: removeComment(comment.replies).filter(Boolean) as Comment[] };
+          }
+          return comment;
+        }).filter(Boolean) as Comment[];
+      };
 
-        return {
-          ...old,
-          data: removeComment(old.data),
-        };
-      });
+      queryClient.setQueryData(
+        queryKeys.comment.list(postId),
+        (old: InfiniteData<ApiResponse<CommentDTO>> | undefined) => {
+          if (!old) return old;
 
-      // 인기 댓글도 낙관적 업데이트
-      queryClient.setQueryData(queryKeys.comment.popular(postId), (old: ApiResponse<Comment[]>) => {
-        if (!old?.success || !old?.data) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => {
+              if (!page.success || !page.data) return page;
 
-        return {
-          ...old,
-          data: old.data.filter(comment => comment.id !== commentId),
-        };
-      });
+              return {
+                ...page,
+                data: {
+                  ...page.data,
+                  popularCommentList: page.data.popularCommentList.filter(
+                    (c) => c.id !== commentId
+                  ),
+                  commentInfoPage: {
+                    ...page.data.commentInfoPage,
+                    content: removeComment(page.data.commentInfoPage.content),
+                  },
+                },
+              };
+            }),
+          };
+        }
+      );
 
-      return { previousComments, previousPopularComments };
+      return { previousComments };
     },
     onSuccess: (response, variables, context) => {
       if (response.success) {
         // 특정 게시글의 댓글 캐시만 무효화 (서버 데이터와 동기화)
         queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(variables.postId) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(variables.postId) });
+  
         queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(variables.postId) });
 
         showToast({ type: 'success', message: '댓글이 삭제되었습니다.' });
@@ -187,10 +197,6 @@ export const useDeleteComment = () => {
       if (context?.previousComments) {
         queryClient.setQueryData(queryKeys.comment.list(variables.postId), context.previousComments);
       }
-      if (context?.previousPopularComments) {
-        queryClient.setQueryData(queryKeys.comment.popular(variables.postId), context.previousPopularComments);
-      }
-
       const appError = ErrorHandler.mapApiError(error);
       const message = friendlyMessage(appError.userMessage || appError.message, 'comment') || '댓글 삭제에 실패했습니다.';
       showToast({ type: 'error', message });
@@ -218,7 +224,6 @@ export const useLikeCommentOptimized = (postId: number) => {
 
       // 서버 응답 후 캐시 무효화하여 최신 데이터 가져오기
       queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(postId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(postId) });
 
       showToast({ type: 'success', message: '추천 처리가 완료되었습니다.' });
     },
