@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.entity.jpa;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -24,6 +25,14 @@ import java.time.Instant;
 @Getter
 @NoArgsConstructor
 @SuperBuilder
+@Table(
+    name = "featured_post", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_featured_post_type", columnNames = {"post_id", "type"})
+    },
+    indexes = {
+        @Index(name = "idx_featured_post_type_featured", columnList = "type, featured_at DESC")
+    }
+)
 public class FeaturedPost extends BaseEntity {
 
     @Id
@@ -32,7 +41,7 @@ public class FeaturedPost extends BaseEntity {
     private Long id;
 
     @NotNull
-    @Column(name = "post_id")
+    @Column(name = "post_id", nullable = false)
     private Long postId;
 
     @Nullable
@@ -64,47 +73,15 @@ public class FeaturedPost extends BaseEntity {
     @Column(name = "featured_at", nullable = false, columnDefinition = "TIMESTAMP(6)")
     private Instant featuredAt;
 
-    /**
-     * <h3>주간 인기글 특집 생성</h3>
-     * <p>주간 인기글로 선정된 게시글에 대한 FeaturedPost를 생성합니다.</p>
-     *
-     * @param post 특집으로 선정된 게시글
-     * @return 생성된 FeaturedPost 엔티티
-     */
-    public static FeaturedPost createWeekly(Post post) {
+    public static FeaturedPost createFeaturedPost(PostSimpleDetail detail, PostCacheFlag type) {
         return FeaturedPost.builder()
-                .post(post)
-                .type(PostCacheFlag.WEEKLY)
-                .featuredAt(Instant.now())
-                .build();
-    }
-
-    /**
-     * <h3>레전드 특집 생성</h3>
-     * <p>명예의 전당에 등극한 게시글에 대한 FeaturedPost를 생성합니다.</p>
-     *
-     * @param post 특집으로 선정된 게시글
-     * @return 생성된 FeaturedPost 엔티티
-     */
-    public static FeaturedPost createLegend(Post post) {
-        return FeaturedPost.builder()
-                .post(post)
-                .type(PostCacheFlag.LEGEND)
-                .featuredAt(Instant.now())
-                .build();
-    }
-
-    /**
-     * <h3>공지사항 특집 생성</h3>
-     * <p>공지사항으로 지정된 게시글에 대한 FeaturedPost를 생성합니다.</p>
-     *
-     * @param post 공지사항으로 지정된 게시글
-     * @return 생성된 FeaturedPost 엔티티
-     */
-    public static FeaturedPost createNotice(Post post) {
-        return FeaturedPost.builder()
-                .post(post)
-                .type(PostCacheFlag.NOTICE)
+                .postId(detail.getId())
+                .author(detail.getMemberName())
+                .title(detail.getTitle())
+                .viewCount(detail.getViewCount() != null ? detail.getViewCount() : 0)
+                .likeCount(detail.getLikeCount() != null ? detail.getLikeCount() : 0)
+                .commentCount(detail.getCommentCount() != null ? detail.getCommentCount() : 0)
+                .type(type)
                 .featuredAt(Instant.now())
                 .build();
     }

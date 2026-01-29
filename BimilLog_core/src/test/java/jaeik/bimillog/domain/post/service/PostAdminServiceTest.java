@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.entity.jpa.FeaturedPost;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
@@ -56,7 +57,7 @@ class PostAdminServiceTest extends BaseUnitTest {
     private PostAdminService postAdminService;
 
     @Test
-    @DisplayName("게시글 공지 토글 - 일반 게시글을 공지로 설정 → NOTICE 캐시 단건 추가")
+    @DisplayName("게시글 공지 토글 - 일반 게시글을 공지로 설정 → featured_post 저장 + NOTICE 캐시 단건 추가")
     void shouldTogglePostNotice_WhenNormalPostToNotice() {
         // Given
         Long postId = 123L;
@@ -73,7 +74,6 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
         given(post.isNotice()).willReturn(false);
-        // addNoticeCacheEntry() 에서 호출
         given(postQueryRepository.findPostSimpleDetailById(postId)).willReturn(Optional.of(mockDetail));
 
         // When
@@ -83,6 +83,8 @@ class PostAdminServiceTest extends BaseUnitTest {
         verify(postRepository).findById(postId);
         verify(post).isNotice();
         verify(post).setAsNotice();
+        // PostSimpleDetail로 FeaturedPost 생성 후 저장
+        verify(featuredPostRepository).save(any(FeaturedPost.class));
         // NOTICE 캐시 단건 추가 (HSET)
         verify(redisSimplePostAdapter).putPostToCache(PostCacheFlag.NOTICE, mockDetail);
     }

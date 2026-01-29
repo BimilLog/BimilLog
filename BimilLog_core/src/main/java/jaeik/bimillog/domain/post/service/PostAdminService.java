@@ -56,24 +56,24 @@ public class PostAdminService {
         } else {
             // 공지 설정: DB 상태 변경 + featured_post 저장 + 캐시 단건 추가
             post.setAsNotice();
-            FeaturedPost featuredPost = FeaturedPost.createNotice(post);
-            featuredPostRepository.save(featuredPost);
-            addNoticeCacheEntry(postId);
+            Optional<PostSimpleDetail> detail = postQueryRepository.findPostSimpleDetailById(postId);
+            detail.ifPresent(d -> {
+                FeaturedPost featuredPost = FeaturedPost.createFeaturedPost(d, PostCacheFlag.NOTICE);
+                featuredPostRepository.save(featuredPost);
+                addNoticeCacheEntry(postId, d);
+            });
             log.info("공지 설정 완료: postId={}", postId);
         }
     }
 
     /**
      * <h3>NOTICE 캐시 단건 추가 (HSET)</h3>
-     * <p>DB에서 해당 게시글의 PostSimpleDetail을 조회하여 Hash field로 추가합니다.</p>
+     * <p>조회된 PostSimpleDetail을 Hash field로 추가합니다.</p>
      */
-    private void addNoticeCacheEntry(Long postId) {
+    private void addNoticeCacheEntry(Long postId, PostSimpleDetail detail) {
         try {
-            Optional<PostSimpleDetail> post = postQueryRepository.findPostSimpleDetailById(postId);
-            post.ifPresent(p -> {
-                redisSimplePostAdapter.putPostToCache(PostCacheFlag.NOTICE, p);
-                log.info("[NOTICE_CACHE] 단건 추가 완료: postId={}", postId);
-            });
+            redisSimplePostAdapter.putPostToCache(PostCacheFlag.NOTICE, detail);
+            log.info("[NOTICE_CACHE] 단건 추가 완료: postId={}", postId);
         } catch (Exception e) {
             log.warn("[NOTICE_CACHE] 단건 추가 실패 (다음 조회 시 DB 폴백): {}", e.getMessage());
         }
