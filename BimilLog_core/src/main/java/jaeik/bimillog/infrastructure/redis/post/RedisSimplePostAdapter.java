@@ -179,11 +179,8 @@ public class RedisSimplePostAdapter {
                 "1",
                 SCHEDULER_LOCK_TTL
         );
-        boolean result = Boolean.TRUE.equals(acquired);
-        if (result) {
-            log.debug("[SCHEDULER_LOCK_ACQUIRED] 스케줄러 분산 락 획득");
-        }
-        return result;
+
+        return Boolean.TRUE.equals(acquired);
     }
 
     /**
@@ -192,7 +189,6 @@ public class RedisSimplePostAdapter {
      */
     public void releaseSchedulerLock() {
         redisTemplate.delete(SCHEDULER_LOCK_KEY);
-        log.debug("[SCHEDULER_LOCK_RELEASED] 스케줄러 분산 락 해제");
     }
 
     /**
@@ -208,11 +204,7 @@ public class RedisSimplePostAdapter {
                 "1",
                 REALTIME_REFRESH_LOCK_TTL
         );
-        boolean result = Boolean.TRUE.equals(acquired);
-        if (result) {
-            log.debug("[REALTIME_REFRESH_LOCK_ACQUIRED] 조회 갱신 분산 락 획득");
-        }
-        return result;
+        return Boolean.TRUE.equals(acquired);
     }
 
     /**
@@ -220,7 +212,6 @@ public class RedisSimplePostAdapter {
      */
     public void releaseRealtimeRefreshLock() {
         redisTemplate.delete(REALTIME_REFRESH_LOCK_KEY);
-        log.debug("[REALTIME_REFRESH_LOCK_RELEASED] 조회 갱신 분산 락 해제");
     }
 
     /**

@@ -104,16 +104,6 @@ public class FeaturedPostScheduleExecutor {
     }
 
     /**
-     * <h3>DB 저장 최종 실패 복구</h3>
-     * <p>7회 재시도 후에도 실패 시 로그를 남기고 종료합니다.</p>
-     * <p>기존 featured_post 테이블 데이터가 유지되므로 이전 데이터로 서비스됩니다.</p>
-     */
-    @Recover
-    public void recoverSaveFeaturedPosts(Exception e, List<PostSimpleDetail> posts, PostCacheFlag type) {
-        log.error("[FEATURED_SCHEDULE] {} DB 저장 최종 실패 (7회 시도): {}", type, e.getMessage(), e);
-    }
-
-    /**
      * <h3>특집 게시글 DB 저장</h3>
      * <p>기존 해당 유형의 특집 게시글을 모두 삭제하고 새로운 목록을 저장합니다.</p>
      * <p>DB 저장 실패 시 지수 백오프(1s→3s→9s→27s→81s→243s)로 최대 7회 시도합니다.</p>
@@ -152,6 +142,16 @@ public class FeaturedPostScheduleExecutor {
 
         featuredPostRepository.saveAll(featuredPosts);
         log.info("{} 특집 게시글 DB 저장 완료: {}개", type, featuredPosts.size());
+    }
+
+    /**
+     * <h3>DB 저장 최종 실패 복구</h3>
+     * <p>7회 재시도 후에도 실패 시 로그를 남기고 종료합니다.</p>
+     * <p>기존 featured_post 테이블 데이터가 유지되므로 이전 데이터로 서비스됩니다.</p>
+     */
+    @Recover
+    public void recoverSaveFeaturedPosts(Exception e, List<PostSimpleDetail> posts, PostCacheFlag type) {
+        log.error("[FEATURED_SCHEDULE] {} DB 저장 최종 실패 (7회 시도): {}", type, e.getMessage(), e);
     }
 
     private void enrichPostsCommentCount(List<PostSimpleDetail> posts) {

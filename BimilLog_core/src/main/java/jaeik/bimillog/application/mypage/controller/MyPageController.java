@@ -36,7 +36,7 @@ public class MyPageController {
      * <h3>마이페이지 조회 API</h3>
      * <p>BFF방식의 API로 기존 4개의 API를 하나로 합쳤습니다.</p>
      */
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<MyPageDTO> getMyPageInfo(@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
         MemberActivityComment memberActivityComment = commentQueryService.getMemberActivityComments(userDetails.getMemberId(), pageable);
         MemberActivityPost memberActivityPost = postQueryService.getMemberActivityPosts(userDetails.getMemberId(), pageable);

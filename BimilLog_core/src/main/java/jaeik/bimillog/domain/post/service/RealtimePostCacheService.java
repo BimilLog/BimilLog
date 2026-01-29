@@ -73,12 +73,12 @@ public class RealtimePostCacheService {
 
             if (!cachedPosts.isEmpty()) {
                 CacheMetricsLogger.hit(log, "realtime", "simple", cachedPosts.size());
-                // HASH-ZSET ID 비교 → 불일치 시 비동기 갱신 트리거
                 compareAndTriggerRefreshIfNeeded(cachedPosts);
                 return paginate(cachedPosts, pageable);
             }
 
-            CacheMetricsLogger.miss(log, "realtime", "simple", "empty");            return new PageImpl<>(List.of(), pageable, 0);
+            CacheMetricsLogger.miss(log, "realtime", "simple", "empty");
+            return new PageImpl<>(List.of(), pageable, 0);
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] REALTIME Redis 장애: {}", e.getMessage());
             return dbFallbackGateway.execute(FallbackType.REALTIME, pageable,
@@ -143,8 +143,6 @@ public class RealtimePostCacheService {
             Set<Long> zsetPostIdSet = new HashSet<>(zsetPostIds);
 
             if (!hashPostIds.equals(zsetPostIdSet)) {
-                log.info("[CACHE_STALE] HASH({})↔ZSET({}) ID 불일치 - 비동기 갱신 트리거",
-                        hashPostIds.size(), zsetPostIdSet.size());
                 postCacheRefresh.asyncRefreshRealtimeWithLock();
             }
         } catch (Exception e) {
