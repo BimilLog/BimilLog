@@ -52,8 +52,7 @@ public class PostCacheRefresh {
 
     /**
      * <h3>실시간 인기글 캐시 동기 갱신</h3>
-     * <p>서킷 상태에 따라 Redis ZSet 또는 Caffeine에서 인기글 ID를 조회한 뒤
-     * DB에서 상세 정보를 가져와 캐시에 저장합니다.</p>
+     * <p>서킷 상태에 따라 Redis ZSet 또는 Caffeine에서 인기글 ID를 조회한 뒤 DB에서 상세 정보를 가져와 캐시에 저장합니다.</p>
      * <p>실패 시 최대 3회 재시도합니다 (2s → 4s 지수 백오프).</p>
      */
     @Retryable(
@@ -62,29 +61,32 @@ public class PostCacheRefresh {
             backoff = @Backoff(delay = 2000, multiplier = 2)
     )
     public void refreshRealtime() {
-        List<Long> postIds;
+        List<Long> postIds = getRealtimePostIds();
+        if (postIds.isEmpty()) return;
 
-        if (isRealtimeRedisCircuitOpen()) {
+        List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, postIds);
+        postCacheRefreshExecutor.cachePostsWithType(PostCacheFlag.REALTIME, posts);
+    }
+
+    /**
+     * <h3>실시간 인기글 ID 조회</h3>
+     * 서킷이 열리면 카페인 닫히면 레디스에서 5위까지의 인기글 ID를 조회한다.
+     * @return 5위까지 글 ID
+     */
+    private List<Long> getRealtimePostIds() {
+        List<Long> postIds;
+        CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(REALTIME_REDIS_CIRCUIT);
+        CircuitBreaker.State state = cb.getState();
+
+        if (state == CircuitBreaker.State.OPEN || state == CircuitBreaker.State.FORCED_OPEN) {
             log.info("[SCHEDULER] REALTIME 서킷 OPEN - Caffeine 폴백으로 갱신");
             postIds = realtimeScoreFallbackStore.getTopPostIds(0, REALTIME_FALLBACK_LIMIT);
         } else {
             postIds = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
         }
-
-        if (postIds.isEmpty()) {
-            log.debug("[SCHEDULER] REALTIME 갱신 스킵 - 인기글 ID 없음");
-            return;
-        }
-
-        List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, postIds);
-        postCacheRefreshExecutor.cachePostsWithType(PostCacheFlag.REALTIME, posts);
-        log.info("[SCHEDULER] REALTIME 캐시 갱신 완료: {}건", posts.size());
+        return postIds;
     }
 
-    @Recover
-    public void recoverRefreshRealtime(Exception e) {
-        log.error("[SCHEDULER] REALTIME 캐시 갱신 최종 실패 (3회 시도): {}", e.getMessage());
-    }
 
     /**
      * <h3>주간/레전드 캐시 동기 갱신</h3>
@@ -104,8 +106,13 @@ public class PostCacheRefresh {
     }
 
     @Recover
+    public void recoverRefreshRealtime(Exception e) {
+        log.error("REALTIME 캐시 갱신 최종 실패 (3회 시도): {}", e.getMessage());
+    }
+
+    @Recover
     public void recoverRefreshFeatured(Exception e, PostCacheFlag type) {
-        log.error("[SCHEDULER] {} 캐시 갱신 최종 실패 (3회 시도): {}", type, e.getMessage());
+        log.error("{} 캐시 갱신 최종 실패 (3회 시도): {}", type, e.getMessage());
     }
 
     /**
@@ -124,7 +131,6 @@ public class PostCacheRefresh {
             List<Long> postIds = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
 
             if (postIds.isEmpty()) {
-                log.debug("실시간 인기글 갱신 스킵 - 인기글 ID 없음");
                 return;
             }
 
@@ -166,14 +172,5 @@ public class PostCacheRefresh {
                 .toList();
     }
 
-    /**
-     * <h3>realtimeRedis 서킷 상태 확인</h3>
-     *
-     * @return Redis 서킷이 열려있으면 true
-     */
-    private boolean isRealtimeRedisCircuitOpen() {
-        CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(REALTIME_REDIS_CIRCUIT);
-        CircuitBreaker.State state = cb.getState();
-        return state == CircuitBreaker.State.OPEN || state == CircuitBreaker.State.FORCED_OPEN;
-    }
+
 }

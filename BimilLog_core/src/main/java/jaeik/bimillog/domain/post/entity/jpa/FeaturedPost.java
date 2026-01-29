@@ -25,8 +25,7 @@ import java.time.temporal.ChronoUnit;
 @NoArgsConstructor
 @SuperBuilder
 @Table(
-    name = "featured_post",
-    uniqueConstraints = {
+    name = "featured_post", uniqueConstraints = {
         @UniqueConstraint(name = "uk_featured_post_type", columnNames = {"post_id", "type"})
     },
     indexes = {

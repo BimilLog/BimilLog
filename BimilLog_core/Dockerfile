@@ -1,6 +1,6 @@
 # 로컬 테스트용 도커 파일
 # Stage 1: Build
-FROM gradle:8.5-jdk21 AS builder
+FROM amazoncorretto:21-alpine-jdk AS builder
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ COPY src ./src
 RUN gradle clean bootJar --no-daemon -x test
 
 # Stage 2: Runtime
-FROM eclipse-temurin:21-jre-alpine
+FROM amazoncorretto:21-alpine-jdk
 
 WORKDIR /app
 

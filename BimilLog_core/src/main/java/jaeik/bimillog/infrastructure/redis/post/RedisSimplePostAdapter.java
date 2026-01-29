@@ -101,6 +101,26 @@ public class RedisSimplePostAdapter {
         log.debug("[CACHE_DELETE] hashKey={}, field={}", hashKey, field);
     }
 
+    /**
+     * <h3>단일 게시글 Hash 캐시 추가 (HSET)</h3>
+     * <p>특정 타입의 Hash에 게시글 1건을 추가합니다.</p>
+     *
+     * @param type 캐시 유형
+     * @param post 저장할 게시글
+     */
+    public void putPostToCache(PostCacheFlag type, PostSimpleDetail post) {
+        if (post == null || post.getId() == null) {
+            return;
+        }
+
+        String hashKey = getSimplePostHashKey(type);
+        String field = post.getId().toString();
+
+        redisTemplate.opsForHash().put(hashKey, field, post);
+
+        log.debug("[CACHE_PUT] hashKey={}, field={}", hashKey, field);
+    }
+
     // ===================== TTL 지정 캐시 메서드 =====================
 
     /**
