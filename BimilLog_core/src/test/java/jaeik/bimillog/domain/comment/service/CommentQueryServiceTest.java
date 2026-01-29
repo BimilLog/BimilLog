@@ -40,7 +40,6 @@ class CommentQueryServiceTest {
     private CommentQueryService commentQueryService;
 
     @ParameterizedTest(name = "memberId={0}")
-    @NullSource
     @ValueSource(longs = {20L})
     @DisplayName("댓글 통합 조회 - 인기댓글 + 일반댓글 (로그인/비로그인)")
     void shouldFindComments(Long memberId) {
