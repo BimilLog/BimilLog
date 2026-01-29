@@ -7,8 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 /**
  * <h2>특집 게시글 엔티티</h2>
@@ -24,14 +24,6 @@ import java.time.temporal.ChronoUnit;
 @Getter
 @NoArgsConstructor
 @SuperBuilder
-@Table(
-    name = "featured_post", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_featured_post_type", columnNames = {"post_id", "type"})
-    },
-    indexes = {
-        @Index(name = "idx_featured_post_type_featured", columnList = "type, featured_at DESC")
-    }
-)
 public class FeaturedPost extends BaseEntity {
 
     @Id
@@ -40,9 +32,28 @@ public class FeaturedPost extends BaseEntity {
     private Long id;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    @Column(name = "post_id")
+    private Long postId;
+
+    @Nullable
+    @Column(name = "author_name") // 익명 글쓴이는 NULL
+    private String author;
+
+    @NotNull
+    @Column(nullable = false, length = 30) // 제목 30자 허용
+    private String title;
+
+    @NotNull
+    @Column(nullable = false)
+    private Integer viewCount;
+
+    @NotNull
+    @Column(nullable = false)
+    private Integer likeCount;
+
+    @NotNull
+    @Column(nullable = false)
+    private Integer commentCount;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -53,31 +64,24 @@ public class FeaturedPost extends BaseEntity {
     @Column(name = "featured_at", nullable = false, columnDefinition = "TIMESTAMP(6)")
     private Instant featuredAt;
 
-    @Column(name = "expired_at", columnDefinition = "TIMESTAMP(6)")
-    private Instant expiredAt;
-
     /**
      * <h3>주간 인기글 특집 생성</h3>
      * <p>주간 인기글로 선정된 게시글에 대한 FeaturedPost를 생성합니다.</p>
-     * <p>만료일은 7일 후로 설정됩니다.</p>
      *
      * @param post 특집으로 선정된 게시글
      * @return 생성된 FeaturedPost 엔티티
      */
     public static FeaturedPost createWeekly(Post post) {
-        Instant now = Instant.now();
         return FeaturedPost.builder()
                 .post(post)
                 .type(PostCacheFlag.WEEKLY)
-                .featuredAt(now)
-                .expiredAt(now.plus(7, ChronoUnit.DAYS))
+                .featuredAt(Instant.now())
                 .build();
     }
 
     /**
      * <h3>레전드 특집 생성</h3>
      * <p>명예의 전당에 등극한 게시글에 대한 FeaturedPost를 생성합니다.</p>
-     * <p>레전드는 만료일이 없습니다.</p>
      *
      * @param post 특집으로 선정된 게시글
      * @return 생성된 FeaturedPost 엔티티
@@ -87,14 +91,12 @@ public class FeaturedPost extends BaseEntity {
                 .post(post)
                 .type(PostCacheFlag.LEGEND)
                 .featuredAt(Instant.now())
-                .expiredAt(null)
                 .build();
     }
 
     /**
      * <h3>공지사항 특집 생성</h3>
      * <p>공지사항으로 지정된 게시글에 대한 FeaturedPost를 생성합니다.</p>
-     * <p>공지사항은 만료일이 없습니다.</p>
      *
      * @param post 공지사항으로 지정된 게시글
      * @return 생성된 FeaturedPost 엔티티
@@ -104,7 +106,6 @@ public class FeaturedPost extends BaseEntity {
                 .post(post)
                 .type(PostCacheFlag.NOTICE)
                 .featuredAt(Instant.now())
-                .expiredAt(null)
                 .build();
     }
 }
