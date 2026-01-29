@@ -105,7 +105,7 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(2);
 
         verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.REALTIME);
-        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock();
+        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock(any());
     }
 
     @Test
@@ -121,6 +121,7 @@ class RealtimePostCacheServiceTest {
         // ZSET에는 다른 ID 세트 반환
         given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
                 .willReturn(List.of(3L, 2L));
+        given(redisSimplePostAdapter.tryAcquireRealtimeRefreshLock()).willReturn(true);
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
@@ -129,7 +130,7 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
 
-        verify(postCacheRefresh).asyncRefreshRealtimeWithLock();
+        verify(postCacheRefresh).asyncRefreshRealtimeWithLock(List.of(3L, 2L));
     }
 
     @Test
@@ -149,7 +150,7 @@ class RealtimePostCacheServiceTest {
 
         // Then: HASH 데이터 그대로 반환, 비동기 갱신 미트리거
         assertThat(result.getContent()).hasSize(1);
-        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock();
+        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock(any());
     }
 
     @Test

@@ -122,7 +122,6 @@ public class RealtimePostCacheService {
     /**
      * <h3>HASH-ZSET ID 비교 후 불일치 시 비동기 갱신 트리거</h3>
      * <p>HASH에 저장된 글 ID와 ZSET 상위 글 ID를 비교합니다.</p>
-     * <p>불일치 시 {@link PostCacheRefresh#asyncRefreshRealtimeWithLock()}을 호출하여
      * 비동기로 락 획득 → HASH 갱신을 수행합니다.</p>
      * <p>ZSET 조회 실패 시 비교를 스킵합니다 (기존 HASH 데이터를 그대로 반환).</p>
      *
@@ -135,10 +134,16 @@ public class RealtimePostCacheService {
                     .collect(Collectors.toSet());
 
             List<Long> zsetPostIds = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
+            if (zsetPostIds.isEmpty()) {
+                return;
+            }
             Set<Long> zsetPostIdSet = new HashSet<>(zsetPostIds);
 
             if (!hashPostIds.equals(zsetPostIdSet)) {
-                postCacheRefresh.asyncRefreshRealtimeWithLock();
+                if (!redisSimplePostAdapter.tryAcquireRealtimeRefreshLock()) {
+                    return;
+                }
+                postCacheRefresh.asyncRefreshRealtimeWithLock(zsetPostIds);
             }
         } catch (Exception e) {
             log.debug("[COMPARE_SKIP] HASH-ZSET 비교 실패, 무시: {}", e.getMessage());

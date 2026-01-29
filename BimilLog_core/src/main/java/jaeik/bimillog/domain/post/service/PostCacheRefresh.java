@@ -119,19 +119,9 @@ public class PostCacheRefresh {
      * <p>락 획득 실패 시 다른 스레드가 이미 갱신 중이므로 스킵합니다.</p>
      */
     @Async("cacheRefreshExecutor")
-    public void asyncRefreshRealtimeWithLock() {
-        if (!redisSimplePostAdapter.tryAcquireRealtimeRefreshLock()) {
-            return;
-        }
-
+    public void asyncRefreshRealtimeWithLock(List<Long> zsetPostIds) {
         try {
-            List<Long> postIds = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
-
-            if (postIds.isEmpty()) {
-                return;
-            }
-
-            List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, postIds);
+            List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, zsetPostIds);
             postCacheRefreshExecutor.cachePostsWithType(PostCacheFlag.REALTIME, posts);
         } catch (Exception e) {
             log.warn("실시간 인기글 해시 갱신 실패: {}", e.getMessage());
