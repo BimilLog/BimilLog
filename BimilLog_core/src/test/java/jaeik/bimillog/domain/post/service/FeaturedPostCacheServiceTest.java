@@ -5,8 +5,6 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
-import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,12 +23,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -53,9 +49,6 @@ class FeaturedPostCacheServiceTest {
     @Mock
     private RedisSimplePostAdapter redisSimplePostAdapter;
 
-    @Mock
-    private DbFallbackGateway dbFallbackGateway;
-
     private FeaturedPostCacheService featuredPostCacheService;
 
     @BeforeEach
@@ -63,8 +56,7 @@ class FeaturedPostCacheServiceTest {
         featuredPostCacheService = new FeaturedPostCacheService(
                 postQueryRepository,
                 featuredPostRepository,
-                redisSimplePostAdapter,
-                dbFallbackGateway
+                redisSimplePostAdapter
         );
     }
 
@@ -151,8 +143,7 @@ class FeaturedPostCacheServiceTest {
     @ParameterizedTest(name = "{0} - Redis 장애 시 DB fallback")
     @MethodSource("provideRedisFallbackScenarios")
     @DisplayName("Redis 장애 시 DB fallback")
-    @SuppressWarnings("unchecked")
-    void shouldFallbackToDb_WhenRedisFails(PostCacheFlag cacheFlag, FallbackType fallbackType, String expectedTitle) {
+    void shouldFallbackToDb_WhenRedisFails(PostCacheFlag cacheFlag, String expectedTitle) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, expectedTitle);
@@ -160,14 +151,8 @@ class FeaturedPostCacheServiceTest {
         given(redisSimplePostAdapter.getAllCachedPostsList(cacheFlag))
                 .willThrow(new RuntimeException("Redis connection failed"));
 
-        given(dbFallbackGateway.execute(eq(fallbackType), any(Pageable.class), any(Supplier.class)))
-                .willAnswer(invocation -> {
-                    Supplier<Page<PostSimpleDetail>> supplier = invocation.getArgument(2);
-                    return supplier.get();
-                });
-
         given(featuredPostRepository.findPostIdsByType(cacheFlag)).willReturn(List.of(1L));
-        given(postQueryRepository.findPostSimpleDetailsByIds(eq(List.of(1L)), any(Pageable.class)))
+        given(postQueryRepository.findPostSimpleDetailsByIds(any(), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(post), pageable, 1));
 
         // When
@@ -181,14 +166,14 @@ class FeaturedPostCacheServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo(expectedTitle);
-        verify(dbFallbackGateway).execute(eq(fallbackType), any(Pageable.class), any(Supplier.class));
+        verify(featuredPostRepository).findPostIdsByType(cacheFlag);
     }
 
     static Stream<Arguments> provideRedisFallbackScenarios() {
         return Stream.of(
-                Arguments.of(PostCacheFlag.WEEKLY, FallbackType.WEEKLY, "주간 인기글"),
-                Arguments.of(PostCacheFlag.LEGEND, FallbackType.LEGEND, "레전드 게시글"),
-                Arguments.of(PostCacheFlag.NOTICE, FallbackType.NOTICE, "공지사항")
+                Arguments.of(PostCacheFlag.WEEKLY, "주간 인기글"),
+                Arguments.of(PostCacheFlag.LEGEND, "레전드 게시글"),
+                Arguments.of(PostCacheFlag.NOTICE, "공지사항")
         );
     }
 }

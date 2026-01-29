@@ -10,8 +10,6 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
-import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +41,6 @@ public class PostCacheRefresh {
     private final PostCacheRefreshExecutor postCacheRefreshExecutor;
     private final PostQueryRepository postQueryRepository;
     private final FeaturedPostRepository featuredPostRepository;
-    private final DbFallbackGateway dbFallbackGateway;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
 
@@ -162,11 +159,7 @@ public class PostCacheRefresh {
         }
 
         return postIds.stream()
-                .map(postId -> dbFallbackGateway.executeDetail(
-                        FallbackType.POPULAR_DETAIL,
-                        postId,
-                        () -> postQueryRepository.findPostDetail(postId, null)
-                ).orElse(null))
+                .map(postId -> postQueryRepository.findPostDetail(postId, null).orElse(null))
                 .filter(Objects::nonNull)
                 .map(PostDetail::toSimpleDetail)
                 .toList();

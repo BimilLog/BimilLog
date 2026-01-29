@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.comment.service;
 
+import jaeik.bimillog.application.comment.dto.CommentDTO;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * <h2>CommentQueryService 테스트</h2>
- * <p>사용자 정보 유무에 따라 다른 파라미터로 포트가 호출되는지 검증합니다.</p>
+ * <p>BFF 방식으로 인기 댓글과 일반 댓글을 통합 조회하는 로직을 검증합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CommentQueryService 테스트")
@@ -40,30 +41,9 @@ class CommentQueryServiceTest {
 
     @ParameterizedTest(name = "memberId={0}")
     @NullSource
-    @ValueSource(longs = {10L})
-    @DisplayName("인기 댓글 조회 - 로그인/비로그인")
-    void shouldHandlePopularComments(Long memberId) {
-        // Given
-        Long postId = 1L;
-        CustomUserDetails userDetails = memberId != null ? mock(CustomUserDetails.class) : null;
-        if (userDetails != null) {
-            given(userDetails.getMemberId()).willReturn(memberId);
-        }
-        given(commentQueryRepository.findPopularComments(postId, memberId)).willReturn(List.of());
-
-        // When
-        List<CommentInfo> result = commentQueryService.getPopularComments(postId, userDetails);
-
-        // Then
-        assertThat(result).isEmpty();
-        verify(commentQueryRepository).findPopularComments(postId, memberId);
-    }
-
-    @ParameterizedTest(name = "memberId={0}")
-    @NullSource
     @ValueSource(longs = {20L})
-    @DisplayName("댓글 목록 조회 - 로그인/비로그인")
-    void shouldHandleComments(Long memberId) {
+    @DisplayName("댓글 통합 조회 - 인기댓글 + 일반댓글 (로그인/비로그인)")
+    void shouldFindComments(Long memberId) {
         // Given
         Long postId = 3L;
         PageRequest pageable = PageRequest.of(0, 10);
@@ -71,14 +51,18 @@ class CommentQueryServiceTest {
         if (userDetails != null) {
             given(userDetails.getMemberId()).willReturn(memberId);
         }
-        Page<CommentInfo> expected = new PageImpl<>(List.of());
-        given(commentQueryRepository.findComments(postId, pageable, memberId)).willReturn(expected);
+        Page<CommentInfo> expectedComments = new PageImpl<>(List.of());
+        List<CommentInfo> expectedPopular = List.of();
+        given(commentQueryRepository.findComments(postId, pageable, memberId)).willReturn(expectedComments);
+        given(commentQueryRepository.findPopularComments(postId, memberId)).willReturn(expectedPopular);
 
         // When
-        Page<CommentInfo> result = commentQueryService.findComments(postId, pageable, userDetails);
+        CommentDTO result = commentQueryService.findComments(postId, pageable, userDetails);
 
         // Then
-        assertThat(result).isEqualTo(expected);
+        assertThat(result.getCommentInfoPage()).isEqualTo(expectedComments);
+        assertThat(result.getPopularCommentList()).isEqualTo(expectedPopular);
         verify(commentQueryRepository).findComments(postId, pageable, memberId);
+        verify(commentQueryRepository).findPopularComments(postId, memberId);
     }
 }

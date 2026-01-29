@@ -8,8 +8,6 @@ import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
-import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +28,7 @@ import java.util.stream.Collectors;
  * <p>Hash 캐시에서 직접 조회하며, 캐시 미스 시 빈 페이지를 즉시 반환합니다.</p>
  * <p>캐시 갱신은 {@link jaeik.bimillog.domain.post.scheduler.PostCacheRefreshScheduler}가 담당합니다.</p>
  * <p>realtimeRedis 서킷이 OPEN이면 Redis를 스킵하고 빈 페이지를 반환합니다.</p>
- * <p>예외 발생 시 DbFallbackGateway를 통해 DB 서킷 경로를 사용합니다.</p>
+ * <p>예외 발생 시 DB에서 직접 조회합니다.</p>
  *
  * @author Jaeik
  * @version 2.7.0
@@ -44,7 +42,6 @@ public class RealtimePostCacheService {
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final PostCacheRefresh postCacheRefresh;
-    private final DbFallbackGateway dbFallbackGateway;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
 
@@ -63,8 +60,7 @@ public class RealtimePostCacheService {
                 return getRealtimePostsFromFallback(pageable);
             } catch (Exception e) {
                 log.warn("[CAFFEINE_FALLBACK] Caffeine 폴백 실패: {}", e.getMessage());
-                return dbFallbackGateway.execute(FallbackType.REALTIME, pageable,
-                        () -> postQueryRepository.findRecentPopularPosts(pageable));
+                return postQueryRepository.findRecentPopularPosts(pageable);
             }
         }
 
@@ -81,8 +77,7 @@ public class RealtimePostCacheService {
             return new PageImpl<>(List.of(), pageable, 0);
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] REALTIME Redis 장애: {}", e.getMessage());
-            return dbFallbackGateway.execute(FallbackType.REALTIME, pageable,
-                    () -> postQueryRepository.findRecentPopularPosts(pageable));
+            return postQueryRepository.findRecentPopularPosts(pageable);
         }
     }
 

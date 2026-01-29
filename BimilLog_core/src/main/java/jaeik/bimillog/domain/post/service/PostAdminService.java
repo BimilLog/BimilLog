@@ -46,49 +46,24 @@ public class PostAdminService {
     public void togglePostNotice(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-
-        if (post.isNotice()) {
-            // 공지 해제: DB 상태 변경 + featured_post 삭제 + 캐시 단건 삭제
-            post.unsetAsNotice();
-            featuredPostRepository.deleteByPostIdAndType(postId, PostCacheFlag.NOTICE);
-            removeNoticeCacheEntry(postId);
-            log.info("공지 해제 완료: postId={}", postId);
-        } else {
-            // 공지 설정: DB 상태 변경 + featured_post 저장 + 캐시 단건 추가
-            post.setAsNotice();
-            Optional<PostSimpleDetail> detail = postQueryRepository.findPostSimpleDetailById(postId);
-            detail.ifPresent(d -> {
-                FeaturedPost featuredPost = FeaturedPost.createFeaturedPost(d, PostCacheFlag.NOTICE);
-                featuredPostRepository.save(featuredPost);
-                addNoticeCacheEntry(postId, d);
-            });
-            log.info("공지 설정 완료: postId={}", postId);
-        }
-    }
-
-    /**
-     * <h3>NOTICE 캐시 단건 추가 (HSET)</h3>
-     * <p>조회된 PostSimpleDetail을 Hash field로 추가합니다.</p>
-     */
-    private void addNoticeCacheEntry(Long postId, PostSimpleDetail detail) {
         try {
-            redisSimplePostAdapter.putPostToCache(PostCacheFlag.NOTICE, detail);
-            log.info("[NOTICE_CACHE] 단건 추가 완료: postId={}", postId);
+            if (post.isNotice()) {
+                // 공지 해제: DB 상태 변경 + featured_post 삭제 + 캐시 단건 삭제
+                post.unsetAsNotice();
+                featuredPostRepository.deleteByPostIdAndType(postId, PostCacheFlag.NOTICE);
+                redisSimplePostAdapter.removePostFromCache(PostCacheFlag.NOTICE, postId);
+            } else {
+                // 공지 설정: DB 상태 변경 + featured_post 저장 + 캐시 단건 추가
+                post.setAsNotice();
+                Optional<PostSimpleDetail> detail = postQueryRepository.findPostSimpleDetailById(postId);
+                detail.ifPresent(d -> {
+                    FeaturedPost featuredPost = FeaturedPost.createFeaturedPost(d, PostCacheFlag.NOTICE);
+                    featuredPostRepository.save(featuredPost);
+                    redisSimplePostAdapter.putPostToCache(PostCacheFlag.NOTICE, d);
+                });
+            }
         } catch (Exception e) {
-            log.warn("[NOTICE_CACHE] 단건 추가 실패 (다음 조회 시 DB 폴백): {}", e.getMessage());
-        }
-    }
-
-    /**
-     * <h3>NOTICE 캐시 단건 삭제 (HDEL)</h3>
-     * <p>Hash에서 해당 postId field만 삭제합니다.</p>
-     */
-    private void removeNoticeCacheEntry(Long postId) {
-        try {
-            redisSimplePostAdapter.removePostFromCache(PostCacheFlag.NOTICE, postId);
-            log.info("[NOTICE_CACHE] 단건 삭제 완료: postId={}", postId);
-        } catch (Exception e) {
-            log.warn("[NOTICE_CACHE] 단건 삭제 실패 (다음 조회 시 DB 폴백): {}", e.getMessage());
+            log.error("공지 설정 해제 중 오류 발생");
         }
     }
 }
