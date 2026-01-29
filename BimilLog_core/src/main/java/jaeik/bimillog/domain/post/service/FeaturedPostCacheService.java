@@ -8,8 +8,6 @@ import jaeik.bimillog.domain.post.scheduler.PostCacheRefreshScheduler;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
-import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -37,27 +35,26 @@ public class FeaturedPostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final FeaturedPostRepository featuredPostRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
-    private final DbFallbackGateway dbFallbackGateway;
 
     /**
      * 주간 인기글 목록 조회
      */
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
-        return getFeaturedCachedPosts(PostCacheFlag.WEEKLY, FallbackType.WEEKLY, pageable);
+        return getFeaturedCachedPosts(PostCacheFlag.WEEKLY, pageable);
     }
 
     /**
      * 전설 인기글 목록 조회
      */
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
-        return getFeaturedCachedPosts(PostCacheFlag.LEGEND, FallbackType.LEGEND, pageable);
+        return getFeaturedCachedPosts(PostCacheFlag.LEGEND, pageable);
     }
 
     /**
      * 공지사항 목록 조회
      */
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
-        return getFeaturedCachedPosts(PostCacheFlag.NOTICE, FallbackType.NOTICE, pageable);
+        return getFeaturedCachedPosts(PostCacheFlag.NOTICE, pageable);
     }
 
     /**
@@ -66,11 +63,10 @@ public class FeaturedPostCacheService {
      * <p>캐시 미스 시 빈 페이지를 반환합니다. (스케줄러가 갱신 예정)</p>
      *
      * @param type         캐시 유형 (WEEKLY, LEGEND, NOTICE)
-     * @param fallbackType 폴백 유형
      * @param pageable     페이징 정보
      * @return 페이징된 게시글 목록
      */
-    private Page<PostSimpleDetail> getFeaturedCachedPosts(PostCacheFlag type, FallbackType fallbackType, Pageable pageable) {
+    private Page<PostSimpleDetail> getFeaturedCachedPosts(PostCacheFlag type, Pageable pageable) {
         try {
             List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(type);
 
@@ -83,8 +79,7 @@ public class FeaturedPostCacheService {
             return paginate(cachedPosts, pageable);
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", type, e.getMessage());
-            return dbFallbackGateway.execute(fallbackType, pageable,
-                    () -> findFeaturedPostsByType(type, pageable));
+            return findFeaturedPostsByType(type, pageable);
         }
     }
 

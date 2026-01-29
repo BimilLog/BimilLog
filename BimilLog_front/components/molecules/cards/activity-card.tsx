@@ -118,7 +118,6 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
       queryClient.invalidateQueries({ queryKey: queryKeys.mypage.all });
       // 해당 게시글의 댓글 목록도 갱신
       queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(comment.postId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(comment.postId) });
       showToast({ type: 'success', message: '추천을 취소했습니다.' });
     },
     onError: (error) => {

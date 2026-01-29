@@ -44,7 +44,6 @@ export const queryKeys = {
   comment: {
     all: ['comment'] as const,
     list: (postId: number) => [...queryKeys.comment.all, 'list', postId] as const,
-    popular: (postId: number) => [...queryKeys.comment.all, 'popular', postId] as const,
   },
 
   // Paper (Rolling Paper)

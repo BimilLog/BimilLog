@@ -13,8 +13,6 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
-import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,7 +44,6 @@ public class PostQueryService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final PostSearchRepository postSearchRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final DbFallbackGateway dbFallbackGateway;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -76,12 +73,9 @@ public class PostQueryService {
      * @return PostDetail 게시글 상세 정보 (좋아요 수, 댓글 수, 사용자 좋아요 여부 포함)
      */
     public PostDetail getPost(Long postId, Long memberId) {
-        // 1. DB 조회 (Bulkhead + Circuit Breaker 적용)
-        PostDetail result = dbFallbackGateway.executeDetail(
-                FallbackType.NORMAL_DETAIL,
-                postId,
-                () -> postQueryRepository.findPostDetail(postId, null)
-        ).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        // 1. DB 조회
+        PostDetail result = postQueryRepository.findPostDetail(postId, null)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // 2. 비회원이면 바로 반환
         if (memberId == null) {

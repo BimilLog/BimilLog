@@ -7,8 +7,6 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
-import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,12 +22,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -56,9 +52,6 @@ class RealtimePostCacheServiceTest {
     @Mock
     private PostCacheRefresh postCacheRefresh;
 
-    @Mock
-    private DbFallbackGateway dbFallbackGateway;
-
     @Mock(strictness = Mock.Strictness.LENIENT)
     private CircuitBreakerRegistry circuitBreakerRegistry;
 
@@ -84,7 +77,6 @@ class RealtimePostCacheServiceTest {
                 redisSimplePostAdapter,
                 redisRealTimePostAdapter,
                 postCacheRefresh,
-                dbFallbackGateway,
                 circuitBreakerRegistry,
                 realtimeScoreFallbackStore
         );
@@ -178,7 +170,6 @@ class RealtimePostCacheServiceTest {
 
     @Test
     @DisplayName("실시간 인기글 조회 - Redis 장애 시 DB fallback")
-    @SuppressWarnings("unchecked")
     void shouldGetRealtimePosts_RedisFails_FallbackToDb() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
@@ -187,11 +178,6 @@ class RealtimePostCacheServiceTest {
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
                 .willThrow(new RuntimeException("Redis connection failed"));
 
-        given(dbFallbackGateway.execute(eq(FallbackType.REALTIME), any(Pageable.class), any(Supplier.class)))
-                .willAnswer(invocation -> {
-                    Supplier<Page<PostSimpleDetail>> supplier = invocation.getArgument(2);
-                    return supplier.get();
-                });
         given(postQueryRepository.findRecentPopularPosts(pageable))
                 .willReturn(new PageImpl<>(List.of(simpleDetail1)));
 
@@ -200,7 +186,7 @@ class RealtimePostCacheServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        verify(dbFallbackGateway).execute(eq(FallbackType.REALTIME), any(Pageable.class), any(Supplier.class));
+        verify(postQueryRepository).findRecentPopularPosts(pageable);
     }
 
     // ========== 서킷 OPEN 테스트 ==========
@@ -249,7 +235,6 @@ class RealtimePostCacheServiceTest {
 
     @Test
     @DisplayName("실시간 인기글 조회 - 서킷 OPEN + Caffeine 예외 → DB 폴백")
-    @SuppressWarnings("unchecked")
     void shouldGetRealtimePosts_CircuitOpen_CaffeineFails_FallbackToDb() {
         // Given: 서킷 OPEN + Caffeine 예외
         given(realtimeRedisCircuitBreaker.getState()).willReturn(CircuitBreaker.State.OPEN);
@@ -260,11 +245,6 @@ class RealtimePostCacheServiceTest {
         given(realtimeScoreFallbackStore.getTopPostIds(0, 5))
                 .willThrow(new RuntimeException("Caffeine 장애"));
 
-        given(dbFallbackGateway.execute(eq(FallbackType.REALTIME), any(Pageable.class), any(Supplier.class)))
-                .willAnswer(invocation -> {
-                    Supplier<Page<PostSimpleDetail>> supplier = invocation.getArgument(2);
-                    return supplier.get();
-                });
         given(postQueryRepository.findRecentPopularPosts(pageable))
                 .willReturn(new PageImpl<>(List.of(post1)));
 
@@ -277,6 +257,6 @@ class RealtimePostCacheServiceTest {
 
         verify(redisSimplePostAdapter, never()).getAllCachedPostsList(any());
         verify(realtimeScoreFallbackStore).getTopPostIds(0, 5);
-        verify(dbFallbackGateway).execute(eq(FallbackType.REALTIME), any(Pageable.class), any(Supplier.class));
+        verify(postQueryRepository).findRecentPopularPosts(pageable);
     }
 }

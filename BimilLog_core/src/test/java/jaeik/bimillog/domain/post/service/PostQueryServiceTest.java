@@ -7,8 +7,6 @@ import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
-import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,13 +26,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -72,9 +67,6 @@ class PostQueryServiceTest extends BaseUnitTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private DbFallbackGateway dbFallbackGateway;
-
     @InjectMocks
     private PostQueryService postQueryService;
 
@@ -107,7 +99,6 @@ class PostQueryServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("게시글 상세 조회 - DB 직접 조회 (회원)")
-    @SuppressWarnings("unchecked")
     void shouldGetPostDetail_WhenMember() {
         // Given
         Long postId = 1L;
@@ -130,13 +121,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(postQueryRepository.findPostDetail(postId, null))
                 .willReturn(Optional.of(mockPostDetail));
 
-        // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
-        given(dbFallbackGateway.executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class)))
-                .willAnswer(invocation -> {
-                    Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
-                    return supplier.get();
-                });
-
         // 회원이므로 isLiked 조회
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
 
@@ -147,13 +131,12 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isTrue();
 
-        verify(dbFallbackGateway).executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class));
+        verify(postQueryRepository).findPostDetail(postId, null);
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
     }
 
     @Test
     @DisplayName("게시글 상세 조회 - DB 직접 조회 (비회원)")
-    @SuppressWarnings("unchecked")
     void shouldGetPostDetail_WhenAnonymous() {
         // Given
         Long postId = 1L;
@@ -176,13 +159,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(postQueryRepository.findPostDetail(postId, null))
                 .willReturn(Optional.of(mockPostDetail));
 
-        // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
-        given(dbFallbackGateway.executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class)))
-                .willAnswer(invocation -> {
-                    Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
-                    return supplier.get();
-                });
-
         // When
         PostDetail result = postQueryService.getPost(postId, memberId);
 
@@ -190,13 +166,12 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isFalse();
 
-        verify(dbFallbackGateway).executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class));
+        verify(postQueryRepository).findPostDetail(postId, null);
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
     }
 
     @Test
     @DisplayName("게시글 상세 조회 - 존재하지 않는 게시글")
-    @SuppressWarnings("unchecked")
     void shouldThrowException_WhenPostNotFound() {
         // Given
         Long postId = 999L;
@@ -205,19 +180,12 @@ class PostQueryServiceTest extends BaseUnitTest {
         // DB에도 없음
         given(postQueryRepository.findPostDetail(postId, null)).willReturn(Optional.empty());
 
-        // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
-        given(dbFallbackGateway.executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class)))
-                .willAnswer(invocation -> {
-                    Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
-                    return supplier.get();
-                });
-
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPost(postId, memberId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(dbFallbackGateway).executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class));
+        verify(postQueryRepository).findPostDetail(postId, null);
     }
 
     @Test

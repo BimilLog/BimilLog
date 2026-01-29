@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
+import type { CommentDTO } from '@/types/domains/comment'
 
 const getServerApiUrl = () => {
   return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -36,6 +37,32 @@ async function getAuthHeaders() {
   }
 
   return headers
+}
+
+/**
+ * 댓글 목록 조회 Server Action (BFF 통합 응답)
+ */
+export async function fetchCommentsAction(postId: number, page = 0): Promise<CommentDTO | null> {
+  try {
+    const apiUrl = getServerApiUrl()
+    const headers = await getAuthHeaders()
+
+    const res = await fetch(`${apiUrl}/api/comment/${postId}?page=${page}`, {
+      method: 'GET',
+      headers,
+    })
+
+    if (!res.ok) {
+      console.error('[fetchCommentsAction] Error:', res.status)
+      return null
+    }
+
+    const data = await res.json()
+    return data.data ?? null
+  } catch (error) {
+    console.error('[fetchCommentsAction] Error:', error)
+    return null
+  }
 }
 
 export type ActionResult = {

@@ -127,7 +127,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 로컬 테스트를 위해 HTTPS 해제
     /**
      * <h3>CSRF 토큰 쿠키 저장소 설정</h3>
      * <p>

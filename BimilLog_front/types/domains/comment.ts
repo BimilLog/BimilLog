@@ -1,5 +1,13 @@
 // Comment-related type definitions
 
+import { PageResponse } from '@/types/common'
+
+// BFF 통합 응답 타입 - 인기댓글 + 일반댓글 통합
+export interface CommentDTO {
+  popularCommentList: Comment[]
+  commentInfoPage: PageResponse<Comment>
+}
+
 // 댓글 타입 - v2 백엔드 CommentDTO 호환
 export interface Comment {
   id: number

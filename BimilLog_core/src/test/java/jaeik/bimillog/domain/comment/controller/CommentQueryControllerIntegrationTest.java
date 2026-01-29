@@ -25,11 +25,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * <h2>댓글 Query 컨트롤러 통합 테스트</h2>
  * <p>@SpringBootTest를 사용한 실제 Comment Query API 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
- * <p>댓글 조회, 인기댓글 조회 API 동작을 검증</p>
+ * <p>BFF 방식으로 인기 댓글 + 일반 댓글을 통합 조회</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.7.0
  */
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
@@ -39,28 +38,26 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private PostRepository postRepository;
-    
+
     @Autowired
     private CommentRepository commentRepository;
-    
+
     private Post testPost;
-    
+
     @Override
     protected void setUpChild() {
-        // testUser는 BaseIntegrationTest에서 이미 생성됨
         testPost = PostTestDataBuilder.createPost(testMember, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(testPost);
-        
-        // 테스트용 댓글들 생성
+
         for (int i = 1; i <= 5; i++) {
             Comment comment = CommentTestDataBuilder.createComment(
                     testPost, testMember, "테스트 댓글 " + i);
             commentRepository.save(comment);
         }
     }
-    
+
     @Test
-    @DisplayName("댓글 조회 통합 테스트 - 댓글 있음/없음 모두 검증")
+    @DisplayName("댓글 통합 조회 - 인기댓글 + 일반댓글 (BFF)")
     void getComments_WithAndWithoutData_IntegrationTest() throws Exception {
         // When & Then - 케이스 1: 댓글 있음 (testPost, setUpChild()에서 5개 생성)
         mockMvc.perform(get("/api/comment/{postId}", testPost.getId())
@@ -68,11 +65,10 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content.length()").value(5))
-                .andExpect(jsonPath("$.totalElements").value(5))
-                .andExpect(jsonPath("$.first").value(true))
-                .andExpect(jsonPath("$.last").value(true));
+                .andExpect(jsonPath("$.popularCommentList").isArray())
+                .andExpect(jsonPath("$.commentInfoPage.content").isArray())
+                .andExpect(jsonPath("$.commentInfoPage.content.length()").value(5))
+                .andExpect(jsonPath("$.commentInfoPage.totalElements").value(5));
 
         // Given - 케이스 2: 댓글이 없는 게시글
         Post emptyPost = PostTestDataBuilder.createPost(testMember, "빈 게시글", "댓글이 없는 게시글입니다.");
@@ -84,25 +80,8 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isEmpty())
-                .andExpect(jsonPath("$.totalElements").value(0))
-                .andExpect(jsonPath("$.first").value(true))
-                .andExpect(jsonPath("$.last").value(true));
+                .andExpect(jsonPath("$.popularCommentList").isEmpty())
+                .andExpect(jsonPath("$.commentInfoPage.content").isEmpty())
+                .andExpect(jsonPath("$.commentInfoPage.totalElements").value(0));
     }
-    
-    
-    @Test
-    @DisplayName("인기댓글 조회 통합 테스트")
-    void getPopularComments_IntegrationTest() throws Exception {
-        // Given - testUserDetails는 BaseIntegrationTest에서 이미 생성됨
-
-        // When & Then
-        mockMvc.perform(get("/api/comment/{postId}/popular", testPost.getId())
-                .with(user(testUserDetails)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
-        // 추천 로직은 별도 CommentLike 엔티티로 관리되므로 실제 추천이 없으면 빈 배열 반환이 정상
-    }
-
 }

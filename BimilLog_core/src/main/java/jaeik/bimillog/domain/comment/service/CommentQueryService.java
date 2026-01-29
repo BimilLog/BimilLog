@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.controller.CommentQueryController;
+import jaeik.bimillog.application.comment.dto.CommentDTO;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
@@ -37,35 +37,21 @@ public class CommentQueryService {
     private final CommentRepository commentRepository;
 
     /**
-     * <h3>인기 댓글 조회</h3>
-     * <p>주어진 게시글의 인기 댓글 목록을 조회합니다.</p>
-     * <p>추천 수가 높은 댓글들을 우선순위로 정렬하여 반환합니다.</p>
-     * <p>{@link CommentQueryController}에서 인기 댓글 조회 API 처리 시 호출됩니다.</p>
-     *
-     * @param postId      게시글 ID
-     * @param userDetails 사용자 인증 정보
-     * @return List<CommentInfo> 인기 댓글 정보 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
-        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        return commentQueryRepository.findPopularComments(postId, memberId);
-    }
-
-    /**
      * <h3>댓글 조회</h3>
+     * <p>인기 댓글과 일반 댓글 함께 조회</p>
      *
      * @param postId      게시글 ID
      * @param pageable    페이지 정보
      * @param userDetails 사용자 인증 정보
      * @return Page<CommentInfo> 과거순 댓글 페이지
      * @author Jaeik
-     * @since 2.0.0
+     * @since 2.7.0
      */
-    public Page<CommentInfo> findComments(Long postId, Pageable pageable, CustomUserDetails userDetails) {
+    public CommentDTO findComments(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        return commentQueryRepository.findComments(postId, pageable, memberId);
+        Page<CommentInfo> comments = commentQueryRepository.findComments(postId, pageable, memberId);
+        List<CommentInfo> popularComments = commentQueryRepository.findPopularComments(postId, memberId);
+        return CommentDTO.from(popularComments, comments);
     }
 
     /**
