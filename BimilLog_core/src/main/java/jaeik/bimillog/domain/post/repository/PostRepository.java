@@ -54,5 +54,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
     @Query("UPDATE Post p SET p.views = p.views + 1 WHERE p.id = :postId")
     void incrementViewsByPostId(Long postId);
+
+    /**
+     * <h3>조회수 일괄 증가</h3>
+     * <p>지정된 양만큼 조회수를 증가시킵니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @param amount 증가량
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.views = p.views + :amount WHERE p.id = :postId")
+    void incrementViewsByAmount(Long postId, Long amount);
 }
 

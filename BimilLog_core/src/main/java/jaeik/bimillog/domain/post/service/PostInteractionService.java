@@ -17,6 +17,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+
 /**
  * <h2>PostInteractionService</h2>
  * <p>게시글 상호작용 서비스</p>
@@ -80,5 +82,18 @@ public class PostInteractionService {
     @Transactional
     public void incrementViewCount(Long postId) {
         postRepository.incrementViewsByPostId(postId);
+    }
+
+    /**
+     * <h3>조회수 일괄 증가</h3>
+     * <p>Redis에서 누적된 조회수를 DB에 벌크 반영합니다.</p>
+     *
+     * @param counts postId → 증가량 맵
+     */
+    @Transactional
+    public void bulkIncrementViewCounts(Map<Long, Long> counts) {
+        for (Map.Entry<Long, Long> entry : counts.entrySet()) {
+            postRepository.incrementViewsByAmount(entry.getKey(), entry.getValue());
+        }
     }
 }
