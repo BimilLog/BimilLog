@@ -101,7 +101,6 @@ public class PostCacheRefresh {
     public void refreshFeatured(PostCacheFlag type) {
         List<PostSimpleDetail> posts = queryPostsByType(type, List.of());
         postCacheRefreshExecutor.cachePostsWithType(type, posts);
-        log.info("[SCHEDULER] {} 캐시 갱신 완료: {}건", type, posts.size());
     }
 
     @Recover
@@ -118,7 +117,6 @@ public class PostCacheRefresh {
     @Async("cacheRefreshExecutor")
     public void asyncRefreshRealtimeWithLock() {
         if (!redisSimplePostAdapter.tryAcquireRealtimeRefreshLock()) {
-            log.debug("[ASYNC_REFRESH] 락 획득 실패 - 다른 스레드가 갱신 중");
             return;
         }
 
@@ -126,15 +124,14 @@ public class PostCacheRefresh {
             List<Long> postIds = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
 
             if (postIds.isEmpty()) {
-                log.debug("[ASYNC_REFRESH] REALTIME 갱신 스킵 - 인기글 ID 없음");
+                log.debug("실시간 인기글 갱신 스킵 - 인기글 ID 없음");
                 return;
             }
 
             List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, postIds);
             postCacheRefreshExecutor.cachePostsWithType(PostCacheFlag.REALTIME, posts);
-            log.info("[ASYNC_REFRESH] REALTIME HASH 갱신 완료: {}건", posts.size());
         } catch (Exception e) {
-            log.warn("[ASYNC_REFRESH] REALTIME HASH 갱신 실패: {}", e.getMessage());
+            log.warn("실시간 인기글 해시 갱신 실패: {}", e.getMessage());
         } finally {
             redisSimplePostAdapter.releaseRealtimeRefreshLock();
         }

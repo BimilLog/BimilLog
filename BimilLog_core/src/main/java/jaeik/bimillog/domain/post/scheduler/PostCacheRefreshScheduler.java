@@ -40,11 +40,9 @@ public class PostCacheRefreshScheduler {
         }
 
         try {
-            log.info("[SCHEDULER] 캐시 갱신 시작");
             safeRefresh("REALTIME", postCacheRefresh::refreshRealtime);
             safeRefresh("WEEKLY", () -> postCacheRefresh.refreshFeatured(PostCacheFlag.WEEKLY));
             safeRefresh("LEGEND", () -> postCacheRefresh.refreshFeatured(PostCacheFlag.LEGEND));
-            log.info("[SCHEDULER] 캐시 갱신 완료");
         } finally {
             redisSimplePostAdapter.releaseSchedulerLock();
         }

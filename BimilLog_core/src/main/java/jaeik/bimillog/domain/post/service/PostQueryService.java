@@ -41,8 +41,6 @@ import java.util.stream.Collectors;
 public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
-    private final RedisSimplePostAdapter redisSimplePostAdapter;
-    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final PostRepository postRepository;
     private final PostToCommentAdapter postToCommentAdapter;
     private final PostToMemberAdapter postToMemberAdapter;
