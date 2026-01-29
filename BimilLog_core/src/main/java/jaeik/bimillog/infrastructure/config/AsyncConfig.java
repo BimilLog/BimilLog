@@ -113,25 +113,6 @@ public class AsyncConfig {
     }
 
     /**
-     * 조회수 상승 전용 스레드 풀
-     * <p>게시글 조회수 증가 이벤트를 처리합니다.</p>
-     * <p>DB 업데이트가 포함되며 빈도가 가장 높은 이벤트입니다.</p>
-     */
-    @Bean(name = "viewCountExecutor")
-    public Executor viewCountExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(3); // 기본 스레드 수
-        executor.setMaxPoolSize(10); // 최대 스레드 수
-        executor.setQueueCapacity(200); // 대기열 크기 (조회수는 지연되어도 괜찮음)
-        executor.setThreadNamePrefix("view-count-");
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(30);
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.initialize();
-        return executor;
-    }
-
-    /**
      * 캐시 갱신 전용 스레드 풀
      * <p>조회 시 HASH-ZSET 불일치 감지 후 비동기 HASH 갱신에 사용됩니다.</p>
      */

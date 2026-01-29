@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.redis.post;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <h2>게시글 Redis 키</h2>
@@ -38,6 +39,34 @@ public final class RedisPostKeys {
      * <p>Value Type: ZSet (postId, score)</p>
      */
     public static final String REALTIME_POST_SCORE_KEY = "post:realtime:score";
+
+    /**
+     * 게시글 조회 이력 SET 키 접두사
+     * <p>Value Type: SET (값: m:{memberId} 또는 ip:{clientIp})</p>
+     * <p>전체 키 형식: post:view:{postId}</p>
+     */
+    public static final String VIEW_PREFIX = "post:view:";
+
+    /**
+     * 게시글 조회수 버퍼 Hash 키
+     * <p>Value Type: Hash (field=postId, value=증가량)</p>
+     */
+    public static final String VIEW_COUNTS_KEY = "post:view:counts";
+
+    /**
+     * 조회 이력 TTL (24시간)
+     */
+    public static final long VIEW_TTL_SECONDS = TimeUnit.HOURS.toSeconds(24);
+
+    /**
+     * 조회수 플러시 스케줄러 분산 락 키
+     */
+    public static final String VIEW_FLUSH_LOCK_KEY = "post:view:flush:lock";
+
+    /**
+     * 조회수 플러시 분산 락 TTL (90초)
+     */
+    public static final Duration VIEW_FLUSH_LOCK_TTL = Duration.ofSeconds(90);
 
     // ===================== 2. TTL (Time To Live, 만료 시간) =====================
 

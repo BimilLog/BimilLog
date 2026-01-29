@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
-import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
@@ -30,21 +29,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class RealtimePopularScoreListener {
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
-    private static final double VIEW_SCORE = 2.0;
     private static final double COMMENT_SCORE = 3.0;
     private static final double LIKE_SCORE = 4.0;
-
-    /**
-     * <h3>게시글 조회 이벤트 처리</h3>
-     * <p>게시글 조회 시 실시간 인기글 점수를 2점 증가시킵니다.</p>
-     *
-     * @param event 게시글 조회 이벤트
-     */
-    @TransactionalEventListener
-    @Async("realtimeEventExecutor")
-    public void handlePostViewed(PostViewedEvent event) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
-    }
 
     /**
      * <h3>댓글 작성 이벤트 처리</h3>

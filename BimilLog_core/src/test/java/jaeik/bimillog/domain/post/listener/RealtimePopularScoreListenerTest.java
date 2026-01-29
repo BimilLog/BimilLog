@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
-import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,19 +38,6 @@ class RealtimePopularScoreListenerTest {
     @BeforeEach
     void setUp() {
         reset(redisRealTimePostAdapter);
-    }
-
-    @Test
-    @DisplayName("게시글 조회 이벤트 - 점수 2점 증가")
-    void handlePostViewed_shouldIncrementScoreByTwo() {
-        // Given
-        PostViewedEvent event = new PostViewedEvent(1L);
-
-        // When
-        listener.handlePostViewed(event);
-
-        // Then
-        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, 2.0);
     }
 
     @Test

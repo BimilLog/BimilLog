@@ -1,20 +1,19 @@
 package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.post.controller.util.PostViewCookieUtil;
 import jaeik.bimillog.domain.post.dto.FullPostDTO;
 import jaeik.bimillog.domain.post.dto.PostSearchDTO;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.log.Log.LogLevel;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +24,10 @@ import org.springframework.web.bind.annotation.*;
  * <h2>게시글 조회 컨트롤러</h2>
  * <p>Post 도메인의 조회(Query) 관련 REST API 엔드포인트를 제공하는 웹 어댑터입니다.</p>
  * <p>게시글 목록 조회, 상세 조회, 검색, 사용자 작성 게시글, 사용자 추천 게시글 API 제공</p>
- * <p>조회수 증가는 이벤트 기반으로 비동기 처리</p>
+ * <p>조회수 중복 방지는 Redis SET 기반, 조회수 버퍼링은 Redis Hash 기반으로 처리</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.6.0
  */
 @Log(level = Log.LogLevel.INFO,
         logExecutionTime = true,
@@ -37,10 +36,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/post")
+@Slf4j
 public class PostQueryController {
     private final PostQueryService postQueryService;
-    private final ApplicationEventPublisher eventPublisher;
-    private final PostViewCookieUtil postViewCookieUtil;
+    private final RedisPostViewAdapter redisPostViewAdapter;
+    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
+
+    private static final double VIEW_SCORE = 2.0;
 
     /**
      * <h3>게시판 목록 조회 API</h3>
@@ -48,8 +50,6 @@ public class PostQueryController {
      *
      * @param pageable 페이지 정보
      * @return 게시글 목록 페이지 (200 OK)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @GetMapping
     @Log(level = LogLevel.DEBUG,
@@ -69,38 +69,37 @@ public class PostQueryController {
     /**
      * <h3>게시글 상세 조회 API</h3>
      * <p>게시글 ID를 통해 게시글 상세 정보를 조회합니다.</p>
-     * <p>CQRS 패턴을 준수하여 순수한 조회 작업만 수행합니다.</p>
-     * <p>조회 성공 시 PostViewedEvent를 발행하여 비동기로 조회수를 증가시킵니다.</p>
+     * <p>Redis SET으로 24시간 중복 조회를 방지하고, Redis Hash에 조회수를 버퍼링합니다.</p>
      *
      * @param postId      조회할 게시글 ID
      * @param userDetails 현재 로그인한 사용자 정보 (Optional, 추천 여부 확인용)
-     * @param request     HTTP 요청 (쿠키 확인용)
-     * @param response    HTTP 응답 (쿠키 설정용)
+     * @param request     HTTP 요청 (IP 추출용)
      * @return 게시글 상세 정보 DTO (200 OK)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @GetMapping("/{postId}")
     @Log(level = LogLevel.INFO,
          message = "게시글 상세 조회",
          logExecutionTime = true,
-         excludeParams = {"request", "response", "userDetails"})
+         excludeParams = {"request", "userDetails"})
     public ResponseEntity<FullPostDTO> getPost(@PathVariable Long postId,
                                                @AuthenticationPrincipal CustomUserDetails userDetails,
-                                               HttpServletRequest request,
-                                               HttpServletResponse response) {
+                                               HttpServletRequest request) {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
         PostDetail postDetail = postQueryService.getPost(postId, memberId);
         FullPostDTO fullPostDTO = FullPostDTO.convertToFullPostResDTO(postDetail);
-        
-        // 중복 조회 검증 후 조회수 증가 이벤트 발행
-         if (!postViewCookieUtil.hasViewed(request.getCookies(), postId)) {
-             eventPublisher.publishEvent(new PostViewedEvent(postId));
-             response.addCookie(postViewCookieUtil.createViewCookie(request.getCookies(), postId));
-         } else {
-             response.addCookie(postViewCookieUtil.createViewCookie(request.getCookies(), postId));
-         }
-        
+
+        // Redis 기반 중복 조회 방지 + 조회수 버퍼링
+        try {
+            String viewerKey = buildViewerKey(memberId, request);
+            if (!redisPostViewAdapter.hasViewed(postId, viewerKey)) {
+                redisPostViewAdapter.markViewed(postId, viewerKey);
+                redisPostViewAdapter.incrementViewCount(postId);
+                redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
+            }
+        } catch (Exception e) {
+            log.warn("조회수 처리 실패: postId={}, error={}", postId, e.getMessage());
+        }
+
         return ResponseEntity.ok(fullPostDTO);
     }
 
@@ -111,8 +110,6 @@ public class PostQueryController {
      * @param searchDTO 검색 조건 DTO (타입, 검색어 검증 포함)
      * @param pageable  페이지 정보
      * @return 검색된 게시글 목록 페이지 (200 OK)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @GetMapping("/search")
     @Log(level = LogLevel.INFO,
@@ -125,5 +122,28 @@ public class PostQueryController {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         Page<PostSimpleDetail> postList = postQueryService.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable, memberId);
         return ResponseEntity.ok(postList);
+    }
+
+    /**
+     * <h3>조회자 키 생성</h3>
+     * <p>로그인 사용자는 m:{memberId}, 비로그인 사용자는 ip:{clientIp} 형태로 생성합니다.</p>
+     */
+    private String buildViewerKey(Long memberId, HttpServletRequest request) {
+        if (memberId != null) {
+            return "m:" + memberId;
+        }
+        return "ip:" + extractClientIp(request);
+    }
+
+    /**
+     * <h3>클라이언트 IP 추출</h3>
+     * <p>X-Forwarded-For 헤더 우선, 없으면 request.getRemoteAddr() 사용</p>
+     */
+    private String extractClientIp(HttpServletRequest request) {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            return xff.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }
