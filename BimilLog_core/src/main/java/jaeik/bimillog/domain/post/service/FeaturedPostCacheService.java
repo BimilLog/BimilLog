@@ -60,8 +60,6 @@ public class FeaturedPostCacheService {
         return getFeaturedCachedPosts(PostCacheFlag.NOTICE, FallbackType.NOTICE, pageable);
     }
 
-    // ========== 캐시 조회 메서드 ==========
-
     /**
      * <h3>주간/레전드/공지 캐시 조회</h3>
      * <p>Hash 캐시에서 직접 조회합니다.</p>
@@ -72,8 +70,7 @@ public class FeaturedPostCacheService {
      * @param pageable     페이징 정보
      * @return 페이징된 게시글 목록
      */
-    private Page<PostSimpleDetail> getFeaturedCachedPosts(PostCacheFlag type, FallbackType fallbackType,
-                                                         Pageable pageable) {
+    private Page<PostSimpleDetail> getFeaturedCachedPosts(PostCacheFlag type, FallbackType fallbackType, Pageable pageable) {
         try {
             List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(type);
 
@@ -91,37 +88,19 @@ public class FeaturedPostCacheService {
         }
     }
 
-    // ========== DB 조회 메서드 ==========
-
     /**
-     * <h3>featured_post 테이블에서 조회 (DB 폴백용)</h3>
-     * <p>featured_post 테이블에서 postId 목록을 조회 후 PostSimpleDetail로 변환합니다.</p>
+     * <h3>featured_post 테이블에서 페이징 조회 (DB 폴백용)</h3>
+     * <p>featured_post에서 postId 목록을 조회한 후 페이징 조회합니다.</p>
      *
      * @param type     특집 유형 (WEEKLY, LEGEND, NOTICE)
      * @param pageable 페이징 정보
      * @return PostSimpleDetail 페이지
      */
     private Page<PostSimpleDetail> findFeaturedPostsByType(PostCacheFlag type, Pageable pageable) {
-        List<Long> allPostIds = featuredPostRepository.findPostIdsByType(type);
-
-        if (allPostIds.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, 0);
-        }
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), allPostIds.size());
-
-        if (start >= allPostIds.size()) {
-            return new PageImpl<>(List.of(), pageable, allPostIds.size());
-        }
-
-        List<Long> pagedPostIds = allPostIds.subList(start, end);
-        List<PostSimpleDetail> posts = postQueryRepository.findPostSimpleDetailsByIds(pagedPostIds);
-
-        return new PageImpl<>(posts, pageable, allPostIds.size());
+        List<Long> postIds = featuredPostRepository.findPostIdsByType(type);
+        return postQueryRepository.findPostSimpleDetailsByIds(postIds, pageable);
     }
 
-    // ========== 유틸리티 메서드 ==========
 
     private Page<PostSimpleDetail> paginate(List<PostSimpleDetail> posts, Pageable pageable) {
         int start = (int) pageable.getOffset();

@@ -20,6 +20,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -166,7 +167,8 @@ class FeaturedPostCacheServiceTest {
                 });
 
         given(featuredPostRepository.findPostIdsByType(cacheFlag)).willReturn(List.of(1L));
-        given(postQueryRepository.findPostSimpleDetailsByIds(List.of(1L))).willReturn(List.of(post));
+        given(postQueryRepository.findPostSimpleDetailsByIds(eq(List.of(1L)), any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(post), pageable, 1));
 
         // When
         Page<PostSimpleDetail> result = switch (cacheFlag) {

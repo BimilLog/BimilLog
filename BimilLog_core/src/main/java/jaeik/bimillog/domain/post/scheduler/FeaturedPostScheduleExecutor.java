@@ -3,11 +3,9 @@ package jaeik.bimillog.domain.post.scheduler;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.FeaturedPost;
-import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
-import jaeik.bimillog.domain.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -19,10 +17,9 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * <h2>FeaturedPostScheduleExecutor</h2>
@@ -46,7 +43,6 @@ public class FeaturedPostScheduleExecutor {
     private final PostQueryRepository postQueryRepository;
     private final PostToCommentAdapter postToCommentAdapter;
     private final FeaturedPostRepository featuredPostRepository;
-    private final PostRepository postRepository;
 
     /**
      * <h3>주간 인기 게시글 DB 조회</h3>
@@ -123,25 +119,14 @@ public class FeaturedPostScheduleExecutor {
     @Transactional
     public void saveFeaturedPosts(List<PostSimpleDetail> posts, PostCacheFlag type) {
         featuredPostRepository.deleteAllByType(type);
+        List<FeaturedPost> featuredPostList = new ArrayList<>();
 
-        Set<Long> postIds = posts.stream()
-                .map(PostSimpleDetail::getId)
-                .collect(Collectors.toSet());
+        for (PostSimpleDetail post : posts) {
+            featuredPostList.add(FeaturedPost.createFeaturedPost(post, type));
+        }
 
-        List<Post> postEntities = postRepository.findAllById(postIds);
-
-        List<FeaturedPost> featuredPosts = postEntities.stream()
-                .map(post -> {
-                    if (type == PostCacheFlag.WEEKLY) {
-                        return FeaturedPost.createWeekly(post);
-                    } else {
-                        return FeaturedPost.createLegend(post);
-                    }
-                })
-                .toList();
-
-        featuredPostRepository.saveAll(featuredPosts);
-        log.info("{} 특집 게시글 DB 저장 완료: {}개", type, featuredPosts.size());
+        featuredPostRepository.saveAll(featuredPostList);
+        log.info("{} 특집 게시글 DB 저장 완료: {}개", type, featuredPostList.size());
     }
 
     /**

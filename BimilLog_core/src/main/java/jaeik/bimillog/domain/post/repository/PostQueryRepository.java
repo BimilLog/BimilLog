@@ -26,11 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * <h2>게시글 조회 어댑터</h2>
@@ -351,17 +348,18 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>PostId 목록으로 PostSimpleDetail 리스트 반환</h3>
-     * <p>폴백 저장소에서 조회한 postId 목록으로 게시글 상세 정보를 조회합니다.</p>
-     * <p>입력 순서를 유지하여 반환합니다.</p>
+     * <h3>PostId 목록으로 PostSimpleDetail 페이징 조회</h3>
+     * <p>폴백 저장소에서 조회한 postId 목록으로 게시글 상세 정보를 페이징 조회합니다.</p>
+     * <p>ID 내림차순으로 정렬됩니다.</p>
      *
-     * @param postIds 조회할 게시글 ID 목록
-     * @return PostSimpleDetail 목록 (입력 순서 유지)
+     * @param postIds  조회할 게시글 ID 목록
+     * @param pageable 페이징 정보
+     * @return PostSimpleDetail 페이지
      */
     @Transactional(readOnly = true)
-    public List<PostSimpleDetail> findPostSimpleDetailsByIds(List<Long> postIds) {
+    public Page<PostSimpleDetail> findPostSimpleDetailsByIds(List<Long> postIds, Pageable pageable) {
         if (postIds == null || postIds.isEmpty()) {
-            return List.of();
+            return new PageImpl<>(List.of(), pageable, 0);
         }
 
         QPostLike subPostLike = new QPostLike("subPostLike");
@@ -370,7 +368,7 @@ public class PostQueryRepository {
                 .from(subPostLike)
                 .where(subPostLike.post.id.eq(post.id));
 
-        List<PostSimpleDetail> results = jpaQueryFactory
+        List<PostSimpleDetail> content = jpaQueryFactory
                 .select(new QPostSimpleDetail(
                         post.id,
                         post.title,
@@ -383,16 +381,49 @@ public class PostQueryRepository {
                 .from(post)
                 .leftJoin(post.member, member)
                 .where(post.id.in(postIds))
+                .orderBy(post.id.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
-        // 입력 순서대로 정렬
-        Map<Long, PostSimpleDetail> resultMap = results.stream()
-                .collect(Collectors.toMap(PostSimpleDetail::getId, p -> p));
+        return new PageImpl<>(content, pageable, postIds.size());
+    }
 
-        return postIds.stream()
-                .map(resultMap::get)
-                .filter(Objects::nonNull)
-                .toList();
+    /**
+     * <h3>단건 게시글 간단 상세 조회</h3>
+     * <p>단일 게시글의 PostSimpleDetail을 조회합니다.</p>
+     *
+     * @param postId 조회할 게시글 ID
+     * @return PostSimpleDetail (없으면 Optional.empty)
+     */
+    @Transactional(readOnly = true)
+    public Optional<PostSimpleDetail> findPostSimpleDetailById(Long postId) {
+        if (postId == null) {
+            return Optional.empty();
+        }
+
+        QPostLike subPostLike = new QPostLike("subPostLike");
+        JPQLQuery<Integer> likeCountSubQuery = JPAExpressions
+                .select(subPostLike.count().intValue())
+                .from(subPostLike)
+                .where(subPostLike.post.id.eq(post.id));
+
+        PostSimpleDetail result = jpaQueryFactory
+                .select(new QPostSimpleDetail(
+                        post.id,
+                        post.title,
+                        post.views,
+                        likeCountSubQuery,
+                        post.createdAt,
+                        member.id,
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
+                        Expressions.constant(0)))
+                .from(post)
+                .leftJoin(post.member, member)
+                .where(post.id.eq(postId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 
     /**

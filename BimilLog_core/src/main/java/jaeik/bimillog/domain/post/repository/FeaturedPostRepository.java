@@ -20,16 +20,6 @@ import java.util.List;
 public interface FeaturedPostRepository extends JpaRepository<FeaturedPost, Long> {
 
     /**
-     * <h3>특집 게시글 존재 여부 확인</h3>
-     * <p>특정 게시글이 특정 유형의 특집으로 이미 등록되어 있는지 확인합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param type   특집 유형 (WEEKLY, LEGEND, NOTICE)
-     * @return 존재하면 true, 없으면 false
-     */
-    boolean existsByPostIdAndType(Long postId, PostCacheFlag type);
-
-    /**
      * <h3>특집 게시글 삭제</h3>
      * <p>특정 게시글의 특정 유형 특집을 삭제합니다.</p>
      * <p>공지 해제 시 NOTICE 유형 삭제에 사용됩니다.</p>
@@ -38,7 +28,7 @@ public interface FeaturedPostRepository extends JpaRepository<FeaturedPost, Long
      * @param type   특집 유형 (WEEKLY, LEGEND, NOTICE)
      */
     @Modifying
-    @Query("DELETE FROM FeaturedPost fp WHERE fp.post.id = :postId AND fp.type = :type")
+    @Query("DELETE FROM FeaturedPost fp WHERE fp.postId = :postId AND fp.type = :type")
     void deleteByPostIdAndType(Long postId, PostCacheFlag type);
 
     /**
@@ -60,6 +50,6 @@ public interface FeaturedPostRepository extends JpaRepository<FeaturedPost, Long
      * @param type 특집 유형 (WEEKLY, LEGEND, NOTICE)
      * @return 게시글 ID 목록
      */
-    @Query("SELECT fp.post.id FROM FeaturedPost fp WHERE fp.type = :type ORDER BY fp.featuredAt DESC")
+    @Query("SELECT fp.postId FROM FeaturedPost fp WHERE fp.type = :type ORDER BY fp.featuredAt DESC")
     List<Long> findPostIdsByType(PostCacheFlag type);
 }

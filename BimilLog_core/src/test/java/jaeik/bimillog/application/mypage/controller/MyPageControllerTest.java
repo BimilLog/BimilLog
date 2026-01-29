@@ -61,7 +61,7 @@ class MyPageControllerTest extends BaseIntegrationTest {
     @DisplayName("마이페이지 정보 조회 성공 - 200 OK 및 사용자 활동 정보 반환")
     void shouldGetMyPageInfo_Successfully() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/mypage/")
+        mockMvc.perform(get("/api/mypage")
                         .with(user(testUserDetails))
                         .with(csrf())
                         .param("page", "0")
@@ -77,7 +77,7 @@ class MyPageControllerTest extends BaseIntegrationTest {
     @DisplayName("마이페이지 정보 조회 성공 - 작성한 게시글 포함 확인")
     void shouldGetMyPageInfo_WithPosts() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/mypage/")
+        mockMvc.perform(get("/api/mypage")
                         .with(user(testUserDetails))
                         .with(csrf())
                         .param("page", "0")
@@ -91,7 +91,7 @@ class MyPageControllerTest extends BaseIntegrationTest {
     @DisplayName("마이페이지 정보 조회 성공 - 작성한 댓글 포함 확인")
     void shouldGetMyPageInfo_WithComments() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/mypage/")
+        mockMvc.perform(get("/api/mypage")
                         .with(user(testUserDetails))
                         .with(csrf())
                         .param("page", "0")
@@ -105,7 +105,7 @@ class MyPageControllerTest extends BaseIntegrationTest {
     @DisplayName("마이페이지 정보 조회 실패 - 인증되지 않은 사용자 (403 Forbidden)")
     void shouldReturn403_WhenUnauthorized() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/mypage/")
+        mockMvc.perform(get("/api/mypage")
                         .with(csrf())
                         .param("page", "0")
                         .param("size", "10"))
@@ -122,7 +122,7 @@ class MyPageControllerTest extends BaseIntegrationTest {
         }
 
         // When & Then - 첫 페이지 조회 (size=3)
-        mockMvc.perform(get("/api/mypage/")
+        mockMvc.perform(get("/api/mypage")
                         .with(user(testUserDetails))
                         .with(csrf())
                         .param("page", "0")
@@ -137,7 +137,7 @@ class MyPageControllerTest extends BaseIntegrationTest {
     @DisplayName("마이페이지 정보 조회 성공 - 작성 활동이 없는 사용자")
     void shouldGetMyPageInfo_WithNoActivity() throws Exception {
         // When & Then - otherMember는 작성 활동이 없음
-        mockMvc.perform(get("/api/mypage/")
+        mockMvc.perform(get("/api/mypage")
                         .with(user(otherUserDetails))
                         .with(csrf())
                         .param("page", "0")
