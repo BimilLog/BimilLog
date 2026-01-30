@@ -35,24 +35,9 @@ class PostViewCountFlushSchedulerTest {
     private PostViewCountFlushScheduler scheduler;
 
     @Test
-    @DisplayName("락 획득 실패 시 플러시 건너뜀")
-    void shouldSkipFlush_whenLockNotAcquired() {
-        // Given
-        given(redisPostViewAdapter.tryAcquireFlushLock()).willReturn(false);
-
-        // When
-        scheduler.flushViewCounts();
-
-        // Then
-        verify(redisPostViewAdapter, never()).getAndClearViewCounts();
-        verify(postInteractionService, never()).bulkIncrementViewCounts(any());
-    }
-
-    @Test
     @DisplayName("버퍼가 비어있으면 DB 업데이트 건너뜀")
     void shouldSkipDbUpdate_whenBufferEmpty() {
         // Given
-        given(redisPostViewAdapter.tryAcquireFlushLock()).willReturn(true);
         given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
 
         // When
@@ -67,7 +52,6 @@ class PostViewCountFlushSchedulerTest {
     void shouldFlushToDB_whenBufferHasData() {
         // Given
         Map<Long, Long> counts = Map.of(1L, 5L, 2L, 3L);
-        given(redisPostViewAdapter.tryAcquireFlushLock()).willReturn(true);
         given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(counts);
 
         // When
@@ -82,7 +66,6 @@ class PostViewCountFlushSchedulerTest {
     void shouldCatchException_whenDbUpdateFails() {
         // Given
         Map<Long, Long> counts = Map.of(1L, 5L);
-        given(redisPostViewAdapter.tryAcquireFlushLock()).willReturn(true);
         given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(counts);
         doThrow(new RuntimeException("DB 오류")).when(postInteractionService).bulkIncrementViewCounts(any());
 
