@@ -58,16 +58,6 @@ public final class RedisPostKeys {
      */
     public static final long VIEW_TTL_SECONDS = TimeUnit.HOURS.toSeconds(24);
 
-    /**
-     * 조회수 플러시 스케줄러 분산 락 키
-     */
-    public static final String VIEW_FLUSH_LOCK_KEY = "post:view:flush:lock";
-
-    /**
-     * 조회수 플러시 분산 락 TTL (90초)
-     */
-    public static final Duration VIEW_FLUSH_LOCK_TTL = Duration.ofSeconds(90);
-
     // ===================== 2. TTL (Time To Live, 만료 시간) =====================
 
     /**

@@ -74,8 +74,13 @@ public class RedisPostViewAdapter {
      * @return postId → 증가량 맵 (비어있으면 빈 맵)
      */
     public Map<Long, Long> getAndClearViewCounts() {
+        Boolean exists = redisTemplate.hasKey(VIEW_COUNTS_KEY);
+        if (Boolean.FALSE.equals(exists)) {
+            return Collections.emptyMap();
+        }
+
         Boolean renamed = redisTemplate.renameIfAbsent(VIEW_COUNTS_KEY, VIEW_COUNTS_FLUSH_KEY);
-        if (!renamed) {
+        if (Boolean.FALSE.equals(renamed)) {
             return Collections.emptyMap();
         }
 
@@ -85,19 +90,5 @@ public class RedisPostViewAdapter {
         Map<Long, Long> counts = new HashMap<>();
         entries.forEach((k, v) -> counts.put(Long.parseLong(k.toString()), Long.parseLong(v.toString())));
         return counts;
-    }
-
-    /**
-     * <h3>조회수 플러시 분산 락 획득</h3>
-     *
-     * @return 락 획득 성공 시 true
-     */
-    public boolean tryAcquireFlushLock() {
-        Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
-                VIEW_FLUSH_LOCK_KEY,
-                "1",
-                VIEW_FLUSH_LOCK_TTL
-        );
-        return Boolean.TRUE.equals(acquired);
     }
 }
