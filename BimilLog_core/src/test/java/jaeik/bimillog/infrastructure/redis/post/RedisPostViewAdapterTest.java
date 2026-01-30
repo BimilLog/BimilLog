@@ -11,7 +11,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
-import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -39,9 +38,6 @@ class RedisPostViewAdapterTest {
 
     @Mock
     private HashOperations<String, Object, Object> hashOperations;
-
-    @Mock
-    private ValueOperations<String, Object> valueOperations;
 
     @InjectMocks
     private RedisPostViewAdapter adapter;
@@ -107,10 +103,11 @@ class RedisPostViewAdapterTest {
     }
 
     @Test
-    @DisplayName("조회수 버퍼 조회 및 초기화 - RENAME 성공 시 데이터 반환")
+    @DisplayName("조회수 버퍼 조회 및 초기화 - 키가 존재하고 RENAME 성공 시 데이터 반환")
     void getAndClearViewCounts_shouldReturnMapAndClear() {
         // Given
         String flushKey = VIEW_COUNTS_KEY + ":flush";
+        given(redisTemplate.hasKey(VIEW_COUNTS_KEY)).willReturn(true);
         given(redisTemplate.renameIfAbsent(VIEW_COUNTS_KEY, flushKey)).willReturn(true);
         given(redisTemplate.opsForHash()).willReturn(hashOperations);
         given(hashOperations.entries(flushKey)).willReturn(Map.of("1", 5L, "2", 3L));
@@ -127,10 +124,10 @@ class RedisPostViewAdapterTest {
     }
 
     @Test
-    @DisplayName("조회수 버퍼 조회 및 초기화 - RENAME 실패 시 빈 맵 반환")
-    void getAndClearViewCounts_shouldReturnEmptyMap_whenRenameFailes() {
+    @DisplayName("조회수 버퍼 조회 및 초기화 - 키가 존재하지 않으면 빈 맵 반환")
+    void getAndClearViewCounts_shouldReturnEmptyMap_whenKeyNotExists() {
         // Given
-        given(redisTemplate.renameIfAbsent(VIEW_COUNTS_KEY, VIEW_COUNTS_KEY + ":flush")).willReturn(false);
+        given(redisTemplate.hasKey(VIEW_COUNTS_KEY)).willReturn(false);
 
         // When
         Map<Long, Long> result = adapter.getAndClearViewCounts();
@@ -140,30 +137,16 @@ class RedisPostViewAdapterTest {
     }
 
     @Test
-    @DisplayName("플러시 분산 락 획득 성공")
-    void tryAcquireFlushLock_shouldReturnTrue_whenAcquired() {
+    @DisplayName("조회수 버퍼 조회 및 초기화 - RENAME 실패 시 빈 맵 반환")
+    void getAndClearViewCounts_shouldReturnEmptyMap_whenRenameFails() {
         // Given
-        given(redisTemplate.opsForValue()).willReturn(valueOperations);
-        given(valueOperations.setIfAbsent(VIEW_FLUSH_LOCK_KEY, "1", VIEW_FLUSH_LOCK_TTL)).willReturn(true);
+        given(redisTemplate.hasKey(VIEW_COUNTS_KEY)).willReturn(true);
+        given(redisTemplate.renameIfAbsent(VIEW_COUNTS_KEY, VIEW_COUNTS_KEY + ":flush")).willReturn(false);
 
         // When
-        boolean result = adapter.tryAcquireFlushLock();
+        Map<Long, Long> result = adapter.getAndClearViewCounts();
 
         // Then
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    @DisplayName("플러시 분산 락 획득 실패")
-    void tryAcquireFlushLock_shouldReturnFalse_whenNotAcquired() {
-        // Given
-        given(redisTemplate.opsForValue()).willReturn(valueOperations);
-        given(valueOperations.setIfAbsent(VIEW_FLUSH_LOCK_KEY, "1", VIEW_FLUSH_LOCK_TTL)).willReturn(false);
-
-        // When
-        boolean result = adapter.tryAcquireFlushLock();
-
-        // Then
-        assertThat(result).isFalse();
+        assertThat(result).isEmpty();
     }
 }
