@@ -79,25 +79,42 @@
         </appender>
     </springProfile>
 
+    <!-- 🟢 개발환경 비동기 Appender -->
+    <springProfile name="!prod &amp; !production">
+        <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="CONSOLE"/>
+            <queueSize>1024</queueSize>
+            <discardingThreshold>20</discardingThreshold>
+            <includeCallerData>false</includeCallerData>
+        </appender>
+
+        <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="FILE"/>
+            <queueSize>1024</queueSize>
+            <discardingThreshold>20</discardingThreshold>
+            <includeCallerData>false</includeCallerData>
+        </appender>
+    </springProfile>
+
     <!-- 🟢 개발환경 로거 설정 -->
     <springProfile name="!prod &amp; !production">
         <!-- 애플리케이션 로거 (DEBUG) -->
         <logger name="jaeik.bimillog" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
+            <appender-ref ref="ASYNC_CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
         </logger>
 
         <!-- HTTP 요청 로거 -->
         <logger name="jaeik.bimillog.infrastructure.filter.LogFilter" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
+            <appender-ref ref="ASYNC_CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
         </logger>
 
         <!-- 외부 라이브러리들 -->
         <logger name="com.zaxxer.hikari" level="INFO"/>
         <logger name="org.springframework.security" level="INFO"/>
         <logger name="org.springframework.web" level="INFO"/>
-        
+
         <!-- JPA 쿼리 로그 (개발환경에서만, Hibernate 6.x) -->
         <logger name="org.hibernate.SQL" level="INFO"/>
         <logger name="org.hibernate.orm.jdbc.bind" level="INFO"/>
@@ -109,8 +126,8 @@
 
         <!-- 루트 로거  -->
         <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
+            <appender-ref ref="ASYNC_CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
         </root>
     </springProfile>
 

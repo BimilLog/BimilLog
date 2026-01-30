@@ -59,8 +59,6 @@ public class RedisSimplePostAdapter {
         return result;
     }
 
-
-
     /**
      * <h3>단일 캐시 삭제 (HDEL)</h3>
      * <p>모든 캐시 유형의 Hash에서 특정 postId 필드를 삭제합니다.</p>

@@ -120,6 +120,10 @@ public class PostCacheRefresh {
      */
     @Async("cacheRefreshExecutor")
     public void asyncRefreshRealtimeWithLock(List<Long> zsetPostIds) {
+        if (!redisSimplePostAdapter.tryAcquireRealtimeRefreshLock()) {
+            return;
+        }
+
         try {
             List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, zsetPostIds);
             postCacheRefreshExecutor.cachePostsWithType(PostCacheFlag.REALTIME, posts);

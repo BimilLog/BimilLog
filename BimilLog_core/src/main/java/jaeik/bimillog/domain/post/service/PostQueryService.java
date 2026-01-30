@@ -7,12 +7,11 @@ import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -20,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -67,22 +67,28 @@ public class PostQueryService {
      * <h3>게시글 상세 조회</h3>
      * <p>DB에서 직접 조회합니다. (상세 캐시 제거됨)</p>
      * <p>회원일 경우 블랙리스트 조사 및 좋아요 확인 후 주입하여 반환합니다.</p>
+     * <p>중복 조회 방지 후 조회수 버퍼링 및 실시간 인기글 점수 증가 이벤트를 발행합니다.</p>
      *
-     * @param postId   게시글 ID
-     * @param memberId 현재 로그인한 사용자 ID (추천 여부 확인용, null 허용)
+     * @param postId    게시글 ID
+     * @param memberId  현재 로그인한 사용자 ID (추천 여부 확인용, null 허용)
+     * @param viewerKey 조회자 식별 키 (중복 조회 방지용)
      * @return PostDetail 게시글 상세 정보 (좋아요 수, 댓글 수, 사용자 좋아요 여부 포함)
      */
-    public PostDetail getPost(Long postId, Long memberId) {
+    @Transactional
+    public PostDetail getPost(Long postId, Long memberId, String viewerKey) {
         // 1. DB 조회
         PostDetail result = postQueryRepository.findPostDetail(postId, null)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        // 2. 비회원이면 바로 반환
+        // 2. 조회수 증가 + 실시간 인기글 점수 이벤트 발행 (비동기 리스너에서 중복 체크)
+        eventPublisher.publishEvent(new PostViewedEvent(postId, viewerKey));
+
+        // 3. 비회원이면 바로 반환
         if (memberId == null) {
             return result;
         }
 
-        // 3. 회원이면 좋아요 여부 확인 및 블랙리스트 체크
+        // 4. 회원이면 좋아요 여부 확인 및 블랙리스트 체크
         boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
         result = result.withIsLiked(isLiked);
         eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, result.getMemberId()));

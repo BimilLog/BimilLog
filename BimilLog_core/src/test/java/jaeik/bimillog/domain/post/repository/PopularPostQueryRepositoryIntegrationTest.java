@@ -21,6 +21,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -174,6 +177,34 @@ class PopularPostQueryRepositoryIntegrationTest {
         assertThat(legendaryPosts.get(1).getTitle()).isEqualTo("전설의 게시글1");
         assertThat(legendaryPosts.get(1).getId()).isNotNull();
         assertThat(legendaryPosts.get(1).getMemberId()).isEqualTo(testMember.getId());
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 최근 인기 게시글 조회 (1시간 이내, 조회수+추천수*30 정렬)")
+    void shouldFindRecentPopularPosts() {
+        // Given: 1시간 이내 게시글 3개 (인기도 다르게 설정)
+        Post recentPost1 = createAndSavePost("최근 인기글1", "내용", 100, PostCacheFlag.REALTIME, Instant.now().minus(30, ChronoUnit.MINUTES));
+        Post recentPost2 = createAndSavePost("최근 인기글2", "내용", 10, PostCacheFlag.REALTIME, Instant.now().minus(20, ChronoUnit.MINUTES));
+        Post recentPost3 = createAndSavePost("최근 인기글3", "내용", 50, PostCacheFlag.REALTIME, Instant.now().minus(10, ChronoUnit.MINUTES));
+        // 2시간 전 게시글 (조회되면 안 됨)
+        createAndSavePost("오래된 게시글", "내용", 500, PostCacheFlag.REALTIME, Instant.now().minus(2, ChronoUnit.HOURS));
+
+        // recentPost2에 좋아요 5개 추가 → 인기도: 10 + (5*30) = 160
+        addLikesToPost(recentPost2, 5);
+        // recentPost1: 인기도 100, recentPost3: 인기도 50
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // When
+        Page<PostSimpleDetail> result = postQueryRepository.findRecentPopularPosts(PageRequest.of(0, 5));
+
+        // Then
+        assertThat(result.getContent()).hasSize(3);
+        // 인기도 순: recentPost2(160) > recentPost1(100) > recentPost3(50)
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("최근 인기글2");
+        assertThat(result.getContent().get(1).getTitle()).isEqualTo("최근 인기글1");
+        assertThat(result.getContent().get(2).getTitle()).isEqualTo("최근 인기글3");
     }
 
     @Test

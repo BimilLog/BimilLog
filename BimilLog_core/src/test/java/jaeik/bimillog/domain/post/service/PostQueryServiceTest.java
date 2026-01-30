@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -125,7 +126,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
 
         // When
-        PostDetail result = postQueryService.getPost(postId, memberId);
+        PostDetail result = postQueryService.getPost(postId, memberId, "test-viewer");
 
         // Then
         assertThat(result).isNotNull();
@@ -160,7 +161,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .willReturn(Optional.of(mockPostDetail));
 
         // When
-        PostDetail result = postQueryService.getPost(postId, memberId);
+        PostDetail result = postQueryService.getPost(postId, memberId, "test-viewer");
 
         // Then
         assertThat(result).isNotNull();
@@ -181,7 +182,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(postQueryRepository.findPostDetail(postId, null)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> postQueryService.getPost(postId, memberId))
+        assertThatThrownBy(() -> postQueryService.getPost(postId, memberId, "test-viewer"))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
