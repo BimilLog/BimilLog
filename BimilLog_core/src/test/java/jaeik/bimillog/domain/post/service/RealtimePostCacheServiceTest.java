@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealtimePostCacheReader;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -46,6 +47,9 @@ class RealtimePostCacheServiceTest {
     @Mock
     private RedisSimplePostAdapter redisSimplePostAdapter;
 
+    @Mock
+    private RedisRealtimePostCacheReader redisRealtimePostCacheReader;
+
     @Mock(strictness = Mock.Strictness.LENIENT)
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
@@ -75,6 +79,7 @@ class RealtimePostCacheServiceTest {
         realtimePostCacheService = new RealtimePostCacheService(
                 postQueryRepository,
                 redisSimplePostAdapter,
+                redisRealtimePostCacheReader,
                 redisRealTimePostAdapter,
                 postCacheRefresh,
                 circuitBreakerRegistry,
@@ -90,7 +95,7 @@ class RealtimePostCacheServiceTest {
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2");
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
+        given(redisRealtimePostCacheReader.getRealtimeCachedPosts())
                 .willReturn(List.of(simpleDetail2, simpleDetail1));
         given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
                 .willReturn(List.of(2L, 1L));
@@ -104,7 +109,7 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("실시간 인기글 1");
         assertThat(result.getTotalElements()).isEqualTo(2);
 
-        verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.REALTIME);
+        verify(redisRealtimePostCacheReader).getRealtimeCachedPosts();
         verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock(any());
     }
 
@@ -116,13 +121,11 @@ class RealtimePostCacheServiceTest {
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2");
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
+        given(redisRealtimePostCacheReader.getRealtimeCachedPosts())
                 .willReturn(List.of(simpleDetail2, simpleDetail1));
         // ZSET에는 다른 ID 세트 반환
         given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
                 .willReturn(List.of(3L, 2L));
-        given(redisSimplePostAdapter.tryAcquireRealtimeRefreshLock()).willReturn(true);
-
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
 
@@ -140,7 +143,7 @@ class RealtimePostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
+        given(redisRealtimePostCacheReader.getRealtimeCachedPosts())
                 .willReturn(List.of(simpleDetail1));
         given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
                 .willThrow(new RuntimeException("ZSET 조회 실패"));
@@ -159,7 +162,7 @@ class RealtimePostCacheServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME)).willReturn(List.of());
+        given(redisRealtimePostCacheReader.getRealtimeCachedPosts()).willReturn(List.of());
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
@@ -176,7 +179,7 @@ class RealtimePostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
+        given(redisRealtimePostCacheReader.getRealtimeCachedPosts())
                 .willThrow(new RuntimeException("Redis connection failed"));
 
         given(postQueryRepository.findRecentPopularPosts(pageable))
@@ -209,7 +212,7 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isZero();
 
-        verify(redisSimplePostAdapter, never()).getAllCachedPostsList(any());
+        verify(redisRealtimePostCacheReader, never()).getRealtimeCachedPosts();
         verify(realtimeScoreFallbackStore).getTopPostIds(0, 5);
     }
 
@@ -230,7 +233,7 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isZero();
 
-        verify(redisSimplePostAdapter, never()).getAllCachedPostsList(any());
+        verify(redisRealtimePostCacheReader, never()).getRealtimeCachedPosts();
         verify(realtimeScoreFallbackStore).getTopPostIds(0, 5);
     }
 
@@ -256,7 +259,7 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("DB 폴백 글");
 
-        verify(redisSimplePostAdapter, never()).getAllCachedPostsList(any());
+        verify(redisRealtimePostCacheReader, never()).getRealtimeCachedPosts();
         verify(realtimeScoreFallbackStore).getTopPostIds(0, 5);
         verify(postQueryRepository).findRecentPopularPosts(pageable);
     }

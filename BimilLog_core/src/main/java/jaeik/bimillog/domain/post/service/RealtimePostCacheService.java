@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealtimePostCacheReader;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 public class RealtimePostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final RedisRealtimePostCacheReader redisRealtimePostCacheReader;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final PostCacheRefresh postCacheRefresh;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
@@ -65,7 +67,7 @@ public class RealtimePostCacheService {
         }
 
         try {
-            List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME);
+            List<PostSimpleDetail> cachedPosts = redisRealtimePostCacheReader.getRealtimeCachedPosts();
 
             if (!cachedPosts.isEmpty()) {
                 CacheMetricsLogger.hit(log, "realtime", "simple", cachedPosts.size());
