@@ -1,0 +1,200 @@
+package jaeik.bimillog.domain.post.service;
+
+import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
+import jaeik.bimillog.testutil.RedisTestHelper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * <h2>실시간 인기글 서킷 개폐 시 Redis-Caffeine 순위 오차율 검증 테스트</h2>
+ * <p>서킷이 열리고 닫힐 때 Redis ZSet과 Caffeine FallbackStore의 순위 결과가
+ * SNS 특성상 큰 차이가 없음을 실제 Redis 환경에서 검증합니다.</p>
+ *
+ * <p>트래픽 분포는 Zipf's Law(지프의 법칙) 수식을 적용하여
+ * 실제 SNS의 '쏠림 현상'을 시뮬레이션합니다.</p>
+ *
+ * @author Jaeik
+ * @version 1.1.0 (Zipf's Law 수식 적용)
+ */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ActiveProfiles("local-integration")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Tag("local-integration")
+class RealtimeCacheConsistencyTest {
+
+    @Autowired
+    private RedisRealTimePostAdapter redisRealTimePostAdapter;
+
+    @Autowired
+    private RealtimeScoreFallbackStore fallbackStore;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    private static final int POST_COUNT = 15;
+    private static final int TOTAL_ROUNDS = 200;
+    private static final int TOGGLE_INTERVAL = 20;
+    private static final int DECAY_INTERVAL = 50;
+    private static final int TOP_N = 5;
+    private static final double VIEW_SCORE = 2.0;
+    private static final double MAX_ACCEPTABLE_ERROR_RATE = 0.40;
+    private static final String SCORE_KEY = RedisPostKeys.REALTIME_POST_SCORE_KEY;
+
+    // Zipf's Law 지수 (s 값)
+    // 1.0에 가까울수록 표준적인 지프 분포, 클수록 상위 쏠림 심화
+    private static final double ZIPF_EXPONENT = 1.2;
+
+    @BeforeEach
+    void setUp() {
+        RedisTestHelper.flushRedis(redisTemplate);
+        fallbackStore.clear();
+    }
+
+    @Test
+    @DisplayName("서킷 토글 시 Redis Top5 vs Caffeine Top5 자카드 유사도 검증 (Zipf 분포 적용)")
+    void shouldMaintainAcceptableRankDivergence_WhenCircuitToggles() {
+        // Given: Zipf's Law를 적용한 가중치 분포 생성
+        double[] weights = buildZipfSkewedWeights(POST_COUNT, ZIPF_EXPONENT);
+        boolean circuitOpen = false;
+        List<Double> similarities = new ArrayList<>();
+
+        // When: 200라운드 시뮬레이션
+        for (int round = 1; round <= TOTAL_ROUNDS; round++) {
+
+            // 이벤트 발생: 5~10개 조회 이벤트
+            int eventCount = ThreadLocalRandom.current().nextInt(5, 11);
+            for (int e = 0; e < eventCount; e++) {
+                long postId = pickWeightedPostId(weights);
+                if (circuitOpen) {
+                    fallbackStore.incrementScore(postId, VIEW_SCORE);
+                } else {
+                    redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
+                }
+            }
+
+            // 감쇠 적용 (50라운드마다)
+            if (round % DECAY_INTERVAL == 0) {
+                redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
+                fallbackStore.applyDecay();
+            }
+
+            // 서킷 토글 (20라운드마다)
+            if (round % TOGGLE_INTERVAL == 0) {
+                circuitOpen = !circuitOpen;
+
+                // 전환 시점에서 Top5 비교
+                List<Long> redisTop = getRedisTop(TOP_N);
+                List<Long> caffeineTop = fallbackStore.getTopPostIds(0, TOP_N);
+
+                double jaccard = jaccardSimilarity(redisTop, caffeineTop);
+                similarities.add(jaccard);
+            }
+        }
+
+        // Then: 평균 오차율 검증
+        double avgSimilarity = similarities.stream()
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(0.0);
+        double avgErrorRate = 1.0 - avgSimilarity;
+
+        System.out.printf("[결과] 전환 횟수: %d, 평균 자카드 유사도: %.4f, 평균 오차율: %.4f (Zipf s=%.1f)%n",
+                similarities.size(), avgSimilarity, avgErrorRate, ZIPF_EXPONENT);
+        for (int i = 0; i < similarities.size(); i++) {
+            System.out.printf("  전환 %2d (라운드 %3d): 유사도=%.4f, 오차율=%.4f%n",
+                    i + 1, (i + 1) * TOGGLE_INTERVAL, similarities.get(i), 1.0 - similarities.get(i));
+        }
+
+        assertThat(avgErrorRate)
+                .as("평균 오차율(1 - 자카드 유사도)이 40%% 이하여야 합니다. 실제: %.2f%%", avgErrorRate * 100)
+                .isLessThanOrEqualTo(MAX_ACCEPTABLE_ERROR_RATE);
+    }
+
+    // ========== 유틸리티 메서드 ==========
+
+    /**
+     * Zipf's Law (P = 1/r^s)를 적용한 가중치 분포 생성
+     * @param count 전체 아이템 수 (N)
+     * @param exponent Zipf 지수 (s) - 보통 1.0 내외
+     */
+    private double[] buildZipfSkewedWeights(int count, double exponent) {
+        double[] weights = new double[count];
+        double total = 0;
+
+        // 1. 각 순위(rank)별 가중치 계산: 1 / (rank ^ s)
+        for (int i = 0; i < count; i++) {
+            int rank = i + 1;
+            weights[i] = 1.0 / Math.pow(rank, exponent);
+            total += weights[i];
+        }
+
+        // 2. 누적 분포(CDF)로 변환 (0.0 ~ 1.0 사이 값으로 정규화)
+        // 예: [0.5, 0.8, 0.95, 1.0] 형태가 되어 랜덤 값 비교가 쉬워짐
+        double cumulative = 0;
+        for (int i = 0; i < count; i++) {
+            cumulative += weights[i] / total;
+            weights[i] = cumulative;
+        }
+        return weights;
+    }
+
+    /**
+     * 가중치 분포(CDF)에 따라 postId 선택
+     * (Binary Search를 사용할 수도 있으나 N이 작으므로 순차 탐색 사용)
+     */
+    private long pickWeightedPostId(double[] cumulativeWeights) {
+        double r = ThreadLocalRandom.current().nextDouble();
+        for (int i = 0; i < cumulativeWeights.length; i++) {
+            if (r <= cumulativeWeights[i]) {
+                return i + 1L; // Post ID는 1부터 시작
+            }
+        }
+        return cumulativeWeights.length;
+    }
+
+    /**
+     * Redis ZSet에서 점수 내림차순 Top N 조회
+     */
+    private List<Long> getRedisTop(int n) {
+        Set<Object> set = redisTemplate.opsForZSet().reverseRange(SCORE_KEY, 0, n - 1);
+        if (set == null || set.isEmpty()) {
+            return List.of();
+        }
+        return set.stream()
+                .map(obj -> ((Number) obj).longValue())
+                .toList();
+    }
+
+    /**
+     * 자카드 유사도 계산: |교집합| / |합집합|
+     */
+    private double jaccardSimilarity(List<Long> a, List<Long> b) {
+        if (a.isEmpty() && b.isEmpty()) {
+            return 1.0;
+        }
+        if (a.isEmpty() || b.isEmpty()) {
+            return 0.0;
+        }
+        Set<Long> setA = new HashSet<>(a);
+        Set<Long> setB = new HashSet<>(b);
+        Set<Long> intersection = new HashSet<>(setA);
+        intersection.retainAll(setB);
+        Set<Long> union = new HashSet<>(setA);
+        union.addAll(setB);
+        return (double) intersection.size() / union.size();
+    }
+}
