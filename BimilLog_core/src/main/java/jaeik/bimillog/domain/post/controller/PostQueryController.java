@@ -8,8 +8,6 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.log.Log.LogLevel;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,10 +37,6 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class PostQueryController {
     private final PostQueryService postQueryService;
-    private final RedisPostViewAdapter redisPostViewAdapter;
-    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
-
-    private static final double VIEW_SCORE = 2.0;
 
     /**
      * <h3>게시판 목록 조회 API</h3>
@@ -85,20 +79,9 @@ public class PostQueryController {
                                                @AuthenticationPrincipal CustomUserDetails userDetails,
                                                HttpServletRequest request) {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
-        PostDetail postDetail = postQueryService.getPost(postId, memberId);
+        String viewerKey = buildViewerKey(memberId, request);
+        PostDetail postDetail = postQueryService.getPost(postId, memberId, viewerKey);
         FullPostDTO fullPostDTO = FullPostDTO.convertToFullPostResDTO(postDetail);
-
-        // Redis 기반 중복 조회 방지 + 조회수 버퍼링
-        try {
-            String viewerKey = buildViewerKey(memberId, request);
-            if (!redisPostViewAdapter.hasViewed(postId, viewerKey)) {
-                redisPostViewAdapter.markViewed(postId, viewerKey);
-                redisPostViewAdapter.incrementViewCount(postId);
-                redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
-            }
-        } catch (Exception e) {
-            log.warn("조회수 처리 실패: postId={}, error={}", postId, e.getMessage());
-        }
 
         return ResponseEntity.ok(fullPostDTO);
     }
