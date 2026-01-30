@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
@@ -24,11 +26,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>서킷이 열리고 닫힐 때 Redis ZSet과 Caffeine FallbackStore의 순위 결과가
  * SNS 특성상 큰 차이가 없음을 실제 Redis 환경에서 검증합니다.</p>
  *
+ * <p>실제 동작과 동일하게 {@link RedisRealTimePostAdapter#incrementRealtimePopularScore}를
+ * 항상 호출하고, 서킷 개폐만 직접 제어합니다.
+ * 서킷 OPEN 시 어댑터의 fallback이 자동으로 Caffeine에 점수를 적립합니다.</p>
+ *
  * <p>트래픽 분포는 Zipf's Law(지프의 법칙) 수식을 적용하여
  * 실제 SNS의 '쏠림 현상'을 시뮬레이션합니다.</p>
  *
  * @author Jaeik
- * @version 1.1.0 (Zipf's Law 수식 적용)
+ * @version 2.0.0
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("local-integration")
@@ -44,6 +50,11 @@ class RealtimeCacheConsistencyTest {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private CircuitBreakerRegistry circuitBreakerRegistry;
+
+    private CircuitBreaker circuitBreaker;
 
     private static final int POST_COUNT = 15;
     private static final int TOTAL_ROUNDS = 200;
@@ -62,6 +73,8 @@ class RealtimeCacheConsistencyTest {
     void setUp() {
         RedisTestHelper.flushRedis(redisTemplate);
         fallbackStore.clear();
+        circuitBreaker = circuitBreakerRegistry.circuitBreaker("realtimeRedis");
+        circuitBreaker.transitionToClosedState();
     }
 
     @Test
@@ -75,26 +88,30 @@ class RealtimeCacheConsistencyTest {
         // When: 200라운드 시뮬레이션
         for (int round = 1; round <= TOTAL_ROUNDS; round++) {
 
-            // 이벤트 발생: 5~10개 조회 이벤트
+            // 이벤트 발생: 5~10개 조회 이벤트 (항상 어댑터를 통해 호출)
             int eventCount = ThreadLocalRandom.current().nextInt(5, 11);
             for (int e = 0; e < eventCount; e++) {
                 long postId = pickWeightedPostId(weights);
-                if (circuitOpen) {
-                    fallbackStore.incrementScore(postId, VIEW_SCORE);
-                } else {
-                    redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
-                }
+                // 실제 동작과 동일: 어댑터 호출 → 서킷 OPEN이면 fallback이 Caffeine에 적립
+                redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
             }
 
             // 감쇠 적용 (50라운드마다)
             if (round % DECAY_INTERVAL == 0) {
-                redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
+                if (!circuitOpen) {
+                    redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
+                }
                 fallbackStore.applyDecay();
             }
 
             // 서킷 토글 (20라운드마다)
             if (round % TOGGLE_INTERVAL == 0) {
                 circuitOpen = !circuitOpen;
+                if (circuitOpen) {
+                    circuitBreaker.transitionToOpenState();
+                } else {
+                    circuitBreaker.transitionToClosedState();
+                }
 
                 // 전환 시점에서 Top5 비교
                 List<Long> redisTop = getRedisTop(TOP_N);
@@ -143,7 +160,6 @@ class RealtimeCacheConsistencyTest {
         }
 
         // 2. 누적 분포(CDF)로 변환 (0.0 ~ 1.0 사이 값으로 정규화)
-        // 예: [0.5, 0.8, 0.95, 1.0] 형태가 되어 랜덤 값 비교가 쉬워짐
         double cumulative = 0;
         for (int i = 0; i < count; i++) {
             cumulative += weights[i] / total;
@@ -154,13 +170,12 @@ class RealtimeCacheConsistencyTest {
 
     /**
      * 가중치 분포(CDF)에 따라 postId 선택
-     * (Binary Search를 사용할 수도 있으나 N이 작으므로 순차 탐색 사용)
      */
     private long pickWeightedPostId(double[] cumulativeWeights) {
         double r = ThreadLocalRandom.current().nextDouble();
         for (int i = 0; i < cumulativeWeights.length; i++) {
             if (r <= cumulativeWeights[i]) {
-                return i + 1L; // Post ID는 1부터 시작
+                return i + 1L;
             }
         }
         return cumulativeWeights.length;
