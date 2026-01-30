@@ -291,7 +291,8 @@ public class PostQueryRepository {
         BooleanExpression recentCondition = post.createdAt.after(Instant.now().minus(1, ChronoUnit.HOURS));
 
         // 인기도 점수: 조회수 + (추천수 * 30)
-        var popularityScore = post.views.add(Expressions.asNumber(likeCountSubQuery).multiply(30));
+        var likeCount = Expressions.numberTemplate(Integer.class, "{0}", likeCountSubQuery);
+        var popularityScore = post.views.add(likeCount.multiply(30));
 
         // 상위 5개로 제한
         int maxResults = 5;
