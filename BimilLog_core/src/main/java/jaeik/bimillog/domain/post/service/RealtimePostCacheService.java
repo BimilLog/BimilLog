@@ -55,14 +55,14 @@ public class RealtimePostCacheService {
      * <p>HASH-ZSET ID가 불일치하면 비동기로 락을 획득하여 HASH를 갱신합니다.</p>
      */
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
-        if (isRealtimeRedisCircuitOpen()) {
-            try {
-                return getRealtimePostsFromFallback(pageable);
-            } catch (Exception e) {
-                log.warn("[CAFFEINE_FALLBACK] Caffeine 폴백 실패: {}", e.getMessage());
-                return postQueryRepository.findRecentPopularPosts(pageable);
-            }
-        }
+//        if (isRealtimeRedisCircuitOpen()) {
+//            try {
+//                return getRealtimePostsFromFallback(pageable);
+//            } catch (Exception e) {
+//                log.warn("[CAFFEINE_FALLBACK] Caffeine 폴백 실패: {}", e.getMessage());
+//                return postQueryRepository.findRecentPopularPosts(pageable);
+//            }
+//        }
 
         try {
             List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME);
@@ -140,9 +140,7 @@ public class RealtimePostCacheService {
             Set<Long> zsetPostIdSet = new HashSet<>(zsetPostIds);
 
             if (!hashPostIds.equals(zsetPostIdSet)) {
-                if (!redisSimplePostAdapter.tryAcquireRealtimeRefreshLock()) {
-                    return;
-                }
+
                 postCacheRefresh.asyncRefreshRealtimeWithLock(zsetPostIds);
             }
         } catch (Exception e) {
