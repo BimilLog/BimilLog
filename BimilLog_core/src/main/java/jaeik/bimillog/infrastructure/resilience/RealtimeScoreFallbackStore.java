@@ -49,32 +49,13 @@ public class RealtimeScoreFallbackStore {
      * @return 점수 내림차순 정렬된 게시글 ID 목록
      */
     public List<Long> getTopPostIds(long start, long end) {
-        int heapSize = (int) (start + end);
-
-        PriorityQueue<Map.Entry<Long, Double>> minHeap = new PriorityQueue<>(
-                Map.Entry.comparingByValue()
-        );
-
-        for (Map.Entry<Long, Double> entry : scoreCache.asMap().entrySet()) {
-            if (entry.getValue() <= 0) {
-                continue;
-            }
-            minHeap.offer(entry);
-            if (minHeap.size() > heapSize) {
-                minHeap.poll();
-            }
-        }
-
-        List<Long> result = new ArrayList<>(minHeap.size());
-        while (!minHeap.isEmpty()) {
-            result.add(minHeap.poll().getKey());
-        }
-        Collections.reverse(result);
-
-        if (start > 0 && start < result.size()) {
-            return result.subList((int) start, result.size());
-        }
-        return start >= result.size() ? List.of() : result;
+        return scoreCache.asMap().entrySet().stream()
+                .filter(e -> e.getValue() > 0)
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .skip(start)
+                .limit(end)
+                .map(Map.Entry::getKey)
+                .toList();
     }
 
     /**
