@@ -126,6 +126,9 @@ class RealtimeCacheConsistencyTest {
 
                 double jaccard = jaccardSimilarity(redisTop, caffeineTop);
                 similarities.add(jaccard);
+
+                log.info("  라운드 {}: Redis={}, Caffeine={}, 유사도={}",
+                        String.format("%3d", round), redisTop, caffeineTop, String.format("%.4f", jaccard));
             }
         }
 
@@ -139,13 +142,6 @@ class RealtimeCacheConsistencyTest {
         log.info("[결과] 전환 횟수: {}, 평균 자카드 유사도: {}, 평균 오차율: {} (Zipf s={})",
                 similarities.size(), String.format("%.4f", avgSimilarity),
                 String.format("%.4f", avgErrorRate), ZIPF_EXPONENT);
-        for (int i = 0; i < similarities.size(); i++) {
-            int compareRound = (i * TOGGLE_INTERVAL) + COMPARE_OFFSET;
-            log.info("  비교 {} (라운드 {}): 유사도={}, 오차율={}",
-                    String.format("%2d", i + 1), String.format("%3d", compareRound),
-                    String.format("%.4f", similarities.get(i)),
-                    String.format("%.4f", 1.0 - similarities.get(i)));
-        }
 
         assertThat(avgErrorRate)
                 .as("평균 오차율(1 - 자카드 유사도)이 90%% 이하여야 합니다. 실제: %.2f%%", avgErrorRate * 100)
