@@ -97,20 +97,18 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - MESSAGE_SECRET=${MESSAGE_SECRET}
       - URL=${url}
-      # Scouter Java Agent (일시 비활성화)
-      # - JAVA_TOOL_OPTIONS=-javaagent:/app/scouter/scouter.agent.jar -Dscouter.config=/app/scouter/conf/scouter.conf
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/scouter/scouter.agent.jar -Dscouter.config=/app/scouter/conf/scouter.conf
     volumes:
       # 로그 디렉토리를 로컬과 동기화 (도커와 인텔리제이 모두 동일 위치에 생성)
       - ./BimilLog_core/logs:/app/logs
-      # Scouter Java Agent config
-      # - ./local/scouter/java-agent.conf:/app/scouter/conf/scouter.conf:ro
+      - ./local/scouter/java-agent.conf:/app/scouter/conf/scouter.conf:ro
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-      # scouter-collector:
-      #   condition: service_started
+      scouter-collector:
+        condition: service_started
     networks:
       - bimillog-local
 
@@ -202,38 +200,38 @@ services:
     networks:
       - bimillog-local
 
-  # Scouter Collector (APM Server) - 일시 비활성화
-  # scouter-collector:
-  #   image: scouterapm/scouter-server:2.17.1
-  #   container_name: bimillog-scouter-collector
-  #   ports:
-  #     - "6100:6100/tcp"
-  #     - "6100:6100/udp"
-  #   volumes:
-  #     - ./local/scouter/collector.conf:/opt/scouter-server/conf/scouter.conf
-  #     - scouter-data-local:/scouter-data
-  #   networks:
-  #     - bimillog-local
+  # Scouter Collector (APM Server)
+  scouter-collector:
+    image: scouterapm/scouter-server:2.17.1
+    container_name: bimillog-scouter-collector
+    ports:
+      - "6100:6100/tcp"
+      - "6100:6100/udp"
+    volumes:
+      - ./local/scouter/collector.conf:/opt/scouter-server/conf/scouter.conf
+      - scouter-data-local:/scouter-data
+    networks:
+      - bimillog-local
 
-  # Scouter Host Agent (OS Monitoring) - 일시 비활성화
-  # scouter-host-agent:
-  #   image: amazoncorretto:21-alpine-jdk
-  #   container_name: bimillog-scouter-host-agent
-  #   entrypoint: ["/bin/sh", "-c"]
-  #   command:
-  #     - |
-  #       wget -q "https://github.com/scouter-project/scouter/releases/download/v2.21.1/scouter-all-2.21.1.tar.gz" -O /tmp/scouter.tar.gz &&
-  #       tar -xzf /tmp/scouter.tar.gz -C /tmp &&
-  #       cp /tmp/scouter/agent.host/conf/scouter.conf /tmp/scouter/agent.host/conf/scouter.conf.bak &&
-  #       cp /host-conf/scouter.conf /tmp/scouter/agent.host/conf/scouter.conf &&
-  #       java -cp "/tmp/scouter/agent.host/scouter.host.jar" scouter.boot.Boot /tmp/scouter/agent.host
-  #   volumes:
-  #     - ./local/scouter/host-agent.conf:/host-conf/scouter.conf:ro
-  #   depends_on:
-  #     - scouter-collector
-  #   networks:
-  #     - bimillog-local
-  #   restart: unless-stopped
+  # Scouter Host Agent (OS Monitoring)
+  scouter-host-agent:
+    image: amazoncorretto:21-alpine-jdk
+    container_name: bimillog-scouter-host-agent
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        wget -q "https://github.com/scouter-project/scouter/releases/download/v2.21.1/scouter-all-2.21.1.tar.gz" -O /tmp/scouter.tar.gz &&
+        tar -xzf /tmp/scouter.tar.gz -C /tmp &&
+        cp /tmp/scouter/agent.host/conf/scouter.conf /tmp/scouter/agent.host/conf/scouter.conf.bak &&
+        cp /host-conf/scouter.conf /tmp/scouter/agent.host/conf/scouter.conf &&
+        java -cp "/tmp/scouter/agent.host/scouter.host.jar" scouter.boot.Boot /tmp/scouter/agent.host
+    volumes:
+      - ./local/scouter/host-agent.conf:/host-conf/scouter.conf:ro
+    depends_on:
+      - scouter-collector
+    networks:
+      - bimillog-local
+    restart: unless-stopped
 
   # JMeter (Load Testing)
   jmeter:
