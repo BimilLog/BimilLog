@@ -5,9 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <h2>실시간 인기글 폴백 저장소</h2>
@@ -53,7 +51,7 @@ public class RealtimeScoreFallbackStore {
     public List<Long> getTopPostIds(long start, long end) {
         return scoreCache.asMap().entrySet().stream()
                 .filter(e -> e.getValue() > 0)
-                .sorted(Map.Entry.<Long, Double>comparingByValue(Comparator.reverseOrder()))
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .skip(start)
                 .limit(end)
                 .map(Map.Entry::getKey)

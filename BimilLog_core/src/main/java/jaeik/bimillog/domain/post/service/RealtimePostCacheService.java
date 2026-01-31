@@ -121,7 +121,6 @@ public class RealtimePostCacheService {
             Set<Long> zsetPostIdSet = new HashSet<>(zsetPostIds);
 
             if (!hashPostIds.equals(zsetPostIdSet)) {
-
                 postCacheRefresh.asyncRefreshRealtimeWithLock(zsetPostIds);
             }
         } catch (Exception e) {

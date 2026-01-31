@@ -30,48 +30,18 @@ public class RedisRealTimePostAdapter {
     private final RedisTemplate<String, Long> redisTemplate;
     private final RealtimeScoreFallbackStore fallbackStore;
 
-    public List<Long> getAllPostId(PostCacheFlag type) {
-        return List.of();
-    }
-
     /**
      * <h3>실시간 인기글 조회</h3>
      * <p>실시간 인기글 에서 점수가 높은 게시글 ID순서대로 조회합니다.</p>
+     * <p>서킷브레이커는 {@link jaeik.bimillog.domain.post.service.RealtimePostCacheService}에서 관리합니다.</p>
      *
      * @param start 시작 위치
      * @param end 조회 개수
      * @return List<Long> 게시글 ID 목록 (점수 내림차순)
      */
-    @CircuitBreaker(name = "realtimeRedis", fallbackMethod = "getRealtimePopularPostIdsFallback")
     public List<Long> getRangePostId(PostCacheFlag type, long start, long end) {
         Set<Long> set = redisTemplate.opsForZSet().reverseRange(REALTIME_SCORE_KEY, 0, 4);
         return new ArrayList<>(Optional.ofNullable(set).orElseGet(Collections::emptySet));
-    }
-
-    /**
-     * <h3>실시간 인기글 조회 폴백</h3>
-     * <p>실시간과 점수 증가와 같은 서킷을 공유한다.</p>
-     * <p>폴백시 메모리에서 실시간 인기글을 조회한다.</p>
-     */
-    private List<Long> getRealtimePopularPostIdsFallback(PostCacheFlag type, long start, long end, Throwable t) {
-        log.warn("[CIRCUIT_FALLBACK] 실시간 인기글 조회 실패. 사유: {}, 폴백 저장소 사용", t.getMessage());
-        return fallbackStore.getTopPostIds(start, end);
-    }
-
-    /**
-     * <h3>실시간 인기글 여부 확인</h3>
-     * <p>특정 postId가 실시간 인기글 점수 Sorted Set에 존재하는지 확인합니다.</p>
-     * <p>O(1) 연산으로 효율적으로 확인합니다.</p>
-     *
-     * @param postId 확인할 게시글 ID
-     * @return 실시간 인기글이면 true
-     */
-    public boolean isRealtimePopularPost(Long postId) {
-        if (postId == null) {
-            return false;
-        }
-        Double score = redisTemplate.opsForZSet().score(REALTIME_SCORE_KEY, postId);
-        return score != null;
     }
 
     /**
