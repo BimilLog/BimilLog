@@ -2,10 +2,10 @@ package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.dto.MyMessageQueryDTO;
+import jaeik.bimillog.domain.paper.dto.VisitMessageDTO;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
-import jaeik.bimillog.domain.paper.repository.MessageRepository;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -27,7 +27,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PaperQueryService {
-    private final MessageRepository messageRepository;
     private final PaperQueryRepository paperQueryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final PaperToMemberAdapter paperToMemberAdapter;
@@ -46,7 +45,7 @@ public class PaperQueryService {
      * <p>메시지가 없는 경우 빈 리스트를 반환</p>
      * <p>롤링페이퍼 조회 성공 시 PaperViewedEvent를 발행하여 실시간 인기 점수를 증가시킵니다.</p>
      */
-    public VisitPaperResult visitPaper(String memberName) {
+    public List<VisitMessageDTO> visitPaper(String memberName) {
         if (memberName == null || memberName.trim().isEmpty()) {
             throw new CustomException(ErrorCode.PAPER_INVALID_INPUT_VALUE);
         }
@@ -57,14 +56,8 @@ public class PaperQueryService {
                 .orElseThrow(() -> new CustomException(ErrorCode.PAPER_USERNAME_NOT_FOUND));
 
         List<Message> messages = paperQueryRepository.getMessageList(member.getId());
-
-        List<VisitPaperResult.VisitMessage> visitMessages = messages.stream()
-                .map(VisitPaperResult.VisitMessage::from)
-                .toList();
-
-        // 롤링페이퍼 조회 이벤트 발행 (실시간 인기 점수 증가)
+        List<VisitMessageDTO> listVisitMessageDTO = VisitMessageDTO.getListVisitMessageDTO(messages);
         eventPublisher.publishEvent(new PaperViewedEvent(member.getId()));
-
-        return new VisitPaperResult(visitMessages, member.getId());
+        return listVisitMessageDTO;
     }
 }

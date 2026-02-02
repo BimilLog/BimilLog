@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
-import jaeik.bimillog.domain.paper.repository.MessageRepository;
+import jaeik.bimillog.domain.paper.repository.PaperRepository;
 import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -41,7 +41,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
     private PaperQueryRepository paperQueryRepository;
 
     @Mock
-    private MessageRepository messageRepository;
+    private PaperRepository paperRepository;
 
     @Mock
     private PaperToMemberAdapter paperToMemberAdapter;
@@ -64,7 +64,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         );
 
         given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
-        given(messageRepository.findByMemberMemberName(memberName)).willReturn(messages);
+        given(paperRepository.findByMemberMemberName(memberName)).willReturn(messages);
 
         // When
         VisitPaperResult result = paperQueryService.visitPaper(getTestMember().getId(), memberName);
@@ -76,7 +76,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         assertThat(result.messages().get(1).getMemberId()).isEqualTo(getOtherMember().getId());
 
         verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
-        verify(messageRepository, times(1)).findByMemberMemberName(memberName);
+        verify(paperRepository, times(1)).findByMemberMemberName(memberName);
     }
 
     @Test
@@ -86,7 +86,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         String memberName = "userWithNoMessages";
 
         given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
-        given(messageRepository.findByMemberMemberName(memberName)).willReturn(Collections.emptyList());
+        given(paperRepository.findByMemberMemberName(memberName)).willReturn(Collections.emptyList());
 
         // When
         VisitPaperResult result = paperQueryService.visitPaper(getTestMember().getId(), memberName);
@@ -96,7 +96,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         assertThat(result.messages()).isEmpty();
 
         verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
-        verify(messageRepository, times(1)).findByMemberMemberName(memberName);
+        verify(paperRepository, times(1)).findByMemberMemberName(memberName);
     }
 
 
@@ -120,7 +120,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
-        verify(messageRepository, never()).findByMemberMemberName(any());
+        verify(paperRepository, never()).findByMemberMemberName(any());
     }
 
 }

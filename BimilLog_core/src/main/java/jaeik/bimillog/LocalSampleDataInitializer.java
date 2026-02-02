@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.repository.MessageRepository;
+import jaeik.bimillog.domain.paper.repository.PaperRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -34,14 +34,14 @@ public class LocalSampleDataInitializer implements ApplicationRunner {
 
     private final DataSource dataSource;
     private final JdbcTemplate jdbcTemplate;
-    private final MessageRepository messageRepository;
+    private final PaperRepository paperRepository;
     private final MemberRepository memberRepository;
 
     public LocalSampleDataInitializer(DataSource dataSource, JdbcTemplate jdbcTemplate,
-                                      MessageRepository messageRepository, MemberRepository memberRepository) {
+                                      PaperRepository paperRepository, MemberRepository memberRepository) {
         this.dataSource = dataSource;
         this.jdbcTemplate = jdbcTemplate;
-        this.messageRepository = messageRepository;
+        this.paperRepository = paperRepository;
         this.memberRepository = memberRepository;
     }
 
@@ -115,7 +115,7 @@ public class LocalSampleDataInitializer implements ApplicationRunner {
         messages.add(Message.createMessage(member1, DecoType.BALLOON, "건강하세요", "건강하세요~", 6, 8));
         messages.add(Message.createMessage(member1, DecoType.SUNFLOWER, "감사드려요", "감사드립니다!", 6, 9));
 
-        messageRepository.saveAll(messages);
+        paperRepository.saveAll(messages);
         log.info("[LocalSampleDataInitializer] {} 개의 메시지가 생성되었습니다.", messages.size());
     }
 }
