@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.dto.MyMessageQueryDTO;
-import jaeik.bimillog.domain.paper.dto.VisitMessageDTO;
+import jaeik.bimillog.domain.paper.dto.VisitPaperDTO;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
@@ -44,7 +44,7 @@ public class PaperQueryService {
      * <p>메시지가 없는 경우 빈 리스트를 반환</p>
      * <p>롤링페이퍼 조회 성공 시 PaperViewedEvent를 발행하여 실시간 인기 점수를 증가시킵니다.</p>
      */
-    public List<VisitMessageDTO> visitPaper(String memberName) {
+    public VisitPaperDTO visitPaper(String memberName) {
         if (memberName == null || memberName.trim().isEmpty()) {
             throw new CustomException(ErrorCode.PAPER_INVALID_INPUT_VALUE);
         }
@@ -55,8 +55,8 @@ public class PaperQueryService {
                 .orElseThrow(() -> new CustomException(ErrorCode.PAPER_USERNAME_NOT_FOUND));
 
         List<Message> messages = paperQueryRepository.getMessageList(member.getId());
-        List<VisitMessageDTO> listVisitMessageDTO = VisitMessageDTO.getListVisitMessageDTO(messages);
+        VisitPaperDTO visitPaperDTO = VisitPaperDTO.createVisitPaperDTO(member.getId(), messages);
         eventPublisher.publishEvent(new PaperViewedEvent(member.getId()));
-        return listVisitMessageDTO;
+        return visitPaperDTO;
     }
 }

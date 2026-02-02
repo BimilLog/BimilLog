@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.paper.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.paper.dto.MyMessageQueryDTO;
-import jaeik.bimillog.domain.paper.dto.VisitMessageDTO;
+import jaeik.bimillog.domain.paper.dto.VisitPaperDTO;
 import jaeik.bimillog.domain.paper.service.PaperQueryService;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +43,7 @@ public class PaperQueryController {
      */
     @GetMapping
     public ResponseEntity<List<MyMessageQueryDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long memberId = userDetails.getMemberId();
-        List<MyMessageQueryDTO> myMessages = paperQueryService.getMyPaper(memberId);
+        List<MyMessageQueryDTO> myMessages = paperQueryService.getMyPaper(userDetails.getMemberId());
         return ResponseEntity.ok(myMessages);
     }
 
@@ -57,8 +56,8 @@ public class PaperQueryController {
      * @return 타인 메시지 리스트
      */
     @GetMapping("/{memberName}")
-    public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String memberName) {
-        List<VisitMessageDTO> result = paperQueryService.visitPaper(memberName);
+    public ResponseEntity<VisitPaperDTO> visitPaper(@PathVariable String memberName) {
+        VisitPaperDTO result = paperQueryService.visitPaper(memberName);
         return ResponseEntity.ok(result);
     }
 }
