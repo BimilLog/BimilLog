@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import { generateKeywords } from "@/lib/seo";
 import { VisitClient } from "@/components/organisms/rolling-paper/visit";
 
@@ -101,11 +102,14 @@ const jsonLd = {
   },
 };
 
-export default function VisitPage() {
+export default async function VisitPage() {
+  const nonce = (await headers()).get('x-nonce') ?? '';
+
   return (
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd),
         }}

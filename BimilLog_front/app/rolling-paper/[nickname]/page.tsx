@@ -1,4 +1,5 @@
 import { Metadata, ResolvingMetadata } from "next";
+import { headers } from "next/headers";
 import { generateKeywords, generateDynamicOgImage } from "@/lib/seo";
 import { RollingPaperClient } from "@/components/organisms/rolling-paper";
 import { getRollingPaperServer } from "@/lib/api/server";
@@ -123,10 +124,13 @@ export default async function PublicRollingPaperPage({
     },
   };
 
+  const nonce = (await headers()).get('x-nonce') ?? '';
+
   return (
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(pageJsonLd),
         }}

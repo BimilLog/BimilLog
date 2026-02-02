@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import { HomeClient } from "@/components/organisms/home";
 import { getPopularPapersServer } from "@/lib/api/server";
 
@@ -94,11 +95,13 @@ export default async function HomePage() {
   // 인기 롤링페이퍼 SSR
   const popularPapersResponse = await getPopularPapersServer(0, 10);
   const popularPapers = popularPapersResponse?.data || null;
+  const nonce = (await headers()).get('x-nonce') ?? '';
 
   return (
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd),
         }}

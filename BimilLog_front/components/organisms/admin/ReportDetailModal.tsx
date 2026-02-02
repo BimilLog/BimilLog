@@ -136,7 +136,7 @@ export function ReportDetailModal({
 
         {/* 탭 시스템: 상세정보, 신고내용, 처리작업으로 구성 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-          <TabsList className="w-full rounded-none border-b px-6">
+          <TabsList className="w-full rounded-none border-b px-3 sm:px-6">
             <TabsTrigger value="details" className="flex-1">
               상세 정보
             </TabsTrigger>
@@ -148,9 +148,9 @@ export function ReportDetailModal({
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="h-[400px]">
+          <ScrollArea className="h-[60vh] max-h-[400px]">
             {/* Details Tab */}
-            <TabsContent value="details" className="px-6 py-4 space-y-4 mt-0">
+            <TabsContent value="details" className="px-3 sm:px-6 py-4 space-y-4 mt-0">
               {/* 정보 카드들을 2x2 그리드로 배치 (모바일에서는 1열) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 신고 유형 카드 */}
@@ -234,7 +234,7 @@ export function ReportDetailModal({
             </TabsContent>
 
             {/* 신고 내용 탭 - 신고 사유와 대상 콘텐츠 표시 */}
-            <TabsContent value="content" className="px-6 py-4 mt-0">
+            <TabsContent value="content" className="px-3 sm:px-6 py-4 mt-0">
               <Card className="p-6">
                 <div className="space-y-4">
                   {/* 신고자가 입력한 신고 사유 */}
@@ -254,7 +254,7 @@ export function ReportDetailModal({
             </TabsContent>
 
             {/* 관리자 처리 작업 탭 - 차단/탈퇴 등 관리자 액션 */}
-            <TabsContent value="actions" className="px-6 py-4 space-y-4 mt-0">
+            <TabsContent value="actions" className="px-3 sm:px-6 py-4 space-y-4 mt-0">
               {/* 주의사항 알림 배너 */}
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
@@ -273,12 +273,12 @@ export function ReportDetailModal({
                 <div className="space-y-3">
                   {/* 사용자 차단 액션 */}
                   <Card className="p-4 hover:shadow-brand-md transition-shadow">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
                           <Ban className="w-5 h-5 stroke-orange-600" />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <p className="font-medium text-brand-primary">사용자 차단</p>
                           <p className="text-sm text-brand-secondary">24시간 동안 서비스 이용 제한</p>
                         </div>
@@ -288,7 +288,7 @@ export function ReportDetailModal({
                         size="sm"
                         onClick={handleBanClick}
                         disabled={isProcessing || !report.targetAuthorName}
-                        className="text-orange-600 border-orange-200 hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="text-orange-600 border-orange-200 hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 w-full sm:w-auto"
                       >
                         차단
                         <ChevronRight className="w-4 h-4 ml-1 stroke-slate-600" />
@@ -298,12 +298,12 @@ export function ReportDetailModal({
 
                   {/* 사용자 강제탈퇴 액션 */}
                   <Card className="p-4 hover:shadow-brand-md transition-shadow">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
                           <UserX className="w-5 h-5 stroke-red-600" />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <p className="font-medium text-brand-primary">강제 탈퇴</p>
                           <p className="text-sm text-brand-secondary">사용자 계정 영구 삭제</p>
                         </div>
@@ -313,7 +313,7 @@ export function ReportDetailModal({
                         size="sm"
                         onClick={handleWithdrawClick}
                         disabled={isProcessing || !report.targetAuthorName}
-                        className="text-red-600 border-red-200 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="text-red-600 border-red-200 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 w-full sm:w-auto"
                       >
                         탈퇴
                         <ChevronRight className="w-4 h-4 ml-1 stroke-slate-600" />
