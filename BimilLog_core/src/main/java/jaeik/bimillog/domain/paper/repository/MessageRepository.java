@@ -29,15 +29,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     void deleteAllByMember_Id(Long memberId);
 
     /**
-     * 특정 사용자(롤링페이퍼 소유자) ID로 해당 롤링페이퍼에 작성된 메시지 목록을
-     * 최신순(createdAt 기준 내림차순)으로 조회합니다.
-     *
-     * @param memberId 롤링페이퍼 소유자의 사용자 ID (Message.member.id)
-     * @return 해당 사용자의 메시지 목록 (List<Message>)
-     */
-    List<Message> findByMember_IdOrderByCreatedAtDesc(Long memberId);
-
-    /**
      * 특정 사용자명(롤링페이퍼 소유자)을 기준으로
      * 해당 롤링페이퍼에 작성된 모든 메시지 목록을 조회합니다.
      *

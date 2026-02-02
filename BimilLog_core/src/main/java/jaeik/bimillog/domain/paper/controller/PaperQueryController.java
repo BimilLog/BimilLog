@@ -47,8 +47,7 @@ public class PaperQueryController {
     @GetMapping
     public ResponseEntity<List<MyMessage>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
-        List<Message> messageDetails = paperQueryService.getMyPaper(memberId);
-        List<MyMessage> myMessages = messageDetails.stream().map(MyMessage::from).toList();
+        List<MyMessage> myMessages = paperQueryService.getMyPaper(memberId);
         return ResponseEntity.ok(myMessages);
     }
 

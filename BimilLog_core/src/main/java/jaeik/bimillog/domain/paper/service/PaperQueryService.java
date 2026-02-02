@@ -3,10 +3,12 @@ package jaeik.bimillog.domain.paper.service;
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.Message;
+import jaeik.bimillog.domain.paper.entity.MyMessage;
 import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
 import jaeik.bimillog.domain.paper.repository.MessageRepository;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
+import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaperQueryService {
     private final MessageRepository messageRepository;
+    private final PaperQueryRepository paperQueryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final PaperToMemberAdapter paperToMemberAdapter;
 
@@ -37,8 +40,9 @@ public class PaperQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<Message> getMyPaper(Long memberId) {
-        return messageRepository.findByMember_IdOrderByCreatedAtDesc(memberId);
+    public List<MyMessage> getMyPaper(Long memberId) {
+        List<Message> messageDetails = paperQueryRepository.getMyMessageList(memberId);
+        return messageDetails.stream().map(MyMessage::from).toList();
     }
 
     /**
