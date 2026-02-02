@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.paper.dto.MyMessageQueryDTO;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MyMessage;
 import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
@@ -38,11 +39,11 @@ public class PaperQueryService {
      * <p>사용자 ID를 통해 자신의 롤링페이퍼에 작성된 모든 메시지를 조회합니다.</p>
      *
      * @author Jaeik
-     * @since 2.0.0
+     * @since 2.6.0
      */
-    public List<MyMessage> getMyPaper(Long memberId) {
+    public List<MyMessageQueryDTO> getMyPaper(Long memberId) {
         List<Message> messageDetails = paperQueryRepository.getMyMessageList(memberId);
-        return messageDetails.stream().map(MyMessage::from).toList();
+        return MyMessageQueryDTO.getListMyMessageDTO(messageDetails);
     }
 
     /**
