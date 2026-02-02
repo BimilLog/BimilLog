@@ -1,5 +1,3 @@
-"use client";
-
 import { CleanLayout } from "@/components/organisms/layout/BaseLayout";
 import { LegalDocumentHeader } from "@/components/organisms/common/LegalDocumentHeader";
 

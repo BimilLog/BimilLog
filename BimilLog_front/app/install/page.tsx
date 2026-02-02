@@ -182,12 +182,12 @@ export default function InstallPage() {
       <section className="container mx-auto px-4 py-16 md:py-24 text-center">
         <div className="max-w-4xl mx-auto">
           <Smartphone className="w-20 h-20 mb-8 animate-bounce stroke-purple-600 fill-purple-100 mx-auto" />
-          <h1 className={`text-5xl md:text-7xl font-bold mb-8 ${GRADIENTS.titleText} leading-tight`}>
+          <h1 className={`text-3xl sm:text-5xl md:text-7xl font-bold mb-8 ${GRADIENTS.titleText} leading-tight`}>
             비밀로그를
             <br className="md:hidden" />
             <span className="block">앱으로 설치하세요</span>
           </h1>
-          <p className="text-xl md:text-2xl text-brand-muted mb-12 leading-relaxed max-w-5xl mx-auto whitespace-nowrap">
+          <p className="text-lg sm:text-xl md:text-2xl text-brand-muted mb-12 leading-relaxed max-w-5xl mx-auto">
             더 빠르고 편리한 앱 경험으로 언제 어디서나 마음을 전해보세요
           </p>
 

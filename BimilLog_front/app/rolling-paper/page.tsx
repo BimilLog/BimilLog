@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import { generateKeywords } from "@/lib/seo";
 import { RollingPaperClient } from "@/components/organisms/rolling-paper";
 
@@ -77,11 +78,14 @@ const jsonLd = {
   },
 };
 
-export default function RollingPaperPage() {
+export default async function RollingPaperPage() {
+  const nonce = (await headers()).get('x-nonce') ?? '';
+
   return (
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd),
         }}

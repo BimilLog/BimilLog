@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { generateStructuredData, generateKeywords } from "@/lib/seo";
 import { PostDetailClient } from "@/components/organisms/board";
 import { BlockedToastRedirect } from "@/components/molecules/alerts/BlockedToastRedirect";
@@ -164,15 +164,19 @@ export default async function PostDetailPage({ params }: Props) {
       { title: post.title }
     ]);
 
+    const nonce = (await headers()).get('x-nonce') ?? '';
+
     return (
       <>
         {/* JSON-LD 스크립트를 head에 삽입하여 구조화된 데이터 제공 */}
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
         />
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
         {/* 서버에서 가져온 초기 데이터를 클라이언트 컴포넌트에 전달 */}

@@ -11,7 +11,12 @@ import { useUpdatePostAction } from "@/hooks/actions/usePostActions";
  * 게시글 수정 폼을 위한 통합 훅
  * edit/page.tsx의 비즈니스 로직을 추출하여 재사용 가능하게 만듦
  */
-export function useEditForm() {
+interface UseEditFormOptions {
+  initialPost?: Post | null;
+  initialPostId?: number;
+}
+
+export function useEditForm(options?: UseEditFormOptions) {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
@@ -19,29 +24,48 @@ export function useEditForm() {
   const { updatePost, isPending: isUpdatePending } = useUpdatePostAction();
 
   // 게시글 ID 추출
-  const [postId, setPostId] = useState<number | null>(null);
+  const resolvedPostId = options?.initialPostId ?? (params.id ? Number.parseInt(params.id as string) : null);
+  const [postId, setPostId] = useState<number | null>(resolvedPostId);
 
   useEffect(() => {
-    if (params.id) {
+    if (!postId && params.id) {
       setPostId(Number.parseInt(params.id as string));
     }
-  }, [params]);
+  }, [params, postId]);
+
+  const hasInitialPost = !!options?.initialPost;
 
   // Post 상태
-  const [post, setPost] = useState<Post | null>(null);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [post, setPost] = useState<Post | null>(options?.initialPost ?? null);
+  const [title, setTitle] = useState(options?.initialPost?.title ?? "");
+  const [content, setContent] = useState(options?.initialPost?.content ?? "");
+  const [isLoading, setIsLoading] = useState(!hasInitialPost);
   const [isPreview, setIsPreview] = useState(false);
 
   // 비회원 게시글 수정 상태
-  const [isGuest, setIsGuest] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const initIsGuest = options?.initialPost ? (options.initialPost.memberId === null || options.initialPost.memberId === 0) : false;
+  const [isGuest, setIsGuest] = useState(initIsGuest);
+  const [isAuthorized, setIsAuthorized] = useState(hasInitialPost && initIsGuest);
   const [guestPassword, setGuestPassword] = useState("");
 
-  // 게시글 정보 조회
+  // SSR initialPost 권한 체크
+  useEffect(() => {
+    if (!hasInitialPost || authLoading) return;
+    const postData = options!.initialPost!;
+    const isGuestPost = postData.memberId === null || postData.memberId === 0;
+    if (isGuestPost) {
+      setIsAuthorized(true);
+    } else if (isAuthenticated && user?.memberId === postData.memberId) {
+      setIsAuthorized(true);
+    } else {
+      showError("권한 없음", "수정 권한이 없습니다.");
+      router.push(`/board/post/${postId}`);
+    }
+  }, [hasInitialPost, authLoading, isAuthenticated, user]);
+
+  // 게시글 정보 조회 (initialPost 없을 때만)
   const fetchPost = useCallback(async () => {
-    if (!postId || authLoading) return;
+    if (hasInitialPost || !postId || authLoading) return;
 
     try {
       const response = await postQuery.getById(postId);
@@ -77,12 +101,12 @@ export function useEditForm() {
     } finally {
       setIsLoading(false);
     }
-  }, [postId, router, isAuthenticated, user, showError, authLoading]);
+  }, [hasInitialPost, postId, router, isAuthenticated, user, showError, authLoading]);
 
-  // 초기 로드
+  // 초기 로드 (initialPost 없을 때만)
   useEffect(() => {
-    fetchPost();
-  }, [fetchPost]);
+    if (!hasInitialPost) fetchPost();
+  }, [fetchPost, hasInitialPost]);
 
   // 폼 유효성 검사
   const validateForm = () => {

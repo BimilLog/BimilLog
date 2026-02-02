@@ -180,6 +180,12 @@ export async function getUserSettingsServer() {
   return authServerFetch<ApiResponse<Setting>>(`/api/member/setting`)
 }
 
+// === 게시글 상세 ===
+
+export async function getPostDetailServer(postId: number) {
+  return authServerFetch<ApiResponse<import('@/types/domains/post').Post>>(`/api/post/${postId}`)
+}
+
 // 롤링페이퍼 방문자 조회 (인증 쿠키 포함 - 차단 체크용)
 export async function getRollingPaperServer(nickname: string): Promise<ApiResponse<VisitPaperResult> | null> {
   try {

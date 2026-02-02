@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import { BoardClient } from "@/components/organisms/board";
 import { generateStructuredData, generateKeywords, generateDynamicOgImage } from "@/lib/seo";
 import { getBoardInitialData, getSearchInitialData } from "@/lib/api/server";
@@ -177,16 +178,20 @@ export default async function BoardPage({ searchParams }: Props) {
     { title: query ? `"${query}" 검색 결과` : "커뮤니티", href: "/board" }
   ]);
 
+  const nonce = (await headers()).get('x-nonce') ?? '';
+
   return (
     <>
       {searchJsonLd && (
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: JSON.stringify(searchJsonLd) }}
         />
       )}
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <BoardClient initialData={initialData} />
