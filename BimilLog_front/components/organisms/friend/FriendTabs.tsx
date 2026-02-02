@@ -7,6 +7,8 @@ import { FriendList } from "./FriendList";
 import { ReceivedRequestList } from "./ReceivedRequestList";
 import { SentRequestList } from "./SentRequestList";
 import { RecommendedFriendList } from "./RecommendedFriendList";
+import type { PageResponse } from "@/types/common";
+import type { Friend, ReceivedFriendRequest, SentFriendRequest, RecommendedFriend } from "@/types/domains/friend";
 
 const tabs = [
   { id: 'friends', label: '내 친구', icon: Users, color: 'text-blue-600' },
@@ -16,6 +18,18 @@ const tabs = [
 ] as const;
 
 type TabId = typeof tabs[number]['id'];
+
+export interface FriendTabInitialData {
+  friends?: PageResponse<Friend> | null;
+  recommended?: PageResponse<RecommendedFriend> | null;
+  received?: PageResponse<ReceivedFriendRequest> | null;
+  sent?: PageResponse<SentFriendRequest> | null;
+}
+
+interface FriendTabsProps {
+  initialData?: FriendTabInitialData;
+  initialTab?: TabId;
+}
 
 /**
  * 탭 ID의 유효성 검사 타입 가드
@@ -30,16 +44,16 @@ const isValidTab = (tab: string | null): tab is TabId => {
  * - 알림에서 /friends?tab=received로 이동 가능
  * - 북마크/공유 가능한 URL 구조
  */
-export const FriendTabs: React.FC = () => {
+export const FriendTabs: React.FC<FriendTabsProps> = ({ initialData, initialTab }) => {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab') as string | null;
 
-  // 초기 상태: URL 파라미터 우선, 그 다음 기본값
+  // 초기 상태: URL 파라미터 우선, 그 다음 initialTab, 그 다음 기본값
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     if (isValidTab(tabParam)) {
       return tabParam;
     }
-    return 'friends';
+    return initialTab || 'friends';
   });
 
   // URL 파라미터 변경 시 상태 동기화
@@ -81,10 +95,10 @@ export const FriendTabs: React.FC = () => {
 
       {/* 탭 컨텐츠 */}
       <div className="min-h-[400px]">
-        {activeTab === 'friends' && <FriendList />}
-        {activeTab === 'recommended' && <RecommendedFriendList />}
-        {activeTab === 'received' && <ReceivedRequestList />}
-        {activeTab === 'sent' && <SentRequestList />}
+        {activeTab === 'friends' && <FriendList initialData={initialData?.friends} />}
+        {activeTab === 'recommended' && <RecommendedFriendList initialData={initialData?.recommended} />}
+        {activeTab === 'received' && <ReceivedRequestList initialData={initialData?.received} />}
+        {activeTab === 'sent' && <SentRequestList initialData={initialData?.sent} />}
       </div>
     </div>
   );

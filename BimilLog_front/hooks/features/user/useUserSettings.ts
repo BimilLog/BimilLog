@@ -10,9 +10,9 @@ import { updateSettingsAction, withdrawAction } from "@/lib/actions/user";
 
 type SettingField = keyof Setting;
 
-export function useUserSettings() {
-  const [settings, setSettings] = useState<Setting | null>(null);
-  const [loading, setLoading] = useState(true);
+export function useUserSettings(initialSettings?: Setting | null) {
+  const [settings, setSettings] = useState<Setting | null>(initialSettings ?? null);
+  const [loading, setLoading] = useState(!initialSettings);
   const [saving, setSaving] = useState(false);
   const [savingFields, setSavingFields] = useState<Record<SettingField, boolean>>({
     messageNotification: false,
@@ -43,7 +43,11 @@ export function useUserSettings() {
   }, []);
 
   useEffect(() => {
-    loadSettings();
+    if (!initialSettings) {
+      loadSettings();
+    } else {
+      previousSettingsRef.current = initialSettings;
+    }
   }, []);
 
   const loadSettings = async () => {

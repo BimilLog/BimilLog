@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { Member } from "@/lib/api";
 import { useMyPageInfo } from "@/hooks/api/useMyPageQueries";
 import { useMyRollingPaper } from "@/hooks/api/useMyRollingPaper";
+import type { MyPageDTO } from "@/types";
+import type { RollingPaperMessage } from "@/types/domains/paper";
 
 // ===== USER STATS =====
 interface UserStats {
@@ -14,19 +16,23 @@ interface UserStats {
   totalLikedComments: number;
 }
 
-export function useUserStats(user: Member | null) {
-  // 마이페이지 통합 API 호출
-  // size=10으로 통일하여 useUserActivityTabs와 같은 queryKey 사용
-  // TanStack Query가 자동으로 캐시를 공유하여 중복 호출 방지
+interface UseUserStatsOptions {
+  initialMyPageData?: MyPageDTO | null;
+  initialPaperData?: RollingPaperMessage[] | null;
+}
+
+export function useUserStats(user: Member | null, options?: UseUserStatsOptions) {
   const {
     data: mypageData,
     isLoading: isLoadingMypage,
     error: mypageError,
     refetch: fetchUserStats,
-  } = useMyPageInfo(0, 10);
+  } = useMyPageInfo(0, 10, undefined, options?.initialMyPageData);
 
-  // 롤링페이퍼 데이터 (마이페이지 API와 별도)
-  const { data: myPaperData, isLoading: isLoadingPaper, isError: isPaperError } = useMyRollingPaper();
+  const { data: myPaperData, isLoading: isLoadingPaper, isError: isPaperError } = useMyRollingPaper(
+    true,
+    options?.initialPaperData,
+  );
 
   // 통계 계산 (메모이제이션)
   const userStats = useMemo<UserStats>(() => {

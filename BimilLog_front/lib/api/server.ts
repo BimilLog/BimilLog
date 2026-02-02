@@ -5,7 +5,10 @@
 
 import { ApiResponse, PageResponse } from '@/types/common'
 import { SimplePost } from '@/types/domains/post'
-import { PopularPaperInfo, VisitPaperResult } from '@/types/domains/paper'
+import { PopularPaperInfo, RollingPaperMessage, VisitPaperResult } from '@/types/domains/paper'
+import { Friend, ReceivedFriendRequest, SentFriendRequest, RecommendedFriend } from '@/types/domains/friend'
+import { MyPageDTO } from '@/types/domains/mypage'
+import { Setting } from '@/types/domains/user'
 import { cookies } from 'next/headers'
 
 const getServerApiUrl = () => {
@@ -114,6 +117,67 @@ export async function searchPostsServer(
 // 인기 롤링페이퍼 조회
 export async function getPopularPapersServer(page = 0, size = 10) {
   return serverFetch<ApiResponse<PageResponse<PopularPaperInfo>>>(`/api/paper/popular?page=${page}&size=${size}`)
+}
+
+/**
+ * 인증 포함 서버 fetch (쿠키 전달)
+ * 로그인 필요한 API를 SSR에서 호출할 때 사용
+ */
+async function authServerFetch<T>(endpoint: string): Promise<T | null> {
+  try {
+    const cookieStore = await cookies()
+    const cookieHeader = cookieStore.getAll()
+      .map(({ name, value }) => `${name}=${value}`)
+      .join('; ')
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (cookieHeader) headers['Cookie'] = cookieHeader
+    const res = await fetch(`${getServerApiUrl()}${endpoint}`, {
+      headers,
+      next: { revalidate: 0 },
+    })
+    if (!res.ok) {
+      console.error(`[authServerFetch] Failed: ${endpoint}, status: ${res.status}`)
+      return null
+    }
+    return await res.json()
+  } catch (error) {
+    console.error(`[authServerFetch] Error:`, error)
+    return null
+  }
+}
+
+// === 친구 관련 ===
+
+export async function getMyFriendsServer(page = 0, size = 20) {
+  return authServerFetch<ApiResponse<PageResponse<Friend>>>(`/api/friend/list?page=${page}&size=${size}`)
+}
+
+export async function getReceivedRequestsServer(page = 0, size = 20) {
+  return authServerFetch<ApiResponse<PageResponse<ReceivedFriendRequest>>>(`/api/friend/receive?page=${page}&size=${size}`)
+}
+
+export async function getSentRequestsServer(page = 0, size = 20) {
+  return authServerFetch<ApiResponse<PageResponse<SentFriendRequest>>>(`/api/friend/send?page=${page}&size=${size}`)
+}
+
+export async function getRecommendedFriendsServer(page = 0, size = 10) {
+  return authServerFetch<ApiResponse<PageResponse<RecommendedFriend>>>(`/api/friend/recommend?page=${page}&size=${size}`)
+}
+
+// === 마이페이지 관련 ===
+
+export async function getMyPageInfoServer(page = 0, size = 10) {
+  return authServerFetch<ApiResponse<MyPageDTO>>(`/api/mypage/?page=${page}&size=${size}`)
+}
+
+export async function getMyRollingPaperServer() {
+  return authServerFetch<ApiResponse<RollingPaperMessage[]>>(`/api/paper`)
+}
+
+// === 설정 관련 ===
+
+export async function getUserSettingsServer() {
+  return authServerFetch<ApiResponse<Setting>>(`/api/member/setting`)
 }
 
 // 롤링페이퍼 방문자 조회 (인증 쿠키 포함 - 차단 체크용)
