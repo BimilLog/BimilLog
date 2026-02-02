@@ -27,15 +27,18 @@ public class PaperQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
     private final QMessage message = QMessage.message;
 
-    public List<Message> getMyMessageList(Long memberId) {
+    /**
+     * <h3>회원ID로 메시지 조회</h3>
+     * @param memberId 회원 id
+     * @return 메시지 리스트
+     */
+    public List<Message> getMessageList(Long memberId) {
         return jpaQueryFactory.select(message)
                 .from(message)
                 .where(message.member.id.eq(memberId))
                 .orderBy(message.createdAt.desc())
                 .fetch();
     }
-
-
 
     /**
      * <h3>인기 롤링페이퍼 정보 보강</h3>

@@ -59,9 +59,8 @@ public class PaperQueryController {
      * @return 타인 메시지 리스트
      */
     @GetMapping("/{memberName}")
-    public ResponseEntity<VisitPaperResult> visitPaper(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable String memberName) {
-        Long memberId = userDetails == null ? null : userDetails.getMemberId();
-        VisitPaperResult result = paperQueryService.visitPaper(memberId, memberName);
+    public ResponseEntity<VisitPaperResult> visitPaper(@PathVariable String memberName) {
+        VisitPaperResult result = paperQueryService.visitPaper(memberName);
         return ResponseEntity.ok(result);
     }
 }

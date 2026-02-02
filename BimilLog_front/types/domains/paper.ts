@@ -34,7 +34,6 @@ export type DecoType =
 // 롤링페이퍼 메시지 타입 - v2 백엔드 MessageDTO 완전 호환
 export interface RollingPaperMessage {
   id: number
-  memberId: number
   decoType: DecoType
   anonymity: string
   content: string
