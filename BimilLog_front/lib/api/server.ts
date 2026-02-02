@@ -5,7 +5,8 @@
 
 import { ApiResponse, PageResponse } from '@/types/common'
 import { SimplePost } from '@/types/domains/post'
-import { PopularPaperInfo } from '@/types/domains/paper'
+import { PopularPaperInfo, VisitPaperResult } from '@/types/domains/paper'
+import { cookies } from 'next/headers'
 
 const getServerApiUrl = () => {
   return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -113,4 +114,33 @@ export async function searchPostsServer(
 // 인기 롤링페이퍼 조회
 export async function getPopularPapersServer(page = 0, size = 10) {
   return serverFetch<ApiResponse<PageResponse<PopularPaperInfo>>>(`/api/paper/popular?page=${page}&size=${size}`)
+}
+
+// 롤링페이퍼 방문자 조회 (인증 쿠키 포함 - 차단 체크용)
+export async function getRollingPaperServer(nickname: string): Promise<ApiResponse<VisitPaperResult> | null> {
+  try {
+    const url = `${getServerApiUrl()}/api/paper/${encodeURIComponent(nickname)}`
+    const cookieStore = await cookies()
+    const cookieHeader = cookieStore.getAll()
+      .map(({ name, value }) => `${name}=${value}`)
+      .join('; ')
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (cookieHeader) headers['Cookie'] = cookieHeader
+
+    const res = await fetch(url, {
+      headers,
+      next: { revalidate: 0 },
+    })
+
+    if (!res.ok) {
+      console.error(`[getRollingPaperServer] Failed: ${url}, status: ${res.status}`)
+      return null
+    }
+
+    return await res.json()
+  } catch (error) {
+    console.error(`[getRollingPaperServer] Error:`, error)
+    return null
+  }
 }

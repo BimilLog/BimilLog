@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth, useToast } from "@/hooks";
-import { postQuery, postCommand, type Post } from "@/lib/api";
+import { postQuery, type Post } from "@/lib/api";
 import { stripHtml, validatePassword } from "@/lib/utils";
+import { useUpdatePostAction } from "@/hooks/actions/usePostActions";
 
 /**
  * 게시글 수정 폼을 위한 통합 훅
@@ -14,7 +15,8 @@ export function useEditForm() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
-  const { showSuccess, showError, showWarning } = useToast();
+  const { showError, showWarning } = useToast();
+  const { updatePost, isPending: isUpdatePending } = useUpdatePostAction();
 
   // 게시글 ID 추출
   const [postId, setPostId] = useState<number | null>(null);
@@ -30,7 +32,6 @@ export function useEditForm() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
 
   // 비회원 게시글 수정 상태
@@ -103,50 +104,21 @@ export function useEditForm() {
 
   // 게시글 수정 제출
   const handleSubmit = async () => {
-    if (!validateForm() || !post) return;
+    if (!validateForm() || !post || !postId) return;
 
     const plainContent = stripHtml(content).trim();
 
-    setIsSubmitting(true);
-    try {
-      let validatedPassword: number | undefined = undefined;
-      if (isGuest) {
-        validatedPassword = validatePassword(guestPassword, false);
-      }
-
-      const updatedPost: Post = {
-        ...post,
-        title: title.trim(),
-        content: plainContent,
-        password: validatedPassword,
-      };
-
-      const response = await postCommand.update(updatedPost);
-      if (response.success) {
-        showSuccess("수정 완료", "게시글이 성공적으로 수정되었습니다!");
-        router.push(`/board/post/${postId}`);
-      } else {
-        if (
-          response.error &&
-          response.error.includes("게시글 비밀번호가 일치하지 않습니다")
-        ) {
-          showError("비밀번호 오류", "비밀번호가 일치하지 않습니다.");
-        } else {
-          showError(
-            "수정 실패",
-            response.error || "게시글 수정에 실패했습니다."
-          );
-        }
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        showError("수정 실패", error.message);
-      } else {
-        showError("수정 실패", "게시글 수정 중 오류가 발생했습니다.");
-      }
-    } finally {
-      setIsSubmitting(false);
+    let validatedPassword: number | undefined = undefined;
+    if (isGuest) {
+      validatedPassword = validatePassword(guestPassword, false);
     }
+
+    updatePost({
+      postId,
+      title: title.trim(),
+      content: plainContent,
+      password: validatedPassword,
+    });
   };
 
   // 폼 유효성 상태
@@ -171,7 +143,7 @@ export function useEditForm() {
     // Form states
     isPreview,
     setIsPreview,
-    isSubmitting,
+    isSubmitting: isUpdatePending,
     isFormValid,
 
     // Actions

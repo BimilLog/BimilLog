@@ -7,15 +7,17 @@ import { useRollingPaperActions } from "@/hooks/features/useRollingPaper";
 import { useRollingPaperGrid } from "@/hooks/features/useRollingPaperGrid";
 import { useToast } from "@/hooks";
 import { RollingPaperView } from "@/components/organisms/rolling-paper/RollingPaperView";
-import type { RollingPaperMessage, VisitMessage, DecoType } from "@/types/domains/paper";
+import type { RollingPaperMessage, VisitMessage, VisitPaperResult, DecoType } from "@/types/domains/paper";
 import { BlockedToastRedirect } from "@/components/molecules/alerts/BlockedToastRedirect";
 
 interface RollingPaperContainerProps {
   nickname?: string;
+  initialPaperData?: VisitPaperResult;
 }
 
 export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   nickname,
+  initialPaperData,
 }) => {
   const targetNickname = nickname || "";
   const { toasts, removeToast, showSuccess, showError } = useToast();
@@ -29,7 +31,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     blockedMessage,
     isOwner,
     refetch
-  } = useRollingPaperData(nickname);
+  } = useRollingPaperData(nickname, initialPaperData);
 
   // 롤링페이퍼 액션 (작성, 선택)
   const {

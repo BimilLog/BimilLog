@@ -1,6 +1,7 @@
 import { Metadata, ResolvingMetadata } from "next";
 import { generateKeywords, generateDynamicOgImage } from "@/lib/seo";
 import { RollingPaperClient } from "@/components/organisms/rolling-paper";
+import { getRollingPaperServer } from "@/lib/api/server";
 
 type Props = {
   params: Promise<{ nickname: string }>;
@@ -78,6 +79,9 @@ export default async function PublicRollingPaperPage({
   const { nickname } = await params;
   const decodedNickname = decodeURIComponent(nickname);
 
+  // SSR: 내부 IP로 롤링페이퍼 데이터 조회
+  const initialPaperData = await getRollingPaperServer(decodedNickname);
+
   // 구조화된 데이터
   const pageJsonLd = {
     "@context": "https://schema.org",
@@ -127,7 +131,7 @@ export default async function PublicRollingPaperPage({
           __html: JSON.stringify(pageJsonLd),
         }}
       />
-      <RollingPaperClient nickname={nickname} />
+      <RollingPaperClient nickname={nickname} initialPaperData={initialPaperData?.data ?? undefined} />
     </>
   );
 }

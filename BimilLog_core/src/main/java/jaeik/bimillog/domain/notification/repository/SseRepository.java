@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -148,18 +149,14 @@ public class SseRepository {
     public void sendHeartbeat() {
         if (emitters.isEmpty()) return;
 
-        log.debug("SSE Heartbeat 전송 시작. 활성 Emitter 수: {}", emitters.size());
-
         emitters.forEach((emitterId, emitter) -> {
             try {
                 emitter.send(SseEmitter.event().comment("heartbeat"));
-            } catch (IOException | IllegalStateException e) {
-                // 클라이언트가 이미 나갔거나 연결이 사용 불가능한 경우 (정상적인 끊김 상황)
-                log.warn("Heartbeat 전송 실패, Emitter 정리: {} (이유: {})", emitterId, e.getMessage());
+            } catch (AsyncRequestNotUsableException | IllegalStateException e) {
+                log.debug("SSE 클라이언트 연결 종료 확인: {} ({})", emitterId, e.getMessage());
                 cleanup(emitterId, emitter);
             } catch (Exception e) {
-                // 그 외 진짜 예상치 못한 심각한 에러
-                log.error("Heartbeat 전송 중 알 수 없는 오류: {}", emitterId, e);
+                log.error("SSE 전송 중 예상치 못한 오류 발생: {}", emitterId, e);
                 cleanup(emitterId, emitter);
             }
         });
@@ -167,10 +164,8 @@ public class SseRepository {
 
     private void cleanup(String emitterId, SseEmitter emitter) {
         emitters.remove(emitterId);
-        try {
-            emitter.complete(); // 명시적으로 종료하여 서블릿 컨테이너에 알림
-        } catch (Exception e) {
-            // 이미 종료된 경우 무시
+        if (emitter != null) {
+            emitter.complete();
         }
     }
 }
