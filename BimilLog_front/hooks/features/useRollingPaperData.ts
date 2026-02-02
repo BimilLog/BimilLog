@@ -53,8 +53,8 @@ export function useRollingPaperData(targetNickname?: string) {
     if (!activeQuery.data?.data) return [];
 
     // isOwner가 false인 경우 (타인의 롤링페이퍼) - VisitPaperResult
-    if (!isOwner && typeof activeQuery.data.data === 'object' && 'messages' in activeQuery.data.data) {
-      return activeQuery.data.data.messages;
+    if (!isOwner && typeof activeQuery.data.data === 'object' && 'visitMessageDTOList' in activeQuery.data.data) {
+      return activeQuery.data.data.visitMessageDTOList;
     }
 
     // isOwner가 true인 경우 (본인의 롤링페이퍼) - RollingPaperMessage[]

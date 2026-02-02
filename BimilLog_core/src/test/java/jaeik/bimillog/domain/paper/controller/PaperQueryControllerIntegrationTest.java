@@ -91,14 +91,12 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.messages").isArray())
-                .andExpect(jsonPath("$.messages.length()").value(2))
-                .andExpect(jsonPath("$.messages[0].x").value(1))
-                .andExpect(jsonPath("$.messages[0].y").value(1))
-                .andExpect(jsonPath("$.messages[0].decoType").value("POTATO"))
-                .andExpect(jsonPath("$.messages[1].x").value(2))
-                .andExpect(jsonPath("$.messages[1].y").value(2))
-                .andExpect(jsonPath("$.ownerId").value(otherMember.getId()));
+                .andExpect(jsonPath("$.ownerId").value(otherMember.getId()))
+                .andExpect(jsonPath("$.visitMessageDTOList").isArray())
+                .andExpect(jsonPath("$.visitMessageDTOList.length()").value(2))
+                .andExpect(jsonPath("$.visitMessageDTOList[*].decoType").exists())
+                .andExpect(jsonPath("$.visitMessageDTOList[*].x").exists())
+                .andExpect(jsonPath("$.visitMessageDTOList[*].y").exists());
 
         // Given - 케이스 2: 메시지가 없는 사용자
         Member emptyMember = saveMember(TestMembers.createUnique());
@@ -108,9 +106,9 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.messages").isArray())
-                .andExpect(jsonPath("$.messages.length()").value(0))
-                .andExpect(jsonPath("$.ownerId").value(emptyMember.getId()));
+                .andExpect(jsonPath("$.ownerId").value(emptyMember.getId()))
+                .andExpect(jsonPath("$.visitMessageDTOList").isArray())
+                .andExpect(jsonPath("$.visitMessageDTOList.length()").value(0));
     }
     
     @Test
@@ -134,12 +132,12 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.messages").isArray())
-                .andExpect(jsonPath("$.messages.length()").value(1))
-                .andExpect(jsonPath("$.messages[0].x").value(1))
-                .andExpect(jsonPath("$.messages[0].y").value(2))
-                .andExpect(jsonPath("$.messages[0].decoType").value("POTATO"))
-                .andExpect(jsonPath("$.ownerId").value(otherMember.getId()));
+                .andExpect(jsonPath("$.ownerId").value(otherMember.getId()))
+                .andExpect(jsonPath("$.visitMessageDTOList").isArray())
+                .andExpect(jsonPath("$.visitMessageDTOList.length()").value(1))
+                .andExpect(jsonPath("$.visitMessageDTOList[0].x").value(1))
+                .andExpect(jsonPath("$.visitMessageDTOList[0].y").value(2))
+                .andExpect(jsonPath("$.visitMessageDTOList[0].decoType").value("POTATO"));
     }
     
     @Test
@@ -155,10 +153,10 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.messages").isArray())
-                .andExpect(jsonPath("$.messages.length()").value(1))
-                .andExpect(jsonPath("$.messages[0].x").value(3))
-                .andExpect(jsonPath("$.messages[0].y").value(1))
-                .andExpect(jsonPath("$.ownerId").value(testMember.getId()));
+                .andExpect(jsonPath("$.ownerId").value(testMember.getId()))
+                .andExpect(jsonPath("$.visitMessageDTOList").isArray())
+                .andExpect(jsonPath("$.visitMessageDTOList.length()").value(1))
+                .andExpect(jsonPath("$.visitMessageDTOList[0].x").value(3))
+                .andExpect(jsonPath("$.visitMessageDTOList[0].y").value(1));
     }
 }

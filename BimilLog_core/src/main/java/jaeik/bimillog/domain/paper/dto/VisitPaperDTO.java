@@ -30,6 +30,7 @@ public class VisitPaperDTO {
         return new VisitPaperDTO(ownerId, visitMessageDtoList);
     }
 
+    @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     static class VisitMessageDTO {
