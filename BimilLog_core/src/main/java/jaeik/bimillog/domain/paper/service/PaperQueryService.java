@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.dto.MyMessageQueryDTO;
 import jaeik.bimillog.domain.paper.dto.VisitMessageDTO;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;

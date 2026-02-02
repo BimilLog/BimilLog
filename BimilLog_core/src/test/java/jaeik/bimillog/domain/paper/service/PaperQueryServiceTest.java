@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.domain.paper.repository.PaperRepository;
 import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
