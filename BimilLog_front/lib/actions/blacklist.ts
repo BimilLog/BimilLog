@@ -10,7 +10,7 @@ const getServerApiUrl = () => {
 async function getAuthHeaders() {
   const cookieStore = await cookies()
 
-  const cookieNames = ['jwt_access_token', 'jwt_refresh_token', 'XSRF-TOKEN', 'SCOUTER']
+  const cookieNames = ['jwt_access_token', 'jwt_refresh_token', 'XSRF-TOKEN', 'SCOUTER', 'temp_user_id']
   const cookieParts: string[] = []
 
   for (const name of cookieNames) {

@@ -30,9 +30,7 @@ async function proxyRequest(request: NextRequest, method: string) {
     }
   }
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  }
+  const headers: Record<string, string> = {}
 
   if (cookieParts.length > 0) {
     headers['Cookie'] = cookieParts.join('; ')
@@ -42,6 +40,17 @@ async function proxyRequest(request: NextRequest, method: string) {
   const xsrfToken = request.cookies.get('XSRF-TOKEN')?.value
   if (xsrfToken) {
     headers['X-XSRF-TOKEN'] = xsrfToken
+  }
+
+  // 클라이언트 IP 전달
+  const forwardedFor = request.headers.get('x-forwarded-for')
+  if (forwardedFor) {
+    headers['X-Forwarded-For'] = forwardedFor
+  } else {
+    const realIp = request.headers.get('x-real-ip')
+    if (realIp) {
+      headers['X-Forwarded-For'] = realIp
+    }
   }
 
   // 요청 본문 처리
@@ -55,6 +64,11 @@ async function proxyRequest(request: NextRequest, method: string) {
     } catch {
       // 빈 본문
     }
+  }
+
+  // body가 있을 때만 Content-Type 설정
+  if (body) {
+    headers['Content-Type'] = 'application/json'
   }
 
   try {
