@@ -1,11 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/tanstack-query/keys';
 import { paperQuery } from '@/lib/api';
+import type { VisitPaperResult } from '@/types/domains/paper';
+import type { ApiResponse } from '@/types/common';
 
 /**
  * 롤링페이퍼 메시지 조회
  */
-export const useRollingPaper = (userName: string, enabled: boolean = true) => {
+export const useRollingPaper = (userName: string, enabled: boolean = true, initialData?: VisitPaperResult) => {
   return useQuery({
     queryKey: queryKeys.paper.detail(userName),
     queryFn: async () => {
@@ -18,6 +20,8 @@ export const useRollingPaper = (userName: string, enabled: boolean = true) => {
     enabled: !!userName && enabled,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
+    initialData: initialData ? { success: true, data: initialData } as ApiResponse<VisitPaperResult> : undefined,
+    initialDataUpdatedAt: initialData ? Date.now() : undefined,
   });
 };
 

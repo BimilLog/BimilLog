@@ -5,13 +5,14 @@ import { useAuth } from '@/hooks';
 import { useMyRollingPaper } from '@/hooks/api/useMyRollingPaper';
 import { useRollingPaper } from '@/hooks/api/useRollingPaperQueries';
 import { localStorage } from '@/lib/utils/storage';
-import type { RollingPaperMessage, VisitMessage } from '@/types/domains/paper';
+import type { RollingPaperMessage, VisitMessage, VisitPaperResult } from '@/types/domains/paper';
 
 /**
  * 롤링페이퍼 데이터 조회 훅
  * 본인의 롤링페이퍼인지 타인의 롤링페이퍼인지에 따라 적절한 API를 호출
+ * initialPaperData: SSR에서 가져온 방문자용 초기 데이터
  */
-export function useRollingPaperData(targetNickname?: string) {
+export function useRollingPaperData(targetNickname?: string, initialPaperData?: VisitPaperResult) {
   const { user, isAuthenticated } = useAuth();
 
   // 소유자 여부 확인
@@ -28,7 +29,7 @@ export function useRollingPaperData(targetNickname?: string) {
   const myPaperQuery = useMyRollingPaper(isOwner);
 
   // 타인 롤링페이퍼 조회 (!isOwner일 때만 실행)
-  const visitPaperQuery = useRollingPaper(targetNickname || '', !isOwner);
+  const visitPaperQuery = useRollingPaper(targetNickname || '', !isOwner, initialPaperData);
 
   // 적절한 쿼리 선택
   const activeQuery = isOwner ? myPaperQuery : visitPaperQuery;
