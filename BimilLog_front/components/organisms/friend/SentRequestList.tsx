@@ -2,18 +2,24 @@
 
 import React, { useState } from "react";
 import { Send } from "lucide-react";
-import { Button, Spinner, EmptyState } from "@/components";
+import { Button, Spinner } from "@/components";
 import { useSentFriendRequests } from "@/hooks/api/useFriendQueries";
 import { SentRequestItem } from "./SentRequestItem";
+import type { PageResponse } from "@/types/common";
+import type { SentFriendRequest } from "@/types/domains/friend";
+
+interface SentRequestListProps {
+  initialData?: PageResponse<SentFriendRequest> | null;
+}
 
 /**
  * 보낸 친구 요청 목록 컴포넌트
  */
-export const SentRequestList: React.FC = () => {
+export const SentRequestList: React.FC<SentRequestListProps> = ({ initialData }) => {
   const [page, setPage] = useState(0);
   const size = 20;
 
-  const { data, isLoading, error } = useSentFriendRequests(page, size);
+  const { data, isLoading, error } = useSentFriendRequests(page, size, true, page === 0 ? initialData : undefined);
 
   const requestData = data?.data;
   const requests = requestData?.content || [];

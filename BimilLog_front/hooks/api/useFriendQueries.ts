@@ -6,62 +6,79 @@
 import { useQuery } from '@tanstack/react-query';
 import { friendQuery } from '@/lib/api/friend/query';
 import { queryKeys } from '@/lib/tanstack-query/keys';
+import type { ApiResponse, PageResponse } from '@/types/common';
+import type { Friend, ReceivedFriendRequest, SentFriendRequest, RecommendedFriend } from '@/types/domains/friend';
 
 /**
  * 내 친구 목록 조회
- * @param page 페이지 번호 (0부터 시작)
- * @param size 페이지 크기
- * @param enabled API 호출 활성화 여부 (기본값: true)
  */
-export const useMyFriends = (page: number = 0, size: number = 20, enabled: boolean = true) => {
+export const useMyFriends = (
+  page: number = 0,
+  size: number = 20,
+  enabled: boolean = true,
+  initialData?: PageResponse<Friend> | null,
+) => {
   return useQuery({
     queryKey: queryKeys.friend.lists(),
     queryFn: () => friendQuery.getMyFriends(page, size),
-    staleTime: 5 * 60 * 1000, // 5분 - 친구 목록은 자주 변하지 않음
-    enabled, // 조건부 쿼리 활성화
+    staleTime: 5 * 60 * 1000,
+    enabled,
+    initialData: initialData ? { success: true, data: initialData } as ApiResponse<PageResponse<Friend>> : undefined,
+    initialDataUpdatedAt: initialData ? Date.now() : undefined,
   });
 };
 
 /**
  * 받은 친구 요청 조회
- * @param page 페이지 번호
- * @param size 페이지 크기
- * @param enabled API 호출 활성화 여부 (기본값: true)
  */
-export const useReceivedFriendRequests = (page: number = 0, size: number = 20, enabled: boolean = true) => {
+export const useReceivedFriendRequests = (
+  page: number = 0,
+  size: number = 20,
+  enabled: boolean = true,
+  initialData?: PageResponse<ReceivedFriendRequest> | null,
+) => {
   return useQuery({
     queryKey: queryKeys.friend.receivedRequests(page, size),
     queryFn: () => friendQuery.getReceivedRequests(page, size),
-    staleTime: 1 * 60 * 1000, // 1분 - 실시간성이 중요함
-    enabled, // 조건부 쿼리 활성화
+    staleTime: 1 * 60 * 1000,
+    enabled,
+    initialData: initialData ? { success: true, data: initialData } as ApiResponse<PageResponse<ReceivedFriendRequest>> : undefined,
+    initialDataUpdatedAt: initialData ? Date.now() : undefined,
   });
 };
 
 /**
  * 보낸 친구 요청 조회
- * @param page 페이지 번호
- * @param size 페이지 크기
- * @param enabled API 호출 활성화 여부 (기본값: true)
  */
-export const useSentFriendRequests = (page: number = 0, size: number = 20, enabled: boolean = true) => {
+export const useSentFriendRequests = (
+  page: number = 0,
+  size: number = 20,
+  enabled: boolean = true,
+  initialData?: PageResponse<SentFriendRequest> | null,
+) => {
   return useQuery({
     queryKey: queryKeys.friend.sentRequests(page, size),
     queryFn: () => friendQuery.getSentRequests(page, size),
-    staleTime: 1 * 60 * 1000, // 1분
-    enabled, // 조건부 쿼리 활성화
+    staleTime: 1 * 60 * 1000,
+    enabled,
+    initialData: initialData ? { success: true, data: initialData } as ApiResponse<PageResponse<SentFriendRequest>> : undefined,
+    initialDataUpdatedAt: initialData ? Date.now() : undefined,
   });
 };
 
 /**
- * 추천 친구 조회 (⭐ 신규)
- * 2촌, 3촌 친구를 추천 점수별로 정렬하여 반환
- * @param page 페이지 번호
- * @param size 페이지 크기 (최대 10명 권장)
+ * 추천 친구 조회
  */
-export const useRecommendedFriends = (page: number = 0, size: number = 10) => {
+export const useRecommendedFriends = (
+  page: number = 0,
+  size: number = 10,
+  initialData?: PageResponse<RecommendedFriend> | null,
+) => {
   return useQuery({
     queryKey: queryKeys.friend.recommended(page, size),
     queryFn: () => friendQuery.getRecommended(page, size),
-    staleTime: 10 * 60 * 1000, // 10분 - 추천 목록은 자주 변하지 않음
+    staleTime: 10 * 60 * 1000,
+    initialData: initialData ? { success: true, data: initialData } as ApiResponse<PageResponse<RecommendedFriend>> : undefined,
+    initialDataUpdatedAt: initialData ? Date.now() : undefined,
   });
 };

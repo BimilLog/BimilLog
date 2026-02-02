@@ -2,18 +2,24 @@
 
 import React, { useState } from "react";
 import { Users } from "lucide-react";
-import { Button, Spinner, EmptyState } from "@/components";
+import { Button, Spinner } from "@/components";
 import { useMyFriends } from "@/hooks/api/useFriendQueries";
 import { FriendListItem } from "./FriendListItem";
+import type { PageResponse } from "@/types/common";
+import type { Friend } from "@/types/domains/friend";
+
+interface FriendListProps {
+  initialData?: PageResponse<Friend> | null;
+}
 
 /**
  * 내 친구 목록 컴포넌트
  */
-export const FriendList: React.FC = () => {
+export const FriendList: React.FC<FriendListProps> = ({ initialData }) => {
   const [page, setPage] = useState(0);
   const size = 20;
 
-  const { data, isLoading, error } = useMyFriends(page, size);
+  const { data, isLoading, error } = useMyFriends(page, size, true, page === 0 ? initialData : undefined);
 
   const friendData = data?.data;
   const friends = friendData?.content || [];

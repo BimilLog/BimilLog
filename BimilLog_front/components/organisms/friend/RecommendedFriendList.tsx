@@ -2,19 +2,25 @@
 
 import React, { useState } from "react";
 import { Users } from "lucide-react";
-import { Button, Spinner, EmptyState } from "@/components";
+import { Button, Spinner } from "@/components";
 import { useRecommendedFriends } from "@/hooks/api/useFriendQueries";
 import { RecommendedFriendItem } from "./RecommendedFriendItem";
+import type { PageResponse } from "@/types/common";
+import type { RecommendedFriend } from "@/types/domains/friend";
+
+interface RecommendedFriendListProps {
+  initialData?: PageResponse<RecommendedFriend> | null;
+}
 
 /**
  * 추천 친구 목록 컴포넌트
  * 2촌, 3촌 친구를 추천 점수별로 표시
  */
-export const RecommendedFriendList: React.FC = () => {
+export const RecommendedFriendList: React.FC<RecommendedFriendListProps> = ({ initialData }) => {
   const [page, setPage] = useState(0);
   const size = 10;
 
-  const { data, isLoading, error } = useRecommendedFriends(page, size);
+  const { data, isLoading, error } = useRecommendedFriends(page, size, page === 0 ? initialData : undefined);
 
   const recommendedData = data?.data;
   const friends = recommendedData?.content || [];

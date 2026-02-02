@@ -2,18 +2,24 @@
 
 import React, { useState } from "react";
 import { UserPlus } from "lucide-react";
-import { Button, Spinner, EmptyState } from "@/components";
+import { Button, Spinner } from "@/components";
 import { useReceivedFriendRequests } from "@/hooks/api/useFriendQueries";
 import { ReceivedRequestItem } from "./ReceivedRequestItem";
+import type { PageResponse } from "@/types/common";
+import type { ReceivedFriendRequest } from "@/types/domains/friend";
+
+interface ReceivedRequestListProps {
+  initialData?: PageResponse<ReceivedFriendRequest> | null;
+}
 
 /**
  * 받은 친구 요청 목록 컴포넌트
  */
-export const ReceivedRequestList: React.FC = () => {
+export const ReceivedRequestList: React.FC<ReceivedRequestListProps> = ({ initialData }) => {
   const [page, setPage] = useState(0);
   const size = 20;
 
-  const { data, isLoading, error } = useReceivedFriendRequests(page, size);
+  const { data, isLoading, error } = useReceivedFriendRequests(page, size, true, page === 0 ? initialData : undefined);
 
   const requestData = data?.data;
   const requests = requestData?.content || [];

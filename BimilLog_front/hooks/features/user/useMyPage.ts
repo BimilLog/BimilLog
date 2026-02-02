@@ -4,8 +4,15 @@ import { useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks";
 import { useUserStats } from "./useUserStats";
 import { logger } from '@/lib/utils/logger';
+import type { MyPageDTO } from "@/types";
+import type { RollingPaperMessage } from "@/types/domains/paper";
 
-export function useMyPage() {
+interface UseMyPageOptions {
+  initialMyPageData?: MyPageDTO | null;
+  initialPaperData?: RollingPaperMessage[] | null;
+}
+
+export function useMyPage(options?: UseMyPageOptions) {
   const { user, isLoading, updateUserName, logout } = useAuth();
 
   const {
@@ -14,7 +21,10 @@ export function useMyPage() {
     statsError,
     partialErrors,
     fetchUserStats,
-  } = useUserStats(user);
+  } = useUserStats(user, {
+    initialMyPageData: options?.initialMyPageData,
+    initialPaperData: options?.initialPaperData,
+  });
 
   useEffect(() => {
     if (user) {
@@ -27,7 +37,6 @@ export function useMyPage() {
     async (newNickname: string) => {
       try {
         await updateUserName(newNickname);
-        // ProfileCard에서 페이지 새로고침을 처리하므로 여기서는 추가 작업 불필요
       } catch (error) {
         logger.error("Failed to update nickname:", error);
       }
