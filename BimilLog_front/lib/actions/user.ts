@@ -26,7 +26,7 @@ interface ReportData {
 
 async function getAuthHeaders() {
   const cookieStore = await cookies()
-  const cookieNames = ['jwt_access_token', 'jwt_refresh_token', 'XSRF-TOKEN', 'SCOUTER']
+  const cookieNames = ['jwt_access_token', 'jwt_refresh_token', 'XSRF-TOKEN', 'SCOUTER', 'temp_user_id']
   const cookieParts: string[] = []
 
   for (const name of cookieNames) {
@@ -163,6 +163,14 @@ export async function withdrawAction(): Promise<ActionResult> {
         success: false,
         error: errorData?.errorMessage || '회원 탈퇴에 실패했습니다.',
       }
+    }
+
+    // Server Action에서는 백엔드의 Set-Cookie가 브라우저에 전달되지 않으므로
+    // 직접 쿠키를 만료시켜 브라우저에서 JWT 쿠키 삭제
+    const cookieStore = await cookies()
+    const cookieNamesToExpire = ['jwt_access_token', 'jwt_refresh_token']
+    for (const name of cookieNamesToExpire) {
+      cookieStore.delete(name)
     }
 
     return { success: true, message: '회원 탈퇴가 완료되었습니다.' }
