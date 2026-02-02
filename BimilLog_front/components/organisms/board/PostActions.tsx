@@ -4,7 +4,7 @@ import { Button } from "@/components";
 import { Tooltip } from "flowbite-react";
 import type { Post } from "@/lib/api";
 import { useAuth } from "@/hooks";
-import { useToggleNotice } from "@/hooks/api/usePostMutations";
+import { useToggleNoticeAction } from "@/hooks/actions/usePostActions";
 
 interface PostActionsProps {
   post: Post;
@@ -22,7 +22,7 @@ const PostActions = memo(({
   onDeletePost,
 }: PostActionsProps) => {
   const { user } = useAuth();
-  const { mutate: toggleNotice, isPending: isTogglingNotice } = useToggleNotice();
+  const { toggleNotice, isPending: isTogglingNotice } = useToggleNoticeAction();
   const isAdmin = user?.role === 'ADMIN';
   const isNotice = Boolean(post.isNotice ?? post.notice);
 

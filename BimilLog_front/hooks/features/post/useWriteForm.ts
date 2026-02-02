@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useAuth, useToast } from "@/hooks";
-import { useCreatePost } from '@/hooks/api/usePostMutations';
+import { useCreatePostAction } from '@/hooks/actions/usePostActions';
 import { useDraft } from '@/hooks/features/useDraft';
 
 /**
@@ -20,8 +20,7 @@ const stripHtmlTags = (html: string): string => {
 export function useWriteForm() {
   const { user, isAuthenticated } = useAuth();
   const { showWarning } = useToast();
-  // TanStack Query의 mutation 훅 - 게시글 생성 API 호출 및 캐시 관리
-  const createPostMutation = useCreatePost();
+  const { createPost, isPending } = useCreatePostAction();
 
   // 로컬 폼 상태 관리
   const [title, setTitle] = useState("");
@@ -66,7 +65,7 @@ export function useWriteForm() {
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       // 제목이나 내용이 있고, 제출 중이 아닐 때만 경고
-      if ((title.trim() || content.trim()) && !createPostMutation.isPending) {
+      if ((title.trim() || content.trim()) && !isPending) {
         e.preventDefault();
         e.returnValue = ''; // Chrome requires returnValue
       }
@@ -74,7 +73,7 @@ export function useWriteForm() {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [title, content, createPostMutation.isPending]);
+  }, [title, content, isPending]);
 
   // 폼 제출 핸들러 - 유효성 검사 후 TanStack Query mutation 실행
   const handleSubmit = async () => {
@@ -109,20 +108,13 @@ export function useWriteForm() {
       }
     }
 
-    // mutation 실행 - API 호출, 캐시 무효화, 성공/실패 처리 모두 자동
-    createPostMutation.mutate({
+    removeDraft();
+    createPost({
       title,
       content,
-      password: password ? parseInt(password, 10) : undefined, // 회원은 undefined, 비회원은 숫자로 변환
+      password: password ? parseInt(password, 10) : undefined,
     });
   };
-
-  // 게시글 작성 성공 시 임시저장 삭제
-  useEffect(() => {
-    if (createPostMutation.isSuccess) {
-      removeDraft();
-    }
-  }, [createPostMutation.isSuccess, removeDraft]);
 
   // 순수 텍스트 길이 계산 (memoization으로 최적화)
   const plainTextLength = useMemo(() => {
@@ -136,7 +128,7 @@ export function useWriteForm() {
     plainTextLength <= 1000 &&
     (isAuthenticated || (password && password.length === 4 && parseInt(password) >= 1000 && parseInt(password) <= 9999))
   );
-  const isSubmitting = createPostMutation.isPending; // TanStack Query mutation 진행 상태
+  const isSubmitting = isPending;
 
   return {
     // Form fields
