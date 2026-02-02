@@ -1,8 +1,7 @@
 package jaeik.bimillog.domain.paper.service;
 
+import jaeik.bimillog.domain.paper.dto.VisitPaperDTO;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
-import jaeik.bimillog.domain.paper.repository.MessageRepository;
 import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -41,9 +40,6 @@ class PaperQueryServiceTest extends BaseUnitTest {
     private PaperQueryRepository paperQueryRepository;
 
     @Mock
-    private MessageRepository messageRepository;
-
-    @Mock
     private PaperToMemberAdapter paperToMemberAdapter;
 
     @Mock
@@ -64,19 +60,18 @@ class PaperQueryServiceTest extends BaseUnitTest {
         );
 
         given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
-        given(messageRepository.findByMemberMemberName(memberName)).willReturn(messages);
+        given(paperQueryRepository.getMessageList(getTestMember().getId())).willReturn(messages);
 
         // When
-        VisitPaperResult result = paperQueryService.visitPaper(getTestMember().getId(), memberName);
+        VisitPaperDTO result = paperQueryService.visitPaper(memberName);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.messages()).hasSize(2);
-        assertThat(result.messages().get(0).getMemberId()).isEqualTo(getTestMember().getId());
-        assertThat(result.messages().get(1).getMemberId()).isEqualTo(getOtherMember().getId());
+        assertThat(result.getOwnerId()).isEqualTo(getTestMember().getId());
+        assertThat(result.getVisitMessageDTOList()).hasSize(2);
 
         verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
-        verify(messageRepository, times(1)).findByMemberMemberName(memberName);
+        verify(paperQueryRepository, times(1)).getMessageList(getTestMember().getId());
     }
 
     @Test
@@ -86,17 +81,18 @@ class PaperQueryServiceTest extends BaseUnitTest {
         String memberName = "userWithNoMessages";
 
         given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
-        given(messageRepository.findByMemberMemberName(memberName)).willReturn(Collections.emptyList());
+        given(paperQueryRepository.getMessageList(getTestMember().getId())).willReturn(Collections.emptyList());
 
         // When
-        VisitPaperResult result = paperQueryService.visitPaper(getTestMember().getId(), memberName);
+        VisitPaperDTO result = paperQueryService.visitPaper(memberName);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.messages()).isEmpty();
+        assertThat(result.getOwnerId()).isEqualTo(getTestMember().getId());
+        assertThat(result.getVisitMessageDTOList()).isEmpty();
 
         verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
-        verify(messageRepository, times(1)).findByMemberMemberName(memberName);
+        verify(paperQueryRepository, times(1)).getMessageList(getTestMember().getId());
     }
 
 
@@ -108,7 +104,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         String memberName = null;
 
         // When & Then - null case
-        assertThatThrownBy(() -> paperQueryService.visitPaper(getTestMember().getId(), memberName))
+        assertThatThrownBy(() -> paperQueryService.visitPaper(memberName))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
@@ -116,11 +112,11 @@ class PaperQueryServiceTest extends BaseUnitTest {
         String emptyUserName = "   ";
 
         // When & Then - empty case
-        assertThatThrownBy(() -> paperQueryService.visitPaper(1L, emptyUserName))
+        assertThatThrownBy(() -> paperQueryService.visitPaper(emptyUserName))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
-        verify(messageRepository, never()).findByMemberMemberName(any());
+        verify(paperQueryRepository, never()).getMessageList(any());
     }
 
 }

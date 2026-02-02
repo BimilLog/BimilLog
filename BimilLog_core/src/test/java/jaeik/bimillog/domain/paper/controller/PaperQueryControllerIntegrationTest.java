@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.paper.controller;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.repository.MessageRepository;
+import jaeik.bimillog.domain.paper.repository.PaperRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
@@ -31,17 +31,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
-    private MessageRepository messageRepository;
+    private PaperRepository paperRepository;
     
     @Test
     @DisplayName("내 롤링페이퍼 조회 - 메시지 있음/없음 모두 성공")
     void myPaper_ReturnsMessagesOrEmptyArray_Success() throws Exception {
         // Given - 케이스 1: 메시지가 있는 사용자
-        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
+        paperRepository.save(PaperTestDataBuilder.createRollingPaper(
                 testMember, "생일 축하해!", 1, 1));
-        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
+        paperRepository.save(PaperTestDataBuilder.createRollingPaper(
                 testMember, "항상 행복하세요", 2, 1));
-        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
+        paperRepository.save(PaperTestDataBuilder.createRollingPaper(
                 testMember, "응원합니다", 3, 1));
 
         // When & Then - 케이스 1: 메시지 있음
@@ -81,9 +81,9 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 메시지 있음/없음 모두 성공")
     void visitPaper_ReturnsMessagesOrEmptyArray_Success() throws Exception {
         // Given - 케이스 1: 메시지가 있는 사용자
-        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
+        paperRepository.save(PaperTestDataBuilder.createRollingPaper(
                 otherMember, "좋은 메시지", 1, 1));
-        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
+        paperRepository.save(PaperTestDataBuilder.createRollingPaper(
                 otherMember, "또 다른 메시지", 2, 2));
 
         // When & Then - 케이스 1: 메시지 있음
@@ -91,14 +91,12 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.messages").isArray())
-                .andExpect(jsonPath("$.messages.length()").value(2))
-                .andExpect(jsonPath("$.messages[0].x").value(1))
-                .andExpect(jsonPath("$.messages[0].y").value(1))
-                .andExpect(jsonPath("$.messages[0].decoType").value("POTATO"))
-                .andExpect(jsonPath("$.messages[1].x").value(2))
-                .andExpect(jsonPath("$.messages[1].y").value(2))
-                .andExpect(jsonPath("$.ownerId").value(otherMember.getId()));
+                .andExpect(jsonPath("$.ownerId").value(otherMember.getId()))
+                .andExpect(jsonPath("$.visitMessageDTOList").isArray())
+                .andExpect(jsonPath("$.visitMessageDTOList.length()").value(2))
+                .andExpect(jsonPath("$.visitMessageDTOList[*].decoType").exists())
+                .andExpect(jsonPath("$.visitMessageDTOList[*].x").exists())
+                .andExpect(jsonPath("$.visitMessageDTOList[*].y").exists());
 
         // Given - 케이스 2: 메시지가 없는 사용자
         Member emptyMember = saveMember(TestMembers.createUnique());
@@ -108,9 +106,9 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.messages").isArray())
-                .andExpect(jsonPath("$.messages.length()").value(0))
-                .andExpect(jsonPath("$.ownerId").value(emptyMember.getId()));
+                .andExpect(jsonPath("$.ownerId").value(emptyMember.getId()))
+                .andExpect(jsonPath("$.visitMessageDTOList").isArray())
+                .andExpect(jsonPath("$.visitMessageDTOList.length()").value(0));
     }
     
     @Test
@@ -126,7 +124,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("인증된 사용자도 다른 사용자 롤링페이퍼 방문 - 성공")
     void visitPaper_AuthenticatedUser_Success() throws Exception {
         // Given
-        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
+        paperRepository.save(PaperTestDataBuilder.createRollingPaper(
                 otherMember, "방문용 메시지", 1, 2));
 
         // When & Then
@@ -134,12 +132,12 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.messages").isArray())
-                .andExpect(jsonPath("$.messages.length()").value(1))
-                .andExpect(jsonPath("$.messages[0].x").value(1))
-                .andExpect(jsonPath("$.messages[0].y").value(2))
-                .andExpect(jsonPath("$.messages[0].decoType").value("POTATO"))
-                .andExpect(jsonPath("$.ownerId").value(otherMember.getId()));
+                .andExpect(jsonPath("$.ownerId").value(otherMember.getId()))
+                .andExpect(jsonPath("$.visitMessageDTOList").isArray())
+                .andExpect(jsonPath("$.visitMessageDTOList.length()").value(1))
+                .andExpect(jsonPath("$.visitMessageDTOList[0].x").value(1))
+                .andExpect(jsonPath("$.visitMessageDTOList[0].y").value(2))
+                .andExpect(jsonPath("$.visitMessageDTOList[0].decoType").value("POTATO"));
     }
     
     @Test
@@ -148,17 +146,17 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
         // Given
         Message message = PaperTestDataBuilder.createRollingPaper(
                 testMember, "자기 메시지", 3, 1);
-        messageRepository.save(message);
+        paperRepository.save(message);
 
         // When & Then
         performGet("/api/paper/" + testMember.getMemberName(), testUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.messages").isArray())
-                .andExpect(jsonPath("$.messages.length()").value(1))
-                .andExpect(jsonPath("$.messages[0].x").value(3))
-                .andExpect(jsonPath("$.messages[0].y").value(1))
-                .andExpect(jsonPath("$.ownerId").value(testMember.getId()));
+                .andExpect(jsonPath("$.ownerId").value(testMember.getId()))
+                .andExpect(jsonPath("$.visitMessageDTOList").isArray())
+                .andExpect(jsonPath("$.visitMessageDTOList.length()").value(1))
+                .andExpect(jsonPath("$.visitMessageDTOList[0].x").value(3))
+                .andExpect(jsonPath("$.visitMessageDTOList[0].y").value(1));
     }
 }

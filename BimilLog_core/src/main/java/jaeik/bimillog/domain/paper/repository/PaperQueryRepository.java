@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.paper.repository;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import jaeik.bimillog.domain.paper.entity.QMessage;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +17,28 @@ import java.util.stream.Collectors;
 /**
  * <h2>롤링페이퍼 조회 리포지터리</h2>
  * <p>롤링페이퍼 도메인의 조회 작업을 담당하는 리포지터리.</p>
- * <p>사용자 ID로 조회, 사용자명으로 조회, 소유자 ID 조회</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.6.0
  */
 @Repository
 @RequiredArgsConstructor
 public class PaperQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
+    private final QMessage message = QMessage.message;
+
+    /**
+     * <h3>회원ID로 메시지 조회</h3>
+     * @param memberId 회원 id
+     * @return 메시지 리스트
+     */
+    public List<Message> getMessageList(Long memberId) {
+        return jpaQueryFactory.select(message)
+                .from(message)
+                .where(message.member.id.eq(memberId))
+                .orderBy(message.createdAt.desc())
+                .fetch();
+    }
 
     /**
      * <h3>인기 롤링페이퍼 정보 보강</h3>
@@ -39,8 +53,6 @@ public class PaperQueryRepository {
         if (infos == null || infos.isEmpty()) {
             return;
         }
-
-        QMessage message = QMessage.message;
 
         // 1. infos에서 memberIds 추출
         List<Long> memberIds = infos.stream()

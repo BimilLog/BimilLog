@@ -1,9 +1,8 @@
 package jaeik.bimillog.domain.paper.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.entity.MyMessage;
-import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
+import jaeik.bimillog.domain.paper.dto.MyMessageQueryDTO;
+import jaeik.bimillog.domain.paper.dto.VisitPaperDTO;
 import jaeik.bimillog.domain.paper.service.PaperQueryService;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ import java.util.List;
  * <p>타인 롤링페이퍼 방문</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.6.0
  */
 @Log(level = Log.LogLevel.INFO,
         logExecutionTime = true,
@@ -40,15 +39,11 @@ public class PaperQueryController {
      * <p>로그인한 사용자의 롤링페이퍼에 작성된 모든 메시지를 조회합니다.</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보
-     * @return HTTP 응답 엔티티
-     * @author Jaeik
-     * @since 2.0.0
+     * @return 메시지 리스트
      */
     @GetMapping
-    public ResponseEntity<List<MyMessage>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long memberId = userDetails.getMemberId();
-        List<Message> messageDetails = paperQueryService.getMyPaper(memberId);
-        List<MyMessage> myMessages = messageDetails.stream().map(MyMessage::from).toList();
+    public ResponseEntity<List<MyMessageQueryDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<MyMessageQueryDTO> myMessages = paperQueryService.getMyPaper(userDetails.getMemberId());
         return ResponseEntity.ok(myMessages);
     }
 
@@ -58,14 +53,11 @@ public class PaperQueryController {
      * <p>방문자에게는 그리드 레이아웃 정보만 제공합니다.</p>
      *
      * @param memberName 방문할 롤링페이퍼 소유자의 사용자명
-     * @return HTTP 응답 엔티티
-     * @author Jaeik
-     * @since 2.0.0
+     * @return 타인 메시지 리스트
      */
     @GetMapping("/{memberName}")
-    public ResponseEntity<VisitPaperResult> visitPaper(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable String memberName) {
-        Long memberId = userDetails == null ? null : userDetails.getMemberId();
-        VisitPaperResult result = paperQueryService.visitPaper(memberId, memberName);
+    public ResponseEntity<VisitPaperDTO> visitPaper(@PathVariable String memberName) {
+        VisitPaperDTO result = paperQueryService.visitPaper(memberName);
         return ResponseEntity.ok(result);
     }
 }

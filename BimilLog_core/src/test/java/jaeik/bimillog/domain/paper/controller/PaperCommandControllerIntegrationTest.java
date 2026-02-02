@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.paper.controller;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MyMessage;
-import jaeik.bimillog.domain.paper.repository.MessageRepository;
+import jaeik.bimillog.domain.paper.repository.PaperRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
-    private MessageRepository messageRepository;
+    private PaperRepository paperRepository;
     
     @Test
     @DisplayName("익명 사용자 메시지 작성 - 성공")
@@ -100,7 +100,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
         // Given
         Message message = PaperTestDataBuilder.createRollingPaper(
                 testMember, "삭제될 메시지", 1, 1);
-        Message savedMessage = messageRepository.save(message);
+        Message savedMessage = paperRepository.save(message);
 
         MyMessage myMessage = TestFixtures.createPaperMessageRequest(
                 "삭제될 메시지", 1, 1);
