@@ -85,6 +85,12 @@ async function proxyRequest(request: NextRequest, method: string) {
       responseHeaders.set('Location', location)
     }
 
+    // Content-Length 헤더 전달 (빈 응답 감지용)
+    const contentLength = response.headers.get('Content-Length')
+    if (contentLength) {
+      responseHeaders.set('Content-Length', contentLength)
+    }
+
     // 응답 본문 처리
     const responseBody = await response.text()
 
