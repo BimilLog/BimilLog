@@ -28,9 +28,4 @@ public interface PaperRepository extends JpaRepository<Message, Long> {
      * @since 2.0.0
      */
     void deleteAllByMember_Id(Long memberId);
-
-    /**
-     * <h3>메시지 ID로 멤버 조회</h3>
-     */
-    Optional<Member> findMemberById(Long messageId);
 }

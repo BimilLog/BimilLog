@@ -47,7 +47,9 @@ public class TestFixtures {
      * @return MessageDeleteDTO
      */
     public static MessageDeleteDTO createMessageDeleteDTO(Long messageId) {
-        return new MessageDeleteDTO(messageId);
+        MessageDeleteDTO dto = new MessageDeleteDTO();
+        dto.setMessageId(messageId);
+        return dto;
     }
 
     /**
