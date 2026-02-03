@@ -1,11 +1,8 @@
 package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
-import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.paper.controller.PaperCommandController;
 import jaeik.bimillog.domain.paper.dto.MessageWriteDTO;
-import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
@@ -58,29 +55,10 @@ public class PaperCommandService {
     }
 
     /**
-     * <h3>내 롤링페이퍼 메시지 삭제</h3>
-     * <p>사용자의 롤링페이퍼 메시지를 삭제합니다.</p>
-     * <p>messageId가 null인 경우: 해당 사용자의 모든 메시지를 삭제합니다 (회원탈퇴 시).</p>
-     * <p>messageId가 있는 경우: 특정 메시지를 삭제합니다 (단건 삭제).</p>
-     * <p>다른 사용자의 messageId를 전송할 수 있으므로 소유권 검증 필요</p>
-     * <p>메시지 삭제 성공 시 MessageDeletedEvent를 발행하여 실시간 인기 점수를 감소.</p>
-     * <p>{@link PaperCommandController}에서 메시지 삭제 요청 시 호출되거나,</p>
-     * <p>{@link MemberWithdrawListener}에서 회원탈퇴 시 호출됩니다.</p>
-     *
-     * @param memberId    현재 로그인한 사용자 ID
-     * @param messageId 삭제할 메시지 ID (null인 경우 모든 메시지 삭제)
-     * @author Jaeik
-     * @since 2.0.0
+     * <h3>메시지 삭제</h3>
      */
     @Transactional
-    public void deleteMessageInMyPaper(Long memberId, Long messageId) {
-        if (messageId == null) {
-            paperRepository.deleteAllByMember_Id(memberId);
-            redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(memberId);
-            return;
-        }
-
-        // 메시지 삭제의 경우
+    public void deleteMessage(Long memberId, Long messageId) {
         Long ownerId = paperRepository.findOwnerIdByMessageId(messageId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAPER_MESSAGE_NOT_FOUND));
 
@@ -88,10 +66,16 @@ public class PaperCommandService {
             throw new CustomException(ErrorCode.PAPER_MESSAGE_DELETE_FORBIDDEN);
         }
 
-        // 메시지 삭제
         paperRepository.deleteById(messageId);
-
-        // 메시지 삭제 성공 시 이벤트 발행 (실시간 인기 점수 감소, 단건 삭제만)
         eventPublisher.publishEvent(new MessageDeletedEvent(memberId));
+    }
+
+    /**
+     * <h3>회원탈퇴시 메시지 전체 삭제</h3>
+     */
+    @Transactional
+    public void deleteAllMessageWhenWithdraw(Long memberId) {
+        paperRepository.deleteAllByMember_Id(memberId);
+        redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(memberId);
     }
 }
