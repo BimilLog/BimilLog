@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.paper.controller;
 
+import jaeik.bimillog.domain.paper.dto.MessageWriteDTO;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MyMessage;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -39,57 +41,56 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("익명 사용자 메시지 작성 - 성공")
     void writeMessage_AnonymousUser_Success() throws Exception {
         // Given
-        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
-                "따뜻한 메시지입니다.", 1, 1);
-        myMessage.setAnonymity("익명사용자");
+        MessageWriteDTO dto = TestFixtures.createMessageWriteDTO(
+                testMember.getId(), "따뜻한 메시지입니다.", 1, 1);
+        ReflectionTestUtils.setField(dto, "anonymity", "익명사용자");
 
         // When & Then
-        performPost("/api/paper/" + testMember.getMemberName(), myMessage)
+        performPost("/api/paper/write", dto)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 작성되었습니다."));
     }
-    
+
     @Test
     @DisplayName("인증된 사용자 메시지 작성 - 성공")
     void writeMessage_AuthenticatedUser_Success() throws Exception {
         // Given
-        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
-                "생일 축하해!", 2, 2);
-        myMessage.setDecoType(DecoType.STAR);
-        myMessage.setAnonymity("친구1");
-        myMessage.setMemberId(otherMember.getId());
+        MessageWriteDTO dto = TestFixtures.createMessageWriteDTO(
+                testMember.getId(), "생일 축하해!", 2, 2);
+        ReflectionTestUtils.setField(dto, "decoType", DecoType.STAR);
+        ReflectionTestUtils.setField(dto, "anonymity", "친구1");
 
         // When & Then
-        performPost("/api/paper/" + testMember.getMemberName(), myMessage, otherUserDetails)
+        performPost("/api/paper/write", dto, otherUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 작성되었습니다."));
     }
-    
+
     @Test
-    @DisplayName("존재하지 않는 사용자에게 메시지 작성 - 실패")
-    void writeMessage_NonExistentUser_NotFound() throws Exception {
+    @DisplayName("존재하지 않는 소유자에게 메시지 작성 - 실패")
+    void writeMessage_NonExistentOwner_NotFound() throws Exception {
         // Given
-        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
-                "메시지", 1, 1);
+        MessageWriteDTO dto = TestFixtures.createMessageWriteDTO(
+                999999L, "메시지", 1, 1);
 
         // When & Then
-        performPost("/api/paper/nonexistentuser", myMessage)
+        performPost("/api/paper/write", dto)
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
-    
+
     @Test
     @DisplayName("잘못된 MessageDTO로 메시지 작성 - 실패")
     void writeMessage_InvalidMessageDTO_BadRequest() throws Exception {
         // Given
-        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
-                "메시지", 1, 1);
-        myMessage.setAnonymity("매우긴익명사용자이름입니다"); // 8자 초과
+        MessageWriteDTO dto = TestFixtures.createMessageWriteDTO(
+                testMember.getId(), "메시지", 1, 1);
+        ReflectionTestUtils.setField(dto, "anonymity", "매우긴익명사용자이름입니다"); // 8자 초과
 
         // When & Then
-        performPost("/api/paper/" + testMember.getMemberName(), myMessage)
+        performPost("/api/paper/write", dto)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }

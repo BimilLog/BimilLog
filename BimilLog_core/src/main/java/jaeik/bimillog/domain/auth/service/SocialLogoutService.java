@@ -37,8 +37,7 @@ public class SocialLogoutService {
      * @throws Exception 소셜 플랫폼 로그아웃 처리 중 예외 발생 시
      */
     public void socialLogout(Long memberId, SocialProvider provider) throws Exception {
-        Member member = authToMemberAdapter.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN));
+        Member member = authToMemberAdapter.findById(memberId);
         SocialToken socialToken = member.getSocialToken();
         if (socialToken == null) {
             throw new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN);

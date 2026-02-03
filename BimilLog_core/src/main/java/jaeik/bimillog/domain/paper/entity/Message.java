@@ -59,36 +59,5 @@ public class Message extends BaseEntity {
     @Column(nullable = false)
     private int y;
 
-    /**
-     * <h3>메시지 생성 팩토리 메소드</h3>
-     * <p>새로운 롤링페이퍼 메시지 엔티티를 생성합니다.</p>
-     * <p>유효성 검증은 DTO 레벨에서 수행되므로 이미 검증된 데이터로 엔티티를 생성합니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public static Message createMessage(Member member, DecoType decoType, String anonymity, String content, int x, int y) {
-        return Message.builder()
-                .member(member)
-                .decoType(decoType)
-                .anonymity(anonymity)
-                .content(content)
-                .x(x)
-                .y(y)
-                .build();
-    }
-
-    /**
-     * <h3>메시지 작성자 ID 조회</h3>
-     * <p>메시지 작성자의 회원 ID를 반환합니다.</p>
-     * <p>MessageDetail과 VisitMessageDetail에서 메시지 변환 시 호출되는 메서드</p>
-     *
-     * @return 작성자 회원 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Long getMemberId() {
-        return this.member != null ? this.member.getId() : null;
-    }
 }
 

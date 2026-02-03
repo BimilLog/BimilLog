@@ -88,8 +88,8 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 관계 생성 성공 - 정상적인 요청 수락")
     void shouldCreateFriendship_WhenValidRequest() {
         // Given
-        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
-        given(friendToMemberAdapter.findById(MEMBER_ID)).willReturn(Optional.of(member));
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(friend);
+        given(friendToMemberAdapter.findById(MEMBER_ID)).willReturn(member);
         given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(false);
         given(friendshipRepository.existsByMemberIdAndFriendId(FRIEND_ID, MEMBER_ID)).willReturn(false);
         given(friendshipRepository.save(any(Friendship.class))).willReturn(friendship);
@@ -107,7 +107,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 관계 생성 실패 - 친구가 존재하지 않음")
     void shouldThrowException_WhenFriendNotFound() {
         // Given
-        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.empty());
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willThrow(new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> friendshipCommandService.createFriendship(MEMBER_ID, FRIEND_ID, FRIEND_REQUEST_ID))
@@ -123,8 +123,8 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 관계 생성 - 블랙리스트 체크 이벤트 발행")
     void shouldPublishCheckBlacklistEvent_WhenCreatingFriendship() {
         // Given
-        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
-        given(friendToMemberAdapter.findById(MEMBER_ID)).willReturn(Optional.of(member));
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(friend);
+        given(friendToMemberAdapter.findById(MEMBER_ID)).willReturn(member);
         given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(false);
         given(friendshipRepository.existsByMemberIdAndFriendId(FRIEND_ID, MEMBER_ID)).willReturn(false);
         given(friendshipRepository.save(any(Friendship.class))).willReturn(friendship);
@@ -147,7 +147,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     @DisplayName("이미 친구 관계 존재 예외 - 정방향/역방향 공통")
     void shouldThrowException_WhenFriendshipAlreadyExists(String direction, boolean memberToFriendExists, boolean friendToMemberExists) {
         // Given
-        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(friend);
         given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(memberToFriendExists);
         if (!memberToFriendExists) {
             given(friendshipRepository.existsByMemberIdAndFriendId(FRIEND_ID, MEMBER_ID)).willReturn(friendToMemberExists);
@@ -172,10 +172,10 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 관계 생성 실패 - 회원이 존재하지 않음")
     void shouldThrowException_WhenMemberNotFound() {
         // Given
-        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(friend);
         given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(false);
         given(friendshipRepository.existsByMemberIdAndFriendId(FRIEND_ID, MEMBER_ID)).willReturn(false);
-        given(friendToMemberAdapter.findById(MEMBER_ID)).willReturn(Optional.empty());
+        given(friendToMemberAdapter.findById(MEMBER_ID)).willThrow(new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> friendshipCommandService.createFriendship(MEMBER_ID, FRIEND_ID, FRIEND_REQUEST_ID))

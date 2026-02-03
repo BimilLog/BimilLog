@@ -70,8 +70,7 @@ public class FriendRequestCommandService {
         }
 
         // 요청 받는 사람이 실존하는지 확인
-        Member receiver = friendToMemberAdapter.findById(receiveMemberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
+        Member receiver = friendToMemberAdapter.findById(receiveMemberId);
 
         // 요청 받는 사람과 블랙리스트 관계인지 확인
         eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, receiveMemberId));
@@ -79,8 +78,7 @@ public class FriendRequestCommandService {
         // 이미 요청이 존재 하는지 확인 (1,10)이 있으면 (10,1)도 있으면 안된다.
         checkFriendRequest(memberId, receiveMemberId);
 
-        Member sender = friendToMemberAdapter.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
+        Member sender = friendToMemberAdapter.findById(memberId);
 
         FriendRequest friendRequest = FriendRequest.createFriendRequest(sender, receiver);
 

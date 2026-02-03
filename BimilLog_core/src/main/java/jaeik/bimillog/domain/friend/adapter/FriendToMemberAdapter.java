@@ -38,7 +38,7 @@ public class FriendToMemberAdapter {
      * @param memberId 조회할 사용자 ID
      * @return Optional&lt;Member&gt; 조회된 사용자 객체 (존재하지 않으면 Optional.empty())
      */
-    public Optional<Member> findById(Long memberId) {
+    public Member findById(Long memberId) {
         return memberQueryService.findById(memberId);
     }
 }

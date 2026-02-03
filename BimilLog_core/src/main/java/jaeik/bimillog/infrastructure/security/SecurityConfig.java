@@ -102,7 +102,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/post/{postId}/like").authenticated()
                         .requestMatchers("/api/post/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/paper/{userName}", "/api/paper/popular").permitAll()
+                        .requestMatchers("/api/paper/{userName}", "/api/paper/popular", "/api/paper/write").permitAll()
                         .requestMatchers("/api/member/suggestion", "/api/member/username/check", "/api/member/report").permitAll()
                         .requestMatchers("/actuator/**").permitAll()  // ALB에서 외부 접근 차단됨
                         .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()

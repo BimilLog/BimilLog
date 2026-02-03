@@ -17,7 +17,8 @@ export function useRollingPaperActions(userName: string) {
 
   // 메시지 작성 - Promise 반환
   const handleCreateMessage = useCallback((messageData: {
-    userName: string;
+    ownerId: number;
+    ownerName?: string;
     content: string;
     anonymity: string;
     decoType: DecoType;
@@ -27,7 +28,8 @@ export function useRollingPaperActions(userName: string) {
     return new Promise((resolve, reject) => {
       createMessage(
         {
-          userName: messageData.userName,
+          ownerId: messageData.ownerId,
+          ownerName: messageData.ownerName,
           decoType: messageData.decoType,
           anonymity: messageData.anonymity,
           content: messageData.content,

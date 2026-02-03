@@ -83,7 +83,7 @@ public class CommentCommandService {
                 }
             }
 
-            Member member = memberId != null ? commentToMemberAdapter.findById(memberId).orElse(null) : null;
+            Member member = memberId != null ? commentToMemberAdapter.findById(memberId) : null;
             String memberName = member != null ? member.getMemberName() : "익명";
 
             saveCommentWithClosure(post, member, content, password, parentId);
@@ -161,8 +161,7 @@ public class CommentCommandService {
     public void likeComment(Long memberId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-        Member member = commentToMemberAdapter.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
+        Member member = commentToMemberAdapter.findById(memberId);
 
         // 블랙리스트 확인 (익명 댓글이 아닌 경우에만)
         if (comment.getMember() != null) {

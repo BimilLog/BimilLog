@@ -44,8 +44,8 @@ public class MemberQueryService {
      * @since 2.0.0
      */
     @Transactional(readOnly = true)
-    public Optional<Member> findById(Long id) {
-        return memberRepository.findById(id);
+    public Member findById(Long id) {
+        return memberRepository.findById(id).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
     }
 
     /**

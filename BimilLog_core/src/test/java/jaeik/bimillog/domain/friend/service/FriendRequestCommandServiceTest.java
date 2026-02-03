@@ -75,8 +75,8 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 요청 전송 성공 - 정상적인 요청")
     void shouldSendFriendRequest_WhenValidInput() {
         // Given
-        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
-        given(friendToMemberAdapter.findById(SENDER_ID)).willReturn(Optional.of(sender));
+        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(receiver);
+        given(friendToMemberAdapter.findById(SENDER_ID)).willReturn(sender);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(false);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(RECEIVER_ID, SENDER_ID)).willReturn(false);
         given(friendRequestRepository.save(any(FriendRequest.class))).willReturn(friendRequest);
@@ -109,7 +109,7 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 요청 전송 실패 - 존재하지 않는 수신자")
     void shouldThrowException_WhenReceiverNotFound() {
         // Given
-        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.empty());
+        given(friendToMemberAdapter.findById(RECEIVER_ID)).willThrow(new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> friendRequestCommandService.sendFriendRequest(SENDER_ID, RECEIVER_ID))
@@ -123,8 +123,8 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 요청 전송 - 블랙리스트 체크 이벤트 발행")
     void shouldPublishCheckBlacklistEvent_WhenSendingFriendRequest() {
         // Given
-        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
-        given(friendToMemberAdapter.findById(SENDER_ID)).willReturn(Optional.of(sender));
+        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(receiver);
+        given(friendToMemberAdapter.findById(SENDER_ID)).willReturn(sender);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(false);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(RECEIVER_ID, SENDER_ID)).willReturn(false);
         given(friendRequestRepository.save(any(FriendRequest.class))).willReturn(friendRequest);
@@ -146,7 +146,7 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 요청 전송 실패 - 이미 보낸 요청 존재 (sender -> receiver)")
     void shouldThrowException_WhenRequestAlreadySent() {
         // Given
-        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
+        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(receiver);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(true);
 
         // When & Then
@@ -161,7 +161,7 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 요청 전송 실패 - 이미 받은 요청 존재 (receiver -> sender)")
     void shouldThrowException_WhenReverseRequestExists() {
         // Given
-        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
+        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(receiver);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(false);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(RECEIVER_ID, SENDER_ID)).willReturn(true);
 

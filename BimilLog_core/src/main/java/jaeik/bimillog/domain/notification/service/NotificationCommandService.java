@@ -91,8 +91,7 @@ public class NotificationCommandService {
     public void saveCommentNotification(Long postOwnerId, String commenterName, Long postId) {
         String message = commenterName + "님이 댓글을 남겼습니다!";
         String url = baseUrl + POST_URL + postId;
-        Member member = notificationToMemberAdapter.findById(postOwnerId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
+        Member member = notificationToMemberAdapter.findById(postOwnerId);
 
         Notification notification = Notification.create(member, NotificationType.COMMENT, message, url);
         notificationRepository.save(notification);
@@ -113,8 +112,7 @@ public class NotificationCommandService {
     public void saveMessageNotification(Long paperOwnerId, String memberName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = baseUrl + PAPER_URL + memberName;
-        Member member = notificationToMemberAdapter.findById(paperOwnerId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
+        Member member = notificationToMemberAdapter.findById(paperOwnerId);
 
         Notification notification = Notification.create(member, NotificationType.MESSAGE, message, url);
         notificationRepository.save(notification);
@@ -137,8 +135,7 @@ public class NotificationCommandService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void savePopularNotification(Long memberId, String message, Long postId, NotificationType notificationType, String postTitle) {
         String url = baseUrl + POST_URL + postId;
-        Member member = notificationToMemberAdapter.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
+        Member member = notificationToMemberAdapter.findById(memberId);
 
         Notification notification = Notification.create(member, notificationType, message, url);
         notificationRepository.save(notification);
@@ -159,8 +156,7 @@ public class NotificationCommandService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveFriendNotification(Long receiveMemberId, String message, String senderName) {
         String url = baseUrl +FRIEND_URL;
-        Member member = notificationToMemberAdapter.findById(receiveMemberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
+        Member member = notificationToMemberAdapter.findById(receiveMemberId);
 
         Notification notification = Notification.create(member, NotificationType.FRIEND, message, url);
         notificationRepository.save(notification);

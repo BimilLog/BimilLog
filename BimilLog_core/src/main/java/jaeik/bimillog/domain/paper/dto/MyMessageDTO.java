@@ -18,7 +18,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MyMessageQueryDTO {
+public class MyMessageDTO {
     private Long id;
     private DecoType decoType;
     private String anonymity;
@@ -27,18 +27,17 @@ public class MyMessageQueryDTO {
     private int y;
     private Instant createdAt;
 
-
-    public static List<MyMessageQueryDTO> getListMyMessageDTO(List<Message> messageList) {
-        List<MyMessageQueryDTO> myMessageQueryDTOS = new ArrayList<>();
+    public static List<MyMessageDTO> getListMyMessageDTO(List<Message> messageList) {
+        List<MyMessageDTO> myMessageDTOS = new ArrayList<>();
         for (Message message : messageList) {
-            MyMessageQueryDTO from = from(message);
-            myMessageQueryDTOS.add(from);
+            MyMessageDTO from = from(message);
+            myMessageDTOS.add(from);
         }
-        return myMessageQueryDTOS;
+        return myMessageDTOS;
     }
 
-    private static MyMessageQueryDTO from(Message message) {
-        return new MyMessageQueryDTO(
+    private static MyMessageDTO from(Message message) {
+        return new MyMessageDTO(
                 message.getId(),
                 message.getDecoType(),
                 message.getAnonymity(),

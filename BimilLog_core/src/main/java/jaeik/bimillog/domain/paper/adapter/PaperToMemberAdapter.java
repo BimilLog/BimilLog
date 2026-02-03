@@ -25,7 +25,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PaperToMemberAdapter {
     private final MemberQueryService memberQueryService;
-    private final MemberBlacklistService memberBlacklistService;
+
+    /**
+     * <h3>사용자ID로 멤버 조회</h3>
+     */
+    public Member getMemberById(Long memberId) {
+        return memberQueryService.findById(memberId);
+    }
 
 
     /**
@@ -38,6 +44,7 @@ public class PaperToMemberAdapter {
     public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
         return memberQueryService.findMemberNamesByIds(memberIds);
     }
+
 
     /**
      * <h3>사용자명으로 사용자 조회</h3>

@@ -14,8 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -50,7 +48,7 @@ class SocialWithdrawServiceTest {
         Member testMember = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
         String accessToken = testMember.getSocialToken().getAccessToken();
 
-        given(authToMemberAdapter.findById(memberId)).willReturn(Optional.of(testMember));
+        given(authToMemberAdapter.findById(memberId)).willReturn(testMember);
         given(strategyRegistryAdapter.getStrategy(provider)).willReturn(socialStrategy);
 
         // When

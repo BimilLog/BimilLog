@@ -17,7 +17,8 @@ export function useCreateMessageAction() {
 
   const createMessage = (
     data: {
-      userName: string
+      ownerId: number
+      ownerName?: string // 캐시 무효화용 (선택)
       decoType: DecoType
       anonymity: string
       content: string
@@ -34,9 +35,11 @@ export function useCreateMessageAction() {
 
       if (result.success) {
         // 캐시 무효화
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.paper.detail(data.userName)
-        })
+        if (data.ownerName) {
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.paper.detail(data.ownerName)
+          })
+        }
         queryClient.invalidateQueries({
           queryKey: queryKeys.paper.my
         })
