@@ -42,23 +42,14 @@ public class TestFixtures {
     }
 
     /**
-     * 롤링페이퍼 메시지 요청 DTO 생성 (삭제용)
-     * @param content 메시지 내용
-     * @param positionX X 위치
-     * @param positionY Y 위치
+     * 롤링페이퍼 메시지 삭제 요청 DTO 생성
+     * @param messageId 삭제할 메시지 ID
      * @return MessageDeleteDTO
      */
-    public static MessageDeleteDTO createPaperMessageRequest(String content, int positionX, int positionY) {
-        return new MessageDeleteDTO(
-                null,  // id
-                null,  // memberId
-                DecoType.POTATO,  // decoType
-                "테스트회원",  // anonymity
-                content,  // content
-                positionX,  // x
-                positionY,  // y
-                null  // createdAt
-        );
+    public static MessageDeleteDTO createMessageDeleteDTO(Long messageId) {
+        MessageDeleteDTO dto = new MessageDeleteDTO();
+        dto.setMessageId(messageId);
+        return dto;
     }
 
     /**

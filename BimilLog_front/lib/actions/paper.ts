@@ -105,7 +105,7 @@ export async function deleteMessageAction(data: {
     const res = await fetch(`${apiUrl}/api/paper/delete`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ id: data.messageId }),
+      body: JSON.stringify({ messageId: data.messageId }),
     })
 
     if (!res.ok) {

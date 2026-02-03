@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>메시지 작성, 메시지 삭제</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.7.0
  */
 @Service
 @RequiredArgsConstructor
@@ -42,7 +42,7 @@ public class PaperCommandService {
 
         // 비회원 확인
         if (memberId != null) {
-            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, member.getId())); // 블랙리스트 확인
+            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, member.getId())); // 블랙리스트는 작성 불가
         }
 
         Message message = messageWriteDTO.convertDtoToEntity(member);
@@ -55,14 +55,15 @@ public class PaperCommandService {
     }
 
     /**
-     * <h3>메시지 삭제</h3>
+     * <h3>롤링페이퍼 메시지 삭제</h3>
      */
     @Transactional
     public void deleteMessage(Long memberId, Long messageId) {
-        Long ownerId = paperRepository.findOwnerIdByMessageId(messageId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PAPER_MESSAGE_NOT_FOUND));
+        // 메시지 조회
+        Message message = paperRepository.findById(messageId).orElseThrow(() -> new CustomException(ErrorCode.PAPER_MESSAGE_NOT_FOUND));
 
-        if (!ownerId.equals(memberId)) {
+        // 메시지의 멤버 ID와 요청 멤버의ID가 일치하는지 확인
+        if (!message.getMember().getId().equals(memberId)) {
             throw new CustomException(ErrorCode.PAPER_MESSAGE_DELETE_FORBIDDEN);
         }
 
@@ -71,7 +72,7 @@ public class PaperCommandService {
     }
 
     /**
-     * <h3>회원탈퇴시 메시지 전체 삭제</h3>
+     * <h3>회원탈퇴시 롤링페이퍼 메시지 전체 삭제</h3>
      */
     @Transactional
     public void deleteAllMessageWhenWithdraw(Long memberId) {

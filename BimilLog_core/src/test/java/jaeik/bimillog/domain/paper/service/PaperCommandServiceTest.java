@@ -63,14 +63,17 @@ class PaperCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 1L;
         Long messageId = 123L;
+        Member owner = createTestMemberWithId(memberId);
+        Message message = mock(Message.class);
+        given(message.getMember()).willReturn(owner);
 
-        given(paperRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(memberId));
+        given(paperRepository.findById(messageId)).willReturn(Optional.of(message));
 
         // When
         paperCommandService.deleteMessage(memberId, messageId);
 
         // Then
-        verify(paperRepository, times(1)).findOwnerIdByMessageId(messageId);
+        verify(paperRepository, times(1)).findById(messageId);
         verify(paperRepository, times(1)).deleteById(messageId);
         verify(eventPublisher, times(1)).publishEvent(any(MessageDeletedEvent.class));
     }
@@ -82,14 +85,14 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long memberId = 999L;
         Long messageId = 999L;
 
-        given(paperRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
+        given(paperRepository.findById(messageId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessage(memberId, messageId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_NOT_FOUND);
 
-        verify(paperRepository, times(1)).findOwnerIdByMessageId(messageId);
+        verify(paperRepository, times(1)).findById(messageId);
         verify(paperRepository, never()).deleteById(any());
     }
 
@@ -100,15 +103,18 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long ownerId = 2L; // 다른 사용자
         Long messageId = 123L;
+        Member owner = createTestMemberWithId(ownerId);
+        Message message = mock(Message.class);
+        given(message.getMember()).willReturn(owner);
 
-        given(paperRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
+        given(paperRepository.findById(messageId)).willReturn(Optional.of(message));
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessage(memberId, messageId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_DELETE_FORBIDDEN);
 
-        verify(paperRepository, times(1)).findOwnerIdByMessageId(messageId);
+        verify(paperRepository, times(1)).findById(messageId);
         verify(paperRepository, never()).deleteById(any());
     }
 
