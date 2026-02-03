@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.paper.controller;
 import jaeik.bimillog.domain.paper.dto.MessageWriteDTO;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.entity.MyMessage;
+import jaeik.bimillog.domain.paper.dto.MessageDeleteDTO;
 import jaeik.bimillog.domain.paper.repository.PaperRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
@@ -103,12 +103,12 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
                 testMember, "삭제될 메시지", 1, 1);
         Message savedMessage = paperRepository.save(message);
 
-        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
+        MessageDeleteDTO messageDeleteDTO = TestFixtures.createPaperMessageRequest(
                 "삭제될 메시지", 1, 1);
-        myMessage.setId(savedMessage.getId());
+        messageDeleteDTO.setId(savedMessage.getId());
 
         // When & Then
-        performPost("/api/paper/delete", myMessage, testUserDetails)
+        performPost("/api/paper/delete", messageDeleteDTO, testUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 삭제되었습니다."));
@@ -118,12 +118,12 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("인증되지 않은 사용자의 메시지 삭제 - 실패 (500 Internal Server Error)")
     void deleteMessage_Unauthenticated_InternalServerError() throws Exception {
         // Given
-        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
+        MessageDeleteDTO messageDeleteDTO = TestFixtures.createPaperMessageRequest(
                 "메시지", 1, 1);
-        myMessage.setId(1L);
+        messageDeleteDTO.setId(1L);
 
         // When & Then
-        performPost("/api/paper/delete", myMessage)
+        performPost("/api/paper/delete", messageDeleteDTO)
                 .andDo(print())
                 .andExpect(status().isInternalServerError());  // userDetails가 null일 때 NullPointerException 발생 → 500 반환
     }
@@ -132,12 +132,12 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("존재하지 않는 메시지 삭제 - 실패")
     void deleteMessage_NonExistentMessage_NotFound() throws Exception {
         // Given
-        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
+        MessageDeleteDTO messageDeleteDTO = TestFixtures.createPaperMessageRequest(
                 "메시지", 1, 1);
-        myMessage.setId(99999L);
+        messageDeleteDTO.setId(99999L);
 
         // When & Then
-        performPost("/api/paper/delete", myMessage, testUserDetails)
+        performPost("/api/paper/delete", messageDeleteDTO, testUserDetails)
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }

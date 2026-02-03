@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.dto.MessageWriteDTO;
-import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
@@ -60,7 +59,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("내 롤링페이퍼 메시지 삭제 - 성공")
-    void shouldDeleteMessageInMyPaper_WhenOwnerDeletes() {
+    void shouldDeleteMessage_WhenOwnerDeletes() {
         // Given
         Long memberId = 1L;
         Long messageId = 123L;
@@ -68,7 +67,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
         given(paperRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(memberId));
 
         // When
-        paperCommandService.deleteMessageInMyPaper(memberId, messageId);
+        paperCommandService.deleteMessage(memberId, messageId);
 
         // Then
         verify(paperRepository, times(1)).findOwnerIdByMessageId(messageId);
@@ -86,7 +85,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
         given(paperRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
+        assertThatThrownBy(() -> paperCommandService.deleteMessage(memberId, messageId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_NOT_FOUND);
 
@@ -105,7 +104,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
         given(paperRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
+        assertThatThrownBy(() -> paperCommandService.deleteMessage(memberId, messageId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_DELETE_FORBIDDEN);
 

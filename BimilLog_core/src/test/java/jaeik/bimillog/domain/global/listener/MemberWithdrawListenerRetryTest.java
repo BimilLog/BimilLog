@@ -174,7 +174,7 @@ class MemberWithdrawListenerRetryTest {
                     verify(sseService, times(1)).deleteEmitters(1L, null);
                     verify(postCommandService, times(1)).deleteAllPostsByMemberId(1L);
                     verify(commentCommandService, times(1)).processUserCommentsOnWithdrawal(1L);
-                    verify(paperCommandService, times(1)).deleteMessageInMyPaper(1L, null);
+                    verify(paperCommandService, times(1)).deleteAllMessageWhenWithdraw(1L);
                     verify(notificationCommandUseCase, times(1)).deleteAllNotification(1L);
                     verify(authTokenService, times(1)).deleteTokens(1L, null);
                     verify(adminCommandService, times(1)).anonymizeReporterByUserId(1L);

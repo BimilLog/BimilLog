@@ -103,7 +103,7 @@ public class MemberWithdrawListener {
         commentCommandService.processUserCommentsOnWithdrawal(memberId);
 
         // 롤링페이퍼 메시지 삭제
-        paperCommandService.deleteMessageInMyPaper(memberId, null);
+        paperCommandService.deleteAllMessageWhenWithdraw(memberId);
 
         // 알림 삭제
         notificationCommandUseCase.deleteAllNotification(memberId);
