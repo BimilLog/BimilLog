@@ -117,7 +117,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .createdAt(Instant.now())
                 .memberName("testMember")
                 .commentCount(10)
-                .isNotice(false)
                 .build();
         given(postQueryRepository.findPostDetail(postId, null))
                 .willReturn(Optional.of(mockPostDetail));
@@ -155,7 +154,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .createdAt(Instant.now())
                 .memberName("testMember")
                 .commentCount(3)
-                .isNotice(false)
                 .build();
         given(postQueryRepository.findPostDetail(postId, null))
                 .willReturn(Optional.of(mockPostDetail));

@@ -2,7 +2,7 @@
 
 import React, { useCallback } from "react";
 import { useToast } from "@/hooks";
-import { Button, CardHeader, CardTitle, Badge } from "@/components";
+import { CardHeader, CardTitle } from "@/components";
 import {
   Eye,
   ThumbsUp,
@@ -10,12 +10,10 @@ import {
   Lock,
   User,
   Share2,
-  Megaphone,
 } from "lucide-react";
 import { Post } from "@/lib/api";
-import Link from "next/link";
 import { KakaoShareButton } from "@/components";
-import { Popover, Button as FlowbiteButton } from "flowbite-react";
+import { Button as FlowbiteButton } from "flowbite-react";
 import { UserActionPopover } from "@/components/molecules/UserActionPopover";
 import { formatDateTime } from "@/lib/utils/date";
 
@@ -29,7 +27,6 @@ export const PostHeader = React.memo<PostHeaderProps>(({
   commentCount,
 }) => {
   const { showSuccess, showError } = useToast();
-  const isNotice = Boolean(post.isNotice ?? post.notice);
 
   // 링크 공유 기능 (롤링페이퍼와 동일한 로직)
   const handleWebShare = useCallback(async () => {
@@ -65,14 +62,11 @@ export const PostHeader = React.memo<PostHeaderProps>(({
     <CardHeader className="border-b p-4 md:p-6">
       {/* 제목 */}
       <div className="mb-4">
-        <div className="flex items-center gap-3 mb-3">
-          {post.password && (
+        {post.password && (
+          <div className="flex items-center gap-3 mb-3">
             <Lock className="w-4 h-4 stroke-red-500 fill-red-100" />
-          )}
-          {isNotice && (
-            <Badge variant="info" icon={Megaphone}>공지</Badge>
-          )}
-        </div>
+          </div>
+        )}
         <CardTitle className="text-xl md:text-2xl font-bold text-brand-primary leading-tight">
           {post.title}
         </CardTitle>
@@ -159,8 +153,6 @@ export const PostHeader = React.memo<PostHeaderProps>(({
     prevProps.post.title === nextProps.post.title &&
     prevProps.post.viewCount === nextProps.post.viewCount &&
     prevProps.post.likeCount === nextProps.post.likeCount &&
-    Boolean(prevProps.post.isNotice ?? prevProps.post.notice) ===
-      Boolean(nextProps.post.isNotice ?? nextProps.post.notice) &&
     prevProps.commentCount === nextProps.commentCount
   );
 });

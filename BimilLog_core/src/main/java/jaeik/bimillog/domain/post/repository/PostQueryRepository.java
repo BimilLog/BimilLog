@@ -53,16 +53,14 @@ public class PostQueryRepository {
     /**
      * <h3>게시판 조회</h3>
      * <p>페이지 정보에 따라 게시글 목록을 조회합니다.</p>
-     * <p>공지사항은 제외하고 일반 게시글만 조회</p>
+     * <p>공지사항 포함 모든 게시글 조회 (isNotice 조건 제거)</p>
      * <p>{@link PostQueryService}에서 게시판 메인 목록 조회 시 호출됩니다.</p>
      *
      * @param pageable 페이지 정보
      * @return 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
      */
     public Page<PostSimpleDetail> findByPage(Pageable pageable, Long memberId) {
-        Consumer<JPAQuery<?>> customizer = query -> query.where(post.isNotice.isFalse());
+        Consumer<JPAQuery<?>> customizer = query -> {};
         return findPostsWithQuery(customizer, customizer, pageable);
     }
 
@@ -228,8 +226,7 @@ public class PostQueryRepository {
                         new CaseBuilder()
                                 .when(userPostLike.id.isNotNull())
                                 .then(true)
-                                .otherwise(false),
-                        post.isNotice
+                                .otherwise(false)
                 ))
                 .from(post)
                 .leftJoin(post.member, member)
@@ -241,7 +238,7 @@ public class PostQueryRepository {
                 )
                 .where(post.id.eq(postId))
                 .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
-                        member.id, member.memberName, post.isNotice, userPostLike.id)
+                        member.id, member.memberName, userPostLike.id)
                 .fetchOne();
 
         return Optional.ofNullable(result);
@@ -249,7 +246,8 @@ public class PostQueryRepository {
 
     /**
      * <h3>공지사항 목록 조회 (스케줄러용)</h3>
-     * <p>공지사항 게시글 목록을 최신순으로 조회합니다.</p>
+     * <p>FeaturedPost(type=NOTICE)에 등록된 공지사항 게시글 목록을 최신순으로 조회합니다.</p>
+     * <p>Note: 실제 조회는 FeaturedPostCacheService에서 처리</p>
      *
      * @return 공지사항 게시글 목록 (최대 100개, PostSimpleDetail)
      */
@@ -260,15 +258,17 @@ public class PostQueryRepository {
 
     /**
      * <h3>공지사항 목록 조회 (페이징)</h3>
-     * <p>공지사항 게시글 목록을 페이징으로 조회합니다.</p>
+     * <p>FeaturedPost(type=NOTICE)에 등록된 공지사항 게시글 목록을 페이징으로 조회합니다.</p>
+     * <p>Note: 실제 조회는 FeaturedPostCacheService에서 처리</p>
      *
      * @param pageable 페이지 정보
-     * @return 공지사항 페이지
+     * @return 공지사항 페이지 (빈 페이지 반환 - 실제 조회는 FeaturedPostCacheService에서)
      */
     @Transactional(readOnly = true)
     public Page<PostSimpleDetail> findNoticePosts(Pageable pageable) {
-        Consumer<JPAQuery<?>> customizer = query -> query.where(post.isNotice.isTrue());
-        return findPostsWithQuery(customizer, customizer, pageable);
+        // isNotice 필드 제거로 인해 이 메서드는 더 이상 사용하지 않음
+        // 공지사항 조회는 FeaturedPostCacheService를 통해 FeaturedPost 테이블에서 처리
+        return new PageImpl<>(List.of(), pageable, 0);
     }
 
     /**
@@ -317,7 +317,6 @@ public class PostQueryRepository {
                 .from(post)
                 .leftJoin(post.member, member)
                 .where(recentCondition)
-                .where(post.isNotice.isFalse())
                 .orderBy(popularityScore.desc(), post.createdAt.desc())
                 .offset(offset)
                 .limit(limit)
@@ -328,7 +327,6 @@ public class PostQueryRepository {
                 .select(post.count())
                 .from(post)
                 .where(recentCondition)
-                .where(post.isNotice.isFalse())
                 .fetchOne();
 
         long total = Math.min(actualTotal != null ? actualTotal : 0L, maxResults);

@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.jpa.FeaturedPost;
-import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
@@ -29,10 +28,10 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>PostAdminService 테스트</h2>
  * <p>게시글 공지사항 서비스의 핵심 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>공지 설정/해제 시 NOTICE Hash 캐시에서 해당 field만 추가/삭제합니다.</p>
+ * <p>공지 설정/해제 시 FeaturedPost 테이블 + NOTICE Hash 캐시에서 해당 field만 추가/삭제합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.8.0
  */
 @DisplayName("PostAdminService 테스트")
 @Tag("unit")
@@ -49,9 +48,6 @@ class PostAdminServiceTest extends BaseUnitTest {
 
     @Mock
     private FeaturedPostRepository featuredPostRepository;
-
-    @Mock
-    private Post post;
 
     @InjectMocks
     private PostAdminService postAdminService;
@@ -72,17 +68,16 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .commentCount(5)
                 .build();
 
-        given(postRepository.findById(postId)).willReturn(Optional.of(post));
-        given(post.isNotice()).willReturn(false);
+        given(postRepository.existsById(postId)).willReturn(true);
+        given(featuredPostRepository.existsByPostIdAndType(postId, PostCacheFlag.NOTICE)).willReturn(false);
         given(postQueryRepository.findPostSimpleDetailById(postId)).willReturn(Optional.of(mockDetail));
 
         // When
         postAdminService.togglePostNotice(postId);
 
         // Then
-        verify(postRepository).findById(postId);
-        verify(post).isNotice();
-        verify(post).setAsNotice();
+        verify(postRepository).existsById(postId);
+        verify(featuredPostRepository).existsByPostIdAndType(postId, PostCacheFlag.NOTICE);
         // PostSimpleDetail로 FeaturedPost 생성 후 저장
         verify(featuredPostRepository).save(any(FeaturedPost.class));
         // NOTICE 캐시 단건 추가 (HSET)
@@ -95,17 +90,15 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Given
         Long postId = 999L;
 
-        given(postRepository.findById(postId)).willReturn(Optional.empty());
+        given(postRepository.existsById(postId)).willReturn(false);
 
         // When & Then
         assertThatThrownBy(() -> postAdminService.togglePostNotice(postId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(postRepository).findById(postId);
-        verify(post, never()).isNotice();
-        verify(post, never()).setAsNotice();
-        verify(post, never()).unsetAsNotice();
+        verify(postRepository).existsById(postId);
+        verify(featuredPostRepository, never()).existsByPostIdAndType(any(), any());
     }
 
     @Test
@@ -118,28 +111,26 @@ class PostAdminServiceTest extends BaseUnitTest {
         assertThatThrownBy(() -> postAdminService.togglePostNotice(postId))
                 .isInstanceOf(Exception.class);
 
-        verify(postRepository).findById(postId);
-        verify(post, never()).isNotice();
-        verify(post, never()).setAsNotice();
-        verify(post, never()).unsetAsNotice();
+        verify(postRepository).existsById(postId);
     }
 
     @Test
-    @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제 → NOTICE 캐시 단건 삭제")
+    @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제 → featured_post 삭제 + NOTICE 캐시 단건 삭제")
     void shouldTogglePostNotice_WhenNoticePostToNormal() {
         // Given
         Long postId = 123L;
 
-        given(postRepository.findById(postId)).willReturn(Optional.of(post));
-        given(post.isNotice()).willReturn(true);
+        given(postRepository.existsById(postId)).willReturn(true);
+        given(featuredPostRepository.existsByPostIdAndType(postId, PostCacheFlag.NOTICE)).willReturn(true);
 
         // When
         postAdminService.togglePostNotice(postId);
 
         // Then
-        verify(postRepository).findById(postId);
-        verify(post).isNotice();
-        verify(post).unsetAsNotice();
+        verify(postRepository).existsById(postId);
+        verify(featuredPostRepository).existsByPostIdAndType(postId, PostCacheFlag.NOTICE);
+        // featured_post 삭제
+        verify(featuredPostRepository).deleteByPostIdAndType(postId, PostCacheFlag.NOTICE);
         // NOTICE 캐시 단건 삭제 (HDEL)
         verify(redisSimplePostAdapter).removePostFromCache(PostCacheFlag.NOTICE, postId);
     }

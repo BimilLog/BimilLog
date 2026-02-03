@@ -101,7 +101,6 @@ INSERT INTO post (
     title,
     content,
     views,
-    is_notice,
     password,
     created_at,
     modified_at
@@ -111,7 +110,6 @@ SELECT
     CONCAT('Seed Post Title ', ts.n),
     CONCAT('Seed post content ', ts.n, ' - Test content for performance.'),
     FLOOR(RAND(ts.n * 29) * 50000),
-    0,
     NULL,
     DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 31) * 365) DAY),
     DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 37) * 180) DAY)
@@ -125,7 +123,6 @@ INSERT INTO post (
     title,
     content,
     views,
-    is_notice,
     password,
     created_at,
     modified_at
@@ -136,7 +133,6 @@ SELECT
     CONCAT('Weekly Popular Post ', ts.n - 10000),
     CONCAT('Weekly popular content ', ts.n - 10000, ' - Load test weekly post. Created within 3 days, 5+ likes'),
     1000 + FLOOR(RAND(ts.n * 43) * 4000),
-    0,
     NULL,
     DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 47) * 3) DAY),
     DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 53) * 2) DAY)
@@ -150,7 +146,6 @@ INSERT INTO post (
     title,
     content,
     views,
-    is_notice,
     password,
     created_at,
     modified_at
@@ -161,7 +156,6 @@ SELECT
     CONCAT('Legend Post ', ts.n - 10010),
     CONCAT('Legend post content ', ts.n - 10010, ' - Load test legend post. Hall of fame with 20+ likes'),
     5000 + FLOOR(RAND(ts.n * 61) * 45000),
-    0,
     NULL,
     DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 67) * 365) DAY),
     DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 71) * 180) DAY)

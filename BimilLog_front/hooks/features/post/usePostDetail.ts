@@ -10,25 +10,15 @@ import { useCommentsQuery, type CommentWithReplies } from '@/hooks/api/useCommen
 import type { Post } from '@/types/domains/post';
 import type { Comment } from '@/types/domains/comment';
 
-const normalizePostNotice = (post: Post): Post => {
-  const notice = Boolean(post.isNotice ?? post.notice);
-  return {
-    ...post,
-    isNotice: notice,
-    notice,
-  };
-};
-
 // 게시글 상세 조회 (간단한 버전) - TanStack Query 통합
 export function usePostDetailQuery(postId: number, initialPost?: Post) {
-  const normalizedInitial = initialPost ? normalizePostNotice(initialPost) : undefined;
   return useQuery({
     queryKey: queryKeys.post.detail(postId),
     queryFn: () => postQuery.getById(postId),
     enabled: postId > 0,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    initialData: normalizedInitial ? { success: true, data: normalizedInitial } : undefined,
+    initialData: initialPost ? { success: true, data: initialPost } : undefined,
   });
 }
 

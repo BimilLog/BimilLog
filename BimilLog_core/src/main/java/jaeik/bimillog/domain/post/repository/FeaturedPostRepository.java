@@ -52,4 +52,15 @@ public interface FeaturedPostRepository extends JpaRepository<FeaturedPost, Long
      */
     @Query("SELECT fp.postId FROM FeaturedPost fp WHERE fp.type = :type ORDER BY fp.featuredAt DESC")
     List<Long> findPostIdsByType(PostCacheFlag type);
+
+    /**
+     * <h3>특정 게시글의 특정 유형 존재 여부 확인</h3>
+     * <p>게시글이 특정 유형의 특집 게시글로 등록되어 있는지 확인합니다.</p>
+     * <p>공지사항 토글 시 현재 상태 확인에 사용됩니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @param type   특집 유형 (WEEKLY, LEGEND, NOTICE)
+     * @return 존재하면 true, 없으면 false
+     */
+    boolean existsByPostIdAndType(Long postId, PostCacheFlag type);
 }

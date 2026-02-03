@@ -6,7 +6,6 @@ import { postCommand } from '@/lib/api';
 import { useToast } from '@/hooks';
 import { useRouter } from 'next/navigation';
 import { ErrorHandler } from '@/lib/api/helpers';
-import type { Post, ApiResponse } from '@/types';
 
 /**
  * 게시글 작성
@@ -120,7 +119,8 @@ export const useLikePost = () => {
 };
 
 /**
- * 공지사항 토글 (관리자 전용, 낙관적 업데이트)
+ * 공지사항 토글 (관리자 전용)
+ * 공지사항은 FeaturedPost(type=NOTICE) 테이블에서 관리됨
  */
 export const useToggleNotice = () => {
   const queryClient = useQueryClient();
@@ -129,39 +129,7 @@ export const useToggleNotice = () => {
   return useMutation({
     mutationKey: mutationKeys.post.toggleNotice,
     mutationFn: postCommand.toggleNotice,
-    onMutate: async (postId: number) => {
-      // 진행 중인 refetch 취소 - 경합 상태(race condition) 방지
-      await queryClient.cancelQueries({ queryKey: queryKeys.post.detail(postId) });
-
-      // 이전 값 스냅샷 - 에러 시 롤백용
-      const previousPost = queryClient.getQueryData(queryKeys.post.detail(postId));
-
-      // 낙관적 업데이트: 서버 응답 전에 UI를 먼저 업데이트하여 반응성 향상
-      queryClient.setQueryData(queryKeys.post.detail(postId), (old: ApiResponse<Post>) => {
-        if (!old?.success || !old?.data) return old;
-
-        const post = old.data;
-        const currentIsNotice = Boolean(post.isNotice ?? post.notice);
-        const newIsNotice = !currentIsNotice;
-
-        return {
-          ...old,
-          data: {
-            ...post,
-            isNotice: newIsNotice,
-            notice: newIsNotice,
-          },
-        };
-      });
-
-      return { previousPost, postId };
-    },
-    onError: (err: any, postId, context) => {
-      // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소
-      if (context?.previousPost) {
-        queryClient.setQueryData(queryKeys.post.detail(postId), context.previousPost);
-      }
-
+    onError: (err: any) => {
       // HTTP 상태 코드에 따른 구체적인 에러 메시지 표시
       let errorMessage = '공지사항 변경에 실패했습니다.';
 
@@ -176,17 +144,9 @@ export const useToggleNotice = () => {
 
       showToast({ type: 'error', message: errorMessage });
     },
-    onSuccess: (response, postId, context) => {
+    onSuccess: (response) => {
       if (response.success) {
-        // 성공 시 변경 전 상태를 기반으로 구체적인 메시지 표시
-        const previousPost = context?.previousPost as ApiResponse<Post> | undefined;
-        const wasNotice = Boolean(previousPost?.data?.isNotice ?? previousPost?.data?.notice);
-
-        const message = wasNotice
-          ? '공지사항이 해제되었습니다.'
-          : '공지사항으로 등록되었습니다.';
-
-        showToast({ type: 'success', message });
+        showToast({ type: 'success', message: '공지사항 설정이 변경되었습니다.' });
       }
     },
     onSettled: (data, error, postId) => {

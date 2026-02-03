@@ -15,6 +15,8 @@ interface PostActionsProps {
 /**
  * 게시글 액션 컴포넌트 (수정/삭제/공지사항 토글)
  * PostDetailClient에서 분리된 액션 관련 컴포넌트
+ * 공지 상태는 FeaturedPost 테이블로 관리되어 Post.isNotice 필드가 제거됨
+ * 관리자가 토글 시 서버에서 현재 상태를 확인하고 토글함
  */
 const PostActions = memo(({
   post,
@@ -24,7 +26,6 @@ const PostActions = memo(({
   const { user } = useAuth();
   const { toggleNotice, isPending: isTogglingNotice } = useToggleNoticeAction();
   const isAdmin = user?.role === 'ADMIN';
-  const isNotice = Boolean(post.isNotice ?? post.notice);
 
   const handleToggleNotice = () => {
     if (isTogglingNotice) return; // 이중 클릭 방지
@@ -35,18 +36,19 @@ const PostActions = memo(({
     <div className="flex items-center justify-end px-6 pb-6">
       <div className="flex items-center space-x-2">
         {/* 공지사항 토글 버튼 - 관리자 전용 */}
+        {/* 서버에서 현재 공지 상태를 확인하고 토글 (FeaturedPost 테이블 기반) */}
         {isAdmin && (
           <Tooltip
-            content={isNotice ? "공지사항을 일반 게시글로 변경합니다" : "게시글을 공지사항으로 등록합니다"}
+            content="공지사항 설정/해제를 토글합니다"
             placement="top"
           >
             <Button
-              variant={isNotice ? "default" : "outline"}
+              variant="outline"
               size="sm"
               onClick={handleToggleNotice}
               disabled={isTogglingNotice}
               className="flex items-center space-x-1"
-              aria-label={isNotice ? "공지사항 해제" : "공지사항으로 설정"}
+              aria-label="공지사항 토글"
               role="button"
             >
               {isTogglingNotice ? (
@@ -54,7 +56,7 @@ const PostActions = memo(({
               ) : (
                 <Megaphone className="w-4 h-4" aria-hidden="true" />
               )}
-              <span>{isNotice ? "공지 해제" : "공지 설정"}</span>
+              <span>공지 토글</span>
             </Button>
           </Tooltip>
         )}

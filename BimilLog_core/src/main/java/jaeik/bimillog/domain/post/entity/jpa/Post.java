@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.entity.jpa;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.service.PostAdminService;
 import jaeik.bimillog.domain.post.service.PostCommandService;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -13,18 +12,18 @@ import lombok.experimental.SuperBuilder;
 /**
  * <h2>게시글 엔티티</h2>
  * <p>커뮤니티 게시판의 게시글 정보를 저장하는 엔티티입니다.</p>
- * <p>제목, 내용, 작성자, 조회수, 공지 여부, 캐시 플래그를 관리합니다.</p>
- * <p>MySQL 전문검색 인덱스와 캐시 플래그를 지원합니다.</p>
+ * <p>제목, 내용, 작성자, 조회수를 관리합니다.</p>
+ * <p>공지사항 여부는 FeaturedPost(type=NOTICE) 테이블에서 관리합니다.</p>
+ * <p>MySQL 전문검색 인덱스를 지원합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.8.0
  */
 @Entity
 @Getter
 @NoArgsConstructor
 @SuperBuilder
 @Table(indexes = {
-        @Index(name = "idx_post_notice_created", columnList = "is_notice, created_at DESC"),
         @Index(name = "idx_post_created", columnList = "created_at"),
 })
 public class Post extends BaseEntity {
@@ -51,16 +50,12 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private int views;
 
-    @NotNull
-    @Column(name = "is_notice", nullable = false)
-    private boolean isNotice;
-
     private Integer password;
 
     /**
      * <h3>게시글 생성</h3>
      * <p>새로운 게시글을 생성하는 정적 팩토리 메서드입니다.</p>
-     * <p>조회수는 0, 공지사항은 false로 초기화됩니다.</p>
+     * <p>조회수는 0으로 초기화됩니다.</p>
      * <p>{@link PostCommandService}에서 게시글 작성 시 호출됩니다.</p>
      *
      * @param member       작성자 정보
@@ -85,7 +80,6 @@ public class Post extends BaseEntity {
                 .title(title)
                 .content(content)
                 .views(0)
-                .isNotice(false)
                 .password(password)
                 .build();
     }
@@ -111,30 +105,6 @@ public class Post extends BaseEntity {
         
         this.title = title;
         this.content = content;
-    }
-
-    /**
-     * <h3>공지사항 설정</h3>
-     * <p>게시글을 공지사항으로 설정합니다.</p>
-     * <p>{@link PostAdminService}에서 관리자 권한 검증 후 호출됩니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void setAsNotice() {
-        this.isNotice = true;
-    }
-
-    /**
-     * <h3>공지사항 해제</h3>
-     * <p>게시글의 공지사항을 해제합니다.</p>
-     * <p>{@link PostAdminService}에서 관리자 권한 검증 후 호출됩니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void unsetAsNotice() {
-        this.isNotice = false;
     }
 
     /**

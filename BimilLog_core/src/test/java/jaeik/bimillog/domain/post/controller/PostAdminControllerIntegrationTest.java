@@ -1,6 +1,12 @@
 package jaeik.bimillog.domain.post.controller;
 
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.entity.jpa.FeaturedPost;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
+import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
+
+import java.time.Instant;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
@@ -9,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,9 +24,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>@SpringBootTest를 사용한 실제 Post Admin API 통합 테스트</p>
  * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
  * <p>관리자 권한이 필요한 공지 설정/해제 API 동작을 검증</p>
+ * <p>공지 상태는 FeaturedPost 테이블(type=NOTICE)로 관리됨</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.6.0
  */
 @IntegrationTest
 @DisplayName("게시글 Admin 컨트롤러 통합 테스트")
@@ -27,6 +35,9 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private FeaturedPostRepository featuredPostRepository;
 
     private Post testPost;
 
@@ -41,38 +52,59 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         testPost = postRepository.save(testPost);
     }
 
+    /**
+     * 해당 게시글이 공지사항인지 확인 (FeaturedPost 테이블 기반)
+     */
+    private boolean isNotice(Long postId) {
+        return featuredPostRepository.existsByPostIdAndType(postId, PostCacheFlag.NOTICE);
+    }
+
+    /**
+     * 해당 게시글을 공지사항으로 설정 (테스트 setup용)
+     */
+    private void setAsNotice(Post post) {
+        PostSimpleDetail detail = PostSimpleDetail.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .memberName(post.getMember() != null ? post.getMember().getMemberName() : null)
+                .viewCount(post.getViews())
+                .likeCount(0)
+                .commentCount(0)
+                .createdAt(Instant.now())
+                .build();
+        FeaturedPost featuredPost = FeaturedPost.createFeaturedPost(detail, PostCacheFlag.NOTICE);
+        featuredPostRepository.save(featuredPost);
+    }
+
     @Test
     @DisplayName("게시글 공지 토글 성공 - 관리자 권한 (비공지 -> 공지)")
     void togglePostNotice_Success_WithAdminRole_NormalToNotice() throws Exception {
         // Given - 초기상태: 비공지
-        assert testPost.isNotice() == false;
-        
+        assertThat(isNotice(testPost.getId())).isFalse();
+
         // When & Then
         performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk());
 
         // 실제 DB 확인 - 공지로 변경됨
-        Post updatedPost = postRepository.findById(testPost.getId()).orElseThrow();
-        assert updatedPost.isNotice() == true;
+        assertThat(isNotice(testPost.getId())).isTrue();
     }
 
     @Test
     @DisplayName("게시글 공지 토글 성공 - 관리자 권한 (공지 -> 비공지)")
     void togglePostNotice_Success_WithAdminRole_NoticeToNormal() throws Exception {
         // Given - 먼저 공지로 설정
-        testPost.setAsNotice();
-        postRepository.save(testPost);
-        assert testPost.isNotice() == true;
-        
+        setAsNotice(testPost);
+        assertThat(isNotice(testPost.getId())).isTrue();
+
         // When & Then
         performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk());
 
         // 실제 DB 확인 - 비공지로 변경됨
-        Post updatedPost = postRepository.findById(testPost.getId()).orElseThrow();
-        assert updatedPost.isNotice() == false;
+        assertThat(isNotice(testPost.getId())).isFalse();
     }
 
     @Test
@@ -84,8 +116,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isForbidden());
 
         // DB 확인 - 상태 변경되지 않음
-        Post unchangedPost = postRepository.findById(testPost.getId()).orElseThrow();
-        assert unchangedPost.isNotice() == false; // 초기 상태 유지
+        assertThat(isNotice(testPost.getId())).isFalse();
     }
 
     @Test
@@ -97,10 +128,9 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
                         .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
-                
+
         // DB 확인 - 상태 변경되지 않음
-        Post unchangedPost = postRepository.findById(testPost.getId()).orElseThrow();
-        assert unchangedPost.isNotice() == false;
+        assertThat(isNotice(testPost.getId())).isFalse();
     }
 
     @Test
@@ -119,57 +149,52 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 공지 토글 - 연속 두 번 토글 (멱등성 확인)")
     void togglePostNotice_TwiceToggle_Idempotency() throws Exception {
         // Given - 초기 비공지 상태
-        assert testPost.isNotice() == false;
-        
+        assertThat(isNotice(testPost.getId())).isFalse();
+
         // When & Then - 첫 번째 토글: 비공지 -> 공지
         performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk());
 
         // DB 확인 - 공지로 변경
-        Post firstTogglePost = postRepository.findById(testPost.getId()).orElseThrow();
-        assert firstTogglePost.isNotice() == true;
-        
+        assertThat(isNotice(testPost.getId())).isTrue();
+
         // When & Then - 두 번째 토글: 공지 -> 비공지
         performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk());
 
         // DB 확인 - 비공지로 되돌아감
-        Post secondTogglePost = postRepository.findById(testPost.getId()).orElseThrow();
-        assert secondTogglePost.isNotice() == false;
+        assertThat(isNotice(testPost.getId())).isFalse();
     }
 
     @Test
     @DisplayName("게시글 공지 토글 - 세 번 토글 시나리오")
     void togglePostNotice_ThreeTimes() throws Exception {
         // Given - 초기 비공지 상태
-        assert testPost.isNotice() == false;
-        
+        assertThat(isNotice(testPost.getId())).isFalse();
+
         // 첫 번째 토글: 비공지 -> 공지
         performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
                 .andExpect(status().isOk());
-        Post firstPost = postRepository.findById(testPost.getId()).orElseThrow();
-        assert firstPost.isNotice() == true;
-        
+        assertThat(isNotice(testPost.getId())).isTrue();
+
         // 두 번째 토글: 공지 -> 비공지
         performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
                 .andExpect(status().isOk());
-        Post secondPost = postRepository.findById(testPost.getId()).orElseThrow();
-        assert secondPost.isNotice() == false;
-        
+        assertThat(isNotice(testPost.getId())).isFalse();
+
         // 세 번째 토글: 비공지 -> 공지
         performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
                 .andExpect(status().isOk());
-        Post thirdPost = postRepository.findById(testPost.getId()).orElseThrow();
-        assert thirdPost.isNotice() == true;
+        assertThat(isNotice(testPost.getId())).isTrue();
     }
 
     @Test
     @DisplayName("게시글 공지 토글 성공 - 정상 케이스 추가 검증")
     void togglePostNotice_Success_AdditionalVerification() throws Exception {
         // Given - 초기상태: 비공지
-        assert testPost.isNotice() == false;
+        assertThat(isNotice(testPost.getId())).isFalse();
 
         // When & Then - API 호출 성공
         performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
@@ -177,8 +202,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk());
 
         // 실제 DB 확인 - 공지로 변경됨
-        Post updatedPost = postRepository.findById(testPost.getId()).orElseThrow();
-        assert updatedPost.isNotice() == true;
+        assertThat(isNotice(testPost.getId())).isTrue();
     }
 
 }
