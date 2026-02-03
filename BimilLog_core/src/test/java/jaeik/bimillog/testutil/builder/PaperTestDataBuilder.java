@@ -10,18 +10,18 @@ import jaeik.bimillog.domain.paper.entity.Message;
  * Rolling Paper 메시지 관련 테스트 데이터 생성 유틸리티
  */
 public class PaperTestDataBuilder {
-    
+
     /**
      * Rolling Paper 메시지 생성
      */
     public static Message createRollingPaper(Member receiver, String content, int positionX, int positionY) {
-        return Message.createMessage(
-                receiver,
-                DecoType.POTATO,
-                "테스트회원",
-                content,
-                positionX,
-                positionY
-        );
+        return Message.builder()
+                .member(receiver)
+                .decoType(DecoType.POTATO)
+                .anonymity("테스트회원")
+                .content(content)
+                .x(positionX)
+                .y(positionY)
+                .build();
     }
 }

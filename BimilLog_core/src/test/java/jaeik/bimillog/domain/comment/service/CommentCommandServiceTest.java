@@ -102,7 +102,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldToggleLike_WhenLikeComment(boolean alreadyLiked) {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(getTestMember());
         given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(alreadyLiked);
 
         // When
@@ -147,7 +147,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.empty());
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willThrow(new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID))
@@ -166,7 +166,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenUserIdIsNull() {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(commentToMemberAdapter.findById(null)).willReturn(Optional.empty());
+        given(commentToMemberAdapter.findById(null)).willThrow(new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(null, TEST_COMMENT_ID))
@@ -188,7 +188,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(ownComment, "id", 200L);
 
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(ownComment));
-        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(getTestMember());
         given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
         // When
@@ -476,7 +476,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
-        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(getTestMember());
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
 
         // When
@@ -546,7 +546,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(commentRepository.findById(parentId)).willReturn(Optional.of(parentComment));
-        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(getTestMember());
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
         given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
 
@@ -629,7 +629,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(commentRepository.findById(parentId)).willReturn(Optional.of(parentComment));
-        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(getTestMember());
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
         given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
 

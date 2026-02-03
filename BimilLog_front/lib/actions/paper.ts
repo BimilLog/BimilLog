@@ -47,7 +47,8 @@ export type ActionResult = {
  * 롤링페이퍼 메시지 작성 Server Action
  */
 export async function createMessageAction(data: {
-  userName: string
+  ownerId: number
+  ownerName?: string // 캐시 무효화용 (선택)
   decoType: DecoType
   anonymity: string
   content: string
@@ -58,10 +59,11 @@ export async function createMessageAction(data: {
     const apiUrl = getServerApiUrl()
     const headers = await getAuthHeaders()
 
-    const res = await fetch(`${apiUrl}/api/paper/${encodeURIComponent(data.userName)}`, {
+    const res = await fetch(`${apiUrl}/api/paper/write`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
+        ownerId: data.ownerId,
         decoType: data.decoType,
         anonymity: data.anonymity,
         content: data.content,
@@ -76,8 +78,11 @@ export async function createMessageAction(data: {
       return { success: false, error: errorMessage }
     }
 
-    // 해당 유저의 롤링페이퍼 캐시 무효화
-    revalidatePath(`/rolling-paper/${encodeURIComponent(data.userName)}`)
+    // 롤링페이퍼 캐시 무효화
+    revalidatePath('/rolling-paper')
+    if (data.ownerName) {
+      revalidatePath(`/rolling-paper/${encodeURIComponent(data.ownerName)}`)
+    }
 
     return { success: true, message: '메시지가 작성되었습니다.' }
   } catch (error) {

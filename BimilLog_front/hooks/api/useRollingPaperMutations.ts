@@ -14,20 +14,21 @@ export const useCreateRollingPaperMessage = () => {
 
   return useMutation({
     mutationKey: mutationKeys.paper.write,
-    mutationFn: ({ userName, message }: {
-      userName: string;
+    mutationFn: ({ ownerName, message }: {
+      ownerName: string;
       message: {
+        ownerId: number;
         decoType: DecoType;
         anonymity: string;
         content: string;
         x: number;
         y: number;
       }
-    }) => paperCommand.createMessage(userName, message),
+    }) => paperCommand.createMessage(message),
     onSuccess: (data, variables) => {
       // 해당 사용자의 롤링페이퍼 캐시 무효화 - 새 메시지 반영
       queryClient.invalidateQueries({
-        queryKey: queryKeys.paper.detail(variables.userName)
+        queryKey: queryKeys.paper.detail(variables.ownerName)
       });
 
       // 내 롤링페이퍼 캐시도 무효화 (자신에게 메시지 작성 시 마이페이지 통계 실시간 업데이트)

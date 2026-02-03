@@ -27,7 +27,7 @@ class MessageTest {
     private Member member;
 
     @Test
-    @DisplayName("팩토리 메서드가 필수 필드를 채운다")
+    @DisplayName("빌더가 필수 필드를 채운다")
     void shouldCreateMessageWithEssentialFields() {
         // Given
         DecoType decoType = DecoType.APPLE;
@@ -37,7 +37,14 @@ class MessageTest {
         int y = 4;
 
         // When
-        Message message = Message.createMessage(member, decoType, anonymity, content, x, y);
+        Message message = Message.builder()
+                .member(member)
+                .decoType(decoType)
+                .anonymity(anonymity)
+                .content(content)
+                .x(x)
+                .y(y)
+                .build();
 
         // Then
         assertThat(message.getMember()).isEqualTo(member);
@@ -49,30 +56,41 @@ class MessageTest {
     }
 
     @Test
-    @DisplayName("getUserId는 사용자 ID를 그대로 반환한다")
+    @DisplayName("getMember().getId()는 사용자 ID를 그대로 반환한다")
     void shouldReturnUserIdWhenPresent() {
         // Given
         Long memberId = 456L;
         given(member.getId()).willReturn(memberId);
-        Message message = Message.createMessage(member, DecoType.BANANA, "익명", "내용", 1, 1);
+        Message message = Message.builder()
+                .member(member)
+                .decoType(DecoType.BANANA)
+                .anonymity("익명")
+                .content("내용")
+                .x(1)
+                .y(1)
+                .build();
 
         // When
-        Long actual = message.getMemberId();
+        Long actual = message.getMember().getId();
 
         // Then
         assertThat(actual).isEqualTo(memberId);
     }
 
     @Test
-    @DisplayName("사용자가 없으면 getUserId는 null")
+    @DisplayName("사용자가 없으면 getMember()는 null")
     void shouldReturnNullWhenUserNotPresent() {
         // Given
-        Message message = Message.createMessage(null, DecoType.BANANA, "익명", "내용", 1, 1);
+        Message message = Message.builder()
+                .member(null)
+                .decoType(DecoType.BANANA)
+                .anonymity("익명")
+                .content("내용")
+                .x(1)
+                .y(1)
+                .build();
 
-        // When
-        Long actual = message.getMemberId();
-
-        // Then
-        assertThat(actual).isNull();
+        // When & Then
+        assertThat(message.getMember()).isNull();
     }
 }

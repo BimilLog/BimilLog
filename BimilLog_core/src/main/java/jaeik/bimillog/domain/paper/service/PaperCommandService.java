@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.controller.PaperCommandController;
+import jaeik.bimillog.domain.paper.dto.MessageWriteDTO;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
@@ -37,26 +38,17 @@ public class PaperCommandService {
     /**
      * <h3>롤링페이퍼 메시지 작성</h3>
      * <p>특정 사용자의 롤링페이퍼에 메시지를 작성.</p>
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
-    public void writeMessage(Long memberId, String memberName, DecoType decoType, String anonymity, String content, int x, int y) {
-
-        if (memberName == null || memberName.trim().isEmpty()) { // 입력 닉네임 검증
-            throw new CustomException(ErrorCode.PAPER_INVALID_INPUT_VALUE);
-        }
-
-        Member member = paperToMemberAdapter.findByMemberName(memberName) // 입력 닉네임 존재 검증
-                .orElseThrow(() -> new CustomException(ErrorCode.PAPER_USERNAME_NOT_FOUND));
+    public void writeMessage(Long memberId, MessageWriteDTO messageWriteDTO) {
+        Member member = paperToMemberAdapter.getMemberById(messageWriteDTO.getOwnerId());
 
         // 비회원 확인
         if (memberId != null) {
-            // 블랙리스트 확인
-            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, member.getId()));
+            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, member.getId())); // 블랙리스트 확인
         }
 
-        Message message = Message.createMessage(member, decoType, anonymity, content, x, y);
+        Message message = messageWriteDTO.convertDtoToEntity(member);
         paperRepository.save(message);
 
         eventPublisher.publishEvent(new RollingPaperEvent(

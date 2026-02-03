@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.paper.dto.MessageWriteDTO;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
@@ -11,6 +12,7 @@ import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -116,75 +118,38 @@ class PaperCommandServiceTest extends BaseUnitTest {
     void shouldWriteMessage_WhenValidInput() {
         // Given
         Long memberId = 1L;
-        Member memberWithId = createTestMemberWithId(memberId);
-        String memberName = memberWithId.getMemberName();
-        DecoType decoType = DecoType.APPLE;
-        String anonymity = "익명";
-        String content = "테스트 메시지";
-        int x = 2;
-        int y = 2;
+        Long ownerId = 2L;
+        Member owner = createTestMemberWithId(ownerId);
+        MessageWriteDTO dto = TestFixtures.createMessageWriteDTO(ownerId, "테스트 메시지", 2, 2);
 
-        given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
+        given(paperToMemberAdapter.getMemberById(ownerId)).willReturn(owner);
 
         // When
-        paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y);
+        paperCommandService.writeMessage(memberId, dto);
 
         // Then
-        verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
+        verify(paperToMemberAdapter, times(1)).getMemberById(ownerId);
         verify(paperRepository, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
     }
 
     @Test
-    @DisplayName("메시지 작성 - 사용자 없음 예외")
-    void shouldThrowException_WhenUserNotFound() {
+    @DisplayName("메시지 작성 - 소유자 없음 예외")
+    void shouldThrowException_WhenOwnerNotFound() {
         // Given
         Long memberId = 1L;
-        String memberName = "nonexistentuser";
-        DecoType decoType = DecoType.APPLE;
-        String anonymity = "익명";
-        String content = "테스트 메시지";
-        int x = 2;
-        int y = 2;
+        Long nonExistentOwnerId = 999L;
+        MessageWriteDTO dto = TestFixtures.createMessageWriteDTO(nonExistentOwnerId, "테스트 메시지", 2, 2);
 
-        given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.empty());
+        given(paperToMemberAdapter.getMemberById(nonExistentOwnerId))
+                .willThrow(new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(memberId, dto))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_USERNAME_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
-        verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
-        verify(paperRepository, never()).save(any());
-        verify(eventPublisher, never()).publishEvent(any());
-    }
-
-    @Test
-    @DisplayName("메시지 작성 - null 또는 빈 사용자명 예외")
-    void shouldThrowException_WhenInvalidUserName() {
-        // Given - null memberName
-        Long memberId = 1L;
-        String memberName = null;
-        DecoType decoType = DecoType.APPLE;
-        String anonymity = "익명";
-        String content = "테스트 메시지";
-        int x = 2;
-        int y = 2;
-
-        // When & Then - null case
-        assertThatThrownBy(() -> paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
-
-        // Given - empty memberName
-        String emptyUserName = "   ";
-
-        // When & Then - empty case
-        assertThatThrownBy(() -> paperCommandService.writeMessage(memberId, emptyUserName, decoType, anonymity, content, x, y))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
-
-        verify(paperToMemberAdapter, never()).findByMemberName(any());
+        verify(paperToMemberAdapter, times(1)).getMemberById(nonExistentOwnerId);
         verify(paperRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -194,18 +159,14 @@ class PaperCommandServiceTest extends BaseUnitTest {
     void shouldPublishCorrectEvent_WhenWriteMessage() {
         // Given
         Long memberId = 1L;
-        Member memberWithId = createTestMemberWithId(memberId);
-        String memberName = memberWithId.getMemberName();
-        DecoType decoType = DecoType.APPLE;
-        String anonymity = "익명";
-        String content = "테스트 메시지";
-        int x = 2;
-        int y = 2;
+        Long ownerId = 2L;
+        Member owner = createTestMemberWithId(ownerId);
+        MessageWriteDTO dto = TestFixtures.createMessageWriteDTO(ownerId, "테스트 메시지", 2, 2);
 
-        given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
+        given(paperToMemberAdapter.getMemberById(ownerId)).willReturn(owner);
 
         // When
-        paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y);
+        paperCommandService.writeMessage(memberId, dto);
 
         // Then - RollingPaperEvent 발행 확인
         ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);

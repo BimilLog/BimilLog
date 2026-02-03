@@ -40,7 +40,7 @@ public class MyMessage {
     public static MyMessage from(Message message) {
         return new MyMessage(
                 message.getId(),
-                message.getMemberId(),
+                message.getMember().getId(),
                 message.getDecoType(),
                 message.getAnonymity(),
                 message.getContent(),
@@ -48,62 +48,6 @@ public class MyMessage {
                 message.getY(),
                 message.getCreatedAt()
         );
-    }
-
-    /**
-     * <h3>메시지 작성 시 decoType 필수 검증</h3>
-     * <p>id가 null이면 작성 모드로 판단하여 decoType이 필수입니다.</p>
-     * <p>id가 있으면 삭제/조회 모드로 판단하여 decoType 검증을 생략합니다.</p>
-     *
-     * @return true이면 검증 통과, false이면 검증 실패
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @AssertTrue(message = "메시지 작성 시 decoType은 필수입니다.")
-    public boolean isDecoTypeValidForWrite() {
-        return id != null || decoType != null;
-    }
-
-    /**
-     * <h3>메시지 작성 시 content 필수 검증</h3>
-     * <p>id가 null이면 작성 모드로 판단하여 content가 필수입니다.</p>
-     * <p>빈 문자열과 공백만 있는 문자열은 유효하지 않습니다.</p>
-     *
-     * @return true이면 검증 통과, false이면 검증 실패
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @AssertTrue(message = "메시지 작성 시 내용은 필수입니다.")
-    public boolean isContentValidForWrite() {
-        return id != null || (content != null && !content.trim().isEmpty());
-    }
-
-    /**
-     * <h3>그리드 X 좌표 범위 검증</h3>
-     * <p>메시지 작성 시 x는 0~11 사이여야 합니다.</p>
-     * <p>PC 그리드는 6x10 2페이지, Mobile 그리드는 4x10 3페이지 고려한 제한입니다.</p>
-     *
-     * @return true이면 검증 통과, false이면 검증 실패
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @AssertTrue(message = "x는 0~11 사이여야 합니다.")
-    public boolean isXValid() {
-        return id != null || (x >= 0 && x <= 11);
-    }
-
-    /**
-     * <h3>그리드 Y 좌표 범위 검증</h3>
-     * <p>메시지 작성 시 y는 0~9 사이여야 합니다.</p>
-     * <p>PC와 Mobile 그리드 모두 최대 10줄까지 지원합니다.</p>
-     *
-     * @return true이면 검증 통과, false이면 검증 실패
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @AssertTrue(message = "y는 0~9 사이여야 합니다.")
-    public boolean isYValid() {
-        return id != null || (y >= 0 && y <= 9);
     }
 
     /**

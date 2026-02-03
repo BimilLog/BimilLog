@@ -33,8 +33,7 @@ public class SocialWithdrawService {
         log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}, 회원 ID: {}", provider, socialId, memberId);
 
         // Member 조회 및 accessToken 추출
-        Member member = authToMemberAdapter.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다: " + memberId));
+        Member member = authToMemberAdapter.findById(memberId);
         SocialToken socialToken = member.getSocialToken();
         String accessToken = socialToken != null ? socialToken.getAccessToken() : null;
 

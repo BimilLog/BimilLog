@@ -9,14 +9,15 @@ import { DecoType } from '@/types/domains/paper';
 
 /**
  * 메시지 작성 요청 타입
- * POST /api/paper/{userName}
+ * POST /api/paper/write
  */
 export interface CreateMessageRequest {
+  ownerId: number;
   decoType: DecoType;
   anonymity: string;
   content: string;
-  x: number; // 1-based coordinate
-  y: number; // 1-based coordinate
+  x: number;
+  y: number;
 }
 
 /**

@@ -32,8 +32,7 @@ public class FriendshipCommandService {
     public void createFriendship(Long memberId, Long friendId, Long friendRequestId) {
 
         // 친구가 실존하는지 확인
-        Member friend = friendToMemberAdapter.findById(friendId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
+        Member friend = friendToMemberAdapter.findById(friendId);
 
         // 요청 받는 사람과 블랙리스트 관계인지 확인
         eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, friendId));
@@ -41,8 +40,7 @@ public class FriendshipCommandService {
         // 이미 친구가 되어잇는지 확인 (1,10)이 있으면 (10,1)도 있으면 안된다.
         checkFriendship(memberId, friendId);
 
-        Member member = friendToMemberAdapter.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
+        Member member = friendToMemberAdapter.findById(memberId);
 
         Friendship friendship = Friendship.createFriendship(member, friend);
         friendshipRepository.save(friendship);

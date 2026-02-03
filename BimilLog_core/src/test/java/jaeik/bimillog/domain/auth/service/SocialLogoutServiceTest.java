@@ -18,8 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import java.util.Optional;
-
 import static jaeik.bimillog.testutil.fixtures.AuthTestFixtures.TEST_ACCESS_TOKEN;
 import static jaeik.bimillog.testutil.fixtures.AuthTestFixtures.TEST_PROVIDER;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,7 +50,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         SocialToken socialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
         Member member = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
 
-        given(authToMemberAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(authToMemberAdapter.findById(memberId)).willReturn(member);
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
 
         // when
@@ -69,12 +67,12 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     @DisplayName("토큰이 존재하지 않는 경우 예외 발생")
     void shouldThrowException_WhenTokenNotFound() {
         // given
-        given(authToMemberAdapter.findById(100L)).willReturn(Optional.empty());
+        given(authToMemberAdapter.findById(100L)).willThrow(new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // expect
         assertThatThrownBy(() -> socialLogoutService.socialLogout(100L, TEST_PROVIDER))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_NOT_FIND_TOKEN);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
         verify(strategyRegistry, never()).getStrategy(any());
     }
@@ -86,7 +84,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         Member member = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
 
-        given(authToMemberAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(authToMemberAdapter.findById(memberId)).willReturn(member);
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
         doThrow(new RuntimeException("logout failed")).when(kakaoStrategy).logout(anyString());
 
@@ -106,7 +104,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long adminMemberId = 999L;
         Member adminMember = TestMembers.copyWithId(TestMembers.MEMBER_1, adminMemberId);
 
-        given(authToMemberAdapter.findById(adminMemberId)).willReturn(Optional.of(adminMember));
+        given(authToMemberAdapter.findById(adminMemberId)).willReturn(adminMember);
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
 
         // when

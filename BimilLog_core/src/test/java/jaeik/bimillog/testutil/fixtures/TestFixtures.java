@@ -1,6 +1,8 @@
 package jaeik.bimillog.testutil.fixtures;
 
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.paper.dto.MessageWriteDTO;
+import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.MyMessage;
 import jaeik.bimillog.domain.post.dto.PostCreateDTO;
 import jakarta.persistence.EntityManager;
@@ -40,23 +42,42 @@ public class TestFixtures {
     }
 
     /**
-     * 롤링페이퍼 메시지 요청 DTO 생성
+     * 롤링페이퍼 메시지 요청 DTO 생성 (삭제용)
      * @param content 메시지 내용
      * @param positionX X 위치
      * @param positionY Y 위치
-     * @return MessageDTO
+     * @return MyMessage
      */
     public static MyMessage createPaperMessageRequest(String content, int positionX, int positionY) {
         return new MyMessage(
                 null,  // id
                 null,  // memberId
-                jaeik.bimillog.domain.paper.entity.DecoType.POTATO,  // decoType
+                DecoType.POTATO,  // decoType
                 "테스트회원",  // anonymity
                 content,  // content
                 positionX,  // x
                 positionY,  // y
                 null  // createdAt
         );
+    }
+
+    /**
+     * 롤링페이퍼 메시지 작성 요청 DTO 생성
+     * @param ownerId 롤링페이퍼 소유자 ID
+     * @param content 메시지 내용
+     * @param positionX X 위치
+     * @param positionY Y 위치
+     * @return MessageWriteDTO
+     */
+    public static MessageWriteDTO createMessageWriteDTO(Long ownerId, String content, int positionX, int positionY) {
+        MessageWriteDTO dto = new MessageWriteDTO();
+        ReflectionTestUtils.setField(dto, "ownerId", ownerId);
+        ReflectionTestUtils.setField(dto, "decoType", DecoType.POTATO);
+        ReflectionTestUtils.setField(dto, "anonymity", "테스트회원");
+        ReflectionTestUtils.setField(dto, "content", content);
+        ReflectionTestUtils.setField(dto, "x", positionX);
+        ReflectionTestUtils.setField(dto, "y", positionY);
+        return dto;
     }
 
 

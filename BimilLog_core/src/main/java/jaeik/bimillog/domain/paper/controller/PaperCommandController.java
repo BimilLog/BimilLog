@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.paper.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.domain.paper.dto.MessageWriteDTO;
 import jaeik.bimillog.domain.paper.entity.MyMessage;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -12,16 +13,17 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * <h2>롤링페이퍼 명령 컨트롤러</h2>
- * <p>롤링페이퍼 도메인의 명령 작업을 처리하는 REST API 컨트롤러입니다.</p>
+ * <p>롤링페이퍼 도메인의 명령 작업을 처리하는 컨트롤러</p>
  * <p>메시지 작성, 메시지 삭제</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.7.0
  */
 @Log(level = Log.LogLevel.INFO,
         logExecutionTime = true,
-        excludeParams = {"myMessage"},
-        message = "롤링페이퍼 메시지 작성 요청")
+        logParams = false,
+        excludeParams = {"messageWriteDTO"},
+        logResult = false)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/paper")
@@ -30,18 +32,13 @@ public class PaperCommandController {
 
     /**
      * <h3>롤링페이퍼 메시지 작성 API</h3>
-     * <p>익명 사용자도 접근 가능하며, 그리드 레이아웃에 맞는 좌표를 지정할 수 있습니다.</p>
-     *
-     * @param memberName   메시지를 작성할 롤링페이퍼 소유자의 사용자명
-     * @param myMessage 작성할 메시지 정보
+     * <p>비회원 접근 가능</p>
      */
-    @PostMapping("/{memberName}")
+    @PostMapping("/write")
     public ResponseEntity<String> writeMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                               @PathVariable String memberName,
-                                               @RequestBody @Valid MyMessage myMessage) {
+                                               @RequestBody @Valid MessageWriteDTO messageWriteDTO) {
         Long memberId = userDetails == null ? null : userDetails.getMemberId();
-        paperCommandService.writeMessage(memberId, memberName, myMessage.getDecoType(), myMessage.getAnonymity(),
-                myMessage.getContent(), myMessage.getX(), myMessage.getY());
+        paperCommandService.writeMessage(memberId, messageWriteDTO);
         return ResponseEntity.ok("메시지가 작성되었습니다.");
     }
 
