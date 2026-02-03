@@ -12,5 +12,5 @@ export const paperCommand = {
   }) => apiClient.post('/api/paper/write', message),
 
   deleteMessage: (messageId: number) =>
-    apiClient.post('/api/paper/delete', { id: messageId }),
+    apiClient.post('/api/paper/delete', { messageId }),
 }

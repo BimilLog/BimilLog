@@ -25,7 +25,7 @@ export interface CreateMessageRequest {
  * POST /api/paper/delete
  */
 export interface DeleteMessageRequest {
-  id: number;
+  messageId: number;
 }
 
 // ===== Response Types =====

@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.paper.repository;
 
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,11 +30,7 @@ public interface PaperRepository extends JpaRepository<Message, Long> {
     void deleteAllByMember_Id(Long memberId);
 
     /**
-     * 특정 메시지 ID를 사용하여 해당 메시지의 소유자 ID만 조회합니다
-     *
-     * @param messageId 소유자를 확인할 메시지의 ID
-     * @return 롤링페이퍼 소유자의 사용자 ID (Optional<Long>)
+     * <h3>메시지 ID로 멤버 조회</h3>
      */
-    @Query("SELECT m.member.id FROM Message m WHERE m.id = :messageId")
-    Optional<Long> findOwnerIdByMessageId(@Param("messageId") Long messageId);
+    Optional<Member> findMemberById(Long messageId);
 }

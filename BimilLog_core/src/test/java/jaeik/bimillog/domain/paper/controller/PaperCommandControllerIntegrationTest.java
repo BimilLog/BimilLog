@@ -103,9 +103,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
                 testMember, "삭제될 메시지", 1, 1);
         Message savedMessage = paperRepository.save(message);
 
-        MessageDeleteDTO messageDeleteDTO = TestFixtures.createPaperMessageRequest(
-                "삭제될 메시지", 1, 1);
-        messageDeleteDTO.setId(savedMessage.getId());
+        MessageDeleteDTO messageDeleteDTO = TestFixtures.createMessageDeleteDTO(savedMessage.getId());
 
         // When & Then
         performPost("/api/paper/delete", messageDeleteDTO, testUserDetails)
@@ -118,9 +116,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("인증되지 않은 사용자의 메시지 삭제 - 실패 (500 Internal Server Error)")
     void deleteMessage_Unauthenticated_InternalServerError() throws Exception {
         // Given
-        MessageDeleteDTO messageDeleteDTO = TestFixtures.createPaperMessageRequest(
-                "메시지", 1, 1);
-        messageDeleteDTO.setId(1L);
+        MessageDeleteDTO messageDeleteDTO = TestFixtures.createMessageDeleteDTO(1L);
 
         // When & Then
         performPost("/api/paper/delete", messageDeleteDTO)
@@ -132,9 +128,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("존재하지 않는 메시지 삭제 - 실패")
     void deleteMessage_NonExistentMessage_NotFound() throws Exception {
         // Given
-        MessageDeleteDTO messageDeleteDTO = TestFixtures.createPaperMessageRequest(
-                "메시지", 1, 1);
-        messageDeleteDTO.setId(99999L);
+        MessageDeleteDTO messageDeleteDTO = TestFixtures.createMessageDeleteDTO(99999L);
 
         // When & Then
         performPost("/api/paper/delete", messageDeleteDTO, testUserDetails)

@@ -59,10 +59,9 @@ public class PaperCommandService {
      */
     @Transactional
     public void deleteMessage(Long memberId, Long messageId) {
-        Long ownerId = paperRepository.findOwnerIdByMessageId(messageId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PAPER_MESSAGE_NOT_FOUND));
+        Member member = paperRepository.findMemberById(messageId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
-        if (!ownerId.equals(memberId)) {
+        if (!member.getId().equals(memberId)) {
             throw new CustomException(ErrorCode.PAPER_MESSAGE_DELETE_FORBIDDEN);
         }
 
