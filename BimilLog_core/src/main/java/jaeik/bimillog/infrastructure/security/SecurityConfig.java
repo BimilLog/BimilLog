@@ -79,6 +79,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+//                .csrf(AbstractHttpConfigurer::disable)
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(new AntPathRequestMatcher("/**", "GET")) // GET요청 CSRF 제외
                         .csrfTokenRepository(createCsrfTokenRepository())
