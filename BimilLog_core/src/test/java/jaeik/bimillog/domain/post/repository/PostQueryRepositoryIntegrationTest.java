@@ -58,7 +58,7 @@ class PostQueryRepositoryIntegrationTest {
     private TestEntityManager entityManager;
 
     private Member testMember;
-    private Post testPost1, testPost2, testPost3, noticePost;
+    private Post testPost1, testPost2, testPost3;
 
     @BeforeEach
     void setUp() {
@@ -105,18 +105,13 @@ class PostQueryRepositoryIntegrationTest {
         testPost3 = Post.createPost(testMember, "세 번째 게시글", "세 번째 게시글 내용", 1234);
         entityManager.persistAndFlush(testPost3);
 
-        // 공지사항 게시글
-        noticePost = Post.createPost(testMember, "공지사항 제목", "중요한 공지사항입니다.", 1234);
-        noticePost.setAsNotice(); // 공지사항으로 설정
-        entityManager.persistAndFlush(noticePost);
-
         entityManager.flush();
         // clear() 제거: 테스트에서 엔티티를 계속 사용하므로 분리하지 않음
     }
 
 
     @Test
-    @DisplayName("정상 케이스 - 페이지별 게시글 조회 (공지사항 제외)")
+    @DisplayName("정상 케이스 - 페이지별 게시글 조회")
     void shouldFindPostsByPage_WhenValidPageableProvided() {
         // Given: 페이지 요청 (첫 페이지, 크기 2)
         Pageable pageable = PageRequest.of(0, 2);
@@ -124,17 +119,11 @@ class PostQueryRepositoryIntegrationTest {
         // When: 페이지별 게시글 조회
         Page<PostSimpleDetail> result = postQueryRepository.findByPage(pageable, null);
 
-        // Then: 공지사항이 제외된 일반 게시글만 조회됨
+        // Then: 모든 게시글 조회됨
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(2); // 요청한 크기만큼
-        assertThat(result.getTotalElements()).isEqualTo(3L); // 전체 일반 게시글 수 (공지사항 1개 제외)
+        assertThat(result.getTotalElements()).isEqualTo(3L); // 전체 게시글 수
         assertThat(result.getTotalPages()).isEqualTo(2); // 전체 페이지 수 (3 / 2 = 2페이지)
-
-        // 공지사항은 제외되어야 함
-        List<String> titles = result.getContent().stream()
-                .map(PostSimpleDetail::getTitle)
-                .toList();
-        assertThat(titles).doesNotContain("공지사항 제목");
 
         // 댓글 수와 추천 수가 설정되어 있는지 확인
         assertThat(result.getContent().getFirst().getCommentCount()).isNotNull();
@@ -154,8 +143,8 @@ class PostQueryRepositoryIntegrationTest {
 
         // Then: 해당 사용자의 게시글만 조회됨
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(4); // 공지사항 포함 전체 게시글
-        assertThat(result.getTotalElements()).isEqualTo(4L);
+        assertThat(result.getContent()).hasSize(3); // 전체 게시글
+        assertThat(result.getTotalElements()).isEqualTo(3L);
 
         // 모든 게시글의 작성자가 해당 사용자인지 확인
         List<String> memberNames = result.getContent().stream()
@@ -271,23 +260,17 @@ class PostQueryRepositoryIntegrationTest {
 
 
     @Test
-    @DisplayName("비즈니스 로직 - 공지사항은 일반 페이지 조회에서 제외")
-    void shouldExcludeNoticePosts_WhenFindingByPage() {
-        // Given: 공지사항과 일반 게시글이 모두 존재
+    @DisplayName("비즈니스 로직 - 모든 게시글이 페이지 조회에 포함됨")
+    void shouldIncludeAllPosts_WhenFindingByPage() {
+        // Given: 게시글이 존재
         Pageable pageable = PageRequest.of(0, 10);
 
-        // When: 일반 게시글 페이지 조회
+        // When: 게시글 페이지 조회
         Page<PostSimpleDetail> result = postQueryRepository.findByPage(pageable, null);
 
-        // Then: 공지사항은 제외되고 일반 게시글만 조회됨
-        assertThat(result.getContent()).hasSize(3); // 일반 게시글 3개만 조회 (공지사항 1개 제외)
-        assertThat(result.getTotalElements()).isEqualTo(3L); // 총 3개의 일반 게시글
-
-        // 공지사항이 포함되어 있지 않음을 검증
-        List<String> titles = result.getContent().stream()
-                .map(PostSimpleDetail::getTitle)
-                .toList();
-        assertThat(titles).doesNotContain("공지사항 제목");
+        // Then: 모든 게시글 조회됨
+        assertThat(result.getContent()).hasSize(3); // 전체 게시글 3개 조회
+        assertThat(result.getTotalElements()).isEqualTo(3L); // 총 3개의 게시글
     }
 
     @Test

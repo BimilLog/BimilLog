@@ -28,7 +28,6 @@ public class FullPostDTO {
     private Integer commentCount;
     private Instant createdAt;
     private boolean liked;
-    private boolean isNotice;
 
     public static FullPostDTO convertToFullPostResDTO(PostDetail postDetail) {
         return FullPostDTO.builder()
@@ -42,7 +41,6 @@ public class FullPostDTO {
                 .memberName(postDetail.getMemberName())
                 .commentCount(postDetail.getCommentCount())
                 .liked(postDetail.isLiked())
-                .isNotice(postDetail.isNotice())
                 .build();
     }
 }

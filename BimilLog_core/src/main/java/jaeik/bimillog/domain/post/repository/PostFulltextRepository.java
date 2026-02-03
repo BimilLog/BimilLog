@@ -26,17 +26,14 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
      *
      * @param keyword  검색어 (BOOLEAN MODE용, 일반적으로 "검색어*" 형태)
      * @param pageable 페이지 정보
-     * @return 검색 결과 (post_id, title, views, is_notice, created_at, user_id, user_name)
-     * @author Jaeik
-     * @since 2.0.0
+     * @return 검색 결과 (post_id, title, views, created_at, member_id, member_name, like_count)
      */
     @Query(value = """
-            SELECT p.post_id, p.title, p.views, p.is_notice, p.created_at, p.member_id, m.member_name,
+            SELECT p.post_id, p.title, p.views, p.created_at, p.member_id, m.member_name,
             (SELECT COUNT(pl.id) FROM post_like pl WHERE pl.post_id = p.post_id) AS like_count
             FROM post p
             LEFT JOIN member m ON p.member_id = m.member_id
-            WHERE p.is_notice = false
-            AND MATCH(p.title) AGAINST(:keyword IN BOOLEAN MODE)
+            WHERE MATCH(p.title) AGAINST(:keyword IN BOOLEAN MODE)
             ORDER BY p.created_at DESC
             LIMIT :#{#pageable.pageSize} OFFSET :#{#pageable.offset}
             """, nativeQuery = true)
@@ -48,17 +45,14 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
      *
      * @param keyword  검색어 (BOOLEAN MODE용, 일반적으로 "검색어*" 형태)
      * @param pageable 페이지 정보
-     * @return 검색 결과 (post_id, title, views, is_notice, created_at, user_id, user_name)
-     * @author Jaeik
-     * @since 2.0.0
+     * @return 검색 결과 (post_id, title, views, created_at, member_id, member_name, like_count)
      */
     @Query(value = """
-            SELECT p.post_id, p.title, p.views, p.is_notice, p.created_at, p.member_id, m.member_name,
+            SELECT p.post_id, p.title, p.views, p.created_at, p.member_id, m.member_name,
             (SELECT COUNT(pl.id) FROM post_like pl WHERE pl.post_id = p.post_id) AS like_count
             FROM post p
             LEFT JOIN member m ON p.member_id = m.member_id
-            WHERE p.is_notice = false
-            AND MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE)
+            WHERE MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE)
             ORDER BY p.created_at DESC
             LIMIT :#{#pageable.pageSize} OFFSET :#{#pageable.offset}
             """, nativeQuery = true)
@@ -70,14 +64,11 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
      *
      * @param keyword 검색어 (BOOLEAN MODE용)
      * @return 검색 결과 개수
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Query(value = """
             SELECT COUNT(*)
             FROM post p
-            WHERE p.is_notice = false
-            AND MATCH(p.title) AGAINST(:keyword IN BOOLEAN MODE)
+            WHERE MATCH(p.title) AGAINST(:keyword IN BOOLEAN MODE)
             """, nativeQuery = true)
     long countByTitleFullText(@Param("keyword") String keyword, @Param("viewerId") Long viewerId);
 
@@ -87,14 +78,11 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
      *
      * @param keyword 검색어 (BOOLEAN MODE용)
      * @return 검색 결과 개수
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Query(value = """
             SELECT COUNT(*)
             FROM post p
-            WHERE p.is_notice = false
-            AND MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE)
+            WHERE MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE)
             """, nativeQuery = true)
     long countByTitleContentFullText(@Param("keyword") String keyword, @Param("viewerId") Long viewerId);
 

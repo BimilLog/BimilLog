@@ -66,7 +66,7 @@ class PostFulltextSearchIntegrationTest {
     // 추천수는 이제 서브쿼리로 직접 조회됨
 
     private Member testMember;
-    private Post koreanPost1, koreanPost2, koreanPost3, noticePost, englishPost;
+    private Post koreanPost1, koreanPost2, koreanPost3, englishPost;
 
     @BeforeEach
     void setUp() {
@@ -88,7 +88,6 @@ class PostFulltextSearchIntegrationTest {
         commentCounts.put(koreanPost1.getId(), 2);
         commentCounts.put(koreanPost2.getId(), 1);
         commentCounts.put(koreanPost3.getId(), 0);
-        commentCounts.put(noticePost.getId(), 3);
         commentCounts.put(englishPost.getId(), 1);
 
         given(postToCommentAdapter.findCommentCountsByPostIds(any(List.class)))
@@ -115,11 +114,6 @@ class PostFulltextSearchIntegrationTest {
         englishPost = Post.createPost(testMember, "Java Programming Tutorial", "Learn advanced Java concepts and patterns.", 1234);
         entityManager.persistAndFlush(englishPost);
 
-        // 공지사항 게시글 (검색 결과에서 제외되어야 함)
-        noticePost = Post.createPost(testMember, "자바 커뮤니티 공지사항", "자바 개발자 모임 안내입니다.", 1234);
-        noticePost.setAsNotice();
-        entityManager.persistAndFlush(noticePost);
-
         entityManager.flush();
     }
 
@@ -135,17 +129,13 @@ class PostFulltextSearchIntegrationTest {
         // 내부에서 query + "*" 로 변환되어 와일드카드 검색 수행
         Page<PostSimpleDetail> result = postSearchRepository.findByFullTextSearch(searchType, query, pageable, null);
 
-        // Then: "프로그래밍"이 제목에 포함된 게시글 조회 (공지사항 제외)
+        // Then: "프로그래밍"이 제목에 포함된 게시글 조회
         // MySQL FULLTEXT 검색이 정상적으로 동작함을 확인
         assertThat(result).isNotNull();
 
-        // 검색이 공지사항을 제외한 일반 게시글만 반환
         List<String> titles = result.getContent().stream()
                 .map(PostSimpleDetail::getTitle)
                 .toList();
-
-        // 공지사항은 제외되어야 함
-        assertThat(titles).noneMatch(title -> title.contains("공지사항"));
 
         // 검색 결과가 있다면 "프로그래밍"이 포함된 게시글이 있어야 함
         if (!result.isEmpty()) {
@@ -177,9 +167,6 @@ class PostFulltextSearchIntegrationTest {
         if (!result.isEmpty()) {
             assertThat(titles).anyMatch(title -> title.contains("스프링"));
         }
-
-        // 공지사항은 제외되어야 함
-        assertThat(titles).noneMatch(title -> title.contains("공지사항"));
     }
 
     @Test
@@ -249,25 +236,27 @@ class PostFulltextSearchIntegrationTest {
     }
 
     @Test
-    @DisplayName("비즈니스 로직 - 공지사항 제외")
-    void shouldExcludeNoticePosts_WhenSearching() {
-        // Given: 공지사항에도 포함된 검색어 "커뮤니티" (3글자)
+    @DisplayName("비즈니스 로직 - 모든 게시글이 검색 결과에 포함됨")
+    void shouldIncludeAllPosts_WhenSearching() {
+        // Given: 검색어 "자바" (여러 게시글에 포함)
         PostSearchType searchType = PostSearchType.TITLE_CONTENT;
-        String query = "커뮤니티";
+        String query = "자바";
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
         Page<PostSimpleDetail> result = postSearchRepository.findByFullTextSearch(searchType, query, pageable, null);
 
-        // Then: 공지사항은 결과에서 제외됨
+        // Then: 검색어가 포함된 게시글이 결과에 포함됨
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty(); // 공지사항만 "커뮤니티"를 포함하므로 빈 결과
 
-        // 또는 다른 게시글이 있다면 공지사항이 포함되지 않아야 함
         List<String> titles = result.getContent().stream()
                 .map(PostSimpleDetail::getTitle)
                 .toList();
-        assertThat(titles).doesNotContain("자바 커뮤니티 공지사항");
+
+        // 검색 결과가 있다면 "자바"가 포함된 게시글이 있어야 함
+        if (!result.isEmpty()) {
+            assertThat(titles).anyMatch(title -> title.contains("자바"));
+        }
     }
 
     @Test

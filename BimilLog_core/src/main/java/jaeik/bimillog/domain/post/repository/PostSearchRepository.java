@@ -91,8 +91,7 @@ public class PostSearchRepository {
             case TITLE_CONTENT -> post.title.startsWith(query).or(post.content.startsWith(query));
         };
 
-        BooleanExpression finalCondition = condition.and(post.isNotice.isFalse());
-        Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
+        Consumer<JPAQuery<?>> customizer = q -> q.where(condition);
         return postQueryRepository.findPostsWithQuery(customizer, customizer, pageable);
     }
 
@@ -115,8 +114,7 @@ public class PostSearchRepository {
             case TITLE_CONTENT -> post.title.contains(query).or(post.content.contains(query));
         };
 
-        BooleanExpression finalCondition = condition.and(post.isNotice.isFalse());
-        Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
+        Consumer<JPAQuery<?>> customizer = q -> q.where(condition);
         return postQueryRepository.findPostsWithQuery(customizer, customizer, pageable);
     }
 

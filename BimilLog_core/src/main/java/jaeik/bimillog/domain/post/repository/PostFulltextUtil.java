@@ -42,19 +42,17 @@ public class PostFulltextUtil {
      * <p>FULLTEXT 검색으로 조회한 Object[] 배열을 PostSimpleDetail 객체로 변환합니다.</p>
      * <p>댓글 수는 0으로 초기화되며, 이후 배치 조회로 채워집니다.</p>
      *
-     * @param row FULLTEXT 검색 결과 행 (id, title, views, isNotice, createdAt, memberId, memberName, likeCount)
+     * @param row FULLTEXT 검색 결과 행 (id, title, views, createdAt, memberId, memberName, likeCount)
      * @return 변환된 게시글 간략 정보
-     * @author Jaeik
-     * @since 2.0.0
      */
     private PostSimpleDetail mapFullTextRow(Object[] row) {
         Long id = ((Number) row[0]).longValue();
         String title = row[1] != null ? row[1].toString() : null;
         Integer views = row[2] != null ? ((Number) row[2]).intValue() : 0;
-        Instant createdAt = toInstant(row[4]);
-        Long memberId = row[5] != null ? ((Number) row[5]).longValue() : null;
-        String memberName = row[6] != null ? row[6].toString() : null;
-        Integer likeCount = ((Number) row[7]).intValue();
+        Instant createdAt = toInstant(row[3]);
+        Long memberId = row[4] != null ? ((Number) row[4]).longValue() : null;
+        String memberName = row[5] != null ? row[5].toString() : null;
+        Integer likeCount = ((Number) row[6]).intValue();
 
         return PostSimpleDetail.builder()
                 .id(id)

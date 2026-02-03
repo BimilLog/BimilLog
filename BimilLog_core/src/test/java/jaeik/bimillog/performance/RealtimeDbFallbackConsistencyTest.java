@@ -106,7 +106,6 @@ class RealtimeDbFallbackConsistencyTest {
                     .title("테스트 게시글 " + i)
                     .content("내용 " + i)
                     .views(initialViews)
-                    .isNotice(false)
                     .password(1234)
                     .build();
             Post saved = postRepository.save(post);
