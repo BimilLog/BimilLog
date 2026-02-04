@@ -81,6 +81,15 @@ public class PostReadModelDlqService {
     }
 
     /**
+     * 좋아요 감소 이벤트를 DLQ에 저장합니다. (eventId 자동 생성)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveLikeDecrement(Long postId) {
+        String eventId = "LIKE_DEC:" + postId + ":" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        saveLikeDecrement(eventId, postId);
+    }
+
+    /**
      * 댓글 수 증가 이벤트를 DLQ에 저장합니다.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -106,6 +115,15 @@ public class PostReadModelDlqService {
         } catch (DataIntegrityViolationException e) {
             log.debug("[DLQ] 댓글 수 감소 이벤트 중복 저장 스킵 (멱등성): eventId={}", eventId);
         }
+    }
+
+    /**
+     * 댓글 수 감소 이벤트를 DLQ에 저장합니다. (eventId 자동 생성)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveCommentDecrement(Long postId) {
+        String eventId = "CMT_DEC:" + postId + ":" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        saveCommentDecrement(eventId, postId);
     }
 
     /**
