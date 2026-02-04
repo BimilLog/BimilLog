@@ -50,7 +50,7 @@ public class PostReadModelSyncListener {
      * <p>PostReadModel에 새 레코드를 INSERT합니다.</p>
      */
     @EventListener
-    @Async("realtimeEventExecutor")
+    @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
                     TransientDataAccessException.class,
@@ -104,7 +104,7 @@ public class PostReadModelSyncListener {
      * <p>PostReadModel의 제목을 업데이트합니다.</p>
      */
     @EventListener
-    @Async("realtimeEventExecutor")
+    @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
                     TransientDataAccessException.class,
@@ -144,7 +144,7 @@ public class PostReadModelSyncListener {
      * <p>PostReadModel의 like_count를 +1 합니다.</p>
      */
     @EventListener
-    @Async("realtimeEventExecutor")
+    @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
                     TransientDataAccessException.class,
@@ -183,7 +183,7 @@ public class PostReadModelSyncListener {
      * <p>PostReadModel의 like_count를 -1 합니다.</p>
      */
     @EventListener
-    @Async("realtimeEventExecutor")
+    @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
                     TransientDataAccessException.class,
@@ -221,7 +221,7 @@ public class PostReadModelSyncListener {
      * <p>PostReadModel의 comment_count를 +1 합니다.</p>
      */
     @EventListener
-    @Async("realtimeEventExecutor")
+    @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
                     TransientDataAccessException.class,
@@ -260,7 +260,7 @@ public class PostReadModelSyncListener {
      * <p>PostReadModel의 comment_count를 -1 합니다.</p>
      */
     @EventListener
-    @Async("realtimeEventExecutor")
+    @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
                     TransientDataAccessException.class,
