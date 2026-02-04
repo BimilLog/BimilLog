@@ -2,10 +2,13 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.repository.PostReadModelQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -60,6 +63,15 @@ class PostCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
+
+    @Mock
+    private PostReadModelQueryRepository postReadModelQueryRepository;
+
+    @Mock
+    private PostReadModelRepository postReadModelRepository;
 
     @InjectMocks
     private PostCommandService postCommandService;

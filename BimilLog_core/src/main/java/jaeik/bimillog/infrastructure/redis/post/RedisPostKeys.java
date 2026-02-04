@@ -81,7 +81,39 @@ public final class RedisPostKeys {
      */
     public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
 
-    // ===================== 4. LOCK (분산 락) =====================
+    // ===================== 4. 첫 페이지 캐시 (List) =====================
+
+    /**
+     * 첫 페이지 캐시 List 키
+     * <p>Value Type: List (PostSimpleDetail JSON 직렬화)</p>
+     * <p>최신 게시글 20개를 순서대로 저장</p>
+     */
+    public static final String FIRST_PAGE_LIST_KEY = "post:board:first-page";
+
+    /**
+     * 첫 페이지 캐시 TTL (1시간)
+     * <p>스케줄러가 30분마다 갱신하므로 정상 시 TTL 만료 안 됨</p>
+     */
+    public static final Duration FIRST_PAGE_CACHE_TTL = Duration.ofHours(1);
+
+    /**
+     * 첫 페이지 갱신 분산 락 키
+     * <p>다중 인스턴스 환경에서 하나의 스케줄러만 캐시를 갱신하도록 보장</p>
+     */
+    public static final String FIRST_PAGE_REFRESH_LOCK_KEY = "post:board:refresh:lock";
+
+    /**
+     * 첫 페이지 갱신 분산 락 TTL (5분)
+     * <p>스케줄러 갱신 시간보다 충분히 길게 설정</p>
+     */
+    public static final Duration FIRST_PAGE_REFRESH_LOCK_TTL = Duration.ofMinutes(5);
+
+    /**
+     * 첫 페이지 캐시 크기 (20개)
+     */
+    public static final int FIRST_PAGE_SIZE = 20;
+
+    // ===================== 5. LOCK (기존 분산 락) =====================
 
     /**
      * 스케줄러 분산 락 키
@@ -106,7 +138,7 @@ public final class RedisPostKeys {
      */
     public static final Duration REALTIME_REFRESH_LOCK_TTL = Duration.ofSeconds(10);
 
-    // ===================== 5. KEY GENERATION METHODS (키 생성 유틸리티) =====================
+    // ===================== 6. KEY GENERATION METHODS (키 생성 유틸리티) =====================
 
     /**
      * <h3>점수 저장소 키 생성</h3>

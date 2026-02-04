@@ -71,6 +71,9 @@ class PostQueryServiceTest extends BaseUnitTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private FirstPageCacheService firstPageCacheService;
+
     @InjectMocks
     private PostQueryService postQueryService;
 
@@ -81,15 +84,78 @@ class PostQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("게시판 조회 (커서 기반, 비회원) - 성공 (PostReadModel 사용)")
-    void shouldGetBoardByCursor_ForGuest_Successfully() {
+    @DisplayName("게시판 조회 (커서 기반, 비회원) - 캐시 히트")
+    void shouldGetBoardByCursor_ForGuest_CacheHit() {
         // Given
         Long cursor = null;
         int size = 10;
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         List<PostSimpleDetail> posts = List.of(postResult);
 
-        // PostReadModelQueryRepository에서 조회
+        // 첫 페이지 캐시 히트
+        given(firstPageCacheService.isFirstPage(cursor, size)).willReturn(true);
+        given(firstPageCacheService.getFirstPage(null)).willReturn(posts);
+
+        // When
+        var result = postQueryService.getBoardByCursor(cursor, size, null);
+
+        // Then
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
+        assertThat(result.hasNext()).isFalse();  // 1개 < 10개이므로 다음 페이지 없음
+
+        verify(firstPageCacheService).isFirstPage(cursor, size);
+        verify(firstPageCacheService).getFirstPage(null);
+        verify(postReadModelQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
+    }
+
+    @Test
+    @DisplayName("게시판 조회 (커서 기반, 비회원) - 캐시 히트 + size 제한")
+    void shouldGetBoardByCursor_ForGuest_CacheHit_WithSizeLimit() {
+        // Given
+        Long cursor = null;
+        int size = 2;
+        // 캐시에 5개가 있지만 size=2만 요청
+        List<PostSimpleDetail> cachedPosts = List.of(
+                PostTestDataBuilder.createPostSearchResult(5L, "제목5"),
+                PostTestDataBuilder.createPostSearchResult(4L, "제목4"),
+                PostTestDataBuilder.createPostSearchResult(3L, "제목3"),
+                PostTestDataBuilder.createPostSearchResult(2L, "제목2"),
+                PostTestDataBuilder.createPostSearchResult(1L, "제목1")
+        );
+
+        given(firstPageCacheService.isFirstPage(cursor, size)).willReturn(true);
+        given(firstPageCacheService.getFirstPage(null)).willReturn(cachedPosts);
+
+        // When
+        var result = postQueryService.getBoardByCursor(cursor, size, null);
+
+        // Then
+        assertThat(result.content()).hasSize(2);  // 요청된 size만큼만 반환
+        assertThat(result.content().get(0).getTitle()).isEqualTo("제목5");
+        assertThat(result.content().get(1).getTitle()).isEqualTo("제목4");
+        assertThat(result.hasNext()).isTrue();  // 5개 > 2개이므로 다음 페이지 있음
+        assertThat(result.nextCursor()).isEqualTo(4L);  // 마지막 항목의 ID
+
+        verify(firstPageCacheService).isFirstPage(cursor, size);
+        verify(firstPageCacheService).getFirstPage(null);
+        verify(postReadModelQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
+    }
+
+    @Test
+    @DisplayName("게시판 조회 (커서 기반, 비회원) - 캐시 미스 시 DB 조회")
+    void shouldGetBoardByCursor_ForGuest_CacheMiss() {
+        // Given
+        Long cursor = null;
+        int size = 10;
+        PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
+        List<PostSimpleDetail> posts = List.of(postResult);
+
+        // 첫 페이지 캐시 미스
+        given(firstPageCacheService.isFirstPage(cursor, size)).willReturn(true);
+        given(firstPageCacheService.getFirstPage(null)).willReturn(Collections.emptyList());
+
+        // DB 폴백
         given(postReadModelQueryRepository.findBoardPostsByCursor(cursor, size)).willReturn(posts);
 
         // When
@@ -100,6 +166,31 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
         assertThat(result.hasNext()).isFalse();
 
+        verify(postReadModelQueryRepository).findBoardPostsByCursor(cursor, size);
+    }
+
+    @Test
+    @DisplayName("게시판 조회 (두 번째 페이지) - DB 직접 조회")
+    void shouldGetBoardByCursor_SecondPage_DirectDB() {
+        // Given
+        Long cursor = 100L;  // 두 번째 페이지
+        int size = 10;
+        PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
+        List<PostSimpleDetail> posts = List.of(postResult);
+
+        // 첫 페이지가 아님
+        given(firstPageCacheService.isFirstPage(cursor, size)).willReturn(false);
+        given(postReadModelQueryRepository.findBoardPostsByCursor(cursor, size)).willReturn(posts);
+
+        // When
+        var result = postQueryService.getBoardByCursor(cursor, size, null);
+
+        // Then
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
+
+        verify(firstPageCacheService).isFirstPage(cursor, size);
+        verify(firstPageCacheService, never()).getFirstPage(any());
         verify(postReadModelQueryRepository).findBoardPostsByCursor(cursor, size);
     }
 
