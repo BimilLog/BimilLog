@@ -69,7 +69,7 @@ public class PostQueryRepository {
                         likeCountSubQuery,
                         post.createdAt,
                         member.id,
-                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
+                        member.memberName.coalesce("익명"),
                         Expressions.constant(0)))
                 .from(post)
                 .leftJoin(post.member, member)

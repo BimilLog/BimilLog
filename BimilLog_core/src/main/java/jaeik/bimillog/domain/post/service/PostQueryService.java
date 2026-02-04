@@ -56,6 +56,9 @@ public class PostQueryService {
      */
     public Page<PostSimpleDetail> getBoard(Pageable pageable, Long memberId) {
         Page<PostSimpleDetail> posts = postQueryRepository.findBoardPosts(pageable);
+        if (posts.isEmpty()) {
+            return posts;
+        }
 
         if (memberId == null) {
             enrichPostsCommentCount(posts.getContent());
@@ -179,14 +182,7 @@ public class PostQueryService {
      * @param posts 댓글 수를 채울 게시글 목록
      */
     private void enrichPostsCommentCount(List<PostSimpleDetail> posts) {
-        if (posts.isEmpty()) {
-            return;
-        }
-
-        List<Long> postIds = posts.stream()
-                .map(PostSimpleDetail::getId)
-                .toList();
-
+        List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
         Map<Long, Integer> commentCounts = postToCommentAdapter.findCommentCountsByPostIds(postIds);
 
         posts.forEach(post -> {
