@@ -6,6 +6,7 @@ import { HiClipboardList, HiTrendingUp, HiSparkles, HiFire } from "react-icons/h
 import { NoticeList } from "./notice-list";
 import { BoardTable } from "./BoardTable";
 import { BoardPagination } from "./board-pagination";
+import { LoadMoreButton } from "./LoadMoreButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import type { SimplePost } from "@/lib/api";
 import type { PaginationState } from "@/hooks/common/usePagination";
@@ -20,9 +21,15 @@ interface BoardTabsProps {
   error?: Error | null;
   isSearching?: boolean;
   searchTerm?: string;
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+
+  // 커서 기반 페이지네이션 (일반 목록)
+  hasNextPage?: boolean;
+  onLoadMore?: () => void;
+  isFetchingNextPage?: boolean;
+
+  // 검색용 offset 페이지네이션
+  searchPagination?: PaginationState | null;
+  onSearchPageChange?: (page: number) => void;
 
   // 인기글 탭 데이터
   realtimePosts: SimplePost[];
@@ -44,9 +51,11 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
   error = null,
   isSearching = false,
   searchTerm = "",
-  currentPage,
-  totalPages,
-  onPageChange,
+  hasNextPage = false,
+  onLoadMore,
+  isFetchingNextPage = false,
+  searchPagination,
+  onSearchPageChange,
   realtimePosts,
   weeklyPosts,
   legendPosts,
@@ -73,11 +82,17 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
   };
 
   // 페이지네이션 표시 조건 메모화
+  // 검색 중이거나 레전드 탭일 때만 BoardPagination 표시
   const showPagination = useMemo(() => {
-    if (activeTab === "all" && totalPages > 0) return true;
+    if (activeTab === "all" && isSearching && searchPagination && searchPagination.totalPages > 0) return true;
     if (activeTab === "legend" && legendPagination && legendPagination.totalPages > 0) return true;
     return false;
-  }, [activeTab, totalPages, legendPagination]);
+  }, [activeTab, isSearching, searchPagination, legendPagination]);
+
+  // 더보기 버튼 표시 조건 (일반 목록일 때만)
+  const showLoadMore = useMemo(() => {
+    return activeTab === "all" && !isSearching && posts.length > 0;
+  }, [activeTab, isSearching, posts.length]);
 
   // 탭 스타일 커스터마이징 - 가로 배치를 위한 수정
   const tabsTheme = {
@@ -229,15 +244,31 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
         </TabItem>
       </Tabs>
 
+      {/* 커서 기반 더보기 버튼 (일반 목록) */}
+      {showLoadMore && onLoadMore && (
+        <LoadMoreButton
+          onClick={onLoadMore}
+          isLoading={isFetchingNextPage}
+          hasMore={hasNextPage}
+        />
+      )}
+
+      {/* offset 기반 페이지네이션 (검색, 레전드) */}
       <div
         className={`transition-opacity duration-200 ${
           showPagination ? 'opacity-100' : 'opacity-0 pointer-events-none invisible'
         }`}
       >
         <BoardPagination
-          currentPage={activeTab === "legend" && legendPagination ? legendPagination.currentPage : currentPage}
-          totalPages={activeTab === "legend" && legendPagination ? legendPagination.totalPages : totalPages}
-          setCurrentPage={activeTab === "legend" && legendPagination ? legendPagination.setCurrentPage : onPageChange}
+          currentPage={activeTab === "legend" && legendPagination
+            ? legendPagination.currentPage
+            : (searchPagination?.currentPage ?? 0)}
+          totalPages={activeTab === "legend" && legendPagination
+            ? legendPagination.totalPages
+            : (searchPagination?.totalPages ?? 0)}
+          setCurrentPage={activeTab === "legend" && legendPagination
+            ? legendPagination.setCurrentPage
+            : (onSearchPageChange ?? (() => {}))}
         />
       </div>
     </div>

@@ -31,6 +31,7 @@ export const queryKeys = {
     all: ['post'] as const,
     lists: () => [...queryKeys.post.all, 'list'] as const,
     list: (filters?: Record<string, string | number | boolean | null | undefined>) => [...queryKeys.post.lists(), filters] as const,
+    infiniteList: () => [...queryKeys.post.all, 'infinite'] as const, // 커서 기반 무한 스크롤용
     details: () => [...queryKeys.post.all, 'detail'] as const,
     detail: (postId: number) => [...queryKeys.post.details(), postId] as const,
     search: (query: string, page?: number) => [...queryKeys.post.all, 'search', query, page] as const,

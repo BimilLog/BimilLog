@@ -21,6 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jaeik.bimillog.domain.post.dto.CursorPageResponse;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,28 +48,37 @@ public class PostQueryService {
     private final ApplicationEventPublisher eventPublisher;
 
     /**
-     * <h3>게시판 목록 조회</h3>
-     * <p>게시글 목록을 조회합니다. 회원은 블랙리스트 필터링이 적용됩니다.</p>
-     * <p>{@link PostQueryController}에서 게시판 목록 요청 시 호출됩니다.</p>
+     * <h3>게시판 목록 조회 (Cursor 기반)</h3>
+     * <p>커서 기반 페이지네이션으로 게시글 목록을 조회합니다.</p>
+     * <p>회원은 블랙리스트 필터링이 적용됩니다.</p>
      *
-     * @param pageable 페이지 정보 (크기, 페이지 번호, 정렬 기준)
+     * @param cursor   마지막으로 조회한 게시글 ID (null이면 처음부터)
+     * @param size     조회할 개수
      * @param memberId 회원 ID (null이면 비회원)
-     * @return Page&lt;PostSimpleDetail&gt; 페이지네이션된 게시글 목록
+     * @return CursorPageResponse 커서 기반 페이지 응답
      */
-    public Page<PostSimpleDetail> getBoard(Pageable pageable, Long memberId) {
-        Page<PostSimpleDetail> posts = postQueryRepository.findBoardPosts(pageable);
-        if (posts.isEmpty()) {
-            return posts;
+    public CursorPageResponse<PostSimpleDetail> getBoardByCursor(Long cursor, int size, Long memberId) {
+        List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
+
+        // hasNext 판단: size + 1개 조회했으므로 size보다 많으면 다음 페이지 존재
+        boolean hasNext = posts.size() > size;
+        if (hasNext) {
+            posts = new ArrayList<>(posts.subList(0, size));
         }
 
+        // 비회원이면 댓글 수만 주입
         if (memberId == null) {
-            enrichPostsCommentCount(posts.getContent());
-            return posts;
+            enrichPostsCommentCount(posts);
+            Long nextCursor = posts.isEmpty() ? null : posts.getLast().getId();
+            return CursorPageResponse.of(posts, nextCursor, hasNext, size);
         }
 
-        List<PostSimpleDetail> blackListFilterPosts = removePostsWithBlacklist(memberId, posts.getContent());
-        enrichPostsCommentCount(blackListFilterPosts);
-        return new PageImpl<>(blackListFilterPosts, posts.getPageable(), posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));
+        // 회원이면 블랙리스트 필터링 + 댓글 수 주입
+        List<PostSimpleDetail> filteredPosts = removePostsWithBlacklist(memberId, posts);
+        enrichPostsCommentCount(filteredPosts);
+
+        Long nextCursor = filteredPosts.isEmpty() ? null : filteredPosts.getLast().getId();
+        return CursorPageResponse.of(filteredPosts, nextCursor, hasNext, size);
     }
 
     /**

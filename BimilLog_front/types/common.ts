@@ -41,6 +41,14 @@ export interface PageResponse<T> {
   };
 }
 
+// CursorPageResponse: 커서 기반 페이징 응답 (무한 스크롤/더보기 버튼용)
+export interface CursorPageResponse<T> {
+  content: T[];           // 실제 데이터 배열
+  nextCursor: number | null; // 다음 페이지 요청 시 사용할 커서 (마지막 게시글 ID)
+  hasNext: boolean;       // 다음 페이지 존재 여부
+  size: number;           // 요청된 페이지 크기
+}
+
 // Common Entity Types
 export interface BaseEntity {
   id: number;

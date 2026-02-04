@@ -75,32 +75,13 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     };
   }
 
-  // 페이지네이션이 있는 경우
-  const currentPage = page ? parseInt(page) : 1;
-  const baseTitle = currentPage > 1 ? `커뮤니티 게시판 (${currentPage}페이지)` : "커뮤니티 게시판";
+  // 일반 게시판 페이지 (커서 기반이므로 page 파라미터 없음)
+  const baseTitle = "커뮤니티 게시판";
 
   // 일반 게시판 페이지용 동적 OG 이미지
   const boardOgImage = generateDynamicOgImage({
     title: baseTitle,
     type: 'default'
-  });
-
-  // 페이지네이션 링크 생성 (정확한 totalPages는 알 수 없으므로 기본 로직만 적용)
-  const paginationLinks: { rel: string; url: string }[] = [];
-
-  if (currentPage > 1) {
-    paginationLinks.push({
-      rel: 'prev',
-      url: currentPage === 2
-        ? 'https://grow-farm.com/board'
-        : `https://grow-farm.com/board?page=${currentPage - 1}`
-    });
-  }
-
-  // next 링크는 항상 추가 (실제 마지막 페이지는 클라이언트에서 확인)
-  paginationLinks.push({
-    rel: 'next',
-    url: `https://grow-farm.com/board?page=${currentPage + 1}`
   });
 
   return {
@@ -119,21 +100,12 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       "익명 커뮤니티 게시판"
     ],
     alternates: {
-      canonical: currentPage > 1
-        ? `https://grow-farm.com/board?page=${currentPage}`
-        : "https://grow-farm.com/board",
-      ...(currentPage > 1 && {
-        prev: currentPage === 2
-          ? "https://grow-farm.com/board"
-          : `https://grow-farm.com/board?page=${currentPage - 1}`
-      }),
+      canonical: "https://grow-farm.com/board",
     },
     openGraph: {
       title: `${baseTitle} | 비밀로그`,
       description: "다른 사용자들과 소통하고 인기글을 확인해보세요.",
-      url: currentPage > 1
-        ? `https://grow-farm.com/board?page=${currentPage}`
-        : "https://grow-farm.com/board",
+      url: "https://grow-farm.com/board",
       siteName: "비밀로그",
       images: [
         {
@@ -159,13 +131,13 @@ export default async function BoardPage({ searchParams }: Props) {
   const params = await searchParams;
   const query = params.q;
   const searchType = (params.type as 'TITLE' | 'TITLE_CONTENT' | 'WRITER') || 'TITLE';
-  const page = params.page ? parseInt(params.page) - 1 : 0; // URL은 1-based, API는 0-based
+  const page = params.page ? parseInt(params.page) - 1 : 0; // URL은 1-based, API는 0-based (검색용)
 
   // SSR: 서버에서 초기 데이터 fetch (내부 통신)
-  // 검색 쿼리가 있으면 검색 결과, 없으면 일반 목록
+  // 검색 쿼리가 있으면 검색 결과 (offset 기반), 없으면 일반 목록 (cursor 기반)
   const initialData = query
-    ? await getSearchInitialData(searchType, query, page, 30)
-    : await getBoardInitialData(page, 30);
+    ? await getSearchInitialData(searchType, query, page, 20)
+    : await getBoardInitialData(20);  // cursor 기반은 page 파라미터 불필요
 
   // 검색 결과 페이지인 경우 구조화된 데이터 추가
   const searchJsonLd = query

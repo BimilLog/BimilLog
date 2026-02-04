@@ -111,23 +111,37 @@ class PostQueryRepositoryIntegrationTest {
 
 
     @Test
-    @DisplayName("정상 케이스 - 페이지별 게시글 조회")
-    void shouldFindPostsByPage_WhenValidPageableProvided() {
-        // Given: 페이지 요청 (첫 페이지, 크기 2)
-        Pageable pageable = PageRequest.of(0, 2);
+    @DisplayName("정상 케이스 - 커서 기반 게시글 조회 (첫 페이지)")
+    void shouldFindPostsByCursor_WhenNoCursorProvided() {
+        // Given: 커서 없음 (첫 페이지), 크기 2
+        Long cursor = null;
+        int size = 2;
 
-        // When: 페이지별 게시글 조회
-        Page<PostSimpleDetail> result = postQueryRepository.findBoardPosts(pageable);
+        // When: 커서 기반 게시글 조회
+        List<PostSimpleDetail> result = postQueryRepository.findBoardPostsByCursor(cursor, size);
 
-        // Then: 모든 게시글 조회됨
+        // Then: size + 1개까지 조회됨 (hasNext 판단용)
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(2); // 요청한 크기만큼
-        assertThat(result.getTotalElements()).isEqualTo(3L); // 전체 게시글 수
-        assertThat(result.getTotalPages()).isEqualTo(2); // 전체 페이지 수 (3 / 2 = 2페이지)
+        assertThat(result).hasSize(3); // 3개 게시글 중 size+1=3개 조회
 
         // 댓글 수와 추천 수가 설정되어 있는지 확인
-        assertThat(result.getContent().getFirst().getCommentCount()).isNotNull();
-        assertThat(result.getContent().getFirst().getLikeCount()).isNotNull();
+        assertThat(result.getFirst().getCommentCount()).isNotNull();
+        assertThat(result.getFirst().getLikeCount()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 커서 기반 게시글 조회 (다음 페이지)")
+    void shouldFindPostsByCursor_WhenCursorProvided() {
+        // Given: 첫 페이지 조회 후 커서 획득
+        List<PostSimpleDetail> firstPage = postQueryRepository.findBoardPostsByCursor(null, 2);
+        Long cursor = firstPage.get(1).getId(); // 두 번째 게시글의 ID를 커서로 사용
+
+        // When: 커서 기반 다음 페이지 조회
+        List<PostSimpleDetail> result = postQueryRepository.findBoardPostsByCursor(cursor, 2);
+
+        // Then: 커서보다 작은 ID의 게시글만 조회됨
+        assertThat(result).isNotNull();
+        assertThat(result).allMatch(post -> post.getId() < cursor);
     }
 
 
@@ -260,35 +274,34 @@ class PostQueryRepositoryIntegrationTest {
 
 
     @Test
-    @DisplayName("비즈니스 로직 - 모든 게시글이 페이지 조회에 포함됨")
-    void shouldIncludeAllPosts_WhenFindingByPage() {
-        // Given: 게시글이 존재
-        Pageable pageable = PageRequest.of(0, 10);
+    @DisplayName("비즈니스 로직 - 모든 게시글이 커서 조회에 포함됨")
+    void shouldIncludeAllPosts_WhenFindingByCursor() {
+        // Given: 게시글이 존재, 충분히 큰 size
+        int size = 10;
 
-        // When: 게시글 페이지 조회
-        Page<PostSimpleDetail> result = postQueryRepository.findBoardPosts(pageable);
+        // When: 커서 기반 게시글 조회 (첫 페이지)
+        List<PostSimpleDetail> result = postQueryRepository.findBoardPostsByCursor(null, size);
 
         // Then: 모든 게시글 조회됨
-        assertThat(result.getContent()).hasSize(3); // 전체 게시글 3개 조회
-        assertThat(result.getTotalElements()).isEqualTo(3L); // 총 3개의 게시글
+        assertThat(result).hasSize(3); // 전체 게시글 3개 조회
     }
 
     @Test
-    @DisplayName("비즈니스 로직 - 최신 게시글부터 정렬")
-    void shouldSortByCreatedAtDesc_WhenFindingPosts() {
+    @DisplayName("비즈니스 로직 - ID 내림차순 정렬 (커서 기반)")
+    void shouldSortByIdDesc_WhenFindingByCursor() {
         // Given: 여러 게시글이 존재
-        Pageable pageable = PageRequest.of(0, 10);
+        int size = 10;
 
-        // When: 게시글 조회
-        Page<PostSimpleDetail> result = postQueryRepository.findBoardPosts(pageable);
+        // When: 커서 기반 게시글 조회
+        List<PostSimpleDetail> result = postQueryRepository.findBoardPostsByCursor(null, size);
 
-        // Then: 최신 게시글부터 정렬됨 (createdAt 내림차순)
-        List<java.time.Instant> createdAts = result.getContent().stream()
-                .map(PostSimpleDetail::getCreatedAt)
+        // Then: ID 내림차순으로 정렬됨
+        List<Long> ids = result.stream()
+                .map(PostSimpleDetail::getId)
                 .toList();
 
-        for (int i = 1; i < createdAts.size(); i++) {
-            assertThat(createdAts.get(i-1)).isAfterOrEqualTo(createdAts.get(i));
+        for (int i = 1; i < ids.size(); i++) {
+            assertThat(ids.get(i-1)).isGreaterThan(ids.get(i));
         }
     }
 

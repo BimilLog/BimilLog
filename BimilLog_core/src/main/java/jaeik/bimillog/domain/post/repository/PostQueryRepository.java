@@ -52,16 +52,25 @@ public class PostQueryRepository {
 
 
     /**
-     * <h3>게시판 게시글 조회 (공통 로직)</h3>
+     * <h3>게시판 게시글 조회 (Cursor 기반)</h3>
+     * <p>커서 기반 페이지네이션으로 게시글 목록을 조회합니다.</p>
+     * <p>hasNext 판단을 위해 size + 1개를 조회합니다.</p>
+     *
+     * @param cursor 마지막으로 조회한 게시글 ID (null이면 처음부터)
+     * @param size   조회할 개수
+     * @return 게시글 목록 (size + 1개까지 조회됨)
      */
-    public Page<PostSimpleDetail> findBoardPosts(Pageable pageable) {
+    public List<PostSimpleDetail> findBoardPostsByCursor(Long cursor, int size) {
         QPostLike subPostLike = new QPostLike("subPostLike");
         JPQLQuery<Integer> likeCountSubQuery = JPAExpressions
                 .select(subPostLike.count().intValue())
                 .from(subPostLike)
                 .where(subPostLike.post.id.eq(post.id));
 
-        List<PostSimpleDetail> content = jpaQueryFactory
+        // 커서 조건: cursor가 있으면 해당 ID보다 작은 게시글만 조회
+        BooleanExpression cursorCondition = cursor != null ? post.id.lt(cursor) : null;
+
+        return jpaQueryFactory
                 .select(new QPostSimpleDetail(
                         post.id,
                         post.title,
@@ -73,17 +82,10 @@ public class PostQueryRepository {
                         Expressions.constant(0)))
                 .from(post)
                 .leftJoin(post.member, member)
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .where(cursorCondition)
+                .orderBy(post.id.desc())  // ID 내림차순 (최신순)
+                .limit(size + 1)          // hasNext 판단용 +1
                 .fetch();
-
-        Long total = jpaQueryFactory
-                .select(post.count())
-                .from(post)
-                .fetchOne();
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     /**
