@@ -47,12 +47,14 @@ public class PostQueryService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final PostSearchRepository postSearchRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final FirstPageCacheService firstPageCacheService;
 
     /**
      * <h3>게시판 목록 조회 (Cursor 기반)</h3>
      * <p>PostReadModel에서 커서 기반 페이지네이션으로 게시글 목록을 조회합니다.</p>
      * <p>비정규화된 단일 테이블에서 조회하여 JOIN/SubQuery 없이 빠르게 조회됩니다.</p>
      * <p>회원은 블랙리스트 필터링이 적용됩니다.</p>
+     * <p>첫 페이지 요청 시 Redis 캐시를 사용합니다.</p>
      *
      * @param cursor   마지막으로 조회한 게시글 ID (null이면 처음부터)
      * @param size     조회할 개수
@@ -60,6 +62,20 @@ public class PostQueryService {
      * @return CursorPageResponse 커서 기반 페이지 응답
      */
     public CursorPageResponse<PostSimpleDetail> getBoardByCursor(Long cursor, int size, Long memberId) {
+        // === 첫 페이지 캐시 분기 ===
+        if (firstPageCacheService.isFirstPage(cursor, size)) {
+            List<PostSimpleDetail> cachedPosts = firstPageCacheService.getFirstPage(memberId);
+            if (!cachedPosts.isEmpty()) {
+                // 요청된 size만큼만 반환
+                boolean hasNext = cachedPosts.size() > size;
+                List<PostSimpleDetail> resultPosts = hasNext
+                        ? new ArrayList<>(cachedPosts.subList(0, size))
+                        : cachedPosts;
+                Long nextCursor = resultPosts.isEmpty() ? null : resultPosts.getLast().getId();
+                return CursorPageResponse.of(resultPosts, nextCursor, hasNext, size);
+            }
+        }
+
         // PostReadModel에서 조회 (비정규화된 단일 테이블)
         List<PostSimpleDetail> posts = postReadModelQueryRepository.findBoardPostsByCursor(cursor, size);
 

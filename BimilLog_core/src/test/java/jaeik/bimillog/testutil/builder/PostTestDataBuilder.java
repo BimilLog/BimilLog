@@ -52,4 +52,20 @@ public class PostTestDataBuilder {
                 .build();
     }
 
+    /**
+     * PostSimpleDetail 생성 (memberId 지정)
+     */
+    public static PostSimpleDetail createPostSearchResultWithMemberId(Long id, String title, Long memberId) {
+        return PostSimpleDetail.builder()
+                .id(id)
+                .title(title)
+                .viewCount(0)
+                .likeCount(0)
+                .memberId(memberId)
+                .memberName("작성자" + memberId)
+                .commentCount(0)
+                .createdAt(Instant.now())
+                .build();
+    }
+
 }

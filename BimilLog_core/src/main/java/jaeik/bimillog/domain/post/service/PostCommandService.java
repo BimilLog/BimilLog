@@ -3,14 +3,19 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.entity.jpa.PostReadModel;
 import jaeik.bimillog.domain.post.event.PostCreatedEvent;
 import jaeik.bimillog.domain.post.event.PostUpdatedEvent;
+import jaeik.bimillog.domain.post.repository.PostReadModelQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.FIRST_PAGE_SIZE;
 
 
 /**
@@ -43,6 +50,9 @@ public class PostCommandService {
     private final CommentCommandService commentCommandService;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final ApplicationEventPublisher eventPublisher;
+    private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
+    private final PostReadModelQueryRepository postReadModelQueryRepository;
+    private final PostReadModelRepository postReadModelRepository;
 
     /**
      * <h3>게시글 작성</h3>
@@ -71,6 +81,23 @@ public class PostCommandService {
                 memberName,
                 savedPost.getCreatedAt()
         ));
+
+        // 첫 페이지 캐시 추가
+        try {
+            PostSimpleDetail newPostDetail = PostSimpleDetail.builder()
+                    .id(savedPost.getId())
+                    .title(savedPost.getTitle())
+                    .viewCount(0)
+                    .likeCount(0)
+                    .createdAt(savedPost.getCreatedAt())
+                    .memberId(memberId)
+                    .memberName(memberName)
+                    .commentCount(0)
+                    .build();
+            redisFirstPagePostAdapter.addNewPost(newPostDetail);
+        } catch (Exception e) {
+            log.warn("첫 페이지 캐시 추가 실패: postId={}", savedPost.getId());
+        }
 
         return savedPost.getId();
     }
@@ -114,6 +141,25 @@ public class PostCommandService {
         } catch (Exception e) {
             log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
         }
+
+        // 첫 페이지 캐시 수정 (PostReadModel에서 조회 후 제목 반영)
+        try {
+            postReadModelRepository.findById(postId).ifPresent(readModel -> {
+                PostSimpleDetail updatedDetail = PostSimpleDetail.builder()
+                        .id(postId)
+                        .title(title)  // 새로운 제목 반영
+                        .viewCount(readModel.getViewCount())
+                        .likeCount(readModel.getLikeCount())
+                        .createdAt(readModel.getCreatedAt())
+                        .memberId(readModel.getMemberId())
+                        .memberName(readModel.getMemberName())
+                        .commentCount(readModel.getCommentCount())
+                        .build();
+                redisFirstPagePostAdapter.updatePost(postId, updatedDetail);
+            });
+        } catch (Exception e) {
+            log.warn("첫 페이지 캐시 수정 실패: postId={}", postId);
+        }
     }
 
     /**
@@ -143,6 +189,18 @@ public class PostCommandService {
             redisSimplePostAdapter.removePostFromCache(postId);
         } catch (Exception e) {
             log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
+        }
+
+        // 첫 페이지 캐시 삭제 (삭제 후 21번째 게시글로 빈 자리 채움)
+        try {
+            redisFirstPagePostAdapter.deletePost(postId, () -> {
+                // 삭제 후 21번째 게시글 조회 (빈 자리 채움)
+                List<PostSimpleDetail> posts = postReadModelQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE + 2);
+                // 21번째 게시글이 있으면 반환 (인덱스 20)
+                return posts.size() > FIRST_PAGE_SIZE ? posts.get(FIRST_PAGE_SIZE) : null;
+            });
+        } catch (Exception e) {
+            log.warn("첫 페이지 캐시 삭제 실패: postId={}", postId);
         }
     }
 
