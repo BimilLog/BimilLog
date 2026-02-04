@@ -51,6 +51,9 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
+    private PostReadModelQueryRepository postReadModelQueryRepository;
+
+    @Mock
     private PostSearchRepository postSearchRepository;
 
     @Mock
@@ -78,7 +81,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("게시판 조회 (커서 기반, 비회원) - 성공")
+    @DisplayName("게시판 조회 (커서 기반, 비회원) - 성공 (PostReadModel 사용)")
     void shouldGetBoardByCursor_ForGuest_Successfully() {
         // Given
         Long cursor = null;
@@ -86,7 +89,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         List<PostSimpleDetail> posts = List.of(postResult);
 
-        given(postQueryRepository.findBoardPostsByCursor(cursor, size)).willReturn(posts);
+        // PostReadModelQueryRepository에서 조회
+        given(postReadModelQueryRepository.findBoardPostsByCursor(cursor, size)).willReturn(posts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -96,7 +100,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
         assertThat(result.hasNext()).isFalse();
 
-        verify(postQueryRepository).findBoardPostsByCursor(cursor, size);
+        verify(postReadModelQueryRepository).findBoardPostsByCursor(cursor, size);
     }
 
     @Test

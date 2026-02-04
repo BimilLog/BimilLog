@@ -328,7 +328,34 @@ COMMIT;
 SELECT NOW() AS '완료 시각', '추천 1,000,000개 완료 (10/10)' AS status;
 
 -- =====================================================
--- 5. 정리 및 최적화
+-- 5. Post Read Model 테이블 동기화 (CQRS 조회 전용)
+-- =====================================================
+
+SELECT NOW() AS '시각', 'post_read_model 동기화 시작...' AS status;
+
+-- post_read_model 데이터 삽입 (post + member JOIN + post_like COUNT)
+INSERT INTO post_read_model (post_id, title, view_count, like_count, comment_count, member_id, member_name, created_at, modified_at)
+SELECT
+    p.post_id,
+    p.title,
+    p.views,
+    COALESCE(pl.cnt, 0),
+    0,  -- comment 데이터가 없으므로 0
+    m.member_id,
+    COALESCE(m.member_name, '익명'),
+    p.created_at,
+    p.modified_at
+FROM post p
+LEFT JOIN member m ON p.member_id = m.member_id
+LEFT JOIN (SELECT post_id, COUNT(*) cnt FROM post_like GROUP BY post_id) pl ON p.post_id = pl.post_id
+WHERE p.title LIKE '테스트 글%';
+
+COMMIT;
+
+SELECT NOW() AS '완료 시각', CONCAT('post_read_model 동기화 완료: ', (SELECT COUNT(*) FROM post_read_model WHERE title LIKE '테스트 글%'), '개') AS status;
+
+-- =====================================================
+-- 6. 정리 및 최적화
 -- =====================================================
 
 -- 임시 테이블 삭제
@@ -338,6 +365,7 @@ DROP TABLE IF EXISTS _numbers_100k;
 -- 통계 갱신
 ANALYZE TABLE post;
 ANALYZE TABLE post_like;
+ANALYZE TABLE post_read_model;
 ANALYZE TABLE member;
 
 -- 설정 복원
@@ -346,13 +374,14 @@ SET unique_checks = 1;
 SET foreign_key_checks = 1;
 
 -- =====================================================
--- 6. 최종 결과
+-- 7. 최종 결과
 -- =====================================================
 SELECT '========================================' AS '';
 SELECT '시드 데이터 생성 완료' AS 결과;
 SELECT '========================================' AS '';
 SELECT COUNT(*) AS '총 회원 수' FROM member WHERE member_name LIKE 'lt_user_%';
 SELECT COUNT(*) AS '총 게시글 수' FROM post WHERE title LIKE '테스트 글%';
+SELECT COUNT(*) AS '총 조회용 테이블 수' FROM post_read_model WHERE title LIKE '테스트 글%';
 SELECT COUNT(*) AS '총 추천 수' FROM post_like WHERE post_id BETWEEN @post_start AND @post_end;
 SELECT ROUND(COUNT(*) / 100000, 2) AS '평균 추천/글' FROM post_like WHERE post_id BETWEEN @post_start AND @post_end;
 SELECT NOW() AS '종료 시각';

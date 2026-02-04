@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
+import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -42,6 +43,9 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
     @Mock
     private PostLikeRepository postLikeRepository;
+
+    @Mock
+    private PostReadModelRepository postReadModelRepository;
 
     @Mock
     private PostToMemberAdapter postToMemberAdapter;
@@ -114,7 +118,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("조회수 증가 - 정상적인 게시글")
+    @DisplayName("조회수 증가 - Post와 PostReadModel 모두 업데이트")
     void shouldIncrementViewCount_WhenValidPost() {
         // Given
         Long postId = 123L;
@@ -124,6 +128,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).incrementViewsByPostId(postId);
+        verify(postReadModelRepository).incrementViewCount(postId);
     }
 
 }

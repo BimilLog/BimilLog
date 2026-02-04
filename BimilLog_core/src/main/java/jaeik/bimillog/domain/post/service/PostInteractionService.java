@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
+import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -32,6 +33,7 @@ import java.util.Map;
 @Slf4j
 public class PostInteractionService {
     private final PostRepository postRepository;
+    private final PostReadModelRepository postReadModelRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
@@ -76,17 +78,20 @@ public class PostInteractionService {
     /**
      * <h3>게시글 조회수 증가 비즈니스 로직 실행</h3>
      * <p>PostQueryController에서 게시글 상세 조회 완료 후 호출됩니다.</p>
+     * <p>Post 테이블과 PostReadModel 테이블 모두 업데이트합니다.</p>
      *
      * @param postId 조회수를 증가시킬 게시글 ID
      */
     @Transactional
     public void incrementViewCount(Long postId) {
         postRepository.incrementViewsByPostId(postId);
+        postReadModelRepository.incrementViewCount(postId);
     }
 
     /**
      * <h3>조회수 일괄 증가</h3>
      * <p>Redis에서 누적된 조회수를 DB에 벌크 반영합니다.</p>
+     * <p>Post 테이블과 PostReadModel 테이블 모두 업데이트합니다.</p>
      *
      * @param counts postId → 증가량 맵
      */
@@ -94,6 +99,7 @@ public class PostInteractionService {
     public void bulkIncrementViewCounts(Map<Long, Long> counts) {
         for (Map.Entry<Long, Long> entry : counts.entrySet()) {
             postRepository.incrementViewsByAmount(entry.getKey(), entry.getValue());
+            postReadModelRepository.incrementViewCountByAmount(entry.getKey(), entry.getValue());
         }
     }
 }

@@ -92,36 +92,35 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("게시판 목록 조회 성공 - 기본 페이지")
-    void getBoard_Success_DefaultPage() throws Exception {
+    @DisplayName("게시판 목록 조회 성공 - 첫 페이지 (커서 없음)")
+    void getBoard_Success_FirstPage() throws Exception {
         mockMvc.perform(get("/api/post")
-                        .param("page", "0")
-                .param("size", "10"))
+                        .param("size", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(3))))
                 .andExpect(jsonPath("$.content[0].title", notNullValue()))
-                .andExpect(jsonPath("$.pageable.pageNumber", is(0)))
-                .andExpect(jsonPath("$.pageable.pageSize", is(10)));
+                .andExpect(jsonPath("$.size", is(10)))
+                .andExpect(jsonPath("$.hasNext", notNullValue()));
     }
 
     @Test
-    @DisplayName("게시판 목록 조회 성공 - 페이지네이션")
-    void getBoard_Success_Pagination() throws Exception {
+    @DisplayName("게시판 목록 조회 성공 - 커서 기반 페이지네이션")
+    void getBoard_Success_CursorPagination() throws Exception {
         mockMvc.perform(get("/api/post")
-                        .param("page", "0")
                         .param("size", "2"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(lessThanOrEqualTo(2))))
-                .andExpect(jsonPath("$.pageable.pageSize", is(2)));
+                .andExpect(jsonPath("$.size", is(2)))
+                .andExpect(jsonPath("$.hasNext", is(true)))
+                .andExpect(jsonPath("$.nextCursor", notNullValue()));
     }
 
     @Test
-    @DisplayName("게시판 목록 조회 성공 - 최신순 정렬 확인")
-    void getBoard_Success_OrderByLatest() throws Exception {
+    @DisplayName("게시판 목록 조회 성공 - 최신순 정렬 확인 (ID 내림차순)")
+    void getBoard_Success_OrderByIdDesc() throws Exception {
         mockMvc.perform(get("/api/post")
-                        .param("page", "0")
                         .param("size", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -238,19 +237,22 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("게시판 목록 조회 성공 - 빈 결과")
-    void getBoard_Success_EmptyResult() throws Exception {
-        long totalCount = postRepository.count();
-        int size = 10;
-        long outOfRangePage = (totalCount / size) + 1;
+    @DisplayName("게시판 목록 조회 성공 - 마지막 커서 이후 빈 결과")
+    void getBoard_Success_EmptyResultAfterLastCursor() throws Exception {
+        // Given: 가장 오래된 게시글 ID (가장 작은 ID) 조회
+        Long oldestPostId = postRepository.findAll().stream()
+                .map(Post::getId)
+                .min(Long::compareTo)
+                .orElse(1L);
 
+        // When: 가장 작은 ID를 커서로 사용하면 그 이후에는 게시글이 없음
         mockMvc.perform(get("/api/post")
-                        .param("page", String.valueOf(outOfRangePage))
-                        .param("size", String.valueOf(size)))
+                        .param("cursor", String.valueOf(oldestPostId))
+                        .param("size", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
-                .andExpect(jsonPath("$.pageable.pageNumber", is((int) outOfRangePage)));
+                .andExpect(jsonPath("$.hasNext", is(false)));
     }
 
     @Test
@@ -292,74 +294,94 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("게시판 목록 조회 - 큰 페이지 번호")
-    void getBoard_Success_LargePageNumber() throws Exception {
-        long totalCount = postRepository.count();
-        int size = 10;
-        long largePage = (totalCount / size) + 5;
+    @DisplayName("게시판 목록 조회 - 다음 페이지 커서 기반 조회")
+    void getBoard_Success_NextPageByCursor() throws Exception {
+        // Given: 첫 페이지 조회 후 nextCursor 획득
+        String firstPageResult = mockMvc.perform(get("/api/post")
+                        .param("size", "2"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
+        // nextCursor 추출
+        Long nextCursor = com.jayway.jsonpath.JsonPath.parse(firstPageResult).read("$.nextCursor", Long.class);
+
+        // When: 다음 페이지 조회
         mockMvc.perform(get("/api/post")
-                        .param("page", String.valueOf(largePage))
-                        .param("size", String.valueOf(size)))
+                        .param("cursor", String.valueOf(nextCursor))
+                        .param("size", "2"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(0)))
-                .andExpect(jsonPath("$.pageable.pageNumber", is((int) largePage)));
+                .andExpect(jsonPath("$.content", notNullValue()))
+                .andExpect(jsonPath("$.size", is(2)));
     }
 
     @Test
-    @DisplayName("게시글 상세 조회 - 중복 조회 검증 (쿠키 없는 첫 조회)")
-    void getPost_Success_FirstTimeViewing() throws Exception {
+    @DisplayName("게시글 상세 조회 - 로그인 사용자 첫 조회 (Redis 기반 중복 방지)")
+    void getPost_Success_FirstTimeViewing_LoggedInUser() throws Exception {
+        // Given: 로그인한 사용자가 첫 조회
+        // Redis SET에 m:{memberId} 키로 조회 이력이 저장됨 (컨트롤러 테스트에서는 응답만 검증)
+
         mockMvc.perform(get("/api/post/{postId}", testPost1.getId())
                         .with(user(queryUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(testPost1.getId().intValue())))
-                .andExpect(cookie().exists("post_views"))
-                .andExpect(cookie().value("post_views", testPost1.getId().toString()));
+                .andExpect(jsonPath("$.title", is("첫 번째 테스트 게시글")))
+                .andExpect(jsonPath("$.viewCount", notNullValue()));
     }
 
     @Test
-    @DisplayName("게시글 상세 조회 - 중복 조회 검증 (쿠키 있는 재조회)")
-    void getPost_Success_RepeatedViewing() throws Exception {
-        String existingViews = testPost1.getId().toString();
+    @DisplayName("게시글 상세 조회 - 비로그인 사용자 조회 (IP 기반 중복 방지)")
+    void getPost_Success_AnonymousUserViewing() throws Exception {
+        // Given: 비로그인 사용자 조회
+        // Redis SET에 ip:{clientIp} 키로 조회 이력이 저장됨
 
         mockMvc.perform(get("/api/post/{postId}", testPost1.getId())
-                        .with(user(queryUserDetails))
-                        .cookie(new jakarta.servlet.http.Cookie("post_views", existingViews)))
+                        .header("X-Forwarded-For", "192.168.1.100"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(testPost1.getId().intValue())))
-                .andExpect(cookie().value("post_views", existingViews));
+                .andExpect(jsonPath("$.title", is("첫 번째 테스트 게시글")))
+                .andExpect(jsonPath("$.viewCount", notNullValue()));
     }
 
     @Test
-    @DisplayName("게시글 상세 조회 - 중복 조회 검증 (새로운 게시글 추가)")
-    void getPost_Success_ViewingNewPost() throws Exception {
-        String existingViews = testPost1.getId().toString();
+    @DisplayName("게시글 상세 조회 - 여러 게시글 연속 조회")
+    void getPost_Success_MultiplePostsViewing() throws Exception {
+        // Given: 로그인 사용자가 여러 게시글 연속 조회
+        // 각 게시글마다 Redis SET에 조회 이력 저장
 
+        // 첫 번째 게시글 조회
+        mockMvc.perform(get("/api/post/{postId}", testPost1.getId())
+                        .with(user(queryUserDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(testPost1.getId().intValue())));
+
+        // 두 번째 게시글 조회
         mockMvc.perform(get("/api/post/{postId}", testPost2.getId())
-                        .with(user(queryUserDetails))
-                        .cookie(new jakarta.servlet.http.Cookie("post_views", existingViews)))
+                        .with(user(queryUserDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(testPost2.getId().intValue())));
+
+        // 세 번째 게시글 조회
+        mockMvc.perform(get("/api/post/{postId}", testPost3.getId())
+                        .with(user(queryUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(testPost2.getId().intValue())))
-                .andExpect(cookie().exists("post_views"))
-                .andExpect(result -> {
-                    String cookieValue = result.getResponse().getCookie("post_views").getValue();
-                    assertThat(cookieValue).contains(testPost1.getId().toString());
-                    assertThat(cookieValue).contains(testPost2.getId().toString());
-                });
+                .andExpect(jsonPath("$.id", is(testPost3.getId().intValue())));
     }
 
     @Test
-    @DisplayName("게시글 상세 조회 - 비로그인 사용자도 중복 조회 검증")
-    void getPost_Success_AnonymousUserDuplicateCheck() throws Exception {
+    @DisplayName("게시글 상세 조회 - X-Forwarded-For 헤더 없는 비로그인 사용자")
+    void getPost_Success_AnonymousUserWithoutXFF() throws Exception {
+        // Given: X-Forwarded-For 헤더 없이 비로그인 사용자 조회
+        // request.getRemoteAddr()로 IP 추출
+
         mockMvc.perform(get("/api/post/{postId}", testPost1.getId()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(testPost1.getId().intValue())))
-                .andExpect(cookie().exists("post_views"))
-                .andExpect(cookie().value("post_views", testPost1.getId().toString()));
+                .andExpect(jsonPath("$.viewCount", notNullValue()));
     }
 }
