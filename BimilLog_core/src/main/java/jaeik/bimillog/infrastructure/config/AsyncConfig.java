@@ -97,7 +97,7 @@ public class AsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(15);
-        executor.setQueueCapacity(50);
+        executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("post-CQRS-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
@@ -115,7 +115,7 @@ public class AsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5); // 기본 스레드 수 (빈도 높음)
         executor.setMaxPoolSize(15); // 최대 스레드 수
-        executor.setQueueCapacity(50); // 대기열 크기 (버스트 트래픽 대응)
+        executor.setQueueCapacity(100); // 대기열 크기 (버스트 트래픽 대응)
         executor.setThreadNamePrefix("realtime-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
