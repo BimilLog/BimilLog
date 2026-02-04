@@ -3,7 +3,7 @@
  * SSR 시 내부 IP로 직접 호출하여 NAT Gateway 우회
  */
 
-import { ApiResponse, PageResponse } from '@/types/common'
+import { ApiResponse, PageResponse, CursorPageResponse } from '@/types/common'
 import { SimplePost } from '@/types/domains/post'
 import { PopularPaperInfo, RollingPaperMessage, VisitPaperResult } from '@/types/domains/paper'
 import { Friend, ReceivedFriendRequest, SentFriendRequest, RecommendedFriend } from '@/types/domains/friend'
@@ -35,9 +35,11 @@ async function serverFetch<T>(endpoint: string): Promise<T | null> {
   }
 }
 
-// 게시글 목록 조회
-export async function getPostsServer(page = 0, size = 30) {
-  return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post?page=${page}&size=${size}`)
+// 게시글 목록 조회 (커서 기반)
+export async function getPostsServer(cursor?: number | null, size = 20) {
+  const params = new URLSearchParams({ size: String(size) });
+  if (cursor != null) params.set('cursor', String(cursor));
+  return serverFetch<ApiResponse<CursorPageResponse<SimplePost>>>(`/api/post?${params}`)
 }
 
 // 실시간 인기글 조회
@@ -60,10 +62,10 @@ export async function getNoticePostsServer(page = 0, size = 10) {
   return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post/notice?page=${page}&size=${size}`)
 }
 
-// 게시판 초기 데이터 한 번에 조회 (페이지 파라미터 지원)
-export async function getBoardInitialData(page = 0, size = 30) {
+// 게시판 초기 데이터 한 번에 조회 (커서 기반)
+export async function getBoardInitialData(size = 20) {
   const [posts, realtimePosts, noticePosts] = await Promise.all([
-    getPostsServer(page, size),
+    getPostsServer(null, size), // 첫 페이지는 cursor = null
     getRealtimePostsServer(0, 5),
     getNoticePostsServer(0, 10),
   ])
@@ -72,8 +74,6 @@ export async function getBoardInitialData(page = 0, size = 30) {
     posts: posts?.data || null,
     realtimePosts: realtimePosts?.data || null,
     noticePosts: noticePosts?.data || null,
-    currentPage: page,
-    pageSize: size,
     isSearch: false,
   }
 }

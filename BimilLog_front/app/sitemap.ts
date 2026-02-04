@@ -58,18 +58,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   let allPosts: SimplePost[] = [];
-  let currentPage = 0;
-  let totalPages = 1;
+  let cursor: number | null = null;
+  let hasNext = true;
 
   try {
-    while (currentPage < totalPages) {
-      const response = await postQuery.getAll(currentPage, 100);
+    // 커서 기반 페이지네이션으로 모든 게시글 조회
+    while (hasNext) {
+      const response = await postQuery.getAll(cursor, 100);
       if (response.success && response.data) {
         allPosts = allPosts.concat(response.data.content);
-        totalPages = response.data.totalPages;
-        currentPage++;
+        hasNext = response.data.hasNext;
+        cursor = response.data.nextCursor;
       } else {
-        logger.warn(`Failed to fetch posts for page ${currentPage}`);
+        logger.warn(`Failed to fetch posts with cursor ${cursor}`);
         break;
       }
     }
@@ -97,16 +98,19 @@ export async function sitemapPosts(): Promise<MetadataRoute.Sitemap> {
   }
 
   let allPosts: SimplePost[] = [];
-  let currentPage = 0;
-  let totalPages = 1;
+  let cursor: number | null = null;
+  let hasNext = true;
+  let pageCount = 0;
 
   try {
-    while (currentPage < totalPages && currentPage < 50) { // 최대 50페이지까지만
-      const response = await postQuery.getAll(currentPage, 100);
+    // 커서 기반 페이지네이션 (최대 50페이지)
+    while (hasNext && pageCount < 50) {
+      const response = await postQuery.getAll(cursor, 100);
       if (response.success && response.data) {
         allPosts = allPosts.concat(response.data.content);
-        totalPages = response.data.totalPages;
-        currentPage++;
+        hasNext = response.data.hasNext;
+        cursor = response.data.nextCursor;
+        pageCount++;
       } else {
         break;
       }

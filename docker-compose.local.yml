@@ -1,38 +1,4 @@
 services:
-  # MySQL (운영 서버 시뮬레이션: 1GB RAM, 2 vCPU)
-  mysql:
-    image: mysql:8.0
-    container_name: bimillog-mysql-local
-    ports:
-      - "3307:3306"
-    mem_limit: 1g
-    cpus: 2.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=${LOCAL_MYSQL_PASSWORD}
-      - MYSQL_DATABASE=bimillogTest
-      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
-      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --innodb-buffer-pool-size=512M
-      - --max-connections=40
-      - --ngram-token-size=2
-    volumes:
-      - mysql-data-local:/var/lib/mysql
-      # 마이그레이션 파일들을 별도 디렉토리에 마운트
-      - ./BimilLog_core/src/main/resources/db/migration:/migrations:ro
-      # 초기화 스크립트 (알파벳순 실행: 01-init-migrations.sh -> 99-seed.sql)
-      - ./local/mysql/init-migrations.sh:/docker-entrypoint-initdb.d/01-init-migrations.sh:ro
-      - ./BimilLog_core/src/test/resources/bimillogTest-seed.sql:/docker-entrypoint-initdb.d/99-seed.sql:ro
-    networks:
-      - bimillog-local
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${LOCAL_MYSQL_PASSWORD}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Redis
   redis:
     image: redis:8.2.2-alpine3.22
@@ -76,15 +42,17 @@ services:
     # 운영 서버 시뮬레이션: 1GB RAM, 1 CPU 코어
     mem_limit: 1g
     memswap_limit: 2g
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - SPRING_PROFILES_ACTIVE=local
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/bimillogTest?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/bimillog2?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${LOCAL_MYSQL_PASSWORD}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
-      # init 스크립트에서 마이그레이션 실행하므로 Flyway 비활성화
-      - SPRING_FLYWAY_ENABLED=false
+      # 로컬 MySQL 사용 시 Flyway로 마이그레이션 관리
+      - SPRING_FLYWAY_ENABLED=true
       - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
       - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
       - KAKAO_ADMIN_KEY=${KAKAO_ADMIN_KEY}
@@ -103,8 +71,6 @@ services:
       - ./BimilLog_core/logs:/app/logs
       - ./local/scouter/java-agent.conf:/app/scouter/conf/scouter.conf:ro
     depends_on:
-      mysql:
-        condition: service_healthy
       redis:
         condition: service_healthy
       scouter-collector:
@@ -254,7 +220,6 @@ networks:
     driver: bridge
 
 volumes:
-  mysql-data-local:
   redis-data-local:
   prometheus-data-local:
   grafana-data-local:

@@ -1,110 +1,131 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { postQuery } from '@/lib/api';
 import { usePagination } from '@/hooks/common/usePagination';
 import { useDebounce } from '@/hooks/common/useDebounce';
 import { queryKeys } from '@/lib/tanstack-query/keys';
-import { PageResponse } from '@/types/common';
+import { PageResponse, CursorPageResponse } from '@/types/common';
 import { SimplePost } from '@/types/domains/post';
 
 // ============ POST LIST HOOKS ============
 
-// 게시글 목록 조회 - TanStack Query 통합
-export function usePostList(
-  pageSize = 30,
-  initialData?: PageResponse<SimplePost> | null,
-  initialPage = 0,
-  initialSearchTerm = '',
-  initialSearchType: 'TITLE' | 'TITLE_CONTENT' | 'WRITER' = 'TITLE'
-) {
+interface UseInfinitePostListOptions {
+  pageSize?: number;
+  initialData?: CursorPageResponse<SimplePost> | null;
+  initialSearchTerm?: string;
+  initialSearchType?: 'TITLE' | 'TITLE_CONTENT' | 'WRITER';
+}
+
+/**
+ * 커서 기반 무한 스크롤 게시글 목록 Hook
+ * - 일반 목록: useInfiniteQuery + cursor 기반
+ * - 검색: 기존 offset 기반 페이징 유지
+ */
+export function useInfinitePostList(options: UseInfinitePostListOptions = {}) {
+  const {
+    pageSize = 20,
+    initialData,
+    initialSearchTerm = '',
+    initialSearchType = 'TITLE'
+  } = options;
+
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'WRITER'>(initialSearchType);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
-  // 서버에서 전달받은 초기 값 저장 (마운트 시에만)
-  const [serverInitialPage] = useState(initialPage);
-  const [serverInitialSearch] = useState(initialSearchTerm);
-
-  // X 버튼 클릭 시 즉시 목록으로 복귀하기 위해 실제 searchTerm도 체크
   const actualSearch = searchTerm.trim();
 
-  const pagination = usePagination({ pageSize, initialPage });
+  // 검색용 페이지네이션 (검색은 offset 기반 유지)
+  const searchPagination = usePagination({ pageSize, initialPage: 0 });
 
-  // SSR 초기 데이터 사용 조건:
-  // 1. 현재 페이지가 서버에서 fetch한 페이지와 같아야 함
-  // 2. 현재 검색어가 서버에서 fetch한 검색어와 같아야 함
-  const isInitialDataValid = initialData &&
-    pagination.currentPage === serverInitialPage &&
-    actualSearch === serverInitialSearch;
-
-  // TanStack Query로 게시글 목록/검색 통합 처리: 검색어가 있으면 검색, 없으면 일반 목록 조회
-  // actualSearch가 비어있으면 디바운스 무시하고 즉시 일반 목록 조회
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: actualSearch && debouncedSearchTerm.trim()
-      ? queryKeys.post.search(debouncedSearchTerm, pagination.currentPage)
-      : queryKeys.post.list({ page: pagination.currentPage, size: pagination.pageSize }),
-    queryFn: async () => {
-      if (actualSearch && debouncedSearchTerm.trim()) {
-        return await postQuery.search(
-          searchType,
-          debouncedSearchTerm.trim(),
-          pagination.currentPage,
-          pagination.pageSize
-        );
-      }
-      return await postQuery.getAll(pagination.currentPage, pagination.pageSize);
+  // 일반 목록: useInfiniteQuery (커서 기반)
+  const listQuery = useInfiniteQuery({
+    queryKey: queryKeys.post.infiniteList(),
+    queryFn: async ({ pageParam }) => {
+      return await postQuery.getAll(pageParam, pageSize);
     },
-    // SSR에서 전달받은 초기 데이터 사용
-    initialData: isInitialDataValid
-      ? { success: true, data: initialData }
-      : undefined,
-    staleTime: 5 * 60 * 1000, // 5분
-    gcTime: 10 * 60 * 1000, // 10분
+    initialPageParam: null as number | null,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.data?.hasNext) {
+        return lastPage.data.nextCursor;
+      }
+      return undefined;
+    },
+    // SSR 초기 데이터 사용
+    initialData: initialData ? {
+      pages: [{ success: true, data: initialData }],
+      pageParams: [null],
+    } : undefined,
+    enabled: !actualSearch, // 검색어 없을 때만 활성화
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
-  // 데이터 변경 시 페이지네이션 업데이트
-  useEffect(() => {
-    if (data?.data?.totalElements !== undefined) {
-      pagination.setTotalItems(data.data.totalElements);
-    }
-  }, [data?.data?.totalElements]);
+  // 검색: 기존 offset 기반 useQuery 유지
+  const searchQuery = useQuery({
+    queryKey: queryKeys.post.search(debouncedSearchTerm, searchPagination.currentPage),
+    queryFn: async () => {
+      return await postQuery.search(
+        searchType,
+        debouncedSearchTerm.trim(),
+        searchPagination.currentPage,
+        pageSize
+      );
+    },
+    enabled: !!actualSearch && !!debouncedSearchTerm.trim(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
-  // URL 변경 시 내부 상태 동기화 (SSR 지원)
-  // 검색어와 페이지 모두 URL에서 관리
+  // 검색 결과 totalElements 동기화
   useEffect(() => {
-    // 페이지 동기화
-    if (pagination.currentPage !== initialPage) {
-      pagination.goToPage(initialPage);
+    if (searchQuery.data?.data?.totalElements !== undefined) {
+      searchPagination.setTotalItems(searchQuery.data.data.totalElements);
     }
-    // 검색어 동기화 (URL에서 검색어가 변경된 경우)
+  }, [searchQuery.data?.data?.totalElements]);
+
+  // URL 검색어 변경 시 동기화
+  useEffect(() => {
     if (searchTerm !== initialSearchTerm) {
       setSearchTerm(initialSearchTerm);
     }
-    // 검색 타입 동기화
     if (searchType !== initialSearchType) {
       setSearchType(initialSearchType);
     }
-  }, [initialPage, initialSearchTerm, initialSearchType]);
+  }, [initialSearchTerm, initialSearchType]);
 
-  // 즉시 검색 함수 (debounce 무시)
-  const immediateSearch = useCallback(() => {
-    pagination.setCurrentPage(0);
-    refetch();
-  }, [pagination, refetch]);
+  // 게시글 목록 통합
+  const posts = useMemo(() => {
+    if (actualSearch) {
+      return searchQuery.data?.data?.content || [];
+    }
+    return listQuery.data?.pages.flatMap(page => page.data?.content || []) || [];
+  }, [actualSearch, searchQuery.data, listQuery.data]);
+
+  // 더보기 함수
+  const loadMore = useCallback(() => {
+    if (!actualSearch && listQuery.hasNextPage && !listQuery.isFetchingNextPage) {
+      listQuery.fetchNextPage();
+    }
+  }, [actualSearch, listQuery]);
 
   return {
-    posts: data?.data?.content || [],
-    isLoading,
-    error,
-    refetch,
-    pagination,
+    posts,
+    isLoading: actualSearch ? searchQuery.isLoading : listQuery.isLoading,
+    error: actualSearch ? searchQuery.error : listQuery.error,
+    // 커서 기반 (일반 목록)
+    hasNextPage: actualSearch ? false : (listQuery.hasNextPage ?? false),
+    loadMore,
+    isFetchingNextPage: listQuery.isFetchingNextPage,
+    // 검색용 페이지네이션
+    searchPagination: actualSearch ? searchPagination : null,
+    // 검색 관련
     searchTerm,
     setSearchTerm,
     searchType,
     setSearchType,
-    search: immediateSearch
+    isSearching: !!actualSearch,
   };
 }
 

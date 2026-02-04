@@ -7,21 +7,20 @@ import { BoardSearch } from "@/components/organisms/board";
 import { Breadcrumb } from "@/components";
 
 // 분리된 훅들 import
-import { usePostList, usePopularPostsTabs, useNoticePosts } from "@/hooks/features";
+import { useInfinitePostList, usePopularPostsTabs, useNoticePosts } from "@/hooks/features";
 
 // 분리된 컴포넌트들 import
 import { BoardHeader } from "@/components/organisms/board/BoardHeader";
 import { BoardTabs } from "@/components/organisms/board/BoardTabs";
 
-import { PageResponse } from "@/types/common";
+import { PageResponse, CursorPageResponse } from "@/types/common";
 import { SimplePost } from "@/types/domains/post";
 
 export interface BoardInitialData {
-  posts: PageResponse<SimplePost> | null;
+  // 일반 목록: CursorPageResponse, 검색 결과: PageResponse
+  posts: CursorPageResponse<SimplePost> | PageResponse<SimplePost> | null;
   realtimePosts: PageResponse<SimplePost> | null;
   noticePosts: PageResponse<SimplePost> | null;
-  currentPage?: number;
-  pageSize?: number;
   isSearch?: boolean;
   searchQuery?: string;
   searchType?: 'TITLE' | 'TITLE_CONTENT' | 'WRITER';
@@ -35,32 +34,38 @@ function BoardClient({ initialData }: BoardClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("all");
-  const [postsPerPage, setPostsPerPage] = useState("30");
+  const [postsPerPage, setPostsPerPage] = useState("20");
 
-  // URL에서 현재 페이지 가져오기 (1-based → 0-based 변환)
-  const urlPage = searchParams.get('page');
+  // URL에서 검색 파라미터 가져오기
   const urlQuery = searchParams.get('q');
   const urlType = searchParams.get('type') as 'TITLE' | 'TITLE_CONTENT' | 'WRITER' | null;
-  const initialPage = urlPage ? parseInt(urlPage) - 1 : (initialData?.currentPage ?? 0);
 
-  // 게시판 데이터 관리
+  // 게시판 데이터 관리 (커서 기반 무한 스크롤)
   const {
     posts,
     isLoading,
     error,
-    refetch: fetchPostsAndSearch,
-    pagination,
+    // 커서 기반 (일반 목록)
+    hasNextPage,
+    loadMore,
+    isFetchingNextPage,
+    // 검색용 offset 페이지네이션
+    searchPagination,
+    // 검색 관련
     searchTerm,
     setSearchTerm,
     searchType,
     setSearchType,
-  } = usePostList(
-    Number(postsPerPage),
-    initialData?.posts,
-    initialPage,
-    initialData?.searchQuery || urlQuery || '',
-    initialData?.searchType || urlType || 'TITLE'
-  );
+    isSearching,
+  } = useInfinitePostList({
+    pageSize: Number(postsPerPage),
+    // 검색이 아닌 경우에만 커서 기반 초기 데이터 사용
+    initialData: !initialData?.isSearch
+      ? (initialData?.posts as CursorPageResponse<SimplePost> | null)
+      : null,
+    initialSearchTerm: initialData?.searchQuery || urlQuery || '',
+    initialSearchType: initialData?.searchType || urlType || 'TITLE',
+  });
 
   // 인기글 데이터 관리 - 각 탭 데이터 개별 제공
   const {
@@ -76,8 +81,6 @@ function BoardClient({ initialData }: BoardClientProps) {
   // 공지사항 데이터 관리 - '전체' 탭에서만 조회
   const { noticePosts } = useNoticePosts(activeTab === "all", initialData?.noticePosts);
 
-  const { currentPage, setPageSize, setCurrentPage } = pagination;
-
   // 탭 변경 핸들러 메모이제이션
   // 메인 탭(all/realtime/popular/legend)과 인기글 탭(realtime/weekly/legend) 동기화
   const handleTabChange = useCallback((tab: string) => {
@@ -91,30 +94,14 @@ function BoardClient({ initialData }: BoardClientProps) {
     }
   }, [setPopularTab]);
 
-  // URL 기반 페이지 변경 핸들러 (SSR 지원)
-  const handlePageChange = useCallback((newPage: number) => {
-    const params = new URLSearchParams();
-
-    // 검색 중이면 검색 파라미터 유지
-    if (searchTerm.trim()) {
-      params.set('q', searchTerm.trim());
-      if (searchType !== 'TITLE') {
-        params.set('type', searchType);
-      }
+  // 검색 결과 페이지 변경 핸들러 (offset 기반, 클라이언트 사이드)
+  const handleSearchPageChange = useCallback((newPage: number) => {
+    if (searchPagination) {
+      searchPagination.setCurrentPage(newPage);
     }
+  }, [searchPagination]);
 
-    // 0-based → 1-based 변환 (URL은 1-based)
-    const displayPage = newPage + 1;
-
-    if (displayPage > 1) {
-      params.set('page', String(displayPage));
-    }
-
-    const queryString = params.toString();
-    router.push(`/board${queryString ? `?${queryString}` : ''}`, { scroll: false });
-  }, [router, searchTerm, searchType]);
-
-  // URL 기반 검색 핸들러 (SSR 지원)
+  // 검색 핸들러 (URL 기반으로 검색어 반영)
   const handleSearch = useCallback(() => {
     const params = new URLSearchParams();
 
@@ -124,25 +111,10 @@ function BoardClient({ initialData }: BoardClientProps) {
         params.set('type', searchType);
       }
     }
-    // 검색 시 페이지는 1로 리셋 (page 파라미터 제거)
 
     const queryString = params.toString();
     router.push(`/board${queryString ? `?${queryString}` : ''}`, { scroll: true });
   }, [router, searchTerm, searchType]);
-
-  // 탭 변경 시 메인 데이터 조회 - '전체' 탭일 때만 일반 게시글 API 호출
-  // 인기글 탭들은 usePopularPostsTabs 훅에서 별도로 관리됨
-  useEffect(() => {
-    if (activeTab === "all") {
-      fetchPostsAndSearch();
-    }
-  }, [currentPage, activeTab, fetchPostsAndSearch]);
-
-  // 페이지당 게시글 수 변경 시 처리 - 첫 페이지로 리셋 후 새로운 페이지 크기 적용
-  useEffect(() => {
-    setPageSize(Number(postsPerPage));
-    setCurrentPage(0); // 페이지 크기 변경 시 첫 페이지로 이동
-  }, [postsPerPage, setPageSize, setCurrentPage]);
 
   return (
     <MainLayout
@@ -179,11 +151,16 @@ function BoardClient({ initialData }: BoardClientProps) {
           posts={posts}
           isLoading={isLoading}
           error={error}
-          isSearching={!!searchTerm.trim()}
+          isSearching={isSearching}
           searchTerm={searchTerm}
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          onPageChange={handlePageChange}
+          // 커서 기반 (일반 목록)
+          hasNextPage={hasNextPage}
+          onLoadMore={loadMore}
+          isFetchingNextPage={isFetchingNextPage}
+          // 검색용 offset 페이지네이션
+          searchPagination={searchPagination}
+          onSearchPageChange={handleSearchPageChange}
+          // 인기글 탭
           realtimePosts={realtimePosts}
           weeklyPosts={weeklyPosts}
           legendPosts={legendPosts}
