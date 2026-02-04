@@ -25,8 +25,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
 /**
  * <h2>Post Read Model 동기화 리스너</h2>
  * <p>게시글 관련 이벤트를 수신하여 PostReadModel을 동기화합니다.</p>
@@ -181,6 +179,7 @@ public class PostReadModelSyncListener {
     /**
      * <h3>게시글 좋아요 취소 이벤트 처리</h3>
      * <p>PostReadModel의 like_count를 -1 합니다.</p>
+     * <p>멱등성 체크 없이 실행 (중복 실행해도 DB에서 안전하게 처리)</p>
      */
     @EventListener
     @Async("postCQRSEventExecutor")
@@ -195,25 +194,14 @@ public class PostReadModelSyncListener {
     )
     @Transactional
     public void handlePostUnliked(PostUnlikeEvent event) {
-        // PostUnlikeEvent는 eventId가 없으므로 새로 생성
-        String eventId = "LIKE_DEC:" + event.postId() + ":" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-
-        if (processedEventRepository.existsById(eventId)) {
-            log.debug("이미 처리된 이벤트 스킵: {}", eventId);
-            return;
-        }
-
         postReadModelRepository.decrementLikeCount(event.postId());
-        processedEventRepository.save(new ProcessedEvent(eventId, "LIKE_DECREMENT"));
-
         log.debug("PostReadModel 좋아요 수 감소 완료: postId={}", event.postId());
     }
 
     @Recover
     public void recoverPostUnliked(Exception e, PostUnlikeEvent event) {
         log.error("PostReadModel 좋아요 수 감소 최종 실패: postId={}", event.postId(), e);
-        String eventId = "LIKE_DEC:" + event.postId() + ":" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        postReadModelDlqService.saveLikeDecrement(eventId, event.postId());
+        postReadModelDlqService.saveLikeDecrement(event.postId());
     }
 
     /**
@@ -258,6 +246,7 @@ public class PostReadModelSyncListener {
     /**
      * <h3>댓글 삭제 이벤트 처리</h3>
      * <p>PostReadModel의 comment_count를 -1 합니다.</p>
+     * <p>멱등성 체크 없이 실행 (중복 실행해도 DB에서 안전하게 처리)</p>
      */
     @EventListener
     @Async("postCQRSEventExecutor")
@@ -272,24 +261,13 @@ public class PostReadModelSyncListener {
     )
     @Transactional
     public void handleCommentDeleted(CommentDeletedEvent event) {
-        // CommentDeletedEvent는 eventId가 없으므로 새로 생성
-        String eventId = "CMT_DEC:" + event.postId() + ":" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-
-        if (processedEventRepository.existsById(eventId)) {
-            log.debug("이미 처리된 이벤트 스킵: {}", eventId);
-            return;
-        }
-
         postReadModelRepository.decrementCommentCount(event.postId());
-        processedEventRepository.save(new ProcessedEvent(eventId, "COMMENT_DECREMENT"));
-
         log.debug("PostReadModel 댓글 수 감소 완료: postId={}", event.postId());
     }
 
     @Recover
     public void recoverCommentDeleted(Exception e, CommentDeletedEvent event) {
         log.error("PostReadModel 댓글 수 감소 최종 실패: postId={}", event.postId(), e);
-        String eventId = "CMT_DEC:" + event.postId() + ":" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        postReadModelDlqService.saveCommentDecrement(eventId, event.postId());
+        postReadModelDlqService.saveCommentDecrement(event.postId());
     }
 }

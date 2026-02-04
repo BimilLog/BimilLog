@@ -104,6 +104,7 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
     /**
      * 실시간 인기글 점수, 실시간 롤링페이퍼 점수, 친구 상호작용 점수 전용 스레드 풀
      * <p>Redis 기반의 실시간 점수 업데이트를 처리합니다.</p>
