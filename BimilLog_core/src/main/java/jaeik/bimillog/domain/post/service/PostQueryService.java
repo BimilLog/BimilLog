@@ -47,20 +47,24 @@ public class PostQueryService {
 
     /**
      * <h3>게시판 목록 조회</h3>
-     * <p>전체 게시글을 최신순으로 정렬하여 페이지 단위로 조회합니다.</p>
-     * <p>공지사항은 제외하고 일반 게시글만 조회</p>
+     * <p>게시글 목록을 조회합니다. 회원은 블랙리스트 필터링이 적용됩니다.</p>
      * <p>{@link PostQueryController}에서 게시판 목록 요청 시 호출됩니다.</p>
      *
      * @param pageable 페이지 정보 (크기, 페이지 번호, 정렬 기준)
+     * @param memberId 회원 ID (null이면 비회원)
      * @return Page&lt;PostSimpleDetail&gt; 페이지네이션된 게시글 목록
      */
     public Page<PostSimpleDetail> getBoard(Pageable pageable, Long memberId) {
-        Page<PostSimpleDetail> posts = postQueryRepository.findByPage(pageable, memberId);
+        Page<PostSimpleDetail> posts = postQueryRepository.findBoardPosts(pageable);
+
+        if (memberId == null) {
+            enrichPostsCommentCount(posts.getContent());
+            return posts;
+        }
+
         List<PostSimpleDetail> blackListFilterPosts = removePostsWithBlacklist(memberId, posts.getContent());
         enrichPostsCommentCount(blackListFilterPosts);
-
-        return new PageImpl<>(blackListFilterPosts, posts.getPageable(),
-                posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));
+        return new PageImpl<>(blackListFilterPosts, posts.getPageable(), posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));
     }
 
     /**

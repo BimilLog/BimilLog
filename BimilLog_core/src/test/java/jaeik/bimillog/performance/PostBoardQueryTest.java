@@ -50,7 +50,7 @@ class PostBoardQueryTest {
     @BeforeAll
     void warmup() {
         log.info("DB 캐시 워밍업 시작 - 게시판 목록 조회");
-        postQueryService.getBoard(FIRST_PAGE_REQUEST, TARGET_MEMBER_ID);
+        postQueryService.getBoardForMember(FIRST_PAGE_REQUEST, TARGET_MEMBER_ID);
         log.info("DB 캐시 워밍업 완료");
     }
 
@@ -59,7 +59,7 @@ class PostBoardQueryTest {
     void getBoardFirstPage() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<PostSimpleDetail> result = postQueryService.getBoard(FIRST_PAGE_REQUEST, TARGET_MEMBER_ID);
+        Page<PostSimpleDetail> result = postQueryService.getBoardForMember(FIRST_PAGE_REQUEST, TARGET_MEMBER_ID);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
@@ -76,7 +76,7 @@ class PostBoardQueryTest {
     void getBoardMiddlePage() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<PostSimpleDetail> result = postQueryService.getBoard(MIDDLE_PAGE_REQUEST, TARGET_MEMBER_ID);
+        Page<PostSimpleDetail> result = postQueryService.getBoardForMember(MIDDLE_PAGE_REQUEST, TARGET_MEMBER_ID);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
@@ -93,7 +93,7 @@ class PostBoardQueryTest {
     void getBoardLastPage() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<PostSimpleDetail> result = postQueryService.getBoard(LAST_PAGE_REQUEST, TARGET_MEMBER_ID);
+        Page<PostSimpleDetail> result = postQueryService.getBoardForMember(LAST_PAGE_REQUEST, TARGET_MEMBER_ID);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();

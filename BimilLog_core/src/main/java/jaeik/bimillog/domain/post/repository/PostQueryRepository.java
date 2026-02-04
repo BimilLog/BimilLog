@@ -50,18 +50,40 @@ public class PostQueryRepository {
     private static final QPostLike postLike = QPostLike.postLike;
     private static final QComment comment = QComment.comment;
 
+
     /**
-     * <h3>게시판 조회</h3>
-     * <p>페이지 정보에 따라 게시글 목록을 조회합니다.</p>
-     * <p>공지사항 포함 모든 게시글 조회 (isNotice 조건 제거)</p>
-     * <p>{@link PostQueryService}에서 게시판 메인 목록 조회 시 호출됩니다.</p>
-     *
-     * @param pageable 페이지 정보
-     * @return 게시글 목록 페이지
+     * <h3>게시판 게시글 조회 (공통 로직)</h3>
      */
-    public Page<PostSimpleDetail> findByPage(Pageable pageable, Long memberId) {
-        Consumer<JPAQuery<?>> customizer = query -> {};
-        return findPostsWithQuery(customizer, customizer, pageable);
+    public Page<PostSimpleDetail> findBoardPosts(Pageable pageable) {
+        QPostLike subPostLike = new QPostLike("subPostLike");
+        JPQLQuery<Integer> likeCountSubQuery = JPAExpressions
+                .select(subPostLike.count().intValue())
+                .from(subPostLike)
+                .where(subPostLike.post.id.eq(post.id));
+
+        List<PostSimpleDetail> content = jpaQueryFactory
+                .select(new QPostSimpleDetail(
+                        post.id,
+                        post.title,
+                        post.views,
+                        likeCountSubQuery,
+                        post.createdAt,
+                        member.id,
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
+                        Expressions.constant(0)))
+                .from(post)
+                .leftJoin(post.member, member)
+                .orderBy(post.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = jpaQueryFactory
+                .select(post.count())
+                .from(post)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     /**

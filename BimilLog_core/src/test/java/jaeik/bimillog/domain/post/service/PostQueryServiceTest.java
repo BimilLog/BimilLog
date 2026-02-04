@@ -78,24 +78,24 @@ class PostQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("게시판 조회 - 성공")
-    void shouldGetBoard_Successfully() {
+    @DisplayName("게시판 조회 (비회원) - 성공")
+    void shouldGetBoardForGuest_Successfully() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(postResult), pageable, 1);
 
-        given(postQueryRepository.findByPage(pageable, null)).willReturn(expectedPage);
+        given(postQueryRepository.findBoardPosts(pageable)).willReturn(expectedPage);
 
         // When
-        Page<PostSimpleDetail> result = postQueryService.getBoard(pageable, null);
+        Page<PostSimpleDetail> result = postQueryService.getBoardForGuest(pageable);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getTitle()).isEqualTo("제목1");
 
-        verify(postQueryRepository).findByPage(pageable, null);
+        verify(postQueryRepository).findBoardPosts(pageable);
     }
 
     @Test

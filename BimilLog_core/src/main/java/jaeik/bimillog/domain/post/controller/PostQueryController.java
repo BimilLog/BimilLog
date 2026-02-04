@@ -41,6 +41,7 @@ public class PostQueryController {
     /**
      * <h3>게시판 목록 조회 API</h3>
      * <p>최신순으로 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>회원은 블랙리스트 필터링이 적용되고, 비회원은 전체 조회됩니다.</p>
      *
      * @param pageable 페이지 정보
      * @return 게시글 목록 페이지 (200 OK)
@@ -50,13 +51,8 @@ public class PostQueryController {
          message = "게시판 목록 조회",
          logResult = false)
     public ResponseEntity<Page<PostSimpleDetail>> getBoard(@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
-
-        if (userDetails == null) { // 비회원
-            Page<PostSimpleDetail> postList = postQueryService.getBoard(pageable, null);
-            return ResponseEntity.ok(postList);
-        }
-
-        Page<PostSimpleDetail> postList = postQueryService.getBoard(pageable, userDetails.getMemberId()); // 회원
+        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
+        Page<PostSimpleDetail> postList = postQueryService.getBoard(pageable, memberId);
         return ResponseEntity.ok(postList);
     }
 

@@ -117,7 +117,7 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 2);
 
         // When: 페이지별 게시글 조회
-        Page<PostSimpleDetail> result = postQueryRepository.findByPage(pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.findBoardPosts(pageable);
 
         // Then: 모든 게시글 조회됨
         assertThat(result).isNotNull();
@@ -266,7 +266,7 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 게시글 페이지 조회
-        Page<PostSimpleDetail> result = postQueryRepository.findByPage(pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.findBoardPosts(pageable);
 
         // Then: 모든 게시글 조회됨
         assertThat(result.getContent()).hasSize(3); // 전체 게시글 3개 조회
@@ -280,7 +280,7 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 게시글 조회
-        Page<PostSimpleDetail> result = postQueryRepository.findByPage(pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.findBoardPosts(pageable);
 
         // Then: 최신 게시글부터 정렬됨 (createdAt 내림차순)
         List<java.time.Instant> createdAts = result.getContent().stream()
