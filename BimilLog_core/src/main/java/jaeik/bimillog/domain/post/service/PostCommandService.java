@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.event.PostCreatedEvent;
+import jaeik.bimillog.domain.post.event.PostUpdatedEvent;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -13,6 +15,7 @@ import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +42,7 @@ public class PostCommandService {
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final CommentCommandService commentCommandService;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>게시글 작성</h3>
@@ -57,6 +61,17 @@ public class PostCommandService {
         Member member = (memberId != null) ? postToMemberAdapter.getReferenceById(memberId) : null;
         Post newPost = Post.createPost(member, title, content, password);
         Post savedPost = postRepository.save(newPost);
+
+        // PostReadModel 동기화 이벤트 발행
+        String memberName = (member != null) ? member.getMemberName() : "익명";
+        eventPublisher.publishEvent(new PostCreatedEvent(
+                savedPost.getId(),
+                savedPost.getTitle(),
+                memberId,
+                memberName,
+                savedPost.getCreatedAt()
+        ));
+
         return savedPost.getId();
     }
 
@@ -89,6 +104,9 @@ public class PostCommandService {
 
         // 글 수정
         post.updatePost(title, content);
+
+        // PostReadModel 동기화 이벤트 발행
+        eventPublisher.publishEvent(new PostUpdatedEvent(postId, title));
 
         // 캐시 무효화 - 인기글인 경우 해당 Hash 필드 삭제
         try {
