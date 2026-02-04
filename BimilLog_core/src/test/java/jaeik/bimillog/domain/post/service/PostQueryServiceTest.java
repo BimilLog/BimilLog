@@ -88,7 +88,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(postQueryRepository.findBoardPosts(pageable)).willReturn(expectedPage);
 
         // When
-        Page<PostSimpleDetail> result = postQueryService.getBoardForGuest(pageable);
+        Page<PostSimpleDetail> result = postQueryService.getBoard(pageable, null);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
