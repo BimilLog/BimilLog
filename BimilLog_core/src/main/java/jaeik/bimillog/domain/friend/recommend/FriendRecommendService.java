@@ -366,6 +366,9 @@ public class FriendRecommendService {
      */
     private void processDegreeSearchFromDb(List<Long> friendIdList, List<Set<Long>> results, int depth,
                                            Long memberId, Set<Long> myFriends, Map<Long, RecommendCandidate> candidateMap) {
+
+        // List<Long> myFriendList, List<Object> results, int depth,
+        //                                     Long memberId, Set<Long> myFriends, Map<Long, RecommendCandidate> candidateMap
         for (int i = 0; i < friendIdList.size(); i++) {
             Long friendId = friendIdList.get(i); // 1촌 또는 2촌 친구
             Set<Long> resultSet = results.get(i); // 1촌의 친구 (2촌) 또는 2촌의 친구 (3촌)
