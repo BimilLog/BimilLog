@@ -90,38 +90,17 @@ public class FriendInteractionListener {
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleCommentCreated(CommentCreatedEvent event) {
-        // 익명 댓글은 상호작용 점수에 반영하지 않음
-        if (event.commenterId() == null) {
-            log.debug("익명 댓글 작성은 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
-            return;
-        }
-
-        // 자기 자신의 게시글에 댓글 작성한 경우 제외
-        if (event.postUserId().equals(event.commenterId())) {
-            log.debug("자기 자신의 게시글에 댓글 작성은 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
-            return;
-        }
-
         boolean processed = redisInteractionScoreRepository.addInteractionScore(
                 event.postUserId(), event.commenterId(), event.getIdempotencyKey());
-
-        if (processed) {
-            log.debug("댓글 작성 상호작용 점수 증가: postId={}, postUserId={}, commenterId={}",
-                    event.postId(), event.postUserId(), event.commenterId());
-        } else {
-            log.debug("이미 처리된 댓글 작성 이벤트 (멱등성 스킵): postId={}, idempotencyKey={}",
-                    event.postId(), event.getIdempotencyKey());
+        if (!processed) {
+            log.info("이미 처리된 댓글 작성 이벤트: postId={}, idempotencyKey={}", event.postId(), event.getIdempotencyKey());
         }
     }
 
     @Recover
     public void recoverCommentCreated(Exception e, CommentCreatedEvent event) {
-        log.error("댓글 작성 상호작용 점수 증가 최종 실패: postId={}, postUserId={}, commenterId={}",
-                event.postId(), event.postUserId(), event.commenterId(), e);
-
-        if (event.commenterId() != null && !event.postUserId().equals(event.commenterId())) {
-            friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.postUserId(), event.commenterId(), INTERACTION_SCORE_DEFAULT);
-        }
+        log.warn("댓글 작성 상호작용 점수 증가 실패 DLQ 진입: postId={}, postUserId={}, commenterId={}", event.postId(), event.postUserId(), event.commenterId(), e);
+        friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.postUserId(), event.commenterId(), INTERACTION_SCORE_DEFAULT);
     }
 
     /**
@@ -144,37 +123,16 @@ public class FriendInteractionListener {
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleCommentLiked(CommentLikeEvent event) {
-        // 익명 댓글은 상호작용 점수에 반영하지 않음
-        if (event.commentAuthorId() == null) {
-            log.debug("익명 댓글 좋아요는 상호작용 점수에 반영되지 않습니다: commentId={}", event.commentId());
-            return;
-        }
-
-        // 자기 자신의 댓글에 좋아요한 경우 제외 (이미 블랙리스트 체크로 방지됨)
-        if (event.commentAuthorId().equals(event.likerId())) {
-            log.debug("자기 자신의 댓글 좋아요는 상호작용 점수에 반영되지 않습니다: commentId={}", event.commentId());
-            return;
-        }
-
         boolean processed = redisInteractionScoreRepository.addInteractionScore(
                 event.commentAuthorId(), event.likerId(), event.getIdempotencyKey());
-
-        if (processed) {
-            log.debug("댓글 좋아요 상호작용 점수 증가: commentId={}, authorId={}, likerId={}",
-                    event.commentId(), event.commentAuthorId(), event.likerId());
-        } else {
-            log.debug("이미 처리된 댓글 좋아요 이벤트 (멱등성 스킵): commentId={}, idempotencyKey={}",
-                    event.commentId(), event.getIdempotencyKey());
+        if (!processed) {
+            log.info("이미 처리된 댓글 좋아요 이벤트: commentId={}, idempotencyKey={}", event.commentId(), event.getIdempotencyKey());
         }
     }
 
     @Recover
     public void recoverCommentLiked(Exception e, CommentLikeEvent event) {
-        log.error("댓글 좋아요 상호작용 점수 증가 최종 실패: commentId={}, authorId={}, likerId={}",
-                event.commentId(), event.commentAuthorId(), event.likerId(), e);
-
-        if (event.commentAuthorId() != null && !event.commentAuthorId().equals(event.likerId())) {
-            friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.commentAuthorId(), event.likerId(), INTERACTION_SCORE_DEFAULT);
-        }
+        log.warn("댓글 좋아요 상호작용 점수 증가 실패 DLQ 진입: commentId={}, authorId={}, likerId={}", event.commentId(), event.commentAuthorId(), event.likerId(), e);
+        friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.commentAuthorId(), event.likerId(), INTERACTION_SCORE_DEFAULT);
     }
 }
