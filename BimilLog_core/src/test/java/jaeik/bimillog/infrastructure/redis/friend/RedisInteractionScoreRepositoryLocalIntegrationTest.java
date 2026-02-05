@@ -132,37 +132,56 @@ class RedisInteractionScoreRepositoryLocalIntegrationTest {
     }
 
     @Test
-    @DisplayName("getAllInteractionScores - ZSet 전체 조회")
-    void shouldGetAllInteractionScoresFromZSet() {
+    @DisplayName("getTopInteractionScores - ZSet 상위 N개 조회 (점수 내림차순)")
+    void shouldGetTopInteractionScoresFromZSet() {
         // Given - ZSet에 직접 데이터 시딩
         String key = INTERACTION_PREFIX + MEMBER_1;
         redisTemplate.opsForZSet().add(key, MEMBER_2, 3.0);
         redisTemplate.opsForZSet().add(key, MEMBER_3, 1.5);
 
         // When
-        Set<ZSetOperations.TypedTuple<Object>> results = repository.getAllInteractionScores(MEMBER_1);
+        Set<ZSetOperations.TypedTuple<Object>> results = repository.getTopInteractionScores(MEMBER_1, 10);
 
         // Then
         assertThat(results).hasSize(2);
 
-        // 멤버와 점수 확인
-        boolean hasMember2 = results.stream()
-                .anyMatch(t -> Long.valueOf(t.getValue().toString()).equals(MEMBER_2) && t.getScore() == 3.0);
-        boolean hasMember3 = results.stream()
-                .anyMatch(t -> Long.valueOf(t.getValue().toString()).equals(MEMBER_3) && t.getScore() == 1.5);
-
-        assertThat(hasMember2).isTrue();
-        assertThat(hasMember3).isTrue();
+        // 점수 내림차순 확인 (3.0 > 1.5)
+        var resultList = results.stream().toList();
+        assertThat(resultList.get(0).getScore()).isEqualTo(3.0);
+        assertThat(resultList.get(1).getScore()).isEqualTo(1.5);
     }
 
     @Test
-    @DisplayName("getAllInteractionScores - 빈 ZSet 조회 시 빈 Set 반환")
+    @DisplayName("getTopInteractionScores - 빈 ZSet 조회 시 빈 Set 반환")
     void shouldReturnEmptySetWhenNoInteractions() {
         // When
-        Set<ZSetOperations.TypedTuple<Object>> results = repository.getAllInteractionScores(9999L);
+        Set<ZSetOperations.TypedTuple<Object>> results = repository.getTopInteractionScores(9999L, 10);
 
         // Then
         assertThat(results).isNotNull().isEmpty();
+    }
+
+    @Test
+    @DisplayName("getTopInteractionScores - limit보다 데이터가 많으면 상위 limit개만 반환")
+    void shouldReturnOnlyLimitedResults() {
+        // Given - 5개 데이터 시딩
+        String key = INTERACTION_PREFIX + MEMBER_1;
+        redisTemplate.opsForZSet().add(key, 100L, 5.0);
+        redisTemplate.opsForZSet().add(key, 101L, 4.0);
+        redisTemplate.opsForZSet().add(key, 102L, 3.0);
+        redisTemplate.opsForZSet().add(key, 103L, 2.0);
+        redisTemplate.opsForZSet().add(key, 104L, 1.0);
+
+        // When - 상위 3개만 조회
+        Set<ZSetOperations.TypedTuple<Object>> results = repository.getTopInteractionScores(MEMBER_1, 3);
+
+        // Then
+        assertThat(results).hasSize(3);
+
+        var resultList = results.stream().toList();
+        assertThat(resultList.get(0).getScore()).isEqualTo(5.0);
+        assertThat(resultList.get(1).getScore()).isEqualTo(4.0);
+        assertThat(resultList.get(2).getScore()).isEqualTo(3.0);
     }
 
     @Test

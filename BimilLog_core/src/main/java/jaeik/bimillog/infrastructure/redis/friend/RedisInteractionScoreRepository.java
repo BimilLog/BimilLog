@@ -7,6 +7,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
@@ -97,15 +98,16 @@ public class RedisInteractionScoreRepository {
     }
 
     /**
-     * 회원의 모든 상호작용 점수 조회 (1촌이 없을 때 사용)
+     * 회원의 상호작용 점수 상위 N개 조회 (점수 내림차순)
      *
      * @param memberId 기준 회원 ID
+     * @param limit    조회할 개수
      * @return Set of (targetId, score) tuples
      */
-    public Set<ZSetOperations.TypedTuple<Object>> getAllInteractionScores(Long memberId) {
+    public Set<TypedTuple<Object>> getTopInteractionScores(Long memberId, int limit) {
         String key = INTERACTION_PREFIX + memberId;
         try {
-            Set<ZSetOperations.TypedTuple<Object>> result = redisTemplate.opsForZSet().rangeWithScores(key, 0, -1);
+            Set<TypedTuple<Object>> result = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, limit - 1);
             return result != null ? result : Collections.emptySet();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_QUERY_ERROR, e);

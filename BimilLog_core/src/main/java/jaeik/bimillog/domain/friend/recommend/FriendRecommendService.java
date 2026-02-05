@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -199,7 +200,7 @@ public class FriendRecommendService {
                     }
 
                     // 등록되지 않았으면 새로운 상세 정보 생성
-                    candidate = RecommendCandidate.initialCandidate(targetId, depth, parentScore);
+                    candidate = RecommendCandidate.initialCandidate(targetId, depth, parentScore, 0);
                     candidateMap.put(targetId, candidate);
                 }
 
@@ -252,24 +253,22 @@ public class FriendRecommendService {
 
     /**
      * <h3>상호작용 점수 기반으로 부족한 인원을 보충합니다.</h3>
-     * <p>Redis ZSet에서 상호작용 점수가 있는 회원을 조회하여 후보자로 추가합니다.</p>
+     * <p>Redis ZSet에서 상호작용 점수 상위 N명을 조회하여 후보자로 추가합니다.</p>
      *
      * @param memberId   현재 회원 ID
      * @param candidates 추천 후보자 목록 (수정됨)
      * @param excludeIds 제외할 ID 집합 (수정됨)
      */
     private void fillFromInteractionScores(Long memberId, List<RecommendCandidate> candidates, Set<Long> excludeIds) {
-        var allInteractions = redisInteractionScoreRepository.getAllInteractionScores(memberId);
+        Set<TypedTuple<Object>> topInteractions = redisInteractionScoreRepository.getTopInteractionScores(memberId, RECOMMEND_LIMIT);
 
-        for (var tuple : allInteractions) {
-            if (candidates.size() >= RECOMMEND_LIMIT) break;
+        for (TypedTuple<Object> tuple : topInteractions) {
+            if (candidates.size() >= RECOMMEND_LIMIT) {
+                break;
+            }
             Long id = Long.valueOf(tuple.getValue().toString());
             if (!excludeIds.contains(id)) {
-                candidates.add(RecommendCandidate.builder()
-                        .memberId(id)
-                        .interactionScore(tuple.getScore())
-                        .depth(0)
-                        .build());
+                candidates.add(RecommendCandidate.initialCandidate(id, 0, 0, tuple.getScore()));
                 excludeIds.add(id);
             }
         }
@@ -283,12 +282,9 @@ public class FriendRecommendService {
      * @param excludeIds 제외할 ID 집합
      */
     private void fillFromRecentMembers(List<RecommendCandidate> candidates, Set<Long> excludeIds) {
-        List<Long> newMembers = memberRepository.findIdByIdNotInOrderByCreatedAtDesc(
-                excludeIds,
-                PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
-        );
-        for (Long id : newMembers) {
-            candidates.add(RecommendCandidate.initialCandidate(id, 0, 0));
+        List<Long> needMemberIds = memberRepository.getNeedMemberIds(excludeIds);
+        for (Long id : needMemberIds) {
+            candidates.add(RecommendCandidate.initialCandidate(id, 0, 0, 0));
         }
     }
 
@@ -350,7 +346,7 @@ public class FriendRecommendService {
 
                 RecommendCandidate candidate = candidateMap.get(targetId);
                 if (candidate == null) {
-                    candidate = RecommendCandidate.initialCandidate(targetId, 2, 0);
+                    candidate = RecommendCandidate.initialCandidate(targetId, 2, 0, 0);
                     candidateMap.put(targetId, candidate);
                 }
                 candidate.addCommonFriendAndScore(friendId);
@@ -373,7 +369,7 @@ public class FriendRecommendService {
 
                     if (existing == null) {
                         double parentScore = candidateMap.get(secondDegreeId).getCommonScore();
-                        RecommendCandidate candidate = RecommendCandidate.initialCandidate(targetId, 3, parentScore);
+                        RecommendCandidate candidate = RecommendCandidate.initialCandidate(targetId, 3, parentScore, 0);
                         candidateMap.put(targetId, candidate);
                     } else {
                         if (existing.getDepth() == 2) continue;
@@ -405,12 +401,9 @@ public class FriendRecommendService {
             }
 
             // 최근 가입자로 보충
-            List<Long> newMembers = memberRepository.findIdByIdNotInOrderByCreatedAtDesc(
-                    excludeIds,
-                    PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
-            );
+            List<Long> newMembers = memberRepository.getNeedMemberIds(excludeIds);
             for (Long id : newMembers) {
-                candidates.add(RecommendCandidate.initialCandidate(id, 0, 0));
+                candidates.add(RecommendCandidate.initialCandidate(id, 0, 0, 0));
             }
         }
 

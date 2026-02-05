@@ -42,16 +42,13 @@ public class RecommendCandidate {
     private int depth;
 
     // 공통친구 ID 집합 (나와 후보자가 공통으로 아는 친구, 2촌용)
-    @Builder.Default
-    private Set<Long> commonFriends = new HashSet<>();
+    private Set<Long> commonFriends;
 
     // 공통 점수 (2촌: +2, 3촌 첫 생성: 부모×0.25, 3촌 추가: +0.5)
-    @Builder.Default
-    private double commonScore = 0.0;
+    private double commonScore;
 
     // 상호작용 점수 (롤링페이퍼, 좋아요 등 과거 활동 기반)
-    @Builder.Default
-    private double interactionScore = 0.0;
+    private double interactionScore;
 
     // 화면 표시용: 함께 아는 친구(대표 1명) ID
     private Long acquaintanceId;
@@ -59,10 +56,11 @@ public class RecommendCandidate {
     // 화면 표시용: 함께 아는 친구가 2명 이상인지 여부
     private boolean manyAcquaintance;
 
-    public static RecommendCandidate initialCandidate (Long memberId, int depth, double parentScore) {
+    public static RecommendCandidate initialCandidate(Long memberId, int depth, double parentScore, double interactionScore) {
         RecommendCandidate recommendCandidate = RecommendCandidate.builder()
                 .memberId(memberId)
                 .depth(depth)
+                .interactionScore(interactionScore)
                 .commonFriends(new HashSet<>())
                 .build();
 
