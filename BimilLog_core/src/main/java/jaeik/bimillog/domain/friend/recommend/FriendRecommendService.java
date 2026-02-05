@@ -90,10 +90,17 @@ public class FriendRecommendService {
                 candidates = new ArrayList<>(candidateMap.values());
             }
 
-            // 4. 부족한 인원 보충 (상호작용 기반 + 최근 가입자)
-            // 후보자가 없는 경우도 여기서 처리됨
+            // 4. 부족한 인원 보충
             if (candidates.size() < RECOMMEND_LIMIT) {
-                fillCandidates(memberId, myFriends, candidates);
+                Set<Long> excludeIds = buildExcludeIds(memberId, myFriends, candidates);
+
+                // 4-1. 상호작용 점수 기반
+                fillFromInteractionScores(memberId, candidates, excludeIds);
+
+                // 4-2. 최근 가입자
+                if (candidates.size() < RECOMMEND_LIMIT) {
+                    fillFromRecentMembers(candidates, excludeIds);
+                }
             }
 
             // 5. 블랙리스트 필터링
@@ -106,7 +113,7 @@ public class FriendRecommendService {
                     .limit(RECOMMEND_LIMIT)
                     .toList();
 
-            // 7. 회원 정보 조회 및 응답 DTO 변환
+            // 8. 회원 정보 조회 및 응답 DTO 변환
             return toResponsePage(topCandidates, pageable);
         } catch (CustomException e) {
             ErrorCode code = e.getErrorCode();
@@ -226,50 +233,62 @@ public class FriendRecommendService {
     }
 
     /**
-     * <h3>부족한 추천 인원을 보충합니다.</h3>
-     * <p>
-     * 추천 후보가 {@link #RECOMMEND_LIMIT} 미만인 경우 다음 순서로 보충합니다:
-     * <ol>
-     *   <li>상호작용 점수가 있는 회원 추가</li>
-     *   <li>최근 가입자 추가</li>
-     * </ol>
-     * </p>
+     * <h3>제외할 ID 집합을 생성합니다.</h3>
+     * <p>자기 자신, 1촌 친구, 이미 등록된 후보자를 제외 대상으로 설정합니다.</p>
      *
      * @param memberId   현재 회원 ID
-     * @param myFriends  내 친구(1촌) ID 집합 (제외 대상)
-     * @param candidates 추천 후보자 목록 (수정됨)
+     * @param myFriends  내 친구(1촌) ID 집합
+     * @param candidates 현재까지의 추천 후보자 목록
+     * @return 제외할 ID 집합
      */
-    private void fillCandidates(Long memberId, Set<Long> myFriends, List<RecommendCandidate> candidates) {
+    private Set<Long> buildExcludeIds(Long memberId, Set<Long> myFriends, List<RecommendCandidate> candidates) {
         Set<Long> excludeIds = new HashSet<>(myFriends);
-
-        // 제외 ID: 자기자신, 이미 등록된 후보자
         excludeIds.add(memberId);
         for (RecommendCandidate c : candidates) {
             excludeIds.add(c.getMemberId());
         }
+        return excludeIds;
+    }
 
-        // 상호작용 점수 전체 조회 (ZSet)
+    /**
+     * <h3>상호작용 점수 기반으로 부족한 인원을 보충합니다.</h3>
+     * <p>Redis ZSet에서 상호작용 점수가 있는 회원을 조회하여 후보자로 추가합니다.</p>
+     *
+     * @param memberId   현재 회원 ID
+     * @param candidates 추천 후보자 목록 (수정됨)
+     * @param excludeIds 제외할 ID 집합 (수정됨)
+     */
+    private void fillFromInteractionScores(Long memberId, List<RecommendCandidate> candidates, Set<Long> excludeIds) {
         var allInteractions = redisInteractionScoreRepository.getAllInteractionScores(memberId);
 
-        // 1. 상호작용 점수 기반 추가
         for (var tuple : allInteractions) {
             if (candidates.size() >= RECOMMEND_LIMIT) break;
             Long id = Long.valueOf(tuple.getValue().toString());
             if (!excludeIds.contains(id)) {
-                candidates.add(RecommendCandidate.builder().memberId(id).interactionScore(tuple.getScore()).depth(0).build());
+                candidates.add(RecommendCandidate.builder()
+                        .memberId(id)
+                        .interactionScore(tuple.getScore())
+                        .depth(0)
+                        .build());
                 excludeIds.add(id);
             }
         }
+    }
 
-        // 2. 그래도 부족하면 최근 가입자 추가
-        if (candidates.size() < RECOMMEND_LIMIT) {
-            List<Long> newMembers = memberRepository.findIdByIdNotInOrderByCreatedAtDesc(
-                    excludeIds,
-                    PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
-            );
-            for (Long id : newMembers) {
-                candidates.add(RecommendCandidate.initialCandidate(id, 0, 0));
-            }
+    /**
+     * <h3>최근 가입자로 부족한 인원을 보충합니다.</h3>
+     * <p>상호작용 점수 기반 보충 후에도 인원이 부족하면 최근 가입자를 추가합니다.</p>
+     *
+     * @param candidates 추천 후보자 목록 (수정됨)
+     * @param excludeIds 제외할 ID 집합
+     */
+    private void fillFromRecentMembers(List<RecommendCandidate> candidates, Set<Long> excludeIds) {
+        List<Long> newMembers = memberRepository.findIdByIdNotInOrderByCreatedAtDesc(
+                excludeIds,
+                PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
+        );
+        for (Long id : newMembers) {
+            candidates.add(RecommendCandidate.initialCandidate(id, 0, 0));
         }
     }
 
