@@ -162,18 +162,83 @@ public class FriendRecommendService {
     }
 
     /**
-     * Redis 파이프라인 결과를 변환합니다.
+     * <h3>Redis 실패 시 DB 기반으로 친구 추천 목록을 조회합니다.</h3>
+     * <p>
+     * Redis 경로와 동일한 BFS 알고리즘을 DB에서 수행하되,
+     * 상호작용 점수 계산은 제외합니다.
+     * </p>
+     *
+     * @param memberId 추천을 요청한 회원 ID
+     * @param pageable 페이지네이션 정보
+     * @return 추천 친구 목록 (페이지)
      */
-    @SuppressWarnings("unchecked")
-    private List<List<Long>> toListOfLists(List<Object> results) {
-        List<List<Long>> converted = new ArrayList<>();
-        for (Object result : results) {
-            if (result instanceof List<?>) {
-                converted.add((List<Long>) result);
-            }
+    private Page<RecommendedFriend> getRecommendFromDb(Long memberId, Pageable pageable) {
+        // 1. DB로 1촌 조회
+        Set<Long> myFriends = friendshipQueryRepository.getMyFriendIdsSet(memberId, FIRST_FRIEND_SCAN_LIMIT);
+
+        // 2. DB로 2촌/3촌 탐색
+        List<RecommendCandidate> candidates = findAndScoreCandidatesFromDb(memberId, myFriends);
+
+        // 3. 상호작용 점수 주입 생략
+
+        // 4. 부족한 인원 보충 - 최근 가입자 (상호작용 제외)
+        if (candidates.size() < RECOMMEND_LIMIT) {
+            Set<Long> excludeIds = buildExcludeIds(memberId, myFriends, candidates);
+            fillFromRecentMembers(candidates, excludeIds);
         }
-        return converted;
+
+        // 5. 블랙리스트 필터링
+        Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
+        candidates.removeIf(c -> blacklist.contains(c.getMemberId()));
+
+        // 6. 최종 정렬 및 상위 N명 추출
+        List<RecommendCandidate> topCandidates = candidates.stream()
+                .sorted(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed())
+                .limit(RECOMMEND_LIMIT)
+                .toList();
+
+        // 7. 응답 변환
+        return toResponsePage(topCandidates, pageable);
     }
+
+    /**
+     * <h3>DB 기반으로 2촌, 3촌 후보자를 탐색하고 점수를 계산합니다.</h3>
+     * <p>
+     * {@link #findAndScoreCandidates}와 동일한 BFS 로직이지만
+     * Redis 대신 {@link FriendshipQueryRepository#getFriendIdsBatch}를 사용합니다.
+     * </p>
+     *
+     * @param memberId  현재 회원 ID
+     * @param myFriends 내 친구(1촌) ID 집합
+     * @return 추천 후보자 목록 (점수 계산 완료)
+     */
+    private List<RecommendCandidate> findAndScoreCandidatesFromDb(Long memberId, Set<Long> myFriends) {
+        Map<Long, RecommendCandidate> candidateMap = new HashMap<>();
+
+        // [1촌이 없는 경우] -> 바로 최근 가입자 추천으로 점프하기 위해 빈 List 반환
+        if (myFriends.isEmpty()) return new ArrayList<>();
+
+        // A. 2촌 탐색
+        List<Long> myFriendList = new ArrayList<>(myFriends);
+
+        // DB에서 2촌 결과 가져옴
+        List<List<Long>> secondResults = friendshipQueryRepository.getFriendIdsBatch(myFriendList);
+        processDegreeSearch(myFriendList, secondResults, 2, memberId, myFriends, candidateMap);
+
+        // B. 3촌 탐색 (2촌이 10명 이하일 때)
+        if (candidateMap.size() < RECOMMEND_LIMIT) {
+            // 2촌의 ID들
+            List<Long> secondDegreeList = new ArrayList<>(candidateMap.keySet());
+
+            // 2촌의 ID로 3촌 친구들을 불러옴
+            List<List<Long>> thirdResults = friendshipQueryRepository.getFriendIdsBatch(secondDegreeList);
+            processDegreeSearch(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
+        }
+
+        return new ArrayList<>(candidateMap.values());
+    }
+
+
 
     /**
      * 2촌/3촌 탐색 공통 처리
@@ -296,82 +361,18 @@ public class FriendRecommendService {
     }
 
     /**
-     * <h3>Redis 실패 시 DB 기반으로 친구 추천 목록을 조회합니다.</h3>
-     * <p>
-     * Redis 경로와 동일한 BFS 알고리즘을 DB에서 수행하되,
-     * 상호작용 점수 계산은 제외합니다.
-     * </p>
-     *
-     * @param memberId 추천을 요청한 회원 ID
-     * @param pageable 페이지네이션 정보
-     * @return 추천 친구 목록 (페이지)
+     * Redis 파이프라인 결과를 변환합니다.
      */
-    private Page<RecommendedFriend> getRecommendFromDb(Long memberId, Pageable pageable) {
-        // 1. DB로 1촌 조회
-        Set<Long> myFriends = friendshipQueryRepository.getMyFriendIdsSet(memberId, FIRST_FRIEND_SCAN_LIMIT);
-
-        // 2. DB로 2촌/3촌 탐색
-        List<RecommendCandidate> candidates = findAndScoreCandidatesFromDb(memberId, myFriends);
-
-        // 3. 상호작용 점수 주입 생략
-
-        // 4. 부족한 인원 보충 - 최근 가입자 (상호작용 제외)
-        if (candidates.size() < RECOMMEND_LIMIT) {
-            Set<Long> excludeIds = buildExcludeIds(memberId, myFriends, candidates);
-            fillFromRecentMembers(candidates, excludeIds);
+    @SuppressWarnings("unchecked")
+    private List<List<Long>> toListOfLists(List<Object> results) {
+        List<List<Long>> converted = new ArrayList<>();
+        for (Object result : results) {
+            if (result instanceof List<?>) {
+                converted.add((List<Long>) result);
+            }
         }
-
-        // 5. 블랙리스트 필터링
-        Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
-        candidates.removeIf(c -> blacklist.contains(c.getMemberId()));
-
-        // 6. 최종 정렬 및 상위 N명 추출
-        List<RecommendCandidate> topCandidates = candidates.stream()
-                .sorted(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed())
-                .limit(RECOMMEND_LIMIT)
-                .toList();
-
-        // 7. 응답 변환
-        return toResponsePage(topCandidates, pageable);
+        return converted;
     }
-
-    /**
-     * <h3>DB 기반으로 2촌, 3촌 후보자를 탐색하고 점수를 계산합니다.</h3>
-     * <p>
-     * {@link #findAndScoreCandidates}와 동일한 BFS 로직이지만
-     * Redis 대신 {@link FriendshipQueryRepository#getFriendIdsBatch}를 사용합니다.
-     * </p>
-     *
-     * @param memberId  현재 회원 ID
-     * @param myFriends 내 친구(1촌) ID 집합
-     * @return 추천 후보자 목록 (점수 계산 완료)
-     */
-    private List<RecommendCandidate> findAndScoreCandidatesFromDb(Long memberId, Set<Long> myFriends) {
-        Map<Long, RecommendCandidate> candidateMap = new HashMap<>();
-
-        // [1촌이 없는 경우] -> 바로 최근 가입자 추천으로 점프하기 위해 빈 List 반환
-        if (myFriends.isEmpty()) return new ArrayList<>();
-
-        // A. 2촌 탐색
-        List<Long> myFriendList = new ArrayList<>(myFriends);
-
-        // DB에서 2촌 결과 가져옴
-        List<List<Long>> secondResults = friendshipQueryRepository.getFriendIdsBatch(myFriendList);
-        processDegreeSearch(myFriendList, secondResults, 2, memberId, myFriends, candidateMap);
-
-        // B. 3촌 탐색 (2촌이 10명 이하일 때)
-        if (candidateMap.size() < RECOMMEND_LIMIT) {
-            // 2촌의 ID들
-            List<Long> secondDegreeList = new ArrayList<>(candidateMap.keySet());
-
-            // 2촌의 ID로 3촌 친구들을 불러옴
-            List<List<Long>> thirdResults = friendshipQueryRepository.getFriendIdsBatch(secondDegreeList);
-            processDegreeSearch(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
-        }
-
-        return new ArrayList<>(candidateMap.values());
-    }
-
 
     /**
      * <h3>추천 후보자 목록을 응답 DTO 페이지로 변환합니다.</h3>
