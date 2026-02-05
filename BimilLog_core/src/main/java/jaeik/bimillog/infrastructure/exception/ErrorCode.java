@@ -94,7 +94,8 @@ public enum ErrorCode {
     FRIEND_REDIS_INTERACTION_QUERY_ERROR(HttpStatus.FORBIDDEN, "레디스 상호작용 조회가 실패했습니다.", LogLevel.WARN),
     FRIEND_REDIS_SHIP_WRITE_ERROR(HttpStatus.FORBIDDEN, "레디스 친구 증가가 실패했습니다.", LogLevel.WARN),
     FRIEND_REDIS_SHIP_DELETE_ERROR(HttpStatus.FORBIDDEN, "레디스 친구 삭제가 실패했습니다.", LogLevel.WARN),
-    FRIEND_REDIS_SHIP_QUERY_ERROR(HttpStatus.FORBIDDEN, "레디스 친구 조회가 실패했습니다.", LogLevel.WARN);
+    FRIEND_REDIS_SHIP_QUERY_ERROR(HttpStatus.FORBIDDEN, "레디스 친구 조회가 실패했습니다.", LogLevel.WARN),
+    FRIEND_RECOMMEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "추천 친구 조회가 실패했습니다.", LogLevel.ERROR);
 
     private final HttpStatus status;
     private final String message;
