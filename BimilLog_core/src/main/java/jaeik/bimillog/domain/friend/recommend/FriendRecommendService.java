@@ -79,7 +79,7 @@ public class FriendRecommendService {
             Set<Long> myFriends = redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_SCAN_LIMIT);
 
             // 2. 후보자 탐색 (2촌 -> 3촌 순차 확장) 및 점수 계산
-            Map<Long, RecommendCandidate> candidateMap = findAndScoreCandidates(memberId, myFriends);
+            Map<Long, RecommendCandidate> candidateMap = findAndScoreCandidates(memberId, myFriends, true);
 
             // 후보자가 1명이라도 존재하면
             if (!candidateMap.isEmpty()) {
@@ -135,7 +135,7 @@ public class FriendRecommendService {
      * @param myFriends 내 친구(1촌) ID 집합
      * @return 추천 후보자 Map (ID -> 후보자)
      */
-    private Map<Long, RecommendCandidate> findAndScoreCandidates(Long memberId, Set<Long> myFriends) {
+    private Map<Long, RecommendCandidate> findAndScoreCandidates(Long memberId, Set<Long> myFriends, boolean useRedis) {
         Map<Long, RecommendCandidate> candidateMap = new HashMap<>();
 
         // [1촌이 없는 경우] -> 바로 상호작용 기반 추천으로 점프하기 위해 빈 Map 반환
@@ -144,8 +144,10 @@ public class FriendRecommendService {
         // A. 2촌 탐색 (친구당 랜덤 30명씩)
         List<Long> myFriendList = new ArrayList<>(myFriends);
 
-        // 레디스에서 2촌 결과 가져옴
-        List<List<Long>> secondResults = toListOfLists(redisFriendshipRepository.getFriendsBatch(myFriendList, SECOND_DEGREE_SAMPLE_SIZE));
+        // 2촌 결과 가져옴
+        List<List<Long>> secondResults = useRedis
+                ? toListOfLists(redisFriendshipRepository.getFriendsBatch(myFriendList, SECOND_DEGREE_SAMPLE_SIZE))
+                : friendshipQueryRepository.getFriendIdsBatch(myFriendList);
         processDegreeSearch(myFriendList, secondResults, 2, memberId, myFriends, candidateMap);
 
         // B. 3촌 탐색 (2촌이 10명 이하일 때)
@@ -154,7 +156,9 @@ public class FriendRecommendService {
             List<Long> secondDegreeList = new ArrayList<>(candidateMap.keySet());
 
             // 2촌의 ID로 3촌 친구들을 불러옴
-            List<List<Long>> thirdResults = toListOfLists(redisFriendshipRepository.getFriendsBatch(secondDegreeList, THIRD_DEGREE_SAMPLE_SIZE));
+            List<List<Long>> thirdResults = useRedis
+                    ? toListOfLists(redisFriendshipRepository.getFriendsBatch(secondDegreeList, THIRD_DEGREE_SAMPLE_SIZE))
+                    : friendshipQueryRepository.getFriendIdsBatch(secondDegreeList);
             processDegreeSearch(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
         }
 
@@ -177,7 +181,7 @@ public class FriendRecommendService {
         Set<Long> myFriends = friendshipQueryRepository.getMyFriendIdsSet(memberId, FIRST_FRIEND_SCAN_LIMIT);
 
         // 2. DB로 2촌/3촌 탐색
-        List<RecommendCandidate> candidates = findAndScoreCandidatesFromDb(memberId, myFriends);
+        List<RecommendCandidate> candidates = new ArrayList<>(findAndScoreCandidates(memberId, myFriends, false).values());
 
         // 3. 상호작용 점수 주입 생략
 
@@ -201,42 +205,6 @@ public class FriendRecommendService {
         return toResponsePage(topCandidates, pageable);
     }
 
-    /**
-     * <h3>DB 기반으로 2촌, 3촌 후보자를 탐색하고 점수를 계산합니다.</h3>
-     * <p>
-     * {@link #findAndScoreCandidates}와 동일한 BFS 로직이지만
-     * Redis 대신 {@link FriendshipQueryRepository#getFriendIdsBatch}를 사용합니다.
-     * </p>
-     *
-     * @param memberId  현재 회원 ID
-     * @param myFriends 내 친구(1촌) ID 집합
-     * @return 추천 후보자 목록 (점수 계산 완료)
-     */
-    private List<RecommendCandidate> findAndScoreCandidatesFromDb(Long memberId, Set<Long> myFriends) {
-        Map<Long, RecommendCandidate> candidateMap = new HashMap<>();
-
-        // [1촌이 없는 경우] -> 바로 최근 가입자 추천으로 점프하기 위해 빈 List 반환
-        if (myFriends.isEmpty()) return new ArrayList<>();
-
-        // A. 2촌 탐색
-        List<Long> myFriendList = new ArrayList<>(myFriends);
-
-        // DB에서 2촌 결과 가져옴
-        List<List<Long>> secondResults = friendshipQueryRepository.getFriendIdsBatch(myFriendList);
-        processDegreeSearch(myFriendList, secondResults, 2, memberId, myFriends, candidateMap);
-
-        // B. 3촌 탐색 (2촌이 10명 이하일 때)
-        if (candidateMap.size() < RECOMMEND_LIMIT) {
-            // 2촌의 ID들
-            List<Long> secondDegreeList = new ArrayList<>(candidateMap.keySet());
-
-            // 2촌의 ID로 3촌 친구들을 불러옴
-            List<List<Long>> thirdResults = friendshipQueryRepository.getFriendIdsBatch(secondDegreeList);
-            processDegreeSearch(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
-        }
-
-        return new ArrayList<>(candidateMap.values());
-    }
 
 
 
