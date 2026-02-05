@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -127,24 +128,29 @@ public class FriendRecommendService {
 
         // A. 2촌 탐색 (친구당 랜덤 30명씩)
         List<Long> myFriendList = new ArrayList<>(myFriends);
+
+        // 레디스에서 2촌 결과 가져옴
         List<Object> secondResults = redisFriendshipRepository.getFriendsBatch(myFriendList, SECOND_DEGREE_SAMPLE_SIZE);
 
-        // 여기서 myFriendList는 내 친구 목록 secondResults는 내 친구의 친구들 목록
-        // Map의 Long은 1촌 회원 ID SET<Long>은 2촌 회원 ID들
-        Map<Long, Set<Long>> friendMap = mappingFriend(myFriendList, secondResults);
-        for (Map.Entry<Long, Set<Long>> entry : friendMap.entrySet()) {
-            Long friendId = entry.getKey();
-            Set<Long> friendsSet = entry.getValue();
-            if (friendsSet == null) continue;
-            for (Long targetId : friendsSet) {
-                if (targetId.equals(memberId) || myFriends.contains(targetId)) continue; // 나 자신이거나 이미 친구면 제외
+        for (int i = 0; i < myFriendList.size(); i++) {
+            Long friendId = myFriendList.get(i); // 1촌 친구
+            List<Long> resultList = List.of(); // 1촌의 친구 (2촌)
+            if (secondResults.get(i) instanceof List<?>) {
+                resultList = Collections.singletonList((Long) secondResults.get(i));
+            }
 
-                RecommendCandidate candidate = candidateMap.get(targetId);
-                if (candidate == null) {
-                    candidate = RecommendCandidate.of(targetId, 2);
-                    candidateMap.put(targetId, candidate);
+            for (Long secondFriendId : resultList) {
+                // 중복제거 2촌 친구에 나자신이 있거나 내 친구가 2촌 친구에 있는 경우
+                if (secondFriendId.equals(memberId) || myFriends.contains(secondFriendId)) {
+                    continue;
                 }
-                candidate.addCommonFriend(friendId); // 공통친구(friendId) 추가
+
+                RecommendCandidate candidate = candidateMap.get(secondFriendId);
+                if (candidate == null) {
+                    candidate = RecommendCandidate.of(secondFriendId, 2);
+                    candidateMap.put(secondFriendId, candidate);
+                }
+                candidate.addCommonFriend(friendId);
             }
         }
 
@@ -152,13 +158,13 @@ public class FriendRecommendService {
         if (candidateMap.size() < RECOMMEND_LIMIT) {
             List<Long> secondDegreeList = new ArrayList<>(candidateMap.keySet());
             List<Object> thirdResults = redisFriendshipRepository.getFriendsBatch(secondDegreeList, THIRD_DEGREE_SAMPLE_SIZE);
-            Map<Long, Set<Long>> friendsOfSeconds = mappingFriend(secondDegreeList, thirdResults);
 
-            for (Map.Entry<Long, Set<Long>> entry : friendsOfSeconds.entrySet()) {
-                Long secondDegreeId = entry.getKey();
-                Set<Long> friendsSet = entry.getValue();
-                if (friendsSet == null) continue;
-                for (Long targetId : friendsSet) {
+            for (int i = 0; i < secondDegreeList.size(); i++) {
+                Long secondDegreeId = secondDegreeList.get(i);
+                if (!(thirdResults.get(i) instanceof List<?> resultList)) continue;
+
+                for (Object targetObj : resultList) {
+                    Long targetId = Long.valueOf(targetObj.toString());
                     if (targetId.equals(memberId) || myFriends.contains(targetId) || candidateMap.containsKey(targetId)) continue;
 
                     // 3촌은 '연결고리가 되는 2촌'이 가지고 있는 '나와의 공통친구 수'를 더함
@@ -241,7 +247,7 @@ public class FriendRecommendService {
             if (candidates.size() < RECOMMEND_LIMIT) {
                 List<Long> newMembers = memberRepository.findIdByIdNotInOrderByCreatedAtDesc(
                         excludeIds,
-                        org.springframework.data.domain.PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
+                        PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
                 );
                 for (Long id : newMembers) {
                     candidates.add(RecommendCandidate.of(id, 0));
@@ -366,7 +372,7 @@ public class FriendRecommendService {
             // 최근 가입자로 보충
             List<Long> newMembers = memberRepository.findIdByIdNotInOrderByCreatedAtDesc(
                     excludeIds,
-                    org.springframework.data.domain.PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
+                    PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
             );
             for (Long id : newMembers) {
                 candidates.add(RecommendCandidate.of(id, 0));
@@ -432,30 +438,5 @@ public class FriendRecommendService {
         }
 
         return new PageImpl<>(result, pageable, result.size());
-    }
-
-
-    /**
-     * Redis 파이프라인 결과를 Map으로 변환합니다.
-     *
-     * @param memberIdList 조회한 회원 ID 목록 (순서 유지)
-     * @param results      파이프라인 결과
-     * @return Map<회원ID, 친구ID_Set>
-     */
-    private Map<Long, Set<Long>> mappingFriend(List<Long> memberIdList, List<Object> results) {
-        Map<Long, Set<Long>> resultMap = new HashMap<>();
-
-        for (int i = 0; i < memberIdList.size(); i++) {
-            Long memberId = memberIdList.get(i);
-            Set<Long> friendIds = new HashSet<>();
-
-            if (results.get(i) instanceof List<?> resultList) {
-                for (Object friendId : resultList) {
-                    friendIds.add(Long.valueOf(friendId.toString()));
-                }
-                resultMap.put(memberId, friendIds);
-            }
-        }
-        return resultMap;
     }
 }
