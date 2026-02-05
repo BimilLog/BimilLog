@@ -109,7 +109,6 @@ public class RedisInteractionScoreRepository {
      */
     public List<Object> getInteractionScoresBatch(Long memberId, List<Long> targetIds) {
         String key = INTERACTION_PREFIX + memberId;
-        byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
         List<Object> allResults = new ArrayList<>();
 
         try {
@@ -119,7 +118,7 @@ public class RedisInteractionScoreRepository {
                 List<Object> batchResults = redisTemplate.executePipelined((RedisConnection connection) -> {
                     for (Long targetId : batch) {
                         String field = INTERACTION_SUFFIX + targetId;
-                        connection.hashCommands().hGet(keyBytes, field.getBytes(StandardCharsets.UTF_8));
+                        connection.hashCommands().hGet(key.getBytes(StandardCharsets.UTF_8), field.getBytes(StandardCharsets.UTF_8));
                     }
                     return null;
                 });

@@ -75,24 +75,29 @@ public class FriendRecommendService {
     @Transactional(readOnly = true)
     public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
         try {
+
+            List<RecommendCandidate> topCandidates = List.of();
             // 1. 내 친구(1촌) 조회
             Set<Long> myFriends = redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_SCAN_LIMIT);
 
             // 2. 후보자 탐색 (2촌 -> 3촌 순차 확장) 및 점수 계산
             Map<Long, RecommendCandidate> candidateMap = findAndScoreCandidates(memberId, myFriends);
 
-            // 3. 상호작용 점수 주입
+            // 후보자가 1명이라도 존재하면
             if (!candidateMap.isEmpty()) {
+                // 3. 상호작용 점수 주입
                 injectInteractionScores(memberId, candidateMap);
+
+                // 4. 점수순 정렬 및 상위 N명 추출
+                topCandidates = candidateMap.values().stream()
+                        .sorted(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed()).limit(RECOMMEND_LIMIT).toList();
             }
 
-            // 4. 점수순 정렬 및 상위 N명 추출
-            List<RecommendCandidate> candidates = new ArrayList<>(candidateMap.values());
-            candidates.sort(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed());
-            List<RecommendCandidate> topCandidates = new ArrayList<>(candidates.subList(0, Math.min(candidates.size(), RECOMMEND_LIMIT)));
-
-            // 5. 부족한 인원 보충 (최근 가입자) 및 블랙리스트 필터링
-            fillAndFilter(memberId, myFriends, topCandidates);
+            // 10명보다 부족하면 후보자가 없는 경우는 초기값을 가지기 때문에 상호작용과 정렬을 건너뛰고 자연스럽게 여기도달
+            if (topCandidates.size() < RECOMMEND_LIMIT) {
+                // 5. 부족한 인원 보충 (최근 가입자) 및 블랙리스트 필터링
+                fillAndFilter(memberId, myFriends, topCandidates);
+            }
 
             // 6. 회원 정보 조회 및 응답 DTO 변환
             return toResponsePage(topCandidates, pageable);
@@ -230,38 +235,37 @@ public class FriendRecommendService {
      */
     private void fillAndFilter(Long memberId, Set<Long> myFriends, List<RecommendCandidate> candidates) {
         // 부족하면 최근 가입자 or 상호작용 점수 높은 사람으로 채우기
-        if (candidates.size() < RECOMMEND_LIMIT) {
-            Set<Long> excludeIds = new HashSet<>(myFriends);
-            excludeIds.add(memberId);
-            for (RecommendCandidate c : candidates) {
-                excludeIds.add(c.getMemberId());
-            }
+        Set<Long> excludeIds = new HashSet<>(myFriends);
+        excludeIds.add(memberId);
+        for (RecommendCandidate c : candidates) {
+            excludeIds.add(c.getMemberId());
+        }
 
-            // 상호작용 점수 전체 조회 (Fallback)
-            Map<Long, Double> allInteractions = redisInteractionScoreRepository.getAllInteractionScores(memberId);
+        // 상호작용 점수 전체 조회
+        Map<Long, Double> allInteractions = redisInteractionScoreRepository.getAllInteractionScores(memberId);
 
-            // 1. 상호작용 점수 기반 추가
-            for (Map.Entry<Long, Double> entry : allInteractions.entrySet()) {
-                if (candidates.size() >= RECOMMEND_LIMIT) break;
-                Long id = entry.getKey();
-                Double score = entry.getValue();
-                if (!excludeIds.contains(id)) {
-                    candidates.add(RecommendCandidate.builder().memberId(id).interactionScore(score).depth(0).build());
-                    excludeIds.add(id);
-                }
-            }
-
-            // 2. 그래도 부족하면 최근 가입자 추가
-            if (candidates.size() < RECOMMEND_LIMIT) {
-                List<Long> newMembers = memberRepository.findIdByIdNotInOrderByCreatedAtDesc(
-                        excludeIds,
-                        PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
-                );
-                for (Long id : newMembers) {
-                    candidates.add(RecommendCandidate.initialCandidate(id, 0, 0));
-                }
+        // 1. 상호작용 점수 기반 추가
+        for (Map.Entry<Long, Double> entry : allInteractions.entrySet()) {
+            if (candidates.size() >= RECOMMEND_LIMIT) break;
+            Long id = entry.getKey();
+            Double score = entry.getValue();
+            if (!excludeIds.contains(id)) {
+                candidates.add(RecommendCandidate.builder().memberId(id).interactionScore(score).depth(0).build());
+                excludeIds.add(id);
             }
         }
+
+        // 2. 그래도 부족하면 최근 가입자 추가
+        if (candidates.size() < RECOMMEND_LIMIT) {
+            List<Long> newMembers = memberRepository.findIdByIdNotInOrderByCreatedAtDesc(
+                    excludeIds,
+                    PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
+            );
+            for (Long id : newMembers) {
+                candidates.add(RecommendCandidate.initialCandidate(id, 0, 0));
+            }
+        }
+
 
         // 블랙리스트 제거 (마지막에 처리)
         Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
