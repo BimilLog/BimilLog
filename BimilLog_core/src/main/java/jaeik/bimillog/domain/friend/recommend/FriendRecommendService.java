@@ -94,7 +94,7 @@ public class FriendRecommendService {
                         .limit(RECOMMEND_LIMIT).toList());
             }
 
-            // 10명보다 부족하면 후보자가 없는 경우는 초기값을 가지기 때문에 상호작용과 정렬을 건너뛰고 자연스럽게 여기도달
+            // 10명보다 부족하면 후보자가 없는 경우는 초기값을 가지기 때문에 상호작용과 정렬을 건너뛰고 자연스럽게 여기 도달
             if (topCandidates.size() < RECOMMEND_LIMIT) {
                 // 5. 부족한 인원 보충 (최근 가입자) 및 블랙리스트 필터링
                 fillAndFilter(memberId, myFriends, topCandidates);
@@ -242,6 +242,8 @@ public class FriendRecommendService {
         for (RecommendCandidate c : candidates) {
             excludeIds.add(c.getMemberId());
         }
+
+        int needCount = RECOMMEND_LIMIT - excludeIds.size();
 
         // 상호작용 점수 전체 조회 (ZSet)
         var allInteractions = redisInteractionScoreRepository.getAllInteractionScores(memberId);
