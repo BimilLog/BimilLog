@@ -77,20 +77,28 @@ public class RecommendCandidate {
      * @param friendId 공통 친구 회원 ID
      */
     public void addCommonFriend(Long friendId) {
-        this.commonFriends.add(friendId);
-        if (this.acquaintanceId == null) this.acquaintanceId = friendId; // 첫 친구를 대표로
-        if (this.commonFriends.size() >= 2) this.manyAcquaintance = true;
+        commonFriends.add(friendId);
+
+        // 첫 친구라면 첫 친구를 대표로
+        if (acquaintanceId == null) {
+            acquaintanceId = friendId; // 첫 친구를 대표로
+        }
+
+        // 친구가 두명이상이라면 많은 공통친구 표시 화면에 누구누구외 몇명의 공통친구라고 표시 위함
+        if (commonFriends.size() >= 2) {
+            this.manyAcquaintance = true;
+        }
     }
 
     /**
-     * <h3>가상 점수를 추가합니다 (3촌 전용).</h3>
+     * <h3>3촌 점수 추가.</h3>
      * <p>
      * 연결 고리가 되는 2촌의 공통친구 수에 0.5 가중치를 적용하여 가산합니다.
      * </p>
      *
      * @param score 연결 고리 2촌의 공통친구 수
      */
-    public void addVirtualScore(int score) {
+    public void addThreeDegreeScore(int score) {
         this.mutualThreeDegreeScore += (score * 0.5);
     }
 

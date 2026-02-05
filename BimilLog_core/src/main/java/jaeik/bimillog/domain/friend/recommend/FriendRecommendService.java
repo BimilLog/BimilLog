@@ -134,47 +134,65 @@ public class FriendRecommendService {
 
         for (int i = 0; i < myFriendList.size(); i++) {
             Long friendId = myFriendList.get(i); // 1촌 친구
-            List<Long> resultList = List.of(); // 1촌의 친구 (2촌)
+            List<Long> secondResultList = List.of(); // 1촌의 친구 (2촌)
             if (secondResults.get(i) instanceof List<?>) {
-                resultList = Collections.singletonList((Long) secondResults.get(i));
+                secondResultList = Collections.singletonList((Long) secondResults.get(i));
             }
 
-            for (Long secondFriendId : resultList) {
+            for (Long secondFriendId : secondResultList) {
                 // 중복제거 2촌 친구에 나자신이 있거나 내 친구가 2촌 친구에 있는 경우
                 if (secondFriendId.equals(memberId) || myFriends.contains(secondFriendId)) {
                     continue;
                 }
 
+                // 2촌ID로 2촌의 상세정보 찾기
                 RecommendCandidate candidate = candidateMap.get(secondFriendId);
+                // 등록되지 않았으면 ID와 2촌깊이 삽입
                 if (candidate == null) {
                     candidate = RecommendCandidate.of(secondFriendId, 2);
                     candidateMap.put(secondFriendId, candidate);
                 }
+                // 이미 등록 되었으면 1촌끼리 같은 2촌을 안다는 뜻 공통친구에 추가
                 candidate.addCommonFriend(friendId);
             }
         }
 
-        // B. 3촌 탐색 (2촌이 부족할 경우에만 수행)
+        // B. 3촌 탐색 2촌이 10명 이하일 때
         if (candidateMap.size() < RECOMMEND_LIMIT) {
+            // 2촌의 ID들
             List<Long> secondDegreeList = new ArrayList<>(candidateMap.keySet());
+
+            // 2촌의 ID로 3촌을 친구들을 불러옴
             List<Object> thirdResults = redisFriendshipRepository.getFriendsBatch(secondDegreeList, THIRD_DEGREE_SAMPLE_SIZE);
 
             for (int i = 0; i < secondDegreeList.size(); i++) {
-                Long secondDegreeId = secondDegreeList.get(i);
-                if (!(thirdResults.get(i) instanceof List<?> resultList)) continue;
+                Long secondDegreeId = secondDegreeList.get(i); // 2촌 ID
+                List<Long> thirdResultList = List.of(); // 2촌의 친구 (3촌)
+                if (thirdResults.get(i) instanceof List<?>) {
+                    thirdResultList = Collections.singletonList((Long) thirdResults.get(i));
+                }
 
-                for (Object targetObj : resultList) {
-                    Long targetId = Long.valueOf(targetObj.toString());
-                    if (targetId.equals(memberId) || myFriends.contains(targetId) || candidateMap.containsKey(targetId)) continue;
-
-                    // 3촌은 '연결고리가 되는 2촌'이 가지고 있는 '나와의 공통친구 수'를 더함
-                    int bridgeScore = candidateMap.get(secondDegreeId).getCommonFriends().size();
-                    RecommendCandidate candidate = candidateMap.get(targetId);
-                    if (candidate == null) {
-                        candidate = RecommendCandidate.of(targetId, 3);
-                        candidateMap.put(targetId, candidate);
+                for (Long thirdFriendId : thirdResultList) {
+                    // 중복제거 3촌친구가 나이거나 1촌친구에 3촌이 있거나 2촌친구에 3촌이 있거나
+                    if (thirdFriendId.equals(memberId) || myFriends.contains(thirdFriendId) || candidateMap.containsKey(thirdFriendId)) {
+                        continue;
                     }
-                    candidate.addVirtualScore(bridgeScore);
+
+                    // 2촌친구의 공통친구 크기
+                    // 여러 1촌들이 2촌을 알고 거기서 2촌의 친구로 나오는 3촌은 2촌의 공통친구 만큼의 점수를 이어받음
+                    int bridgeScore = candidateMap.get(secondDegreeId).getCommonFriends().size();
+
+                    // 3촌친구들로 3촌의 공통친구 찾기
+                    RecommendCandidate candidate = candidateMap.get(thirdFriendId);
+
+                    // 등록되지 않았으면 ID와 3촌깊이 삽입
+                    if (candidate == null) {
+                        candidate = RecommendCandidate.of(thirdFriendId, 3);
+                        candidateMap.put(thirdFriendId, candidate);
+                    }
+
+                    // 이미 등록되었으면 2촌이 이미 3촌을 안다는 뜻
+                    candidate.addThreeDegreeScore(bridgeScore);
                 }
             }
         }
@@ -343,7 +361,7 @@ public class FriendRecommendService {
                         candidate = RecommendCandidate.of(targetId, 3);
                         candidateMap.put(targetId, candidate);
                     }
-                    candidate.addVirtualScore(bridgeScore);
+                    candidate.addThreeDegreeScore(bridgeScore);
                 }
             }
         }
