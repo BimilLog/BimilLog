@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.friend.controller;
 
 import jaeik.bimillog.domain.friend.entity.Friend;
-import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
+import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
 import jaeik.bimillog.domain.friend.recommend.FriendRecommendService;
 import jaeik.bimillog.domain.friend.service.FriendshipQueryService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -42,9 +42,9 @@ public class FriendshipQueryController {
      * 추천친구 조회
      */
     @GetMapping("/recommend")
-    public ResponseEntity<Page<RecommendedFriend>> getRecommendFriendList(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                                          Pageable pageable) {
-        Page<RecommendedFriend> recommendFriendPage = friendRecommendService.getRecommendFriendList(userDetails.getMemberId(), pageable);
+    public ResponseEntity<Page<RecommendedFriendDTO>> getRecommendFriendList(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                                             Pageable pageable) {
+        Page<RecommendedFriendDTO> recommendFriendPage = friendRecommendService.getRecommendFriendList(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(recommendFriendPage);
     }
 }
