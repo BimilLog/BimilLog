@@ -75,8 +75,8 @@ public class FriendRecommendService {
     @Transactional(readOnly = true)
     public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
         try {
+            List<RecommendCandidate> topCandidates = new ArrayList<>();
 
-            List<RecommendCandidate> topCandidates = List.of();
             // 1. 내 친구(1촌) 조회
             Set<Long> myFriends = redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_SCAN_LIMIT);
 
@@ -89,8 +89,9 @@ public class FriendRecommendService {
                 injectInteractionScores(memberId, candidateMap);
 
                 // 4. 점수순 정렬 및 상위 N명 추출
-                topCandidates = candidateMap.values().stream()
-                        .sorted(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed()).limit(RECOMMEND_LIMIT).toList();
+                topCandidates = new ArrayList<>(candidateMap.values().stream()
+                        .sorted(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed())
+                        .limit(RECOMMEND_LIMIT).toList());
             }
 
             // 10명보다 부족하면 후보자가 없는 경우는 초기값을 가지기 때문에 상호작용과 정렬을 건너뛰고 자연스럽게 여기도달
@@ -234,8 +235,9 @@ public class FriendRecommendService {
      * @param candidates 추천 후보자 목록 (수정됨)
      */
     private void fillAndFilter(Long memberId, Set<Long> myFriends, List<RecommendCandidate> candidates) {
-        // 부족하면 최근 가입자 or 상호작용 점수 높은 사람으로 채우기
         Set<Long> excludeIds = new HashSet<>(myFriends);
+
+        // 제외 ID 자기자신 이미 등록된 후보자
         excludeIds.add(memberId);
         for (RecommendCandidate c : candidates) {
             excludeIds.add(c.getMemberId());

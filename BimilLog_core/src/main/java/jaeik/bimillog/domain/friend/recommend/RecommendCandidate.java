@@ -108,7 +108,7 @@ public class RecommendCandidate {
      * @return 총점
      */
     public double calculateTotalScore() {
-        double base = (depth == 2) ? 50 : (depth == 3) ? 20 : 0;
+        double base = 0;
         double interaction = Math.min(interactionScore, 10.0);
 
         return base + commonScore + interaction;
