@@ -248,7 +248,7 @@ public class FriendRecommendPerformanceTest {
         Set<Long> sampleTargets = redisFriendshipRepository.getFriends(sampleMemberId, 200);
         if (!sampleTargets.isEmpty()) {
             assertThat(redisInteractionScoreRepository
-                    .getInteractionScoresBatch(sampleMemberId, sampleTargets)).isNotEmpty();
+                    .getInteractionScoresBatch(sampleMemberId, new ArrayList<>(sampleTargets))).isNotEmpty();
         }
     }
 }

@@ -103,44 +103,34 @@ public class RedisInteractionScoreRepository {
     /**
      * 후보자들의 상호작용 점수만 파이프라인으로 일괄 조회
      *
-     * @param memberId 기준 회원 ID
+     * @param memberId  기준 회원 ID
      * @param targetIds 점수를 조회할 대상(후보자) ID 목록
      * @return Map<대상ID, 점수>
      */
-    public Map<Long, Double> getInteractionScoresBatch(Long memberId, Set<Long> targetIds) {
+    public Map<Long, Double> getInteractionScoresBatch(Long memberId, List<Long> targetIds) {
         String key = INTERACTION_PREFIX + memberId;
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-        List<Long> targetIdList = new ArrayList<>(targetIds);
         Map<Long, Double> resultMap = new HashMap<>();
 
         try {
-            for (int batchStart = 0; batchStart < targetIdList.size(); batchStart += PIPELINE_BATCH_SIZE) {
-                int batchEnd = Math.min(batchStart + PIPELINE_BATCH_SIZE, targetIdList.size());
-                List<Long> batch = targetIdList.subList(batchStart, batchEnd);
+            for (int i = 0; i < targetIds.size(); i += PIPELINE_BATCH_SIZE) {
+                List<Long> batch = targetIds.subList(i, Math.min(i + PIPELINE_BATCH_SIZE, targetIds.size()));
 
                 List<Object> results = redisTemplate.executePipelined((RedisConnection connection) -> {
                     for (Long targetId : batch) {
-                        String member = INTERACTION_SUFFIX + targetId;
-                        connection.hashCommands().hGet(keyBytes, member.getBytes(StandardCharsets.UTF_8));
+                        String field = INTERACTION_SUFFIX + targetId;
+                        connection.hashCommands().hGet(keyBytes, field.getBytes(StandardCharsets.UTF_8));
                     }
                     return null;
                 });
 
-                for (int i = 0; i < batch.size(); i++) {
-                    Object scoreObj = results.get(i);
+                for (int j = 0; j < batch.size(); j++) {
+                    Object scoreObj = results.get(j);
                     if (scoreObj != null) {
-                        String scoreValue;
-                        if (scoreObj instanceof byte[] bytes) {
-                            scoreValue = new String(bytes, StandardCharsets.UTF_8);
-                        } else {
-                            scoreValue = scoreObj.toString();
-                        }
-                        Double score = Double.valueOf(scoreValue);
-                        resultMap.put(batch.get(i), score);
+                        resultMap.put(batch.get(j), Double.parseDouble(scoreObj.toString()));
                     }
                 }
             }
-
             return resultMap;
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_QUERY_ERROR, e);

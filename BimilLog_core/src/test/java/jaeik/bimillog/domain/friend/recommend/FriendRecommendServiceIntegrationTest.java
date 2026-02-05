@@ -166,7 +166,7 @@ class FriendRecommendServiceIntegrationTest {
                 .untilAsserted(() -> {
                     var scores = redisInteractionScoreRepository.getInteractionScoresBatch(
                             member1.getId(),
-                            Set.of(member4.getId(), member5.getId())
+                            List.of(member4.getId(), member5.getId())
                     );
                     assertThat(scores).containsKeys(member4.getId(), member5.getId());
                 });
@@ -343,7 +343,7 @@ class FriendRecommendServiceIntegrationTest {
     @DisplayName("상호작용 점수 조회 검증 - 배치 조회 동작")
     void shouldReturnInteractionScoresInBatch() {
         // Given
-        var targetIds = java.util.Set.of(member4.getId(), member5.getId());
+        var targetIds = java.util.List.of(member4.getId(), member5.getId());
 
         // When
         var scores = redisInteractionScoreRepository.getInteractionScoresBatch(member1.getId(), targetIds);

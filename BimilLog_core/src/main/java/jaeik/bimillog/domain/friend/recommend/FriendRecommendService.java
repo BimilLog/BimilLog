@@ -202,7 +202,7 @@ public class FriendRecommendService {
      * @param candidateMap 추천 후보자 Map (ID -> 후보자)
      */
     private void injectInteractionScores(Long memberId, Map<Long, RecommendCandidate> candidateMap) {
-        Map<Long, Double> scores = redisInteractionScoreRepository.getInteractionScoresBatch(memberId, candidateMap.keySet());
+        Map<Long, Double> scores = redisInteractionScoreRepository.getInteractionScoresBatch(memberId, new ArrayList<>(candidateMap.keySet()));
         for (RecommendCandidate c : candidateMap.values()) {
             c.setInteractionScore(scores.getOrDefault(c.getMemberId(), 0.0));
         }
