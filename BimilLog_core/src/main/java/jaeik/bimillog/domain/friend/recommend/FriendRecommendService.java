@@ -147,14 +147,15 @@ public class FriendRecommendService {
 
                 // 2촌ID로 2촌의 상세정보 찾기
                 RecommendCandidate candidate = candidateMap.get(secondFriendId);
-                // 등록되지 않았으면 ID와 2촌깊이 삽입
+
+                // 등록되지 않았으면 ID와 2촌깊이 삽입 새로운 상세 정보 생성
                 if (candidate == null) {
-                    candidate = RecommendCandidate.of(secondFriendId, 2);
+                    candidate = RecommendCandidate.initialCandidate(secondFriendId, 2, 0);
                     candidateMap.put(secondFriendId, candidate);
                 }
-                // 이미 등록 되었으면 1촌끼리 같은 2촌을 안다는 뜻 공통친구에 추가하고 점수 증가
-                candidate.addCommonFriend(friendId);
-                candidate.addScore(2);
+
+                // 등록이 되어있든 공통친구에 추가하고 점수 증가
+                candidate.addCommonFriendAndScore(friendId);
             }
         }
 
@@ -182,23 +183,20 @@ public class FriendRecommendService {
                     // 3촌친구 불러옴
                     RecommendCandidate existing = candidateMap.get(thirdFriendId);
 
-                    if (existing == null) {
+                    if (existing != null) {
+                        if (existing.getDepth() == 2) {
+                            continue;
+                        }
+                    } else {
                         // 등록되지 않았으면 ID와 3촌깊이 삽입
                         // 여러 1촌들이 2촌을 알고 거기서 2촌의 친구로 나오는 3촌은 2촌의 점수를 4분의 1을 이어받음
-                        RecommendCandidate candidate = RecommendCandidate.of(thirdFriendId, 3);
                         double parentScore = candidateMap.get(secondDegreeId).getCommonScore();
-                        candidate.initThreeDegreeScore(parentScore);
-                        candidateMap.put(thirdFriendId, candidate);
-                        continue;
+                        existing = RecommendCandidate.initialCandidate(thirdFriendId, 3, parentScore);
+                        candidateMap.put(thirdFriendId, existing);
                     }
 
-                    // 만약 3촌이 2촌친구에 등록되어 있다면 건너뛰기
-                    if (existing.getDepth() == 2) {
-                        continue;
-                    }
-
-                    // 이미 등록이 되어있으면 2촌들이 3촌을 안다는 뜻 점수 0.5 상승
-                    existing.addScore(0.5);
+                    // 등록이 되어있든 되어있지않든 점수 증가
+                    existing.addCommonFriendAndScore(null);
                 }
             }
         }
@@ -275,7 +273,7 @@ public class FriendRecommendService {
                         PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
                 );
                 for (Long id : newMembers) {
-                    candidates.add(RecommendCandidate.of(id, 0));
+                    candidates.add(RecommendCandidate.initialCandidate(id, 0, 0));
                 }
             }
         }
@@ -343,11 +341,10 @@ public class FriendRecommendService {
 
                 RecommendCandidate candidate = candidateMap.get(targetId);
                 if (candidate == null) {
-                    candidate = RecommendCandidate.of(targetId, 2);
+                    candidate = RecommendCandidate.initialCandidate(targetId, 2, 0);
                     candidateMap.put(targetId, candidate);
                 }
-                candidate.addCommonFriend(friendId);
-                candidate.addScore(2);
+                candidate.addCommonFriendAndScore(friendId);
             }
         }
 
@@ -366,13 +363,12 @@ public class FriendRecommendService {
                     RecommendCandidate existing = candidateMap.get(targetId);
 
                     if (existing == null) {
-                        RecommendCandidate candidate = RecommendCandidate.of(targetId, 3);
                         double parentScore = candidateMap.get(secondDegreeId).getCommonScore();
-                        candidate.initThreeDegreeScore(parentScore);
+                        RecommendCandidate candidate = RecommendCandidate.initialCandidate(targetId, 3, parentScore);
                         candidateMap.put(targetId, candidate);
                     } else {
                         if (existing.getDepth() == 2) continue;
-                        existing.addScore(0.5);
+                        existing.addCommonFriendAndScore(null);
                     }
                 }
             }
@@ -405,7 +401,7 @@ public class FriendRecommendService {
                     PageRequest.of(0, RECOMMEND_LIMIT - candidates.size())
             );
             for (Long id : newMembers) {
-                candidates.add(RecommendCandidate.of(id, 0));
+                candidates.add(RecommendCandidate.initialCandidate(id, 0, 0));
             }
         }
 

@@ -28,8 +28,8 @@ import java.util.Set;
  *   <li><b>3촌 추가 발견:</b> +0.5</li>
  * </ul>
  *
- * @version 2.6.0
  * @author Jaeik
+ * @version 2.6.0
  */
 @Getter
 @Setter
@@ -59,63 +59,38 @@ public class RecommendCandidate {
     // 화면 표시용: 함께 아는 친구가 2명 이상인지 여부
     private boolean manyAcquaintance;
 
-    /**
-     * 팩토리 메서드: 주어진 회원 ID와 촌수로 추천 후보자를 생성합니다.
-     *
-     * @param memberId 추천 후보자 회원 ID
-     * @param depth    촌수 (2, 3, 또는 0)
-     * @return 새로운 RecommendCandidate 인스턴스
-     */
-    public static RecommendCandidate of(Long memberId, int depth) {
-        return RecommendCandidate.builder()
+    public static RecommendCandidate initialCandidate (Long memberId, int depth, double parentScore) {
+        RecommendCandidate recommendCandidate = RecommendCandidate.builder()
                 .memberId(memberId)
                 .depth(depth)
                 .commonFriends(new HashSet<>())
                 .build();
+
+        if (depth == 3) {
+            recommendCandidate.commonScore = Math.min(parentScore * 0.25, 5);
+        }
+        return recommendCandidate;
     }
 
-    /**
-     * <h3>공통 친구를 추가합니다 (2촌 전용).</h3>
-     * <p>
-     * 첫 번째로 추가되는 친구는 화면 표시용 대표 친구(acquaintanceId)로 설정됩니다.
-     * 공통 친구가 2명 이상이면 manyAcquaintance 플래그가 설정됩니다.
-     * 점수는 +2점 추가됩니다.
-     * </p>
-     *
-     * @param friendId 공통 친구 회원 ID
-     */
-    public void addCommonFriend(Long friendId) {
-        commonFriends.add(friendId);
-        if (acquaintanceId == null) {
-            acquaintanceId = friendId;
-        }
-
-        if (commonFriends.size() >= 2) {
-            this.manyAcquaintance = true;
-        }
-    }
-
-    public void addScore(double score) {
+    public void addCommonFriendAndScore(Long friendId) {
         if (depth == 2) {
+            commonFriends.add(friendId);
+            if (acquaintanceId == null) {
+                acquaintanceId = friendId;
+            }
+
+            if (commonFriends.size() >= 2) {
+                this.manyAcquaintance = true;
+            }
+
             if (commonScore < 20) {
                 commonScore += 2;
             }
-        }
-
-        if (commonScore < 5) {
+        } else if (depth == 3 && commonScore < 5) {
             commonScore += 0.5;
         }
-
     }
 
-    /**
-     * <h3>3촌 점수를 초기화합니다 (첫 생성 시).</h3>
-     *
-     * @param parentScore 부모 2촌의 commonScore
-     */
-    public void initThreeDegreeScore(double parentScore) {
-        this.commonScore = Math.min(parentScore * 0.25, 5);
-    }
 
     /**
      * <h3>총점을 계산합니다.</h3>
