@@ -108,10 +108,6 @@ public class RedisInteractionScoreRepository {
      * @return Map<대상ID, 점수>
      */
     public Map<Long, Double> getInteractionScoresBatch(Long memberId, Set<Long> targetIds) {
-        if (targetIds.isEmpty()) {
-            return new HashMap<>();
-        }
-
         String key = INTERACTION_PREFIX + memberId;
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
         List<Long> targetIdList = new ArrayList<>(targetIds);

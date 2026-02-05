@@ -1,7 +1,6 @@
 package jaeik.bimillog.performance;
 
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
-import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
 import jaeik.bimillog.domain.friend.recommend.FriendRecommendService;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
@@ -9,7 +8,6 @@ import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepositor
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.awaitility.Awaitility;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.*;
@@ -18,14 +16,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.StopWatch;
 
-import java.time.Duration;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -71,15 +69,10 @@ public class FriendRecommendPerformanceTest {
     private EntityManager entityManager;
 
     @Autowired
-    private ApplicationEventPublisher eventPublisher;
-
-    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     private Statistics statistics;
     private static final int TEST_COUNT = 10;
-
-    private static final Duration SEED_TIMEOUT = Duration.ofSeconds(10);
 
     @BeforeAll
     void beforeAll() {
@@ -196,19 +189,35 @@ public class FriendRecommendPerformanceTest {
     }
 
     private void seedFriendships(List<Friendship> friendships) {
-        friendships.forEach(friendship -> eventPublisher.publishEvent(
-                new FriendshipCreatedEvent(friendship.getMember().getId(), friendship.getFriend().getId())
-        ));
+        // 이벤트 발행 대신 Redis에 직접 파이프라인으로 시딩 (큐 오버플로우 방지)
+        redisTemplate.executePipelined((RedisConnection connection) -> {
+            for (Friendship friendship : friendships) {
+                Long memberId = friendship.getMember().getId();
+                Long friendId = friendship.getFriend().getId();
 
+                // friend:{memberId} -> friendId (양방향)
+                String key1 = "friend:" + memberId;
+                String key2 = "friend:" + friendId;
+                connection.setCommands().sAdd(
+                        key1.getBytes(StandardCharsets.UTF_8),
+                        friendId.toString().getBytes(StandardCharsets.UTF_8)
+                );
+                connection.setCommands().sAdd(
+                        key2.getBytes(StandardCharsets.UTF_8),
+                        memberId.toString().getBytes(StandardCharsets.UTF_8)
+                );
+            }
+            return null;
+        });
+
+        // 시딩 검증
         Long sampleMemberId = friendships.getFirst().getMember().getId();
-        Awaitility.await()
-                .atMost(SEED_TIMEOUT)
-                .untilAsserted(() -> assertThat(redisFriendshipRepository.getFriends(sampleMemberId, 200)).isNotEmpty());
+        assertThat(redisFriendshipRepository.getFriends(sampleMemberId, 200)).isNotEmpty();
     }
 
     private void seedInteractionScores(List<Friendship> friendships) {
         // 이벤트 발행 대신 Redis에 직접 파이프라인으로 시딩 (큐 오버플로우 방지)
-        redisTemplate.executePipelined((org.springframework.data.redis.connection.RedisConnection connection) -> {
+        redisTemplate.executePipelined((RedisConnection connection) -> {
             for (Friendship friendship : friendships) {
                 Long memberId = friendship.getMember().getId();
                 Long friendId = friendship.getFriend().getId();
@@ -217,18 +226,18 @@ public class FriendRecommendPerformanceTest {
                 String key1 = "interaction:" + memberId;
                 String field1 = "member:" + friendId;
                 connection.hashCommands().hSet(
-                        key1.getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                        field1.getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                        "1.0".getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                        key1.getBytes(StandardCharsets.UTF_8),
+                        field1.getBytes(StandardCharsets.UTF_8),
+                        "1.0".getBytes(StandardCharsets.UTF_8)
                 );
 
                 // interaction:{friendId} -> member:{memberId} = 1.0 (양방향)
                 String key2 = "interaction:" + friendId;
                 String field2 = "member:" + memberId;
                 connection.hashCommands().hSet(
-                        key2.getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                        field2.getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                        "1.0".getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                        key2.getBytes(StandardCharsets.UTF_8),
+                        field2.getBytes(StandardCharsets.UTF_8),
+                        "1.0".getBytes(StandardCharsets.UTF_8)
                 );
             }
             return null;

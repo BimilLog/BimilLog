@@ -79,12 +79,15 @@ public class FriendRecommendService {
             Set<Long> myFriends = redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_SCAN_LIMIT);
 
             // 2. 후보자 탐색 (2촌 -> 3촌 순차 확장) 및 점수 계산
-            List<RecommendCandidate> candidates = findAndScoreCandidates(memberId, myFriends);
+            Map<Long, RecommendCandidate> candidateMap = findAndScoreCandidates(memberId, myFriends);
 
             // 3. 상호작용 점수 주입
-            injectInteractionScores(memberId, candidates);
+            if (!candidateMap.isEmpty()) {
+                injectInteractionScores(memberId, candidateMap);
+            }
 
             // 4. 점수순 정렬 및 상위 N명 추출
+            List<RecommendCandidate> candidates = new ArrayList<>(candidateMap.values());
             candidates.sort(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed());
             List<RecommendCandidate> topCandidates = new ArrayList<>(candidates.subList(0, Math.min(candidates.size(), RECOMMEND_LIMIT)));
 
@@ -114,13 +117,13 @@ public class FriendRecommendService {
      *
      * @param memberId  현재 회원 ID
      * @param myFriends 내 친구(1촌) ID 집합
-     * @return 추천 후보자 목록 (점수 계산 완료)
+     * @return 추천 후보자 Map (ID -> 후보자)
      */
-    private List<RecommendCandidate> findAndScoreCandidates(Long memberId, Set<Long> myFriends) {
+    private Map<Long, RecommendCandidate> findAndScoreCandidates(Long memberId, Set<Long> myFriends) {
         Map<Long, RecommendCandidate> candidateMap = new HashMap<>();
 
-        // [1촌이 없는 경우] -> 바로 상호작용 기반 추천으로 점프하기 위해 빈 리스트 반환
-        if (myFriends.isEmpty()) return new ArrayList<>();
+        // [1촌이 없는 경우] -> 바로 상호작용 기반 추천으로 점프하기 위해 빈 Map 반환
+        if (myFriends.isEmpty()) return candidateMap;
 
         // A. 2촌 탐색 (친구당 랜덤 30명씩)
         List<Long> myFriendList = new ArrayList<>(myFriends);
@@ -139,8 +142,7 @@ public class FriendRecommendService {
             processDegreeSearch(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
         }
 
-        // 상세정보들을 리스트로 반환
-        return new ArrayList<>(candidateMap.values());
+        return candidateMap;
     }
 
     /**
@@ -196,17 +198,12 @@ public class FriendRecommendService {
      * 과거 활동 이력을 기반으로 산정됩니다.
      * </p>
      *
-     * @param memberId   현재 회원 ID
-     * @param candidates 추천 후보자 목록
+     * @param memberId     현재 회원 ID
+     * @param candidateMap 추천 후보자 Map (ID -> 후보자)
      */
-    private void injectInteractionScores(Long memberId, List<RecommendCandidate> candidates) {
-        if (candidates.isEmpty()) return;
-        Set<Long> candidateIds = new HashSet<>();
-        for (RecommendCandidate c : candidates) {
-            candidateIds.add(c.getMemberId());
-        }
-        Map<Long, Double> scores = redisInteractionScoreRepository.getInteractionScoresBatch(memberId, candidateIds);
-        for (RecommendCandidate c : candidates) {
+    private void injectInteractionScores(Long memberId, Map<Long, RecommendCandidate> candidateMap) {
+        Map<Long, Double> scores = redisInteractionScoreRepository.getInteractionScoresBatch(memberId, candidateMap.keySet());
+        for (RecommendCandidate c : candidateMap.values()) {
             c.setInteractionScore(scores.getOrDefault(c.getMemberId(), 0.0));
         }
     }
