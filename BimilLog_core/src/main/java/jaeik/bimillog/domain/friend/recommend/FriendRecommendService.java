@@ -154,6 +154,7 @@ public class FriendRecommendService {
                 }
                 // 이미 등록 되었으면 1촌끼리 같은 2촌을 안다는 뜻 공통친구에 추가하고 점수 증가
                 candidate.addCommonFriend(friendId);
+                candidate.addScore(2);
             }
         }
 
@@ -197,11 +198,12 @@ public class FriendRecommendService {
                     }
 
                     // 이미 등록이 되어있으면 2촌들이 3촌을 안다는 뜻 점수 0.5 상승
-                    existing.addThreeDegreeScore();
+                    existing.addScore(0.5);
                 }
             }
         }
 
+        // 상세정보들을 리스트로 반환
         return new ArrayList<>(candidateMap.values());
     }
 
@@ -345,6 +347,7 @@ public class FriendRecommendService {
                     candidateMap.put(targetId, candidate);
                 }
                 candidate.addCommonFriend(friendId);
+                candidate.addScore(2);
             }
         }
 
@@ -358,16 +361,19 @@ public class FriendRecommendService {
                 Set<Long> friendsSet = entry.getValue();
                 if (friendsSet == null) continue;
                 for (Long targetId : friendsSet) {
-                    if (targetId.equals(memberId) || myFriends.contains(targetId) || candidateMap.containsKey(targetId))
-                        continue;
+                    if (targetId.equals(memberId) || myFriends.contains(targetId)) continue;
 
-                    int bridgeScore = candidateMap.get(secondDegreeId).getCommonFriends().size();
-                    RecommendCandidate candidate = candidateMap.get(targetId);
-                    if (candidate == null) {
-                        candidate = RecommendCandidate.of(targetId, 3);
+                    RecommendCandidate existing = candidateMap.get(targetId);
+
+                    if (existing == null) {
+                        RecommendCandidate candidate = RecommendCandidate.of(targetId, 3);
+                        double parentScore = candidateMap.get(secondDegreeId).getCommonScore();
+                        candidate.initThreeDegreeScore(parentScore);
                         candidateMap.put(targetId, candidate);
+                    } else {
+                        if (existing.getDepth() == 2) continue;
+                        existing.addScore(0.5);
                     }
-                    candidate.addThreeDegreeScore(bridgeScore);
                 }
             }
         }

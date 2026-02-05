@@ -86,10 +86,6 @@ public class RecommendCandidate {
      */
     public void addCommonFriend(Long friendId) {
         commonFriends.add(friendId);
-        if (commonScore < 20) {
-            commonScore += 2;
-        }
-
         if (acquaintanceId == null) {
             acquaintanceId = friendId;
         }
@@ -99,6 +95,19 @@ public class RecommendCandidate {
         }
     }
 
+    public void addScore(double score) {
+        if (depth == 2) {
+            if (commonScore < 20) {
+                commonScore += 2;
+            }
+        }
+
+        if (commonScore < 5) {
+            commonScore += 0.5;
+        }
+
+    }
+
     /**
      * <h3>3촌 점수를 초기화합니다 (첫 생성 시).</h3>
      *
@@ -106,15 +115,6 @@ public class RecommendCandidate {
      */
     public void initThreeDegreeScore(double parentScore) {
         this.commonScore = Math.min(parentScore * 0.25, 5);
-    }
-
-    /**
-     * <h3>3촌 추가 발견 시 점수를 더합니다.</h3>
-     */
-    public void addThreeDegreeScore() {
-        if (commonScore < 5) {
-            commonScore += 0.5;
-        }
     }
 
     /**
