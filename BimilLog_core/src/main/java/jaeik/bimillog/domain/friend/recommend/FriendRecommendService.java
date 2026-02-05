@@ -243,16 +243,15 @@ public class FriendRecommendService {
             excludeIds.add(c.getMemberId());
         }
 
-        // 상호작용 점수 전체 조회
-        Map<Long, Double> allInteractions = redisInteractionScoreRepository.getAllInteractionScores(memberId);
+        // 상호작용 점수 전체 조회 (ZSet)
+        var allInteractions = redisInteractionScoreRepository.getAllInteractionScores(memberId);
 
         // 1. 상호작용 점수 기반 추가
-        for (Map.Entry<Long, Double> entry : allInteractions.entrySet()) {
+        for (var tuple : allInteractions) {
             if (candidates.size() >= RECOMMEND_LIMIT) break;
-            Long id = entry.getKey();
-            Double score = entry.getValue();
+            Long id = Long.valueOf(tuple.getValue().toString());
             if (!excludeIds.contains(id)) {
-                candidates.add(RecommendCandidate.builder().memberId(id).interactionScore(score).depth(0).build());
+                candidates.add(RecommendCandidate.builder().memberId(id).interactionScore(tuple.getScore()).depth(0).build());
                 excludeIds.add(id);
             }
         }

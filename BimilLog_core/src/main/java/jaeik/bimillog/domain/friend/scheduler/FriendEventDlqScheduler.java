@@ -133,13 +133,17 @@ public class FriendEventDlqScheduler {
 
     private void processScoreUp(RedisConnection connection, FriendEventDlq event) {
         String key1 = INTERACTION_PREFIX + event.getMemberId();
-        String member1 = INTERACTION_SUFFIX + event.getTargetId();
-        String increment = String.valueOf(event.getScore() != null ? event.getScore() : INTERACTION_SCORE_DEFAULT);
+        String key2 = INTERACTION_PREFIX + event.getTargetId();
+        double increment = event.getScore() != null ? event.getScore() : INTERACTION_SCORE_DEFAULT;
 
-        connection.hashCommands().hIncrBy(
+        connection.zSetCommands().zIncrBy(
                 key1.getBytes(StandardCharsets.UTF_8),
-                member1.getBytes(StandardCharsets.UTF_8),
-                (long) (Double.parseDouble(increment) * 10));  // Redis는 정수 연산만 지원하므로 변환
+                increment,
+                event.getTargetId().toString().getBytes(StandardCharsets.UTF_8));
+        connection.zSetCommands().zIncrBy(
+                key2.getBytes(StandardCharsets.UTF_8),
+                increment,
+                event.getMemberId().toString().getBytes(StandardCharsets.UTF_8));
     }
 
     private void processSingleEvent(FriendEventDlq event) {
@@ -159,11 +163,9 @@ public class FriendEventDlqScheduler {
             case SCORE_UP -> {
                 String key1 = INTERACTION_PREFIX + event.getMemberId();
                 String key2 = INTERACTION_PREFIX + event.getTargetId();
-                String member1 = INTERACTION_SUFFIX + event.getTargetId();
-                String member2 = INTERACTION_SUFFIX + event.getMemberId();
                 double score = event.getScore() != null ? event.getScore() : INTERACTION_SCORE_DEFAULT;
-                redisTemplate.opsForHash().increment(key1, member1, score);
-                redisTemplate.opsForHash().increment(key2, member2, score);
+                redisTemplate.opsForZSet().incrementScore(key1, event.getTargetId(), score);
+                redisTemplate.opsForZSet().incrementScore(key2, event.getMemberId(), score);
             }
         }
     }

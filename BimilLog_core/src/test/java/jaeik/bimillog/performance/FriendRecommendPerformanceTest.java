@@ -222,22 +222,20 @@ public class FriendRecommendPerformanceTest {
                 Long memberId = friendship.getMember().getId();
                 Long friendId = friendship.getFriend().getId();
 
-                // interaction:{memberId} -> member:{friendId} = 1.0
+                // interaction:{memberId} -> friendId = 1.0 (ZSet)
                 String key1 = "interaction:" + memberId;
-                String field1 = "member:" + friendId;
-                connection.hashCommands().hSet(
+                connection.zSetCommands().zAdd(
                         key1.getBytes(StandardCharsets.UTF_8),
-                        field1.getBytes(StandardCharsets.UTF_8),
-                        "1.0".getBytes(StandardCharsets.UTF_8)
+                        1.0,
+                        friendId.toString().getBytes(StandardCharsets.UTF_8)
                 );
 
-                // interaction:{friendId} -> member:{memberId} = 1.0 (양방향)
+                // interaction:{friendId} -> memberId = 1.0 (ZSet, 양방향)
                 String key2 = "interaction:" + friendId;
-                String field2 = "member:" + memberId;
-                connection.hashCommands().hSet(
+                connection.zSetCommands().zAdd(
                         key2.getBytes(StandardCharsets.UTF_8),
-                        field2.getBytes(StandardCharsets.UTF_8),
-                        "1.0".getBytes(StandardCharsets.UTF_8)
+                        1.0,
+                        memberId.toString().getBytes(StandardCharsets.UTF_8)
                 );
             }
             return null;

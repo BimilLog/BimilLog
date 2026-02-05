@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
@@ -17,11 +18,12 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.*;
 import static org.springframework.data.redis.core.ScanOptions.scanOptions;
 
 /**
- * <h2>상호작용 점수 Redis 캐시 저장소</h2>
- * <p>Redis를 사용하여 회원 간 상호작용 점수를 캐싱합니다.</p>
+ * <h2>상호작용 점수 Redis 캐시 저장소 (ZSet 기반)</h2>
+ * <p>Redis ZSet을 사용하여 회원 간 상호작용 점수를 캐싱합니다.</p>
+ * <p>Key: interaction:{memberId}, Member: targetId, Score: 점수</p>
  *
  * @author Jaeik
- * @version 2.1.0
+ * @version 2.2.0
  */
 @Repository
 @RequiredArgsConstructor
@@ -31,8 +33,12 @@ public class RedisInteractionScoreRepository {
     private final StringRedisTemplate stringRedisTemplate;
     private final int PIPELINE_BATCH_SIZE = 500;
 
-    // 상호 작용 점수 증가 Lua Script (멱등성 보장)
+    // 상호 작용 점수 증가 Lua Script (멱등성 보장, ZSet 기반)
     public static final RedisScript<Long> INTERACTION_SCORE_ADD_SCRIPT;
+
+    // 상호 작용 점수 지수 감쇠 Lua Script
+    public static final RedisScript<Long> INTERACTION_SCORE_DECAY_SCRIPT;
+
     static {
         String luaScript = """
             local key1 = KEYS[1]
@@ -41,7 +47,7 @@ public class RedisInteractionScoreRepository {
 
             local member1 = tostring(ARGV[1])
             local member2 = tostring(ARGV[2])
-            local increment = ARGV[3]
+            local increment = tonumber(ARGV[3])
             local maxScore = tonumber(ARGV[4])
             local eventId = tostring(ARGV[5])
             local ttl = tonumber(ARGV[6])
@@ -51,15 +57,15 @@ public class RedisInteractionScoreRepository {
                 return 0  -- 이미 처리됨
             end
 
-            -- 점수 증가
-            local current1 = redis.call('HGET', key1, member1)
+            -- 점수 증가 (ZSet)
+            local current1 = redis.call('ZSCORE', key1, member1)
             if not current1 or tonumber(current1) <= maxScore then
-                redis.call('HINCRBYFLOAT', key1, member1, increment)
+                redis.call('ZINCRBY', key1, increment, member1)
             end
 
-            local current2 = redis.call('HGET', key2, member2)
+            local current2 = redis.call('ZSCORE', key2, member2)
             if not current2 or tonumber(current2) <= maxScore then
-                redis.call('HINCRBYFLOAT', key2, member2, increment)
+                redis.call('ZINCRBY', key2, increment, member2)
             end
 
             -- 이벤트 ID를 처리 완료로 저장
@@ -72,29 +78,35 @@ public class RedisInteractionScoreRepository {
         script.setScriptText(luaScript);
         script.setResultType(Long.class);
         INTERACTION_SCORE_ADD_SCRIPT = script;
+
+        // 지수 감쇠 Lua Script: ZSet의 모든 점수에 감쇠율을 곱함
+        String decayLuaScript = """
+            local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES')
+            for i = 1, #members, 2 do
+                local member = members[i]
+                local score = tonumber(members[i + 1])
+                local newScore = score * tonumber(ARGV[1])
+                redis.call('ZADD', KEYS[1], newScore, member)
+            end
+            return redis.call('ZCARD', KEYS[1])
+            """;
+        DefaultRedisScript<Long> decayScript = new DefaultRedisScript<>();
+        decayScript.setScriptText(decayLuaScript);
+        decayScript.setResultType(Long.class);
+        INTERACTION_SCORE_DECAY_SCRIPT = decayScript;
     }
 
     /**
      * 회원의 모든 상호작용 점수 조회 (1촌이 없을 때 사용)
      *
      * @param memberId 기준 회원 ID
-     * @return Map<대상ID, 점수> (점수가 있는 모든 대상)
+     * @return Set of (targetId, score) tuples
      */
-    public Map<Long, Double> getAllInteractionScores(Long memberId) {
+    public Set<ZSetOperations.TypedTuple<Object>> getAllInteractionScores(Long memberId) {
         String key = INTERACTION_PREFIX + memberId;
-        Map<Long, Double> resultMap = new HashMap<>();
-
         try {
-            Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
-            for (Map.Entry<Object, Object> entry : entries.entrySet()) {
-                String field = entry.getKey().toString();
-                if (field.startsWith(INTERACTION_SUFFIX)) {
-                    Long targetId = Long.valueOf(field.substring(INTERACTION_SUFFIX.length()));
-                    String scoreValue = entry.getValue().toString();
-                    resultMap.put(targetId, Double.valueOf(scoreValue));
-                }
-            }
-            return resultMap;
+            Set<ZSetOperations.TypedTuple<Object>> result = redisTemplate.opsForZSet().rangeWithScores(key, 0, -1);
+            return result != null ? result : Collections.emptySet();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_QUERY_ERROR, e);
         }
@@ -117,8 +129,7 @@ public class RedisInteractionScoreRepository {
 
                 List<Object> batchResults = redisTemplate.executePipelined((RedisConnection connection) -> {
                     for (Long targetId : batch) {
-                        String field = INTERACTION_SUFFIX + targetId;
-                        connection.hashCommands().hGet(key.getBytes(StandardCharsets.UTF_8), field.getBytes(StandardCharsets.UTF_8));
+                        connection.zSetCommands().zScore(key.getBytes(StandardCharsets.UTF_8), targetId.toString().getBytes(StandardCharsets.UTF_8));
                     }
                     return null;
                 });
@@ -143,15 +154,13 @@ public class RedisInteractionScoreRepository {
     public boolean addInteractionScore(Long memberId, Long interactionMemberId, String idempotencyKey) {
         String key1 = INTERACTION_PREFIX + memberId;
         String key2 = INTERACTION_PREFIX + interactionMemberId;
-        String member1 = INTERACTION_SUFFIX + interactionMemberId;
-        String member2 = INTERACTION_SUFFIX + memberId;
         String idempotencySetKey = IDEMPOTENCY_PREFIX + memberId;
         try {
             Long result = stringRedisTemplate.execute(
                     INTERACTION_SCORE_ADD_SCRIPT,
                     List.of(key1, key2, idempotencySetKey),
-                    member1,
-                    member2,
+                    interactionMemberId.toString(),
+                    memberId.toString(),
                     String.valueOf(INTERACTION_SCORE_DEFAULT),
                     String.valueOf(INTERACTION_SCORE_LIMIT),
                     idempotencyKey,
@@ -163,34 +172,70 @@ public class RedisInteractionScoreRepository {
         }
     }
 
-    // 상호작용 삭제
-    // 회원탈퇴시 호출 SCAN 패턴 매칭으로 상호작용 값 삭제
+    /**
+     * 회원 탈퇴 시 상호작용 데이터 삭제
+     * <p>SCAN 패턴 매칭으로 모든 상호작용 ZSet에서 탈퇴 회원 제거</p>
+     */
     public void deleteInteractionKeyByWithdraw(Long withdrawMemberId) {
         try {
-            // 1. 탈퇴 회원의 상호작용 테이블 삭제
+            // 1. 탈퇴 회원의 상호작용 ZSet 삭제
             String withdrawKey = INTERACTION_PREFIX + withdrawMemberId;
             redisTemplate.delete(withdrawKey);
 
             // 2. SCAN으로 모든 interaction 키 조회 후, 탈퇴 회원 데이터 제거
             String pattern = INTERACTION_PREFIX + "*";
-            String deleteMember = INTERACTION_SUFFIX + withdrawMemberId;
 
             redisTemplate.execute((RedisConnection connection) -> {
-                byte[] deleteMemberBytes = deleteMember.getBytes(StandardCharsets.UTF_8);
+                byte[] memberBytes = withdrawMemberId.toString().getBytes(StandardCharsets.UTF_8);
 
-                // SCAN으로 패턴 매칭 키 조회
                 connection.keyCommands().scan(scanOptions()
                         .match(pattern)
                         .count(100)
                         .build())
                         .forEachRemaining(key -> {
-                            // 각 키에서 탈퇴 회원 제거
-                            connection.hashCommands().hDel(key, deleteMemberBytes);
+                            connection.zSetCommands().zRem(key, memberBytes);
                         });
                 return null;
             });
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_DELETE_ERROR, e);
         }
+    }
+
+    /**
+     * 모든 상호작용 점수에 지수 감쇠 적용
+     * <p>SCAN으로 모든 interaction:* 키를 찾아 Lua 스크립트로 점수 감쇠 적용</p>
+     * <p>임계값(0.1) 이하의 점수는 삭제</p>
+     *
+     * @return 처리된 키 개수
+     */
+    public int applyInteractionScoreDecay() {
+        String pattern = INTERACTION_PREFIX + "*";
+        List<String> keys = new ArrayList<>();
+
+        // 1. SCAN으로 모든 interaction 키 수집
+        redisTemplate.execute((RedisConnection connection) -> {
+            connection.keyCommands().scan(scanOptions()
+                    .match(pattern)
+                    .count(100)
+                    .build())
+                    .forEachRemaining(key -> keys.add(new String(key, StandardCharsets.UTF_8)));
+            return null;
+        });
+
+        // 2. 각 키에 대해 지수 감쇠 적용
+        for (String key : keys) {
+            // Lua 스크립트로 점수 감쇠
+            stringRedisTemplate.execute(
+                    INTERACTION_SCORE_DECAY_SCRIPT,
+                    List.of(key),
+                    String.valueOf(INTERACTION_SCORE_DECAY_RATE)
+            );
+
+            // 임계값 이하의 멤버 제거
+            redisTemplate.opsForZSet().removeRangeByScore(key, 0, INTERACTION_SCORE_THRESHOLD);
+        }
+
+        return keys.size();
     }
 }
