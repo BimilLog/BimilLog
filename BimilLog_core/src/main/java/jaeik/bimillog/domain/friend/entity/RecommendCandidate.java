@@ -4,7 +4,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -92,7 +94,7 @@ public class RecommendCandidate {
         }
     }
 
-    public void addFriendId(Set<Long> ids) {
+    public void addFriendId(List<Long> ids) {
         ids.add(memberId);
         if (acquaintanceId != null) {
             ids.add(acquaintanceId);

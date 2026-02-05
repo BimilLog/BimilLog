@@ -12,16 +12,14 @@ import lombok.NoArgsConstructor;
  * @author Jaeik
  */
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 public class RecommendedFriendDTO {
-    private Long friendMemberId;
-    private Integer depth;
-    private Long acquaintanceId;
-    private boolean manyAcquaintance;
-    private String memberName;
-    private String acquaintanceName;
-    private String introduce;
+    private final Long friendMemberId;
+    private final String memberName;
+    private final Integer depth;
+    private final Long acquaintanceId;
+    private final String acquaintanceName;
+    private final boolean manyAcquaintance;
+    private final String introduce;
 
     private RecommendedFriendDTO(Long friendMemberId, String memberName, Integer depth, Long acquaintanceId,
                                  String acquaintanceName, boolean manyAcquaintance, String introduce) {
@@ -40,11 +38,11 @@ public class RecommendedFriendDTO {
         String introduce = createIntroduce(candidate.getDepth(), acquaintanceName, candidate.isManyAcquaintance());
         return new RecommendedFriendDTO(
                 candidate.getMemberId(),
+                memberName,
                 candidate.getDepth(),
                 candidate.getAcquaintanceId(),
+                acquaintanceName,
                 candidate.isManyAcquaintance(),
-                memberInfo.memberName,
-                memberInfo.acquaintanceName,
                 introduce
         );
     }
@@ -60,8 +58,9 @@ public class RecommendedFriendDTO {
     }
 
     @Getter
+    @AllArgsConstructor
     public static class MemberInfo {
-        private String friendMemberId;
+        private Long memberId;
         private String memberName;
     }
 }

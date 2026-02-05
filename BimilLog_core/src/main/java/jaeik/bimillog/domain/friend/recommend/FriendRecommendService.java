@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <h2>친구 추천 서비스</h2>
@@ -320,18 +321,19 @@ public class FriendRecommendService {
         }
 
         // ID 추출
-        Set<Long> allIds = new HashSet<>();
+        List<Long> allIds = new ArrayList<>();
         candidates.forEach(c -> c.addFriendId(allIds));
 
-        // ID로 이름 조회
-        List<MemberInfo> memberInfos = memberQueryRepository.getMemberNames(allIds);
+        // ID로 이름 조회 후 Map 변환
+        Map<Long, String> memberNames = memberQueryRepository.getMemberNames(allIds).stream()
+                .collect(Collectors.toMap(
+                        RecommendedFriendDTO.MemberInfo::getMemberId,
+                        RecommendedFriendDTO.MemberInfo::getMemberName
+                ));
 
-        // Mapping
         List<RecommendedFriendDTO> result = new ArrayList<>();
         for (RecommendCandidate c : candidates) {
             String memberName = memberNames.get(c.getMemberId());
-            if (memberName == null) continue;
-
             String acquaintanceName = memberNames.get(c.getAcquaintanceId());
             result.add(RecommendedFriendDTO.from(c, memberName, acquaintanceName));
         }
