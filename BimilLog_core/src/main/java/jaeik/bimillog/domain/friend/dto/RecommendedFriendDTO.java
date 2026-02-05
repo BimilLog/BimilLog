@@ -1,10 +1,16 @@
-package jaeik.bimillog.domain.friend.entity;
+package jaeik.bimillog.domain.friend.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
+/**
+ * <h2>추천친구 응답 DTO</h2>
+ *
+ * @version 2.7.0
+ * @author Jaeik
+ */
 @Getter
-public class RecommendedFriend {
+public class RecommendedFriendDTO {
     @NotNull
     private final Long friendMemberId; // 추천 친구 Id
 
@@ -18,18 +24,18 @@ public class RecommendedFriend {
     private final boolean manyAcquaintance; // 아는 사람이 여러명인지 구분하는 플래그, 3촌은 null
     private String introduce; // 2촌일 경우 ex) 홍길동의 친구, 공통친구가 2명이상이면 홍길동외 다수의 친구, 3촌은 null
 
-    public RecommendedFriend(Long friendMemberId, Long acquaintanceId, boolean manyAcquaintance, Integer depth) {
+    public RecommendedFriendDTO(Long friendMemberId, Long acquaintanceId, boolean manyAcquaintance, Integer depth) {
         this.friendMemberId = friendMemberId;
         this.acquaintanceId = acquaintanceId;
         this.manyAcquaintance = manyAcquaintance;
         this.depth = depth;
     }
 
-    public void setRecommendedFriendName (RecommendedFriend.RecommendedFriendInfo recommendedFriendInfo) {
+    public void setRecommendedFriendName (RecommendedFriendDTO.RecommendedFriendInfo recommendedFriendInfo) {
         this.memberName = recommendedFriendInfo.memberName;
     }
 
-    public void setAcquaintanceFriendName(RecommendedFriend.AcquaintanceInfo acquaintanceInfo) {
+    public void setAcquaintanceFriendName(RecommendedFriendDTO.AcquaintanceInfo acquaintanceInfo) {
         this.acquaintanceName = acquaintanceInfo.acquaintanceName;
         this.introduce = createIntroduce(depth, acquaintanceName, manyAcquaintance);
     }

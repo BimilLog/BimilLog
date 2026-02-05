@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.friend.recommend;
 
-import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
+import jaeik.bimillog.domain.friend.entity.RecommendCandidate;
+import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
 import jaeik.bimillog.domain.friend.repository.FriendshipQueryRepository;
 import jaeik.bimillog.domain.member.repository.MemberBlacklistRepository;
 import jaeik.bimillog.domain.member.repository.MemberQueryRepository;
@@ -11,10 +12,8 @@ import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.stereotype.Service;
@@ -68,7 +67,7 @@ public class FriendRecommendService {
      * @return 추천 친구 목록 (페이지)
      */
     @Transactional(readOnly = true)
-    public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
+    public Page<RecommendedFriendDTO> getRecommendFriendList(Long memberId, Pageable pageable) {
         try {
             return getRecommendedFriends(memberId, pageable, true);
         } catch (Exception e) {
@@ -81,7 +80,7 @@ public class FriendRecommendService {
         }
     }
 
-    private Page<RecommendedFriend> getRecommendedFriends(Long memberId, Pageable pageable, boolean useRedis) {
+    private Page<RecommendedFriendDTO> getRecommendedFriends(Long memberId, Pageable pageable, boolean useRedis) {
         List<RecommendCandidate> candidates = new ArrayList<>();
 
         // 1. 1촌 조회
@@ -307,14 +306,14 @@ public class FriendRecommendService {
      * <h3>추천 후보자 목록을 응답 DTO 페이지로 변환합니다.</h3>
      * <p>
      * 후보자들의 회원 정보(닉네임, 프로필 이미지 등)와 함께 아는 친구(acquaintance) 정보를
-     * 일괄 조회하여 {@link RecommendedFriend} 객체로 매핑합니다.
+     * 일괄 조회하여 {@link RecommendedFriendDTO} 객체로 매핑합니다.
      * </p>
      *
      * @param candidates 추천 후보자 목록
      * @param pageable   페이지네이션 정보
      * @return 추천 친구 응답 페이지
      */
-    private Page<RecommendedFriend> toResponsePage(List<RecommendCandidate> candidates, Pageable pageable) {
+    private Page<RecommendedFriendDTO> toResponsePage(List<RecommendCandidate> candidates, Pageable pageable) {
         if (candidates.isEmpty()) return Page.empty(pageable);
 
         List<Long> memberIds = new ArrayList<>();
@@ -327,30 +326,30 @@ public class FriendRecommendService {
         }
 
         // Bulk Fetch
-        Map<Long, RecommendedFriend.RecommendedFriendInfo> friendInfos = new HashMap<>();
-        for (RecommendedFriend.RecommendedFriendInfo info : memberQueryRepository.addRecommendedFriendInfo(memberIds)) {
+        Map<Long, RecommendedFriendDTO.RecommendedFriendInfo> friendInfos = new HashMap<>();
+        for (RecommendedFriendDTO.RecommendedFriendInfo info : memberQueryRepository.addRecommendedFriendInfo(memberIds)) {
             friendInfos.put(info.friendMemberId(), info);
         }
 
-        Map<Long, RecommendedFriend.AcquaintanceInfo> acqInfos;
+        Map<Long, RecommendedFriendDTO.AcquaintanceInfo> acqInfos;
         if (acqIds.isEmpty()) {
             acqInfos = Collections.emptyMap();
         } else {
             acqInfos = new HashMap<>();
-            for (RecommendedFriend.AcquaintanceInfo info : memberQueryRepository.addAcquaintanceInfo(new ArrayList<>(acqIds))) {
+            for (RecommendedFriendDTO.AcquaintanceInfo info : memberQueryRepository.addAcquaintanceInfo(new ArrayList<>(acqIds))) {
                 acqInfos.put(info.acquaintanceId(), info);
             }
         }
 
         // Mapping
-        List<RecommendedFriend> result = new ArrayList<>();
+        List<RecommendedFriendDTO> result = new ArrayList<>();
         for (RecommendCandidate c : candidates) {
             if (!friendInfos.containsKey(c.getMemberId())) continue;
 
-            RecommendedFriend.RecommendedFriendInfo info = friendInfos.get(c.getMemberId());
-            RecommendedFriend.AcquaintanceInfo acqInfo = acqInfos.get(c.getAcquaintanceId());
+            RecommendedFriendDTO.RecommendedFriendInfo info = friendInfos.get(c.getMemberId());
+            RecommendedFriendDTO.AcquaintanceInfo acqInfo = acqInfos.get(c.getAcquaintanceId());
 
-            RecommendedFriend friend = new RecommendedFriend(c.getMemberId(), c.getAcquaintanceId(), c.isManyAcquaintance(), c.getDepth());
+            RecommendedFriendDTO friend = new RecommendedFriendDTO(c.getMemberId(), c.getAcquaintanceId(), c.isManyAcquaintance(), c.getDepth());
             friend.setRecommendedFriendName(info);
             if (acqInfo != null) friend.setAcquaintanceFriendName(acqInfo);
             result.add(friend);

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.friend.recommend;
 
-import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
+import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
 import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberBlacklist;
@@ -30,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -189,7 +188,7 @@ class FriendRecommendServiceIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<RecommendedFriend> result = friendRecommendService.getRecommendFriendList(member1.getId(), pageable);
+        Page<RecommendedFriendDTO> result = friendRecommendService.getRecommendFriendList(member1.getId(), pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -197,7 +196,7 @@ class FriendRecommendServiceIntegrationTest {
 
         // 2촌이 추천되어야 함 (member4, member5, member7)
         List<Long> recommendedIds = result.getContent().stream()
-                .map(RecommendedFriend::getFriendMemberId)
+                .map(RecommendedFriendDTO::getFriendMemberId)
                 .toList();
 
         assertThat(recommendedIds)
@@ -205,7 +204,7 @@ class FriendRecommendServiceIntegrationTest {
                 .doesNotContain(member1.getId(), member2.getId(), member3.getId()); // 본인 및 1촌 제외
 
         // member4가 더 높은 점수를 받아야 함 (상호작용 점수 2배)
-        RecommendedFriend member4Recommendation = result.getContent().stream()
+        RecommendedFriendDTO member4Recommendation = result.getContent().stream()
                 .filter(f -> f.getFriendMemberId().equals(member4.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -221,18 +220,18 @@ class FriendRecommendServiceIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<RecommendedFriend> result = friendRecommendService.getRecommendFriendList(member1.getId(), pageable);
+        Page<RecommendedFriendDTO> result = friendRecommendService.getRecommendFriendList(member1.getId(), pageable);
 
         // Then
         List<Long> recommendedIds = result.getContent().stream()
-                .map(RecommendedFriend::getFriendMemberId)
+                .map(RecommendedFriendDTO::getFriendMemberId)
                 .toList();
 
         // 3촌 (member6)이 포함되어야 함
         assertThat(recommendedIds).contains(member6.getId());
 
         // member6은 3촌이어야 함
-        RecommendedFriend member6Recommendation = result.getContent().stream()
+        RecommendedFriendDTO member6Recommendation = result.getContent().stream()
                 .filter(f -> f.getFriendMemberId().equals(member6.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -255,11 +254,11 @@ class FriendRecommendServiceIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<RecommendedFriend> result = friendRecommendService.getRecommendFriendList(member1.getId(), pageable);
+        Page<RecommendedFriendDTO> result = friendRecommendService.getRecommendFriendList(member1.getId(), pageable);
 
         // Then
         List<Long> recommendedIds = result.getContent().stream()
-                .map(RecommendedFriend::getFriendMemberId)
+                .map(RecommendedFriendDTO::getFriendMemberId)
                 .toList();
 
         // member7은 블랙리스트이므로 추천되지 않아야 함
@@ -276,11 +275,11 @@ class FriendRecommendServiceIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<RecommendedFriend> result = friendRecommendService.getRecommendFriendList(member1.getId(), pageable);
+        Page<RecommendedFriendDTO> result = friendRecommendService.getRecommendFriendList(member1.getId(), pageable);
 
         // Then
         // member4의 추천 정보 확인 (member2를 통해 연결됨)
-        RecommendedFriend member4Recommendation = result.getContent().stream()
+        RecommendedFriendDTO member4Recommendation = result.getContent().stream()
                 .filter(f -> f.getFriendMemberId().equals(member4.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -296,11 +295,11 @@ class FriendRecommendServiceIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<RecommendedFriend> result = friendRecommendService.getRecommendFriendList(member1.getId(), pageable);
+        Page<RecommendedFriendDTO> result = friendRecommendService.getRecommendFriendList(member1.getId(), pageable);
 
         // Then
         List<Long> recommendedIds = result.getContent().stream()
-                .map(RecommendedFriend::getFriendMemberId)
+                .map(RecommendedFriendDTO::getFriendMemberId)
                 .toList();
 
         // member4가 member5보다 앞에 있어야 함 (상호작용 점수가 2배)
@@ -320,13 +319,13 @@ class FriendRecommendServiceIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<RecommendedFriend> result = friendRecommendService.getRecommendFriendList(lonelyMember.getId(), pageable);
+        Page<RecommendedFriendDTO> result = friendRecommendService.getRecommendFriendList(lonelyMember.getId(), pageable);
 
         // Then
         assertThat(result.getContent()).isNotEmpty();
 
         // 최근 가입자가 추천되어야 함 (depth = 0 - 2촌/3촌이 아닌 경우)
-        RecommendedFriend recentRecommendation = result.getContent().get(0);
+        RecommendedFriendDTO recentRecommendation = result.getContent().get(0);
         assertThat(recentRecommendation.getDepth()).isEqualTo(0);
     }
 

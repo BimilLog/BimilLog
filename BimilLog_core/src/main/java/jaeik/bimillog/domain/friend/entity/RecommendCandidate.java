@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.recommend;
+package jaeik.bimillog.domain.friend.entity;
 
 import lombok.Builder;
 import lombok.Getter;

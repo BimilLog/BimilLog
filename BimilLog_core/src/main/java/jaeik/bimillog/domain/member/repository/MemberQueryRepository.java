@@ -7,7 +7,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.auth.entity.QAuthToken;
 import jaeik.bimillog.domain.friend.entity.Friend;
-import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
+import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QSetting;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
@@ -122,9 +122,9 @@ public class MemberQueryRepository {
     /**
      * 여러 사용자 ID로 추천 친구 추가 정보 조회
      */
-    public List<RecommendedFriend.RecommendedFriendInfo> addRecommendedFriendInfo(List<Long> friendIds) {
+    public List<RecommendedFriendDTO.RecommendedFriendInfo> addRecommendedFriendInfo(List<Long> friendIds) {
         return jpaQueryFactory
-                .select(Projections.constructor(RecommendedFriend.RecommendedFriendInfo.class,
+                .select(Projections.constructor(RecommendedFriendDTO.RecommendedFriendInfo.class,
                         member.id,
                         member.memberName
                 ))
@@ -136,9 +136,9 @@ public class MemberQueryRepository {
     /**
      * 여러 사용자 ID로 추천 친구 아는 사람 추가 정보 조회
      */
-    public List<RecommendedFriend.AcquaintanceInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
+    public List<RecommendedFriendDTO.AcquaintanceInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
         return jpaQueryFactory
-                .select(Projections.constructor(RecommendedFriend.AcquaintanceInfo.class,
+                .select(Projections.constructor(RecommendedFriendDTO.AcquaintanceInfo.class,
                         member.id,
                         member.memberName
                 ))
