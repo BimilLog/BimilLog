@@ -344,15 +344,11 @@ public class FriendRecommendService {
         // Mapping
         List<RecommendedFriendDTO> result = new ArrayList<>();
         for (RecommendCandidate c : candidates) {
-            if (!friendInfos.containsKey(c.getMemberId())) continue;
-
             RecommendedFriendDTO.RecommendedFriendInfo info = friendInfos.get(c.getMemberId());
-            RecommendedFriendDTO.AcquaintanceInfo acqInfo = acqInfos.get(c.getAcquaintanceId());
+            if (info == null) continue;
 
-            RecommendedFriendDTO friend = new RecommendedFriendDTO(c.getMemberId(), c.getAcquaintanceId(), c.isManyAcquaintance(), c.getDepth());
-            friend.setRecommendedFriendName(info);
-            if (acqInfo != null) friend.setAcquaintanceFriendName(acqInfo);
-            result.add(friend);
+            RecommendedFriendDTO.AcquaintanceInfo acqInfo = acqInfos.get(c.getAcquaintanceId());
+            result.add(RecommendedFriendDTO.from(c, info, acqInfo));
         }
 
         return new PageImpl<>(result, pageable, result.size());
