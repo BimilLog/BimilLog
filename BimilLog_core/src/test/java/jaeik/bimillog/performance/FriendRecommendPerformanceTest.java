@@ -74,10 +74,10 @@ public class FriendRecommendPerformanceTest {
     private Statistics statistics;
     private static final int TEST_COUNT = 100;
 
-//    @BeforeAll
-//    void beforeAll() {
-//        seedRedisCaches();
-//    }
+    @BeforeAll
+    void beforeAll() {
+        seedRedisCaches();
+    }
 
     @BeforeEach
     void setUp() {

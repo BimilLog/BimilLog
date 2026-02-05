@@ -56,8 +56,7 @@ public class FriendInteractionListener {
                     RedisCommandTimeoutException.class
             },
             maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
-    )
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}"))
     public void handlePostLiked(PostLikeEvent event) {
         boolean processed = redisInteractionScoreRepository.addInteractionScore(event.getPostAuthorId(), event.getLikerId(), event.getEventId());
         if (!processed) {
