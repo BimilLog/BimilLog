@@ -75,7 +75,7 @@ public class FriendRecommendService {
     @Transactional(readOnly = true)
     public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
         try {
-            List<RecommendCandidate> topCandidates = new ArrayList<>();
+            List<RecommendCandidate> candidates = new ArrayList<>();
 
             // 1. 내 친구(1촌) 조회
             Set<Long> myFriends = redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_SCAN_LIMIT);
@@ -87,20 +87,26 @@ public class FriendRecommendService {
             if (!candidateMap.isEmpty()) {
                 // 3. 상호작용 점수 주입
                 injectInteractionScores(memberId, candidateMap);
-
-                // 4. 점수순 정렬 및 상위 N명 추출
-                topCandidates = new ArrayList<>(candidateMap.values().stream()
-                        .sorted(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed())
-                        .limit(RECOMMEND_LIMIT).toList());
+                candidates = new ArrayList<>(candidateMap.values());
             }
 
-            // 10명보다 부족하면 후보자가 없는 경우는 초기값을 가지기 때문에 상호작용과 정렬을 건너뛰고 자연스럽게 여기 도달
-            if (topCandidates.size() < RECOMMEND_LIMIT) {
-                // 5. 부족한 인원 보충 (최근 가입자) 및 블랙리스트 필터링
-                fillAndFilter(memberId, myFriends, topCandidates);
+            // 4. 부족한 인원 보충 (상호작용 기반 + 최근 가입자)
+            // 후보자가 없는 경우도 여기서 처리됨
+            if (candidates.size() < RECOMMEND_LIMIT) {
+                fillCandidates(memberId, myFriends, candidates);
             }
 
-            // 6. 회원 정보 조회 및 응답 DTO 변환
+            // 5. 블랙리스트 필터링
+            Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
+            candidates.removeIf(c -> blacklist.contains(c.getMemberId()));
+
+            // 6. 최종 정렬 및 상위 N명 추출
+            List<RecommendCandidate> topCandidates = candidates.stream()
+                    .sorted(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed())
+                    .limit(RECOMMEND_LIMIT)
+                    .toList();
+
+            // 7. 회원 정보 조회 및 응답 DTO 변환
             return toResponsePage(topCandidates, pageable);
         } catch (CustomException e) {
             ErrorCode code = e.getErrorCode();
@@ -220,30 +226,27 @@ public class FriendRecommendService {
     }
 
     /**
-     * <h3>부족한 추천 인원을 보충하고 블랙리스트를 필터링합니다.</h3>
+     * <h3>부족한 추천 인원을 보충합니다.</h3>
      * <p>
      * 추천 후보가 {@link #RECOMMEND_LIMIT} 미만인 경우 다음 순서로 보충합니다:
      * <ol>
      *   <li>상호작용 점수가 있는 회원 추가</li>
      *   <li>최근 가입자 추가</li>
      * </ol>
-     * 마지막으로 블랙리스트에 등록된 회원을 제거합니다.
      * </p>
      *
      * @param memberId   현재 회원 ID
      * @param myFriends  내 친구(1촌) ID 집합 (제외 대상)
      * @param candidates 추천 후보자 목록 (수정됨)
      */
-    private void fillAndFilter(Long memberId, Set<Long> myFriends, List<RecommendCandidate> candidates) {
+    private void fillCandidates(Long memberId, Set<Long> myFriends, List<RecommendCandidate> candidates) {
         Set<Long> excludeIds = new HashSet<>(myFriends);
 
-        // 제외 ID 자기자신 이미 등록된 후보자
+        // 제외 ID: 자기자신, 이미 등록된 후보자
         excludeIds.add(memberId);
         for (RecommendCandidate c : candidates) {
             excludeIds.add(c.getMemberId());
         }
-
-        int needCount = RECOMMEND_LIMIT - excludeIds.size();
 
         // 상호작용 점수 전체 조회 (ZSet)
         var allInteractions = redisInteractionScoreRepository.getAllInteractionScores(memberId);
@@ -268,11 +271,6 @@ public class FriendRecommendService {
                 candidates.add(RecommendCandidate.initialCandidate(id, 0, 0));
             }
         }
-
-
-        // 블랙리스트 제거 (마지막에 처리)
-        Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
-        candidates.removeIf(recommendCandidate -> blacklist.contains(recommendCandidate.getMemberId()));
     }
 
     /**
