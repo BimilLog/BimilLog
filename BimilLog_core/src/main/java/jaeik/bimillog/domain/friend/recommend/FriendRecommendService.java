@@ -62,10 +62,6 @@ public class FriendRecommendService {
 
     /**
      * 친구 추천 목록을 조회합니다.
-     * <p>
-     * 2촌, 3촌 순서로 BFS 탐색을 수행하고, 공통 친구 수와 상호작용 점수를 기반으로
-     * 추천 우선순위를 계산하여 상위 N명을 반환합니다.
-     * </p>
      *
      * @param memberId 추천을 요청한 회원 ID
      * @param pageable 페이지네이션 정보
@@ -74,85 +70,50 @@ public class FriendRecommendService {
     @Transactional(readOnly = true)
     public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
         try {
-            return getRecommendedFriends(memberId, pageable);
+            return getRecommendedFriends(memberId, pageable, true);
         } catch (Exception e) {
             log.error("Redis 실패로 DB 폴백 실행: memberId={}", memberId, e);
             try {
-                return getRecommendFromDb(memberId, pageable);
+                return getRecommendedFriends(memberId, pageable, false);
             } catch (Exception dbe) {
                 throw new CustomException(ErrorCode.FRIEND_RECOMMEND_FAIL);
             }
         }
     }
 
-    private Page<RecommendedFriend> getRecommendedFriends(Long memberId, Pageable pageable) {
-            List<RecommendCandidate> candidates = new ArrayList<>();
+    private Page<RecommendedFriend> getRecommendedFriends(Long memberId, Pageable pageable, boolean useRedis) {
+        List<RecommendCandidate> candidates = new ArrayList<>();
 
-            // 1. 내 친구(1촌) 조회
-            Set<Long> myFriends = redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_SCAN_LIMIT);
+        // 1. 1촌 조회
+        Set<Long> myFriends = useRedis
+                ? redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_SCAN_LIMIT)
+                : friendshipQueryRepository.getMyFriendIdsSet(memberId, FIRST_FRIEND_SCAN_LIMIT);
 
-            // 2. 후보자 탐색 (2촌 -> 3촌 순차 확장) 및 점수 계산
-            Map<Long, RecommendCandidate> candidateMap = findAndScoreCandidates(memberId, myFriends, true);
+        // 2. 후보자 탐색 (2촌 -> 3촌 순차 확장) 및 점수 계산
+        Map<Long, RecommendCandidate> candidateMap = findAndScoreCandidates(memberId, myFriends, useRedis);
 
-            // 후보자가 1명이라도 존재하면
-            if (!candidateMap.isEmpty()) {
-                // 3. 상호작용 점수 주입
+        // 후보자가 1명이라도 존재하면
+        if (!candidateMap.isEmpty()) {
+            // 3. 상호작용 점수 주입 (Redis만)
+            if (useRedis) {
                 injectInteractionScores(memberId, candidateMap);
-                candidates = new ArrayList<>(candidateMap.values());
             }
+            candidates = new ArrayList<>(candidateMap.values());
+        }
 
-            // 4. 부족한 인원 보충
-            if (candidates.size() < RECOMMEND_LIMIT) {
-                Set<Long> excludeIds = buildExcludeIds(memberId, myFriends, candidates);
-
-                // 4-1. 상호작용 점수 기반
-                fillFromInteractionScores(memberId, candidates, excludeIds);
-
-                // 4-2. 최근 가입자
-                if (candidates.size() < RECOMMEND_LIMIT) {
-                    fillFromRecentMembers(candidates, excludeIds);
-                }
-            }
-
-            // 5. 블랙리스트 필터링
-            Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
-            candidates.removeIf(c -> blacklist.contains(c.getMemberId()));
-
-            // 6. 최종 정렬 및 상위 N명 추출
-            List<RecommendCandidate> topCandidates = candidates.stream()
-                    .sorted(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed())
-                    .limit(RECOMMEND_LIMIT)
-                    .toList();
-
-            // 8. 회원 정보 조회 및 응답 DTO 변환
-            return toResponsePage(topCandidates, pageable);
-
-    }
-
-    /**
-     * <h3>Redis 실패 시 DB 기반으로 친구 추천 목록을 조회합니다.</h3>
-     * <p>
-     * Redis 경로와 동일한 BFS 알고리즘을 DB에서 수행하되,
-     * 상호작용 점수 계산은 제외합니다.
-     * </p>
-     *
-     * @param memberId 추천을 요청한 회원 ID
-     * @param pageable 페이지네이션 정보
-     * @return 추천 친구 목록 (페이지)
-     */
-    private Page<RecommendedFriend> getRecommendFromDb(Long memberId, Pageable pageable) {
-        // 1. DB로 1촌 조회
-        Set<Long> myFriends = friendshipQueryRepository.getMyFriendIdsSet(memberId, FIRST_FRIEND_SCAN_LIMIT);
-
-        // 2. DB로 2촌/3촌 탐색
-        List<RecommendCandidate> candidates = new ArrayList<>(findAndScoreCandidates(memberId, myFriends, false).values());
-
-        // 3. 상호작용 점수 주입 생략
-
-        // 4. 부족한 인원 보충 - 최근 가입자 (상호작용 제외)
+        // 4. 부족한 인원 보충
         if (candidates.size() < RECOMMEND_LIMIT) {
             Set<Long> excludeIds = buildExcludeIds(memberId, myFriends, candidates);
-            fillFromRecentMembers(candidates, excludeIds);
+
+            // 4-1. 상호작용 점수 기반 (Redis만)
+            if (useRedis) {
+                fillFromInteractionScores(memberId, candidates, excludeIds);
+            }
+
+            // 4-2. 최근 가입자
+            if (candidates.size() < RECOMMEND_LIMIT) {
+                fillFromRecentMembers(candidates, excludeIds);
+            }
         }
 
         // 5. 블랙리스트 필터링
@@ -165,10 +126,9 @@ public class FriendRecommendService {
                 .limit(RECOMMEND_LIMIT)
                 .toList();
 
-        // 7. 응답 변환
+        // 7. 회원 정보 조회 및 응답 DTO 변환
         return toResponsePage(topCandidates, pageable);
     }
-
 
     /**
      * <h3>2촌 3촌 후보자 탐색</h3>
@@ -211,10 +171,6 @@ public class FriendRecommendService {
 
         return candidateMap;
     }
-
-
-
-
 
     /**
      * 2촌/3촌 탐색 공통 처리
@@ -260,11 +216,8 @@ public class FriendRecommendService {
 
     /**
      * <h3>후보자들에게 상호작용 점수를 주입합니다.</h3>
-     * <p>
-     * Redis에서 해당 회원과 후보자들 간의 상호작용 점수를 일괄 조회하여
-     * 각 후보자 객체에 설정합니다. 상호작용 점수는 롤링페이퍼 작성, 게시글 좋아요 등
-     * 과거 활동 이력을 기반으로 산정됩니다.
-     * </p>
+     * <p>상호작용점수는 최대 1500명까지 가능하기에 500명씩 배치로 파이프라인</p>
+     * <p>DB의 경우에는 계산하지 않는다. 이유 : 상호작용 계산은 시간이 오래걸리지만 친구점수에서 높은 비중이 아님.</p>
      *
      * @param memberId     현재 회원 ID
      * @param candidateMap 추천 후보자 Map (ID -> 후보자)
@@ -301,7 +254,7 @@ public class FriendRecommendService {
 
     /**
      * <h3>상호작용 점수 기반으로 부족한 인원을 보충합니다.</h3>
-     * <p>Redis ZSet에서 상호작용 점수 상위 N명을 조회하여 후보자로 추가합니다.</p>
+     * <p>Redis ZSet에서 상호작용 점수 상위 10명을 조회하여 후보자로 추가합니다.</p>
      *
      * @param memberId   현재 회원 ID
      * @param candidates 추천 후보자 목록 (수정됨)
@@ -324,7 +277,7 @@ public class FriendRecommendService {
 
     /**
      * <h3>최근 가입자로 부족한 인원을 보충합니다.</h3>
-     * <p>상호작용 점수 기반 보충 후에도 인원이 부족하면 최근 가입자를 추가합니다.</p>
+     * <p>상호작용 점수 기반 보충 후에도 인원이 부족하면 최근 가입자 10명을 추가합니다.</p>
      *
      * @param candidates 추천 후보자 목록 (수정됨)
      * @param excludeIds 제외할 ID 집합
