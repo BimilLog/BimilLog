@@ -77,7 +77,7 @@ public class FriendshipQueryRepository {
      * @param memberIdList 조회할 회원 ID 목록 (순서 유지)
      * @return 파이프라인 결과 (memberIdList 순서와 동일)
      */
-    public List<Set<Long>> getFriendIdsBatch(List<Long> memberIdList) {
+    public List<List<Long>> getFriendIdsBatch(List<Long> memberIdList) {
         if (memberIdList.isEmpty()) return new ArrayList<>();
 
         Set<Long> memberIdSet = new HashSet<>(memberIdList);
@@ -89,9 +89,9 @@ public class FriendshipQueryRepository {
                         .or(friendship.friend.id.in(memberIdSet)))
                 .fetch();
 
-        Map<Long, Set<Long>> resultMap = new HashMap<>();
+        Map<Long, List<Long>> resultMap = new HashMap<>();
         for (Long id : memberIdList) {
-            resultMap.put(id, new HashSet<>());
+            resultMap.put(id, new ArrayList<>());
         }
 
         for (Tuple tuple : results) {
@@ -107,25 +107,11 @@ public class FriendshipQueryRepository {
         }
 
         // memberIdList 순서대로 결과 반환
-        List<Set<Long>> resultList = new ArrayList<>();
+        List<List<Long>> resultList = new ArrayList<>();
         for (Long id : memberIdList) {
             resultList.add(resultMap.get(id));
         }
 
         return resultList;
-    }
-
-    // 모든 멤버의 본인, 1촌, 2촌 연결관계를 가지고 온다.
-    public List<Tuple> findAllTwoDegreeRelations() {
-        QFriendship f1 = QFriendship.friendship;
-        QFriendship f2 = new QFriendship("f2");
-
-        return jpaQueryFactory
-                .select(f1.member.id, f1.friend.id, f2.friend.id)
-                .from(f1)
-                .join(f2).on(f1.friend.id.eq(f2.member.id))
-                .where(f2.friend.id.ne(f1.member.id),
-                        f2.friend.id.ne(f1.friend.id))
-                .fetch();
     }
 }

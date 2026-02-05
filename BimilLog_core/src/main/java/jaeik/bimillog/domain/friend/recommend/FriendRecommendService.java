@@ -145,7 +145,7 @@ public class FriendRecommendService {
         List<Long> myFriendList = new ArrayList<>(myFriends);
 
         // 레디스에서 2촌 결과 가져옴
-        List<Object> secondResults = redisFriendshipRepository.getFriendsBatch(myFriendList, SECOND_DEGREE_SAMPLE_SIZE);
+        List<List<Long>> secondResults = toListOfLists(redisFriendshipRepository.getFriendsBatch(myFriendList, SECOND_DEGREE_SAMPLE_SIZE));
         processDegreeSearch(myFriendList, secondResults, 2, memberId, myFriends, candidateMap);
 
         // B. 3촌 탐색 (2촌이 10명 이하일 때)
@@ -154,7 +154,7 @@ public class FriendRecommendService {
             List<Long> secondDegreeList = new ArrayList<>(candidateMap.keySet());
 
             // 2촌의 ID로 3촌 친구들을 불러옴
-            List<Object> thirdResults = redisFriendshipRepository.getFriendsBatch(secondDegreeList, THIRD_DEGREE_SAMPLE_SIZE);
+            List<List<Long>> thirdResults = toListOfLists(redisFriendshipRepository.getFriendsBatch(secondDegreeList, THIRD_DEGREE_SAMPLE_SIZE));
             processDegreeSearch(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
         }
 
@@ -162,16 +162,27 @@ public class FriendRecommendService {
     }
 
     /**
+     * Redis 파이프라인 결과를 변환합니다.
+     */
+    @SuppressWarnings("unchecked")
+    private List<List<Long>> toListOfLists(List<Object> results) {
+        List<List<Long>> converted = new ArrayList<>();
+        for (Object result : results) {
+            if (result instanceof List<?>) {
+                converted.add((List<Long>) result);
+            }
+        }
+        return converted;
+    }
+
+    /**
      * 2촌/3촌 탐색 공통 처리
      */
-    private void processDegreeSearch(List<Long> myFriendList, List<Object> results, int depth,
+    private void processDegreeSearch(List<Long> friendIdList, List<List<Long>> results, int depth,
                                      Long memberId, Set<Long> myFriends, Map<Long, RecommendCandidate> candidateMap) {
-        for (int i = 0; i < myFriendList.size(); i++) {
-            Long friendId = myFriendList.get(i); // 1촌 또는 2촌 친구
-            List<Long> resultList = List.of(); // 1촌의 친구 (2촌) 또는 2촌의 친구 (3촌)
-            if (results.get(i) instanceof List<?>) {
-                resultList = (List<Long>) results.get(i);
-            }
+        for (int i = 0; i < friendIdList.size(); i++) {
+            Long friendId = friendIdList.get(i); // 1촌 또는 2촌 친구
+            List<Long> resultList = results.get(i); // 1촌의 친구 (2촌) 또는 2촌의 친구 (3촌)
 
             for (Long targetId : resultList) {
                 // 중복제거: 나 자신이거나 1촌친구에 있는 경우
@@ -345,8 +356,8 @@ public class FriendRecommendService {
         List<Long> myFriendList = new ArrayList<>(myFriends);
 
         // DB에서 2촌 결과 가져옴
-        List<Set<Long>> secondResults = friendshipQueryRepository.getFriendIdsBatch(myFriendList);
-        processDegreeSearchFromDb(myFriendList, secondResults, 2, memberId, myFriends, candidateMap);
+        List<List<Long>> secondResults = friendshipQueryRepository.getFriendIdsBatch(myFriendList);
+        processDegreeSearch(myFriendList, secondResults, 2, memberId, myFriends, candidateMap);
 
         // B. 3촌 탐색 (2촌이 10명 이하일 때)
         if (candidateMap.size() < RECOMMEND_LIMIT) {
@@ -354,57 +365,11 @@ public class FriendRecommendService {
             List<Long> secondDegreeList = new ArrayList<>(candidateMap.keySet());
 
             // 2촌의 ID로 3촌 친구들을 불러옴
-            List<Set<Long>> thirdResults = friendshipQueryRepository.getFriendIdsBatch(secondDegreeList);
-            processDegreeSearchFromDb(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
+            List<List<Long>> thirdResults = friendshipQueryRepository.getFriendIdsBatch(secondDegreeList);
+            processDegreeSearch(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
         }
 
         return new ArrayList<>(candidateMap.values());
-    }
-
-    /**
-     * 2촌/3촌 탐색 공통 처리 (DB)
-     */
-    private void processDegreeSearchFromDb(List<Long> friendIdList, List<Set<Long>> results, int depth,
-                                           Long memberId, Set<Long> myFriends, Map<Long, RecommendCandidate> candidateMap) {
-
-        // List<Long> myFriendList, List<Object> results, int depth,
-        //                                     Long memberId, Set<Long> myFriends, Map<Long, RecommendCandidate> candidateMap
-        for (int i = 0; i < friendIdList.size(); i++) {
-            Long friendId = friendIdList.get(i); // 1촌 또는 2촌 친구
-            Set<Long> resultSet = results.get(i); // 1촌의 친구 (2촌) 또는 2촌의 친구 (3촌)
-            if (resultSet == null) continue;
-
-            for (Long targetId : resultSet) {
-                // 중복제거: 나 자신이거나 1촌친구에 있는 경우
-                if (targetId.equals(memberId) || myFriends.contains(targetId)) {
-                    continue;
-                }
-
-                // 친구ID로 상세 정보 가져오기
-                RecommendCandidate candidate = candidateMap.get(targetId);
-
-                if (candidate != null) {
-                    // 3촌 탐색 시 이미 2촌으로 등록된 경우 건너뛰기
-                    // 3촌의 경우 2촌 중복은 따로 계산해야함 왜냐하면 Map에서 2촌과 3촌이 섞여있고 객체내부 depth로만 구분할 수 있기 때문
-                    if (depth == 3 && candidate.getDepth() == 2) {
-                        continue;
-                    }
-                } else {
-                    double parentScore = 0;
-                    if (depth == 3) {
-                        // 3촌은 부모 2촌의 점수를 4분의 1 이어받음 3촌은 친구ID를 기록하지 않음
-                        parentScore = candidateMap.get(friendId).getCommonScore();
-                    }
-
-                    // 등록되지 않았으면 새로운 상세 정보 생성
-                    candidate = RecommendCandidate.initialCandidate(targetId, depth, parentScore, 0);
-                    candidateMap.put(targetId, candidate);
-                }
-
-                // 등록 여부와 상관없이 공통친구 추가 및 점수 증가
-                candidate.addCommonFriendAndScore((depth == 2) ? friendId : null);
-            }
-        }
     }
 
 
