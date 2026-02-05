@@ -60,7 +60,7 @@ public class FriendRecommendService {
             try {
                 return getRecommendedFriends(memberId, pageable, false);
             } catch (Exception dbe) {
-                throw new CustomException(ErrorCode.FRIEND_RECOMMEND_FAIL);
+                throw new CustomException(ErrorCode.FRIEND_RECOMMEND_FAIL, dbe);
             }
         }
     }
