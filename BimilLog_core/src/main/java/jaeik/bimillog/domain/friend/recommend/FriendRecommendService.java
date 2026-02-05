@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.friend.recommend;
 
-import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO.MemberInfo;
 import jaeik.bimillog.domain.friend.entity.RecommendCandidate;
 import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
 import jaeik.bimillog.domain.friend.repository.FriendshipQueryRepository;
@@ -25,22 +24,6 @@ import java.util.stream.Collectors;
 
 /**
  * <h2>친구 추천 서비스</h2>
- * <p>
- * BFS(너비 우선 탐색) 기반의 친구 추천 알고리즘을 구현합니다.
- * 2촌(친구의 친구) → 3촌 순서로 탐색하며, 공통 친구 수와 상호작용 점수를 기반으로
- * 추천 우선순위를 계산합니다.
- * </p>
- *
- * <h3>추천 알고리즘 흐름:</h3>
- * <ol>
- *   <li>내 친구(1촌) 목록 조회 (Redis)</li>
- *   <li>2촌 탐색: 친구의 친구 중 나와 친구가 아닌 사람 탐색</li>
- *   <li>3촌 탐색: 2촌이 부족할 경우 추가 탐색</li>
- *   <li>상호작용 점수 주입 (Redis)</li>
- *   <li>총점 기준 정렬 및 상위 N명 추출</li>
- *   <li>부족 시 최근 가입자로 보충</li>
- *   <li>블랙리스트 필터링</li>
- * </ol>
  *
  * @author Jaeik
  * @version 2.6.0
