@@ -59,38 +59,16 @@ public class FriendInteractionListener {
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handlePostLiked(PostLikeEvent event) {
-        // 익명 게시글은 상호작용 점수에 반영하지 않음
-        if (event.postAuthorId() == null) {
-            log.debug("익명 게시글 좋아요는 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
-            return;
-        }
-
-        // 자기 자신의 게시글에 좋아요한 경우 제외 (이미 블랙리스트 체크로 방지됨)
-        if (event.postAuthorId().equals(event.likerId())) {
-            log.debug("자기 자신의 게시글 좋아요는 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
-            return;
-        }
-
-        boolean processed = redisInteractionScoreRepository.addInteractionScore(
-                event.postAuthorId(), event.likerId(), event.getIdempotencyKey());
-
-        if (processed) {
-            log.debug("게시글 좋아요 상호작용 점수 증가: postId={}, authorId={}, likerId={}",
-                    event.postId(), event.postAuthorId(), event.likerId());
-        } else {
-            log.debug("이미 처리된 게시글 좋아요 이벤트 (멱등성 스킵): postId={}, idempotencyKey={}",
-                    event.postId(), event.getIdempotencyKey());
+        boolean processed = redisInteractionScoreRepository.addInteractionScore(event.getPostAuthorId(), event.getLikerId(), event.getEventId());
+        if (!processed) {
+            log.info("이미 처리된 게시글 좋아요 이벤트 : postId={}, idempotencyKey={}", event.getPostId(), event.getEventId());
         }
     }
 
     @Recover
     public void recoverPostLiked(Exception e, PostLikeEvent event) {
-        log.error("게시글 좋아요 상호작용 점수 증가 최종 실패: postId={}, authorId={}, likerId={}",
-                event.postId(), event.postAuthorId(), event.likerId(), e);
-
-        if (event.postAuthorId() != null && !event.postAuthorId().equals(event.likerId())) {
-            friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.postAuthorId(), event.likerId(), INTERACTION_SCORE_DEFAULT);
-        }
+        log.warn("게시글 추천 상호작용 점수 증가 실패 DLQ 진입: postId={}, authorId={}, likerId={}", event.getPostId(), event.getPostAuthorId(), event.getLikerId(), e);
+        friendEventDlqService.saveScoreUp(event.getEventId(), event.getPostAuthorId(), event.getLikerId(), INTERACTION_SCORE_DEFAULT);
     }
 
     /**

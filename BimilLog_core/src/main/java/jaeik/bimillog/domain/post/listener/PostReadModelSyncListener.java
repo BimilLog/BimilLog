@@ -154,25 +154,25 @@ public class PostReadModelSyncListener {
     )
     @Transactional
     public void handlePostLiked(PostLikeEvent event) {
-        String eventId = "LIKE_INC:" + event.getIdempotencyKey();
+        String eventId = "LIKE_INC:" + event.getEventId();
 
         if (processedEventRepository.existsById(eventId)) {
             log.debug("이미 처리된 이벤트 스킵: {}", eventId);
             return;
         }
 
-        postReadModelRepository.incrementLikeCount(event.postId());
+        postReadModelRepository.incrementLikeCount(event.getPostId());
         processedEventRepository.save(new ProcessedEvent(eventId, "LIKE_INCREMENT"));
 
-        log.debug("PostReadModel 좋아요 수 증가 완료: postId={}", event.postId());
+        log.debug("PostReadModel 좋아요 수 증가 완료: postId={}", event.getPostId());
     }
 
     @Recover
     public void recoverPostLiked(Exception e, PostLikeEvent event) {
-        log.error("PostReadModel 좋아요 수 증가 최종 실패: postId={}", event.postId(), e);
+        log.error("PostReadModel 좋아요 수 증가 최종 실패: postId={}", event.getPostId(), e);
         postReadModelDlqService.saveLikeIncrement(
-                "LIKE_INC:" + event.getIdempotencyKey(),
-                event.postId()
+                "LIKE_INC:" + event.getEventId(),
+                event.getPostId()
         );
     }
 
