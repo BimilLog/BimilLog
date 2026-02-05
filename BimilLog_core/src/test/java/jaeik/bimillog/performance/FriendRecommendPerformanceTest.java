@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
 import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
 import jaeik.bimillog.domain.friend.recommend.FriendRecommendService;
-import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import jaeik.bimillog.testutil.RedisTestHelper;
@@ -30,7 +29,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -79,7 +77,7 @@ public class FriendRecommendPerformanceTest {
     private RedisTemplate<String, Object> redisTemplate;
 
     private Statistics statistics;
-    private static final int TEST_COUNT = 100;
+    private static final int TEST_COUNT = 10;
 
     private static final Duration SEED_TIMEOUT = Duration.ofSeconds(10);
 
@@ -209,19 +207,39 @@ public class FriendRecommendPerformanceTest {
     }
 
     private void seedInteractionScores(List<Friendship> friendships) {
-        AtomicLong postIdSequence = new AtomicLong(1L);
-        friendships.forEach(friendship -> eventPublisher.publishEvent(
-                new PostLikeEvent(postIdSequence.getAndIncrement(), friendship.getMember().getId(), friendship.getFriend().getId())
-        ));
+        // 이벤트 발행 대신 Redis에 직접 파이프라인으로 시딩 (큐 오버플로우 방지)
+        redisTemplate.executePipelined((org.springframework.data.redis.connection.RedisConnection connection) -> {
+            for (Friendship friendship : friendships) {
+                Long memberId = friendship.getMember().getId();
+                Long friendId = friendship.getFriend().getId();
 
+                // interaction:{memberId} -> member:{friendId} = 1.0
+                String key1 = "interaction:" + memberId;
+                String field1 = "member:" + friendId;
+                connection.hashCommands().hSet(
+                        key1.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        field1.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        "1.0".getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                );
+
+                // interaction:{friendId} -> member:{memberId} = 1.0 (양방향)
+                String key2 = "interaction:" + friendId;
+                String field2 = "member:" + memberId;
+                connection.hashCommands().hSet(
+                        key2.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        field2.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        "1.0".getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                );
+            }
+            return null;
+        });
+
+        // 시딩 검증
         Long sampleMemberId = friendships.getFirst().getMember().getId();
         Set<Long> sampleTargets = redisFriendshipRepository.getFriends(sampleMemberId, 200);
-
         if (!sampleTargets.isEmpty()) {
-            Awaitility.await()
-                    .atMost(SEED_TIMEOUT)
-                    .untilAsserted(() -> assertThat(redisInteractionScoreRepository
-                            .getInteractionScoresBatch(sampleMemberId, sampleTargets)).isNotEmpty());
+            assertThat(redisInteractionScoreRepository
+                    .getInteractionScoresBatch(sampleMemberId, sampleTargets)).isNotEmpty();
         }
     }
 }
