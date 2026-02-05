@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.friend.recommend;
 
+import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO.MemberInfo;
 import jaeik.bimillog.domain.friend.entity.RecommendCandidate;
 import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
 import jaeik.bimillog.domain.friend.repository.FriendshipQueryRepository;
@@ -289,7 +290,7 @@ public class FriendRecommendService {
     }
 
     /**
-     * Redis 파이프라인 결과를 변환합니다.
+     * <h3>Redis 파이프라인 결과를 변환</h3>
      */
     @SuppressWarnings("unchecked")
     private List<List<Long>> toListOfLists(List<Object> results) {
@@ -320,15 +321,10 @@ public class FriendRecommendService {
 
         // ID 추출
         Set<Long> allIds = new HashSet<>();
-        for (RecommendCandidate c : candidates) {
-            allIds.add(c.getMemberId());
-            if (c.getAcquaintanceId() != null) {
-                allIds.add(c.getAcquaintanceId());
-            }
-        }
+        candidates.forEach(c -> c.addFriendId(allIds));
 
-        // Bulk Fetch (한 번의 쿼리로 모든 이름 조회)
-        Map<Long, String> memberNames = memberQueryRepository.getMemberNames(allIds);
+        // ID로 이름 조회
+        List<MemberInfo> memberInfos = memberQueryRepository.getMemberNames(allIds);
 
         // Mapping
         List<RecommendedFriendDTO> result = new ArrayList<>();

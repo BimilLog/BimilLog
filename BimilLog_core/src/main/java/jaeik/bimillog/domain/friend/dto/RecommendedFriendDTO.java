@@ -1,7 +1,9 @@
 package jaeik.bimillog.domain.friend.dto;
 
 import jaeik.bimillog.domain.friend.entity.RecommendCandidate;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * <h2>추천친구 응답 DTO</h2>
@@ -10,14 +12,16 @@ import lombok.Getter;
  * @author Jaeik
  */
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RecommendedFriendDTO {
-    private final Long friendMemberId;
-    private final String memberName;
-    private final Integer depth;
-    private final Long acquaintanceId;
-    private final String acquaintanceName;
-    private final boolean manyAcquaintance;
-    private final String introduce;
+    private Long friendMemberId;
+    private Integer depth;
+    private Long acquaintanceId;
+    private boolean manyAcquaintance;
+    private String memberName;
+    private String acquaintanceName;
+    private String introduce;
 
     private RecommendedFriendDTO(Long friendMemberId, String memberName, Integer depth, Long acquaintanceId,
                                  String acquaintanceName, boolean manyAcquaintance, String introduce) {
@@ -36,11 +40,11 @@ public class RecommendedFriendDTO {
         String introduce = createIntroduce(candidate.getDepth(), acquaintanceName, candidate.isManyAcquaintance());
         return new RecommendedFriendDTO(
                 candidate.getMemberId(),
-                memberName,
                 candidate.getDepth(),
                 candidate.getAcquaintanceId(),
-                acquaintanceName,
                 candidate.isManyAcquaintance(),
+                memberInfo.memberName,
+                memberInfo.acquaintanceName,
                 introduce
         );
     }
@@ -53,5 +57,11 @@ public class RecommendedFriendDTO {
             return acquaintance + " 외 다수의 공통 친구";
         }
         return acquaintance + "의 친구";
+    }
+
+    @Getter
+    public static class MemberInfo {
+        private String friendMemberId;
+        private String memberName;
     }
 }

@@ -92,6 +92,13 @@ public class RecommendCandidate {
         }
     }
 
+    public void addFriendId(Set<Long> ids) {
+        ids.add(memberId);
+        if (acquaintanceId != null) {
+            ids.add(acquaintanceId);
+        }
+    }
+
 
     /**
      * <h3>총점을 계산합니다.</h3>

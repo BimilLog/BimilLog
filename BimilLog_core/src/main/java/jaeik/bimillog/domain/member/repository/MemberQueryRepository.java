@@ -6,7 +6,10 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.auth.entity.QAuthToken;
+import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
+import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO.MemberInfo;
 import jaeik.bimillog.domain.friend.entity.Friend;
+import jaeik.bimillog.domain.friend.entity.Friend.FriendInfo;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QSetting;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
@@ -106,9 +109,9 @@ public class MemberQueryRepository {
      * 여러 사용자 ID로 친구 추가 정보 조회
      * 친구 조회시 사용
      */
-    public List<Friend.FriendInfo> getMyFriendPages (List<Long> friendIds) {
+    public List<FriendInfo> getMyFriendPages (List<Long> friendIds) {
         return jpaQueryFactory
-                .select(Projections.constructor(Friend.FriendInfo.class,
+                .select(Projections.constructor(FriendInfo.class,
                         member.id,
                         member.memberName,
                         member.thumbnailImage
@@ -121,19 +124,15 @@ public class MemberQueryRepository {
     /**
      * 여러 사용자 ID로 회원 이름 조회
      */
-    public Map<Long, String> getMemberNames(Collection<Long> memberIds) {
-        if (memberIds.isEmpty()) return Collections.emptyMap();
-
+    public List<MemberInfo> getMemberNames(List<Long> memberIds) {
         return jpaQueryFactory
-                .select(member.id, member.memberName)
+                .select(Projections.constructor(MemberInfo.class,
+                        member.id,
+                        member.memberName))
                 .from(member)
                 .where(member.id.in(memberIds))
-                .fetch()
-                .stream()
-                .collect(Collectors.toMap(
-                        tuple -> tuple.get(member.id),
-                        tuple -> tuple.get(member.memberName)
-                ));
+                .fetch();
+
     }
 
     /**
