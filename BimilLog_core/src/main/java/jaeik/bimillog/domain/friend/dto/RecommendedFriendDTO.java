@@ -19,9 +19,8 @@ public class RecommendedFriendDTO {
     private final boolean manyAcquaintance;
     private final String introduce;
 
-    private RecommendedFriendDTO(Long friendMemberId, String memberName, Integer depth,
-                                 Long acquaintanceId, String acquaintanceName,
-                                 boolean manyAcquaintance, String introduce) {
+    private RecommendedFriendDTO(Long friendMemberId, String memberName, Integer depth, Long acquaintanceId,
+                                 String acquaintanceName, boolean manyAcquaintance, String introduce) {
         this.friendMemberId = friendMemberId;
         this.memberName = memberName;
         this.depth = depth;
@@ -32,14 +31,12 @@ public class RecommendedFriendDTO {
     }
 
     public static RecommendedFriendDTO from(RecommendCandidate candidate,
-                                            RecommendedFriendInfo friendInfo,
-                                            AcquaintanceInfo acqInfo) {
-        String acquaintanceName = acqInfo != null ? acqInfo.acquaintanceName() : null;
+                                            String memberName,
+                                            String acquaintanceName) {
         String introduce = createIntroduce(candidate.getDepth(), acquaintanceName, candidate.isManyAcquaintance());
-
         return new RecommendedFriendDTO(
                 candidate.getMemberId(),
-                friendInfo.memberName(),
+                memberName,
                 candidate.getDepth(),
                 candidate.getAcquaintanceId(),
                 acquaintanceName,
@@ -57,8 +54,4 @@ public class RecommendedFriendDTO {
         }
         return acquaintance + "의 친구";
     }
-
-    public record RecommendedFriendInfo(Long friendMemberId, String memberName) {}
-
-    public record AcquaintanceInfo(Long acquaintanceId, String acquaintanceName) {}
 }

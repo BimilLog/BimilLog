@@ -314,41 +314,30 @@ public class FriendRecommendService {
      * @return 추천 친구 응답 페이지
      */
     private Page<RecommendedFriendDTO> toResponsePage(List<RecommendCandidate> candidates, Pageable pageable) {
-        if (candidates.isEmpty()) return Page.empty(pageable);
+        if (candidates.isEmpty()) {
+            return Page.empty(pageable);
+        }
 
-        List<Long> memberIds = new ArrayList<>();
-        Set<Long> acqIds = new HashSet<>();
+        // ID 추출
+        Set<Long> allIds = new HashSet<>();
         for (RecommendCandidate c : candidates) {
-            memberIds.add(c.getMemberId());
+            allIds.add(c.getMemberId());
             if (c.getAcquaintanceId() != null) {
-                acqIds.add(c.getAcquaintanceId());
+                allIds.add(c.getAcquaintanceId());
             }
         }
 
-        // Bulk Fetch
-        Map<Long, RecommendedFriendDTO.RecommendedFriendInfo> friendInfos = new HashMap<>();
-        for (RecommendedFriendDTO.RecommendedFriendInfo info : memberQueryRepository.addRecommendedFriendInfo(memberIds)) {
-            friendInfos.put(info.friendMemberId(), info);
-        }
-
-        Map<Long, RecommendedFriendDTO.AcquaintanceInfo> acqInfos;
-        if (acqIds.isEmpty()) {
-            acqInfos = Collections.emptyMap();
-        } else {
-            acqInfos = new HashMap<>();
-            for (RecommendedFriendDTO.AcquaintanceInfo info : memberQueryRepository.addAcquaintanceInfo(new ArrayList<>(acqIds))) {
-                acqInfos.put(info.acquaintanceId(), info);
-            }
-        }
+        // Bulk Fetch (한 번의 쿼리로 모든 이름 조회)
+        Map<Long, String> memberNames = memberQueryRepository.getMemberNames(allIds);
 
         // Mapping
         List<RecommendedFriendDTO> result = new ArrayList<>();
         for (RecommendCandidate c : candidates) {
-            RecommendedFriendDTO.RecommendedFriendInfo info = friendInfos.get(c.getMemberId());
-            if (info == null) continue;
+            String memberName = memberNames.get(c.getMemberId());
+            if (memberName == null) continue;
 
-            RecommendedFriendDTO.AcquaintanceInfo acqInfo = acqInfos.get(c.getAcquaintanceId());
-            result.add(RecommendedFriendDTO.from(c, info, acqInfo));
+            String acquaintanceName = memberNames.get(c.getAcquaintanceId());
+            result.add(RecommendedFriendDTO.from(c, memberName, acquaintanceName));
         }
 
         return new PageImpl<>(result, pageable, result.size());

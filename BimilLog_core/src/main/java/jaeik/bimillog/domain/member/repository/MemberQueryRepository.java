@@ -7,7 +7,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.auth.entity.QAuthToken;
 import jaeik.bimillog.domain.friend.entity.Friend;
-import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QSetting;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
@@ -16,8 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -120,31 +119,21 @@ public class MemberQueryRepository {
     }
 
     /**
-     * 여러 사용자 ID로 추천 친구 추가 정보 조회
+     * 여러 사용자 ID로 회원 이름 조회
      */
-    public List<RecommendedFriendDTO.RecommendedFriendInfo> addRecommendedFriendInfo(List<Long> friendIds) {
-        return jpaQueryFactory
-                .select(Projections.constructor(RecommendedFriendDTO.RecommendedFriendInfo.class,
-                        member.id,
-                        member.memberName
-                ))
-                .from(member)
-                .where(member.id.in(friendIds))
-                .fetch();
-    }
+    public Map<Long, String> getMemberNames(Collection<Long> memberIds) {
+        if (memberIds.isEmpty()) return Collections.emptyMap();
 
-    /**
-     * 여러 사용자 ID로 추천 친구 아는 사람 추가 정보 조회
-     */
-    public List<RecommendedFriendDTO.AcquaintanceInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
         return jpaQueryFactory
-                .select(Projections.constructor(RecommendedFriendDTO.AcquaintanceInfo.class,
-                        member.id,
-                        member.memberName
-                ))
+                .select(member.id, member.memberName)
                 .from(member)
-                .where(member.id.in(acquaintanceIds))
-                .fetch();
+                .where(member.id.in(memberIds))
+                .fetch()
+                .stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(member.id),
+                        tuple -> tuple.get(member.memberName)
+                ));
     }
 
     /**

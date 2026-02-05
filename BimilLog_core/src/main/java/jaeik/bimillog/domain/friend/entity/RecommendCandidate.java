@@ -70,6 +70,9 @@ public class RecommendCandidate {
         return recommendCandidate;
     }
 
+    /**
+     * 친구와 점수를 증가한다
+     */
     public void addCommonFriendAndScore(Long friendId) {
         if (depth == 2) {
             commonFriends.add(friendId);
@@ -106,9 +109,13 @@ public class RecommendCandidate {
      * @return 총점
      */
     public double calculateTotalScore() {
-        double base = 0;
+        double depthScore = 0;
+        if (depth == 2) {
+            depthScore = 50;
+        } else if (depth == 3) {
+            depthScore = 20;
+        }
         double interaction = Math.min(interactionScore, 10.0);
-
-        return base + commonScore + interaction;
+        return depthScore + commonScore + interaction;
     }
 }
