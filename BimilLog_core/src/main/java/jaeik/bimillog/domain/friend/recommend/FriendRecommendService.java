@@ -342,17 +342,20 @@ public class FriendRecommendService {
         if (myFriends.isEmpty()) return new ArrayList<>();
 
         // A. 2촌 탐색
-        Map<Long, Set<Long>> secondResults = friendshipQueryRepository.getFriendIdsBatch(myFriends);
-        processDegreeSearchFromDb(secondResults, 2, memberId, myFriends, candidateMap);
+        List<Long> myFriendList = new ArrayList<>(myFriends);
+
+        // DB에서 2촌 결과 가져옴
+        List<Set<Long>> secondResults = friendshipQueryRepository.getFriendIdsBatch(myFriendList);
+        processDegreeSearchFromDb(myFriendList, secondResults, 2, memberId, myFriends, candidateMap);
 
         // B. 3촌 탐색 (2촌이 10명 이하일 때)
         if (candidateMap.size() < RECOMMEND_LIMIT) {
             // 2촌의 ID들
-            Set<Long> secondDegreeIds = candidateMap.keySet();
+            List<Long> secondDegreeList = new ArrayList<>(candidateMap.keySet());
 
             // 2촌의 ID로 3촌 친구들을 불러옴
-            Map<Long, Set<Long>> thirdResults = friendshipQueryRepository.getFriendIdsBatch(secondDegreeIds);
-            processDegreeSearchFromDb(thirdResults, 3, memberId, myFriends, candidateMap);
+            List<Set<Long>> thirdResults = friendshipQueryRepository.getFriendIdsBatch(secondDegreeList);
+            processDegreeSearchFromDb(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
         }
 
         return new ArrayList<>(candidateMap.values());
@@ -361,14 +364,14 @@ public class FriendRecommendService {
     /**
      * 2촌/3촌 탐색 공통 처리 (DB)
      */
-    private void processDegreeSearchFromDb(Map<Long, Set<Long>> results, int depth,
+    private void processDegreeSearchFromDb(List<Long> friendIdList, List<Set<Long>> results, int depth,
                                            Long memberId, Set<Long> myFriends, Map<Long, RecommendCandidate> candidateMap) {
-        for (Map.Entry<Long, Set<Long>> entry : results.entrySet()) {
-            Long friendId = entry.getKey(); // 1촌 또는 2촌 친구
-            Set<Long> friendsSet = entry.getValue(); // 1촌의 친구 (2촌) 또는 2촌의 친구 (3촌)
-            if (friendsSet == null) continue;
+        for (int i = 0; i < friendIdList.size(); i++) {
+            Long friendId = friendIdList.get(i); // 1촌 또는 2촌 친구
+            Set<Long> resultSet = results.get(i); // 1촌의 친구 (2촌) 또는 2촌의 친구 (3촌)
+            if (resultSet == null) continue;
 
-            for (Long targetId : friendsSet) {
+            for (Long targetId : resultSet) {
                 // 중복제거: 나 자신이거나 1촌친구에 있는 경우
                 if (targetId.equals(memberId) || myFriends.contains(targetId)) {
                     continue;

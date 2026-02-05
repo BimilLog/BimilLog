@@ -74,21 +74,23 @@ public class FriendshipQueryRepository {
      * 여러 회원의 친구 목록을 한 번의 쿼리로 조회합니다.
      * Redis 폴백용으로, 양방향 친구 관계를 Java에서 매핑합니다.
      *
-     * @param memberIds 조회할 회원 ID 집합
-     * @return Map&lt;회원ID, 친구ID Set&gt;
+     * @param memberIdList 조회할 회원 ID 목록 (순서 유지)
+     * @return 파이프라인 결과 (memberIdList 순서와 동일)
      */
-    public Map<Long, Set<Long>> getFriendIdsBatch(Set<Long> memberIds) {
-        if (memberIds.isEmpty()) return new HashMap<>();
+    public List<Set<Long>> getFriendIdsBatch(List<Long> memberIdList) {
+        if (memberIdList.isEmpty()) return new ArrayList<>();
+
+        Set<Long> memberIdSet = new HashSet<>(memberIdList);
 
         List<Tuple> results = jpaQueryFactory
                 .select(friendship.member.id, friendship.friend.id)
                 .from(friendship)
-                .where(friendship.member.id.in(memberIds)
-                        .or(friendship.friend.id.in(memberIds)))
+                .where(friendship.member.id.in(memberIdSet)
+                        .or(friendship.friend.id.in(memberIdSet)))
                 .fetch();
 
         Map<Long, Set<Long>> resultMap = new HashMap<>();
-        for (Long id : memberIds) {
+        for (Long id : memberIdList) {
             resultMap.put(id, new HashSet<>());
         }
 
@@ -96,15 +98,21 @@ public class FriendshipQueryRepository {
             Long mId = tuple.get(friendship.member.id);
             Long fId = tuple.get(friendship.friend.id);
 
-            if (memberIds.contains(mId)) {
+            if (memberIdSet.contains(mId)) {
                 resultMap.get(mId).add(fId);
             }
-            if (memberIds.contains(fId)) {
+            if (memberIdSet.contains(fId)) {
                 resultMap.get(fId).add(mId);
             }
         }
 
-        return resultMap;
+        // memberIdList 순서대로 결과 반환
+        List<Set<Long>> resultList = new ArrayList<>();
+        for (Long id : memberIdList) {
+            resultList.add(resultMap.get(id));
+        }
+
+        return resultList;
     }
 
     // 모든 멤버의 본인, 1촌, 2촌 연결관계를 가지고 온다.
