@@ -105,33 +105,27 @@ public class RedisInteractionScoreRepository {
      *
      * @param memberId  기준 회원 ID
      * @param targetIds 점수를 조회할 대상(후보자) ID 목록
-     * @return Map<대상ID, 점수>
+     * @return 파이프라인 결과 (targetIds 순서와 동일, null 포함 가능)
      */
-    public Map<Long, Double> getInteractionScoresBatch(Long memberId, List<Long> targetIds) {
+    public List<Object> getInteractionScoresBatch(Long memberId, List<Long> targetIds) {
         String key = INTERACTION_PREFIX + memberId;
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-        Map<Long, Double> resultMap = new HashMap<>();
+        List<Object> allResults = new ArrayList<>();
 
         try {
             for (int i = 0; i < targetIds.size(); i += PIPELINE_BATCH_SIZE) {
                 List<Long> batch = targetIds.subList(i, Math.min(i + PIPELINE_BATCH_SIZE, targetIds.size()));
 
-                List<Object> results = redisTemplate.executePipelined((RedisConnection connection) -> {
+                List<Object> batchResults = redisTemplate.executePipelined((RedisConnection connection) -> {
                     for (Long targetId : batch) {
                         String field = INTERACTION_SUFFIX + targetId;
                         connection.hashCommands().hGet(keyBytes, field.getBytes(StandardCharsets.UTF_8));
                     }
                     return null;
                 });
-
-                for (int j = 0; j < batch.size(); j++) {
-                    Object scoreObj = results.get(j);
-                    if (scoreObj != null) {
-                        resultMap.put(batch.get(j), Double.parseDouble(scoreObj.toString()));
-                    }
-                }
+                allResults.addAll(batchResults);
             }
-            return resultMap;
+            return allResults;
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_QUERY_ERROR, e);
         }

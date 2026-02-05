@@ -164,11 +164,13 @@ class FriendRecommendServiceIntegrationTest {
         Awaitility.await()
                 .atMost(EVENT_TIMEOUT)
                 .untilAsserted(() -> {
-                    var scores = redisInteractionScoreRepository.getInteractionScoresBatch(
+                    var results = redisInteractionScoreRepository.getInteractionScoresBatch(
                             member1.getId(),
                             List.of(member4.getId(), member5.getId())
                     );
-                    assertThat(scores).containsKeys(member4.getId(), member5.getId());
+                    // member4, member5 둘 다 점수가 존재해야 함
+                    assertThat(results.get(0)).isNotNull();
+                    assertThat(results.get(1)).isNotNull();
                 });
     }
 
@@ -346,10 +348,12 @@ class FriendRecommendServiceIntegrationTest {
         var targetIds = java.util.List.of(member4.getId(), member5.getId());
 
         // When
-        var scores = redisInteractionScoreRepository.getInteractionScoresBatch(member1.getId(), targetIds);
+        var results = redisInteractionScoreRepository.getInteractionScoresBatch(member1.getId(), targetIds);
 
-        // Then
-        assertThat(scores).containsKeys(member4.getId(), member5.getId());
-        assertThat(scores.get(member4.getId())).isGreaterThan(scores.get(member5.getId()));
+        // Then: member4 점수 > member5 점수 (member4는 이벤트 2회, member5는 1회)
+        assertThat(results).hasSize(2);
+        double score4 = Double.parseDouble(results.get(0).toString());
+        double score5 = Double.parseDouble(results.get(1).toString());
+        assertThat(score4).isGreaterThan(score5);
     }
 }

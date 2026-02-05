@@ -247,8 +247,9 @@ public class FriendRecommendPerformanceTest {
         Long sampleMemberId = friendships.getFirst().getMember().getId();
         Set<Long> sampleTargets = redisFriendshipRepository.getFriends(sampleMemberId, 200);
         if (!sampleTargets.isEmpty()) {
-            assertThat(redisInteractionScoreRepository
-                    .getInteractionScoresBatch(sampleMemberId, new ArrayList<>(sampleTargets))).isNotEmpty();
+            List<Object> results = redisInteractionScoreRepository
+                    .getInteractionScoresBatch(sampleMemberId, new ArrayList<>(sampleTargets));
+            assertThat(results.stream().anyMatch(r -> r != null)).isTrue();
         }
     }
 }
