@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <h2>댓글 명령 서비스</h2>
@@ -88,7 +89,8 @@ public class CommentCommandService {
 
             saveCommentWithClosure(post, member, content, password, parentId);
 
-            if (post.getMember() != null) {
+            // 익명 댓글이 아니고, 자기 게시글이 아닌 경우에만 이벤트 발행
+            if (memberId != null && post.getMember() != null && !Objects.equals(post.getMember().getId(), memberId)) {
                 eventPublisher.publishEvent(new CommentCreatedEvent(
                         post.getMember().getId(),
                         memberName,
@@ -178,9 +180,13 @@ public class CommentCommandService {
                     .build();
             commentLikeRepository.save(commentLike);
 
-            // 댓글 좋아요 이벤트 발행 (상호작용 점수 증가)
-            Long commentAuthorId = comment.getMember() != null ? comment.getMember().getId() : null;
-            eventPublisher.publishEvent(new CommentLikeEvent(commentId, commentAuthorId, memberId));
+            // 익명 댓글 또는 자기 댓글이 아닌 경우에만 이벤트 발행
+            if (comment.getMember() != null) {
+                Long commentAuthorId = comment.getMember().getId();
+                if (!Objects.equals(commentAuthorId, memberId)) {
+                    eventPublisher.publishEvent(new CommentLikeEvent(commentId, commentAuthorId, memberId));
+                }
+            }
         }
     }
 
