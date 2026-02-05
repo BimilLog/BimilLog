@@ -11,6 +11,7 @@ import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -73,6 +74,18 @@ public class FriendRecommendService {
     @Transactional(readOnly = true)
     public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
         try {
+            return getRecommendedFriends(memberId, pageable);
+        } catch (Exception e) {
+            log.error("Redis 실패로 DB 폴백 실행: memberId={}", memberId, e);
+            try {
+                return getRecommendFromDb(memberId, pageable);
+            } catch (Exception dbe) {
+                throw new CustomException(ErrorCode.FRIEND_RECOMMEND_FAIL);
+            }
+        }
+    }
+
+    private Page<RecommendedFriend> getRecommendedFriends(Long memberId, Pageable pageable) {
             List<RecommendCandidate> candidates = new ArrayList<>();
 
             // 1. 내 친구(1촌) 조회
@@ -113,15 +126,49 @@ public class FriendRecommendService {
 
             // 8. 회원 정보 조회 및 응답 DTO 변환
             return toResponsePage(topCandidates, pageable);
-        } catch (Exception e) {
-            log.error("Redis 실패로 DB 폴백 실행: memberId={}", memberId, e);
-            try {
-                return getRecommendFromDb(memberId, pageable);
-            } catch (Exception dbe) {
-                throw new CustomException(ErrorCode.FRIEND_RECOMMEND_FAIL);
-            }
-        }
+
     }
+
+    /**
+     * <h3>Redis 실패 시 DB 기반으로 친구 추천 목록을 조회합니다.</h3>
+     * <p>
+     * Redis 경로와 동일한 BFS 알고리즘을 DB에서 수행하되,
+     * 상호작용 점수 계산은 제외합니다.
+     * </p>
+     *
+     * @param memberId 추천을 요청한 회원 ID
+     * @param pageable 페이지네이션 정보
+     * @return 추천 친구 목록 (페이지)
+     */
+    private Page<RecommendedFriend> getRecommendFromDb(Long memberId, Pageable pageable) {
+        // 1. DB로 1촌 조회
+        Set<Long> myFriends = friendshipQueryRepository.getMyFriendIdsSet(memberId, FIRST_FRIEND_SCAN_LIMIT);
+
+        // 2. DB로 2촌/3촌 탐색
+        List<RecommendCandidate> candidates = new ArrayList<>(findAndScoreCandidates(memberId, myFriends, false).values());
+
+        // 3. 상호작용 점수 주입 생략
+
+        // 4. 부족한 인원 보충 - 최근 가입자 (상호작용 제외)
+        if (candidates.size() < RECOMMEND_LIMIT) {
+            Set<Long> excludeIds = buildExcludeIds(memberId, myFriends, candidates);
+            fillFromRecentMembers(candidates, excludeIds);
+        }
+
+        // 5. 블랙리스트 필터링
+        Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
+        candidates.removeIf(c -> blacklist.contains(c.getMemberId()));
+
+        // 6. 최종 정렬 및 상위 N명 추출
+        List<RecommendCandidate> topCandidates = candidates.stream()
+                .sorted(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed())
+                .limit(RECOMMEND_LIMIT)
+                .toList();
+
+        // 7. 응답 변환
+        return toResponsePage(topCandidates, pageable);
+    }
+
 
     /**
      * <h3>2촌 3촌 후보자 탐색</h3>
@@ -165,45 +212,6 @@ public class FriendRecommendService {
         return candidateMap;
     }
 
-    /**
-     * <h3>Redis 실패 시 DB 기반으로 친구 추천 목록을 조회합니다.</h3>
-     * <p>
-     * Redis 경로와 동일한 BFS 알고리즘을 DB에서 수행하되,
-     * 상호작용 점수 계산은 제외합니다.
-     * </p>
-     *
-     * @param memberId 추천을 요청한 회원 ID
-     * @param pageable 페이지네이션 정보
-     * @return 추천 친구 목록 (페이지)
-     */
-    private Page<RecommendedFriend> getRecommendFromDb(Long memberId, Pageable pageable) {
-        // 1. DB로 1촌 조회
-        Set<Long> myFriends = friendshipQueryRepository.getMyFriendIdsSet(memberId, FIRST_FRIEND_SCAN_LIMIT);
-
-        // 2. DB로 2촌/3촌 탐색
-        List<RecommendCandidate> candidates = new ArrayList<>(findAndScoreCandidates(memberId, myFriends, false).values());
-
-        // 3. 상호작용 점수 주입 생략
-
-        // 4. 부족한 인원 보충 - 최근 가입자 (상호작용 제외)
-        if (candidates.size() < RECOMMEND_LIMIT) {
-            Set<Long> excludeIds = buildExcludeIds(memberId, myFriends, candidates);
-            fillFromRecentMembers(candidates, excludeIds);
-        }
-
-        // 5. 블랙리스트 필터링
-        Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
-        candidates.removeIf(c -> blacklist.contains(c.getMemberId()));
-
-        // 6. 최종 정렬 및 상위 N명 추출
-        List<RecommendCandidate> topCandidates = candidates.stream()
-                .sorted(Comparator.comparingDouble(RecommendCandidate::calculateTotalScore).reversed())
-                .limit(RECOMMEND_LIMIT)
-                .toList();
-
-        // 7. 응답 변환
-        return toResponsePage(topCandidates, pageable);
-    }
 
 
 
