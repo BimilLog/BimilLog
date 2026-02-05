@@ -39,8 +39,8 @@ import java.util.*;
  *   <li>블랙리스트 필터링</li>
  * </ol>
  *
- * @version 2.6.0
  * @author Jaeik
+ * @version 2.6.0
  */
 @Service
 @RequiredArgsConstructor
@@ -152,7 +152,7 @@ public class FriendRecommendService {
                     candidate = RecommendCandidate.of(secondFriendId, 2);
                     candidateMap.put(secondFriendId, candidate);
                 }
-                // 이미 등록 되었으면 1촌끼리 같은 2촌을 안다는 뜻 공통친구에 추가
+                // 이미 등록 되었으면 1촌끼리 같은 2촌을 안다는 뜻 공통친구에 추가하고 점수 증가
                 candidate.addCommonFriend(friendId);
             }
         }
@@ -173,26 +173,31 @@ public class FriendRecommendService {
                 }
 
                 for (Long thirdFriendId : thirdResultList) {
-                    // 중복제거 3촌친구가 나이거나 1촌친구에 3촌이 있거나 2촌친구에 3촌이 있거나
-                    if (thirdFriendId.equals(memberId) || myFriends.contains(thirdFriendId) || candidateMap.containsKey(thirdFriendId)) {
+                    // 중복제거 3촌친구가 나이거나 1촌친구에 3촌이 있을경우
+                    if (thirdFriendId.equals(memberId) || myFriends.contains(thirdFriendId)) {
                         continue;
                     }
 
-                    // 2촌친구의 공통친구 크기
-                    // 여러 1촌들이 2촌을 알고 거기서 2촌의 친구로 나오는 3촌은 2촌의 공통친구 만큼의 점수를 이어받음
-                    int bridgeScore = candidateMap.get(secondDegreeId).getCommonFriends().size();
+                    // 3촌친구 불러옴
+                    RecommendCandidate existing = candidateMap.get(thirdFriendId);
 
-                    // 3촌친구들로 3촌의 공통친구 찾기
-                    RecommendCandidate candidate = candidateMap.get(thirdFriendId);
-
-                    // 등록되지 않았으면 ID와 3촌깊이 삽입
-                    if (candidate == null) {
-                        candidate = RecommendCandidate.of(thirdFriendId, 3);
+                    if (existing == null) {
+                        // 등록되지 않았으면 ID와 3촌깊이 삽입
+                        // 여러 1촌들이 2촌을 알고 거기서 2촌의 친구로 나오는 3촌은 2촌의 점수를 4분의 1을 이어받음
+                        RecommendCandidate candidate = RecommendCandidate.of(thirdFriendId, 3);
+                        double parentScore = candidateMap.get(secondDegreeId).getCommonScore();
+                        candidate.initThreeDegreeScore(parentScore);
                         candidateMap.put(thirdFriendId, candidate);
+                        continue;
                     }
 
-                    // 이미 등록되었으면 2촌이 이미 3촌을 안다는 뜻
-                    candidate.addThreeDegreeScore(bridgeScore);
+                    // 만약 3촌이 2촌친구에 등록되어 있다면 건너뛰기
+                    if (existing.getDepth() == 2) {
+                        continue;
+                    }
+
+                    // 이미 등록이 되어있으면 2촌들이 3촌을 안다는 뜻 점수 0.5 상승
+                    existing.addThreeDegreeScore();
                 }
             }
         }
@@ -353,7 +358,8 @@ public class FriendRecommendService {
                 Set<Long> friendsSet = entry.getValue();
                 if (friendsSet == null) continue;
                 for (Long targetId : friendsSet) {
-                    if (targetId.equals(memberId) || myFriends.contains(targetId) || candidateMap.containsKey(targetId)) continue;
+                    if (targetId.equals(memberId) || myFriends.contains(targetId) || candidateMap.containsKey(targetId))
+                        continue;
 
                     int bridgeScore = candidateMap.get(secondDegreeId).getCommonFriends().size();
                     RecommendCandidate candidate = candidateMap.get(targetId);

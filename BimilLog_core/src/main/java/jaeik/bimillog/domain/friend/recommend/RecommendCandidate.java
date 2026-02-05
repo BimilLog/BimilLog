@@ -16,9 +16,16 @@ import java.util.Set;
  *
  * <h3>점수 계산 공식:</h3>
  * <ul>
- *   <li><b>2촌:</b> 기본 50점 + 공통친구 수 × 2 (최대 20점) + 상호작용 점수 (최대 10점)</li>
- *   <li><b>3촌:</b> 기본 20점 + 가상점수 (최대 5점) + 상호작용 점수 (최대 10점)</li>
+ *   <li><b>2촌:</b> 기본 50점 + commonScore (최대 20점) + 상호작용 점수 (최대 10점)</li>
+ *   <li><b>3촌:</b> 기본 20점 + commonScore (최대 5점) + 상호작용 점수 (최대 10점)</li>
  *   <li><b>기타(0촌):</b> 상호작용 점수만 적용 (최대 10점)</li>
+ * </ul>
+ *
+ * <h3>commonScore 누적 방식:</h3>
+ * <ul>
+ *   <li><b>2촌:</b> 공통친구 발견 시 +2</li>
+ *   <li><b>3촌 첫 생성:</b> 부모 2촌의 commonScore × 0.25</li>
+ *   <li><b>3촌 추가 발견:</b> +0.5</li>
  * </ul>
  *
  * @version 2.6.0
@@ -34,13 +41,13 @@ public class RecommendCandidate {
     // 촌수 (2: 친구의 친구, 3: 친구의 친구의 친구, 0: 기타)
     private int depth;
 
-    // 2촌용 공통친구 ID 집합 (나와 후보자가 공통으로 아는 친구)
+    // 공통친구 ID 집합 (나와 후보자가 공통으로 아는 친구, 2촌용)
     @Builder.Default
     private Set<Long> commonFriends = new HashSet<>();
 
-    // 3촌용 공통친구 점수 (연결 고리가 되는 2촌의 공통친구 수 기반)
+    // 공통 점수 (2촌: +2, 3촌 첫 생성: 부모×0.25, 3촌 추가: +0.5)
     @Builder.Default
-    private double mutualThreeDegreeScore = 0.0;
+    private double commonScore = 0.0;
 
     // 상호작용 점수 (롤링페이퍼, 좋아요 등 과거 활동 기반)
     @Builder.Default
@@ -72,57 +79,61 @@ public class RecommendCandidate {
      * <p>
      * 첫 번째로 추가되는 친구는 화면 표시용 대표 친구(acquaintanceId)로 설정됩니다.
      * 공통 친구가 2명 이상이면 manyAcquaintance 플래그가 설정됩니다.
+     * 점수는 +2점 추가됩니다.
      * </p>
      *
      * @param friendId 공통 친구 회원 ID
      */
     public void addCommonFriend(Long friendId) {
         commonFriends.add(friendId);
-
-        // 첫 친구라면 첫 친구를 대표로
-        if (acquaintanceId == null) {
-            acquaintanceId = friendId; // 첫 친구를 대표로
+        if (commonScore < 20) {
+            commonScore += 2;
         }
 
-        // 친구가 두명이상이라면 많은 공통친구 표시 화면에 누구누구외 몇명의 공통친구라고 표시 위함
+        if (acquaintanceId == null) {
+            acquaintanceId = friendId;
+        }
+
         if (commonFriends.size() >= 2) {
             this.manyAcquaintance = true;
         }
     }
 
     /**
-     * <h3>3촌 점수 추가.</h3>
-     * <p>
-     * 연결 고리가 되는 2촌의 공통친구 수에 0.5 가중치를 적용하여 가산합니다.
-     * </p>
+     * <h3>3촌 점수를 초기화합니다 (첫 생성 시).</h3>
      *
-     * @param score 연결 고리 2촌의 공통친구 수
+     * @param parentScore 부모 2촌의 commonScore
      */
-    public void addThreeDegreeScore(int score) {
-        this.mutualThreeDegreeScore += (score * 0.5);
+    public void initThreeDegreeScore(double parentScore) {
+        this.commonScore = Math.min(parentScore * 0.25, 5);
+    }
+
+    /**
+     * <h3>3촌 추가 발견 시 점수를 더합니다.</h3>
+     */
+    public void addThreeDegreeScore() {
+        if (commonScore < 5) {
+            commonScore += 0.5;
+        }
     }
 
     /**
      * <h3>총점을 계산합니다.</h3>
      * <p>
-     * 촌수에 따른 기본 점수, 공통친구/가상 점수, 상호작용 점수를 합산합니다.
+     * 촌수에 따른 기본 점수, 공통 점수, 상호작용 점수를 합산합니다.
      * </p>
      *
      * <h4>점수 구성:</h4>
      * <ul>
      *   <li><b>기본 점수:</b> 2촌=50, 3촌=20, 기타=0</li>
-     *   <li><b>공통친구 점수 (2촌):</b> min(공통친구 수, 10) × 2</li>
-     *   <li><b>가상 점수 (3촌):</b> min(virtualScore, 5)</li>
+     *   <li><b>공통 점수:</b> commonScore (2촌 최대 20, 3촌 최대 5 - 증가 시점에 제한)</li>
      *   <li><b>상호작용 점수:</b> min(interactionScore, 10)</li>
      * </ul>
      *
-     * @return 총점 (0 ~ 80점 범위)
+     * @return 총점
      */
     public double calculateTotalScore() {
         double base = (depth == 2) ? 50 : (depth == 3) ? 20 : 0;
-        double commonScore = (depth == 2)
-                ? Math.min(commonFriends.size(), 10) * 2
-                : Math.min(mutualThreeDegreeScore, 5);
         double interaction = Math.min(interactionScore, 10.0);
 
         return base + commonScore + interaction;
