@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * <h2>PostInteractionService</h2>
@@ -70,8 +71,12 @@ public class PostInteractionService {
             postLikeRepository.save(postLike);
 
             // 실시간 인기글 점수 증가 및 상호작용 점수 증가 이벤트 발행
-            Long postAuthorId = post.getMember() != null ? post.getMember().getId() : null;
-            eventPublisher.publishEvent(new PostLikeEvent(postId, postAuthorId, memberId));
+            if (post.getMember() != null) {
+                Long postAuthorId = post.getMember().getId();
+                if (!Objects.equals(postAuthorId, memberId)) {
+                    eventPublisher.publishEvent(new PostLikeEvent(postId, postAuthorId, memberId));
+                }
+            }
         }
     }
 

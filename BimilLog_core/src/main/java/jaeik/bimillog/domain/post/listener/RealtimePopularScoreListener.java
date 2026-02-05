@@ -68,7 +68,7 @@ public class RealtimePopularScoreListener {
     @TransactionalEventListener
     @Async("realtimeEventExecutor")
     public void handlePostLiked(PostLikeEvent event) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
+        redisRealTimePostAdapter.incrementRealtimePopularScore(event.getPostId(), LIKE_SCORE);
     }
 
     /**
