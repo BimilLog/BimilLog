@@ -56,6 +56,8 @@ public class FriendRecommendService {
     // 최종 추천 인원 수
     private static final int RECOMMEND_LIMIT = 10;
     private static final int FIRST_FRIEND_SCAN_LIMIT = 50;
+    private static final int SECOND_DEGREE_SAMPLE_SIZE = 30;
+    private static final int THIRD_DEGREE_SAMPLE_SIZE = 100;
 
 
     /**
@@ -123,9 +125,14 @@ public class FriendRecommendService {
         // [1촌이 없는 경우] -> 바로 상호작용 기반 추천으로 점프하기 위해 빈 리스트 반환 (혹은 로직 분기)
         if (myFriends.isEmpty()) return new ArrayList<>();
 
-        // A. 2촌 탐색
-        Map<Long, Set<Long>> friendsOfFriends = redisFriendshipRepository.getFriendsBatch(myFriends);
-        for (Map.Entry<Long, Set<Long>> entry : friendsOfFriends.entrySet()) {
+        // A. 2촌 탐색 (친구당 랜덤 30명씩)
+        List<Long> myFriendList = new ArrayList<>(myFriends);
+        List<Object> secondResults = redisFriendshipRepository.getFriendsBatch(myFriendList, SECOND_DEGREE_SAMPLE_SIZE);
+
+        // 여기서 myFriendList는 내 친구 목록 secondResults는 내 친구의 친구들 목록
+        // Map의 Long은 1촌 회원 ID SET<Long>은 2촌 회원 ID들
+        Map<Long, Set<Long>> friendMap = mappingFriend(myFriendList, secondResults);
+        for (Map.Entry<Long, Set<Long>> entry : friendMap.entrySet()) {
             Long friendId = entry.getKey();
             Set<Long> friendsSet = entry.getValue();
             if (friendsSet == null) continue;
@@ -143,8 +150,9 @@ public class FriendRecommendService {
 
         // B. 3촌 탐색 (2촌이 부족할 경우에만 수행)
         if (candidateMap.size() < RECOMMEND_LIMIT) {
-            Set<Long> secondDegreeIds = candidateMap.keySet();
-            Map<Long, Set<Long>> friendsOfSeconds = redisFriendshipRepository.getFriendsBatchForThirdDegree(secondDegreeIds);
+            List<Long> secondDegreeList = new ArrayList<>(candidateMap.keySet());
+            List<Object> thirdResults = redisFriendshipRepository.getFriendsBatch(secondDegreeList, THIRD_DEGREE_SAMPLE_SIZE);
+            Map<Long, Set<Long>> friendsOfSeconds = mappingFriend(secondDegreeList, thirdResults);
 
             for (Map.Entry<Long, Set<Long>> entry : friendsOfSeconds.entrySet()) {
                 Long secondDegreeId = entry.getKey();
@@ -243,12 +251,7 @@ public class FriendRecommendService {
 
         // 블랙리스트 제거 (마지막에 처리)
         Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
-        Iterator<RecommendCandidate> it = candidates.iterator();
-        while (it.hasNext()) {
-            if (blacklist.contains(it.next().getMemberId())) {
-                it.remove();
-            }
-        }
+        candidates.removeIf(recommendCandidate -> blacklist.contains(recommendCandidate.getMemberId()));
     }
 
     /**
@@ -372,12 +375,7 @@ public class FriendRecommendService {
 
         // 블랙리스트 제거
         Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
-        Iterator<RecommendCandidate> it = candidates.iterator();
-        while (it.hasNext()) {
-            if (blacklist.contains(it.next().getMemberId())) {
-                it.remove();
-            }
-        }
+        candidates.removeIf(recommendCandidate -> blacklist.contains(recommendCandidate.getMemberId()));
     }
 
     /**
@@ -434,5 +432,30 @@ public class FriendRecommendService {
         }
 
         return new PageImpl<>(result, pageable, result.size());
+    }
+
+
+    /**
+     * Redis 파이프라인 결과를 Map으로 변환합니다.
+     *
+     * @param memberIdList 조회한 회원 ID 목록 (순서 유지)
+     * @param results      파이프라인 결과
+     * @return Map<회원ID, 친구ID_Set>
+     */
+    private Map<Long, Set<Long>> mappingFriend(List<Long> memberIdList, List<Object> results) {
+        Map<Long, Set<Long>> resultMap = new HashMap<>();
+
+        for (int i = 0; i < memberIdList.size(); i++) {
+            Long memberId = memberIdList.get(i);
+            Set<Long> friendIds = new HashSet<>();
+
+            if (results.get(i) instanceof List<?> resultList) {
+                for (Object friendId : resultList) {
+                    friendIds.add(Long.valueOf(friendId.toString()));
+                }
+                resultMap.put(memberId, friendIds);
+            }
+        }
+        return resultMap;
     }
 }

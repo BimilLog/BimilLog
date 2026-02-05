@@ -11,7 +11,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_SHIP_PREFIX;
@@ -66,18 +68,20 @@ class RedisFriendshipRepositoryIntegrationTest {
     void shouldReturnAllFriendsWhenBatchExceedsLimit() {
         int totalMembers = 550;
         Long commonFriend = 999L;
-        Set<Long> memberIds = new HashSet<>();
+        List<Long> memberIdList = new ArrayList<>();
 
         for (long i = 1; i <= totalMembers; i++) {
-            memberIds.add(i);
+            memberIdList.add(i);
             redisFriendshipRepository.addFriend(i, commonFriend);
         }
 
-        var result = redisFriendshipRepository.getFriendsBatch(memberIds);
+        List<Object> results = redisFriendshipRepository.getFriendsBatch(memberIdList, 30);
 
-        assertThat(result).hasSize(totalMembers);
-        for (Long memberId : memberIds) {
-            assertThat(result.get(memberId)).contains(commonFriend);
+        assertThat(results).hasSize(totalMembers);
+        for (int i = 0; i < memberIdList.size(); i++) {
+            assertThat(results.get(i)).isInstanceOf(List.class);
+            List<?> friendList = (List<?>) results.get(i);
+            assertThat(friendList).anyMatch(f -> f.toString().equals(commonFriend.toString()));
         }
     }
 }
