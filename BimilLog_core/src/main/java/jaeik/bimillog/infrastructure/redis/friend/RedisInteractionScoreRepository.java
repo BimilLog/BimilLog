@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
+import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -240,5 +241,20 @@ public class RedisInteractionScoreRepository {
         }
 
         return keys.size();
+    }
+
+    public void processScoreUp(RedisConnection connection, FriendEventDlq event) {
+        String key1 = INTERACTION_PREFIX + event.getMemberId();
+        String key2 = INTERACTION_PREFIX + event.getTargetId();
+        double increment = event.getScore() != null ? event.getScore() : INTERACTION_SCORE_DEFAULT;
+
+        connection.zSetCommands().zIncrBy(
+                key1.getBytes(StandardCharsets.UTF_8),
+                increment,
+                event.getTargetId().toString().getBytes(StandardCharsets.UTF_8));
+        connection.zSetCommands().zIncrBy(
+                key2.getBytes(StandardCharsets.UTF_8),
+                increment,
+                event.getMemberId().toString().getBytes(StandardCharsets.UTF_8));
     }
 }

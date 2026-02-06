@@ -24,48 +24,36 @@ public class FriendEventDlqService {
 
     /**
      * 친구 추가 이벤트를 DLQ에 저장합니다.
-     * <p>이미 동일한 PENDING 상태의 이벤트가 존재하면 중복 저장하지 않습니다.</p>
      *
      * @param memberId 회원 ID
      * @param friendId 친구 ID
      */
     @Transactional
     public void saveFriendAdd(Long memberId, Long friendId) {
-        try {
-            FriendEventDlq dlq = FriendEventDlq.createFriendAdd(memberId, friendId);
-            repository.save(dlq);
-            log.info("[DLQ] 친구 추가 이벤트 저장: memberId={}, friendId={}", memberId, friendId);
-        } catch (DataIntegrityViolationException e) {
-            log.debug("[DLQ] 친구 추가 이벤트 중복 저장 스킵 (멱등성): memberId={}, friendId={}", memberId, friendId);
-        }
+        FriendEventDlq dlq = FriendEventDlq.createFriendAdd(memberId, friendId);
+        repository.save(dlq);
     }
 
     /**
      * 친구 삭제 이벤트를 DLQ에 저장합니다.
-     * <p>이미 동일한 PENDING 상태의 이벤트가 존재하면 중복 저장하지 않습니다.</p>
      *
      * @param memberId 회원 ID
      * @param friendId 친구 ID
      */
     @Transactional
     public void saveFriendRemove(Long memberId, Long friendId) {
-        try {
-            FriendEventDlq dlq = FriendEventDlq.createFriendRemove(memberId, friendId);
-            repository.save(dlq);
-            log.info("[DLQ] 친구 삭제 이벤트 저장: memberId={}, friendId={}", memberId, friendId);
-        } catch (DataIntegrityViolationException e) {
-            log.debug("[DLQ] 친구 삭제 이벤트 중복 저장 스킵 (멱등성): memberId={}, friendId={}", memberId, friendId);
-        }
+        FriendEventDlq dlq = FriendEventDlq.createFriendRemove(memberId, friendId);
+        repository.save(dlq);
     }
 
     /**
      * 상호작용 점수 증가 이벤트를 DLQ에 저장합니다.
      * <p>이미 동일한 PENDING 상태의 이벤트가 존재하면 중복 저장하지 않습니다.</p>
      *
-     * @param eventId 이벤트 고유 ID (멱등성 보장용)
+     * @param eventId  이벤트 고유 ID (멱등성 보장용)
      * @param memberId 회원 ID
      * @param targetId 상호작용 대상 ID
-     * @param score 증가할 점수
+     * @param score    증가할 점수
      */
     @Transactional
     public void saveScoreUp(String eventId, Long memberId, Long targetId, Double score) {
