@@ -1,22 +1,31 @@
 package jaeik.bimillog.domain.friend.service;
 
-import jaeik.bimillog.infrastructure.config.AsyncConfig;
-import jaeik.bimillog.infrastructure.config.RetryConfig;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,18 +35,40 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>FriendshipRedisUpdate 재시도 테스트</h2>
  * <p>Redis 연결 실패 시 재시도 로직이 정상 동작하는지 검증</p>
- * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
  */
 @DisplayName("FriendshipRedisUpdate 재시도 테스트")
 @Tag("integration")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@SpringBootTest(classes = {FriendshipRedisUpdate.class, RetryConfig.class, AsyncConfig.class})
+@SpringBootTest(classes = {
+        FriendshipRedisUpdate.class,
+        FriendshipRedisUpdateRetryTest.TestConfig.class
+})
 @TestPropertySource(properties = {
         "retry.max-attempts=3",
         "retry.backoff.delay=10",
         "retry.backoff.multiplier=1.0"
 })
 class FriendshipRedisUpdateRetryTest {
+
+    @TestConfiguration
+    @EnableAsync
+    @EnableRetry
+    static class TestConfig {
+        @Bean(name = "friendUpdateExecutor")
+        @Primary
+        public Executor friendUpdateExecutor() {
+            ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+            executor.setCorePoolSize(2);
+            executor.setMaxPoolSize(5);
+            executor.setQueueCapacity(10);
+            executor.setThreadNamePrefix("test-friend-update-");
+            executor.setWaitForTasksToCompleteOnShutdown(true);
+            executor.setAwaitTerminationSeconds(10);
+            executor.initialize();
+            return executor;
+        }
+    }
 
     @Autowired
     private FriendshipRedisUpdate friendshipRedisUpdate;
@@ -56,7 +87,13 @@ class FriendshipRedisUpdateRetryTest {
         Mockito.clearInvocations(redisFriendshipRepository, friendEventDlqService);
     }
 
+    @AfterEach
+    void tearDown() throws InterruptedException {
+        Thread.sleep(500);
+    }
+
     @Test
+    @Order(1)
     @DisplayName("친구 관계 추가 - RedisConnectionFailureException 발생 시 3회 재시도")
     void addFriendToRedis_shouldRetryOnRedisConnectionFailure() {
         // Given
@@ -66,7 +103,7 @@ class FriendshipRedisUpdateRetryTest {
         // When
         friendshipRedisUpdate.addFriendToRedis(1L, 2L);
 
-        // Then: 비동기 완료 대기
+        // Then
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(redisFriendshipRepository, times(MAX_ATTEMPTS))
@@ -74,6 +111,7 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Test
+    @Order(2)
     @DisplayName("친구 관계 추가 - 3회 재시도 실패 후 DLQ 저장")
     void addFriendToRedis_shouldSaveToDlqAfterMaxRetries() {
         // Given
@@ -83,7 +121,7 @@ class FriendshipRedisUpdateRetryTest {
         // When
         friendshipRedisUpdate.addFriendToRedis(1L, 2L);
 
-        // Then: DLQ 저장 호출 검증
+        // Then
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(friendEventDlqService, times(1))
@@ -91,6 +129,7 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Test
+    @Order(3)
     @DisplayName("친구 관계 삭제 - RedisConnectionFailureException 발생 시 3회 재시도")
     void deleteFriendToRedis_shouldRetryOnRedisConnectionFailure() {
         // Given
@@ -100,7 +139,7 @@ class FriendshipRedisUpdateRetryTest {
         // When
         friendshipRedisUpdate.deleteFriendToRedis(1L, 2L);
 
-        // Then: 비동기 완료 대기
+        // Then
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(redisFriendshipRepository, times(MAX_ATTEMPTS))
@@ -108,6 +147,7 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Test
+    @Order(4)
     @DisplayName("친구 관계 삭제 - 3회 재시도 실패 후 DLQ 저장")
     void deleteFriendToRedis_shouldSaveToDlqAfterMaxRetries() {
         // Given
@@ -117,7 +157,7 @@ class FriendshipRedisUpdateRetryTest {
         // When
         friendshipRedisUpdate.deleteFriendToRedis(1L, 2L);
 
-        // Then: DLQ 저장 호출 검증
+        // Then
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(friendEventDlqService, times(1))
@@ -125,18 +165,19 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Test
+    @Order(5)
     @DisplayName("친구 관계 추가 - 2회 실패 후 3회차에 성공 - DLQ 저장 안함")
     void addFriendToRedis_shouldSucceedAfterTwoFailures_noDlqSave() {
         // Given
-        willThrow(new RedisConnectionFailureException("실패"))
-                .willThrow(new RedisConnectionFailureException("실패"))
-                .willDoNothing()
-                .given(redisFriendshipRepository).addFriend(1L, 2L);
+        doThrow(new RedisConnectionFailureException("실패"))
+                .doThrow(new RedisConnectionFailureException("실패"))
+                .doNothing()
+                .when(redisFriendshipRepository).addFriend(1L, 2L);
 
         // When
         friendshipRedisUpdate.addFriendToRedis(1L, 2L);
 
-        // Then: 비동기 완료 대기 - DLQ 저장 호출 없음
+        // Then
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
@@ -146,6 +187,7 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Test
+    @Order(6)
     @DisplayName("친구 관계 삭제 - 1회 성공 시 재시도 및 DLQ 저장 없음")
     void deleteFriendToRedis_shouldNotRetryOnSuccess() {
         // Given
@@ -154,7 +196,7 @@ class FriendshipRedisUpdateRetryTest {
         // When
         friendshipRedisUpdate.deleteFriendToRedis(1L, 2L);
 
-        // Then: 비동기 완료 대기
+        // Then
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {

@@ -472,15 +472,16 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long postId = 300L;
         String content = "인증 사용자 댓글";
-        Comment savedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), content);
+        Member commenter = createAnotherMember(999L); // 게시글 작성자와 다른 사용자
+        Comment savedComment = CommentTestDataBuilder.createComment(testPost, commenter, content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
-        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(getTestMember());
+        given(commentToMemberAdapter.findById(commenter.getId())).willReturn(commenter);
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
 
         // When
-        commentCommandService.writeComment(getTestMember().getId(), postId, null, content, null);
+        commentCommandService.writeComment(commenter.getId(), postId, null, content, null);
 
         // Then
         ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
@@ -488,11 +489,12 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         Comment capturedComment = commentCaptor.getValue();
         assertThat(capturedComment.getContent()).isEqualTo(content);
-        assertThat(capturedComment.getMember()).isEqualTo(getTestMember());
+        assertThat(capturedComment.getMember()).isEqualTo(commenter);
         assertThat(capturedComment.getPost()).isEqualTo(testPost);
         assertThat(capturedComment.isDeleted()).isFalse();
 
         verify(commentClosureRepository).saveAll(any());
+        // 자기 게시글이 아닌 경우에만 이벤트 발행
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
 
@@ -524,8 +526,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         assertThat(capturedComment.isDeleted()).isFalse();
 
         verify(commentClosureRepository).saveAll(any());
-        // testPost에 user가 있으므로 이벤트가 발행되어야 함
-        verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
+        // 익명 댓글(memberId == null)인 경우 이벤트가 발행되지 않음
+        verify(eventPublisher, never()).publishEvent(any(CommentCreatedEvent.class));
     }
 
     @Test
@@ -535,7 +537,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Long postId = 300L;
         Long parentId = 100L;
         String content = "대댓글";
-        Comment savedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), content);
+        Member commenter = createAnotherMember(999L); // 게시글 작성자와 다른 사용자
+        Comment savedComment = CommentTestDataBuilder.createComment(testPost, commenter, content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         Comment parentComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "부모 댓글");
@@ -546,12 +549,12 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(commentRepository.findById(parentId)).willReturn(Optional.of(parentComment));
-        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(getTestMember());
+        given(commentToMemberAdapter.findById(commenter.getId())).willReturn(commenter);
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
         given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
 
         // When
-        commentCommandService.writeComment(getTestMember().getId(), postId, parentId, content, null);
+        commentCommandService.writeComment(commenter.getId(), postId, parentId, content, null);
 
         // Then
         ArgumentCaptor<List> closureCaptor = ArgumentCaptor.forClass(List.class);
@@ -560,6 +563,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         List capturedClosures = closureCaptor.getValue();
         assertThat(capturedClosures).hasSize(2); // 자기 자신 + 부모와의 관계
 
+        // 자기 게시글이 아닌 경우에만 이벤트 발행
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
 
@@ -610,8 +614,9 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Long parentId = 100L;
         Long grandParentId = 50L;
         String content = "대댓글의 대댓글";
+        Member commenter = createAnotherMember(999L); // 게시글 작성자와 다른 사용자
 
-        Comment savedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), content);
+        Comment savedComment = CommentTestDataBuilder.createComment(testPost, commenter, content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         Comment parentComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "부모 댓글");
@@ -629,12 +634,12 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(commentRepository.findById(parentId)).willReturn(Optional.of(parentComment));
-        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(getTestMember());
+        given(commentToMemberAdapter.findById(commenter.getId())).willReturn(commenter);
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
         given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
 
         // When
-        commentCommandService.writeComment(getTestMember().getId(), postId, parentId, content, null);
+        commentCommandService.writeComment(commenter.getId(), postId, parentId, content, null);
 
         // Then
         ArgumentCaptor<List<CommentClosure>> closureCaptor = ArgumentCaptor.forClass(List.class);
@@ -644,6 +649,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // depth가 2인 관계가 포함되어야 함 (조부모와의 관계)
         assertThat(capturedClosures).hasSize(3); // 자기 자신 + 부모와의 관계 + 조부모와의 관계
 
+        // 자기 게시글이 아닌 경우에만 이벤트 발행
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
 }
