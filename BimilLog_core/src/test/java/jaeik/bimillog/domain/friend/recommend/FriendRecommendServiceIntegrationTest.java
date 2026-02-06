@@ -173,7 +173,7 @@ class FriendRecommendServiceIntegrationTest {
     }
 
     private void publishFriendshipEvent(Member source, Member target) {
-        eventPublisher.publishEvent(new FriendshipCreatedEvent(source.getId(), target.getId()));
+        redisFriendshipRepository.addFriend(source.getId(), target.getId());
     }
 
     private void publishPostLikeEvent(Member author, Member liker, Long postId) {

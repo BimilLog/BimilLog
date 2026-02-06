@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class FriendshipRedisUpdate {
-    public final RedisFriendshipRepository redisFriendshipRepository;
+    private final RedisFriendshipRepository redisFriendshipRepository;
     private final FriendEventDlqService friendEventDlqService;
 
     /**
