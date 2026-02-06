@@ -6,12 +6,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-
-// 친구 요청은 양방향이다 1, 100이면 100, 1이 존재하면 저장되지말아야함
-
 /**
- * 친구관계 설정테이블
- * 멤버가 삭제될시 친구관계도 삭제되게 한다.
+ * <h2>친구관계 설정테이블</h2>
+ * <p>멤버가 삭제될시 친구관계도 삭제되게 한다.</p>
+ * <p>친구 요청은 양방향이다 1, 100이면 100, 1이 존재하면 저장되지말아야함</p>
+ * @version 2.5.0
+ * @author Jaeik
  */
 @Entity
 @Getter
