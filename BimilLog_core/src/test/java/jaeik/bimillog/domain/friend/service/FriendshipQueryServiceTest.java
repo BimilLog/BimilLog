@@ -131,8 +131,8 @@ class FriendshipQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         Friend resultFriend = result.getContent().get(0);
-        assertThat(resultFriend.getMemberName()).isNotNull();
-        assertThat(resultFriend.getMemberName()).isEqualTo("친구이름");
-        assertThat(resultFriend.getThumbnailImage()).isEqualTo("http://example.com/profile.jpg");
+        assertThat(resultFriend.memberName()).isNotNull();
+        assertThat(resultFriend.memberName()).isEqualTo("친구이름");
+        assertThat(resultFriend.thumbnailImage()).isEqualTo("http://example.com/profile.jpg");
     }
 }

@@ -3,9 +3,11 @@ package jaeik.bimillog.domain.friend.repository;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.friend.entity.jpa.QFriendship;
+import jaeik.bimillog.domain.member.entity.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -20,20 +22,23 @@ import java.util.*;
 public class FriendshipQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
     private final QFriendship friendship = QFriendship.friendship;
+    private final QMember member = QMember.member;
 
-    // 자신의 ID가 Member에 속해있든 Friend에 속해있든 반대편의 ID를 가지고 온다.
-    // Friend 클래스에 매핑한다.
-    public Page<Friend> getMyFriendIds(Long myMemberId, Pageable pageable) {
-        List<Friend> friendPage = jpaQueryFactory
-                .select(Projections.constructor(Friend.class,
-                                friendship.id,
-                        new CaseBuilder()
-                        .when(friendship.member.id.eq(myMemberId)).then(friendship.friend.id)
-                        .otherwise(friendship.member.id),
-                        friendship.createdAt))
+
+    public Page<Friend> getFriendPage(Long memberId, Pageable pageable) {
+        NumberExpression<Long> friendIdPath = new CaseBuilder()
+                .when(friendship.member.id.eq(memberId)).then(friendship.friend.id)
+                .otherwise(friendship.member.id);
+
+        List<Friend> content = jpaQueryFactory.select(Projections.constructor(Friend.class,
+                        friendship.id,
+                        friendIdPath,
+                        friendship.createdAt,
+                        member.memberName,
+                        member.thumbnailImage))
                 .from(friendship)
-                .where(friendship.member.id.eq(myMemberId)
-                        .or(friendship.friend.id.eq(myMemberId)))
+                .join(member).on(member.id.eq(friendIdPath))
+                .where(friendship.member.id.eq(memberId).or(friendship.friend.id.eq(memberId)))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -41,12 +46,14 @@ public class FriendshipQueryRepository {
         Long total = jpaQueryFactory
                 .select(friendship.count())
                 .from(friendship)
-                .where(friendship.member.id.eq(myMemberId)
-                        .or(friendship.friend.id.eq(myMemberId)))
+                .where(friendship.member.id.eq(memberId).or(friendship.friend.id.eq(memberId)))
                 .fetchOne();
 
-        return new PageImpl<>(friendPage, pageable, total != null ? total : 0);
+        if (total == null) {
+            total = 0L;
+        }
 
+        return new PageImpl<>(content, pageable, total);
     }
 
     /**

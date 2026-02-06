@@ -30,13 +30,6 @@ public class MemberFriendService {
     private final KakaoFriendClient kakaoFriendClient;
 
     /**
-     * 친구 추가 정보 조회
-     */
-    public List<Friend.FriendInfo> addMyFriendInfo(List<Long> friendIds) {
-        return memberQueryRepository.getMyFriendPages(friendIds);
-    }
-
-    /**
      * <h3>카카오 친구 목록 조회</h3>
      * <p>현재 로그인한 회원의 카카오 친구 목록을 조회하고 가입 여부를 확인합니다.</p>
      */
