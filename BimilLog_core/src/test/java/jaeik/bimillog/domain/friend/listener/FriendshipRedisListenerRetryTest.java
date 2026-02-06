@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.friend.listener;
 
-import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
-import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
 import jaeik.bimillog.infrastructure.config.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
