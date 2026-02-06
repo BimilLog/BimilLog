@@ -55,8 +55,8 @@ public class PostReadModelSyncListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     @Transactional
     public void handlePostCreated(PostCreatedEvent event) {
@@ -109,8 +109,8 @@ public class PostReadModelSyncListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     @Transactional
     public void handlePostUpdated(PostUpdatedEvent event) {
@@ -149,8 +149,8 @@ public class PostReadModelSyncListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     @Transactional
     public void handlePostLiked(PostLikeEvent event) {
@@ -189,8 +189,8 @@ public class PostReadModelSyncListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     @Transactional
     public void handlePostUnliked(PostUnlikeEvent event) {
@@ -216,8 +216,8 @@ public class PostReadModelSyncListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     @Transactional
     public void handleCommentCreated(CommentCreatedEvent event) {
@@ -256,8 +256,8 @@ public class PostReadModelSyncListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     @Transactional
     public void handleCommentDeleted(CommentDeletedEvent event) {

@@ -51,8 +51,8 @@ public class ReportSaveListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handleReportSubmitted(ReportSubmittedEvent event) {
         adminCommandService.createReport(event.reporterId(), event.reportType(), event.targetId(), event.content());

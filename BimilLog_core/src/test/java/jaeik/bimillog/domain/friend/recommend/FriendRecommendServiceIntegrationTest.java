@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.friend.recommend;
 
 import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
-import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberBlacklist;
 import jaeik.bimillog.domain.member.repository.MemberBlacklistRepository;
@@ -174,7 +173,7 @@ class FriendRecommendServiceIntegrationTest {
     }
 
     private void publishFriendshipEvent(Member source, Member target) {
-        eventPublisher.publishEvent(new FriendshipCreatedEvent(source.getId(), target.getId()));
+        redisFriendshipRepository.addFriend(source.getId(), target.getId());
     }
 
     private void publishPostLikeEvent(Member author, Member liker, Long postId) {

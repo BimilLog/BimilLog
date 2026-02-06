@@ -1,8 +1,6 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
-import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
-import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
@@ -53,6 +51,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     @Mock private FriendshipRepository friendshipRepository;
     @Mock private FriendRequestRepository friendRequestRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private FriendshipRedisUpdate friendshipRedisUpdate;
 
     @InjectMocks
     private FriendshipCommandService friendshipCommandService;
@@ -100,7 +99,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
         // Then
         verify(friendshipRepository, times(1)).save(any(Friendship.class));
         verify(friendRequestRepository, times(1)).deleteById(FRIEND_REQUEST_ID);
-        verify(eventPublisher, times(1)).publishEvent(any(FriendshipCreatedEvent.class));
+        verify(friendshipRedisUpdate, times(1)).addFriendToRedis(MEMBER_ID, FRIEND_ID);
     }
 
     @Test
@@ -199,7 +198,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(friendshipRepository, times(1)).delete(friendship);
-        verify(eventPublisher, times(1)).publishEvent(any(FriendshipDeletedEvent.class));
+        verify(friendshipRedisUpdate, times(1)).deleteFriendToRedis(MEMBER_ID, FRIEND_ID);
     }
 
     @ParameterizedTest(name = "친구 관계 삭제 실패 - {0}")

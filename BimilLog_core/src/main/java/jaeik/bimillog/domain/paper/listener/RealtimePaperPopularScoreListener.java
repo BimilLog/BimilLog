@@ -48,8 +48,8 @@ public class RealtimePaperPopularScoreListener {
     @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handlePaperViewed(PaperViewedEvent event) {
         redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.memberId(), VIEW_SCORE);
@@ -74,8 +74,8 @@ public class RealtimePaperPopularScoreListener {
     @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handleMessageCreated(RollingPaperEvent event) {
         redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.paperOwnerId(), MESSAGE_SCORE);
@@ -100,8 +100,8 @@ public class RealtimePaperPopularScoreListener {
     @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handleMessageDeleted(MessageDeletedEvent event) {
         redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.paperOwnerId(), -MESSAGE_SCORE);

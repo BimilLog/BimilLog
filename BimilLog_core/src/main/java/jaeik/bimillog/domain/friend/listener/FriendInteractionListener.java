@@ -55,8 +55,8 @@ public class FriendInteractionListener {
                     RedisSystemException.class,
                     RedisCommandTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}"))
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5))
     public void handlePostLiked(PostLikeEvent event) {
         boolean processed = redisInteractionScoreRepository.addInteractionScore(event.getPostAuthorId(), event.getLikerId(), event.getEventId());
         if (!processed) {
@@ -86,8 +86,8 @@ public class FriendInteractionListener {
                     RedisSystemException.class,
                     RedisCommandTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handleCommentCreated(CommentCreatedEvent event) {
         boolean processed = redisInteractionScoreRepository.addInteractionScore(
@@ -119,8 +119,8 @@ public class FriendInteractionListener {
                     RedisSystemException.class,
                     RedisCommandTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handleCommentLiked(CommentLikeEvent event) {
         boolean processed = redisInteractionScoreRepository.addInteractionScore(

@@ -106,16 +106,31 @@ public class AsyncConfig {
     }
 
     /**
-     * 실시간 인기글 점수, 실시간 롤링페이퍼 점수, 친구 상호작용 점수 전용 스레드 풀
+     * 친구 관계 추가 친구 상호작용 점수 전용 스레드 풀
+     */
+    @Bean(name = "friendUpdateExecutor")
+    public Executor friendUpdateExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(3);
+        executor.setMaxPoolSize(15);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("friend-update-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.initialize();
+        return executor;
+    }
+    /**
+     * 실시간 인기글 실시간 롤링페이퍼 점수 스레드 풀
      * <p>Redis 기반의 실시간 점수 업데이트를 처리합니다.</p>
      * <p>빠른 응답이 필요하며 빈도가 높은 이벤트를 처리합니다.</p>
      */
     @Bean(name = "realtimeEventExecutor")
     public Executor realtimeEventExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5); // 기본 스레드 수 (빈도 높음)
-        executor.setMaxPoolSize(15); // 최대 스레드 수
-        executor.setQueueCapacity(100); // 대기열 크기 (버스트 트래픽 대응)
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(15);
+        executor.setQueueCapacity(50);
         executor.setThreadNamePrefix("realtime-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);

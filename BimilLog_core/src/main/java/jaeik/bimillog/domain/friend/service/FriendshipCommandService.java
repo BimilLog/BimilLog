@@ -1,8 +1,6 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
-import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
-import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
@@ -24,6 +22,7 @@ public class FriendshipCommandService {
     private final FriendRequestRepository friendRequestRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final FriendToMemberAdapter friendToMemberAdapter;
+    private final FriendshipRedisUpdate friendshipRedisUpdate;
 
     /**
      * 친구 생성
@@ -48,8 +47,8 @@ public class FriendshipCommandService {
         // 요청 삭제
         friendRequestRepository.deleteById(friendRequestId);
 
-        // Redis 친구 관계 추가 이벤트 발행
-        eventPublisher.publishEvent(new FriendshipCreatedEvent(memberId, friendId));
+        // 비동기 Redis 친구 관계 추가
+        friendshipRedisUpdate.addFriendToRedis(memberId, friendId);
     }
 
     /**
@@ -68,13 +67,13 @@ public class FriendshipCommandService {
         }
 
         // Redis 친구 관계 삭제를 위해 memberId와 friendId 추출
-        Long member1Id = friendship.getMember().getId();
-        Long member2Id = friendship.getFriend().getId();
+        Long memberId1 = friendship.getMember().getId();
+        Long memberId2 = friendship.getFriend().getId();
 
         friendshipRepository.delete(friendship);
 
-        // Redis 친구 관계 삭제 이벤트 발행
-        eventPublisher.publishEvent(new FriendshipDeletedEvent(member1Id, member2Id));
+        // 비동기 Redis 친구 관계 삭제
+        friendshipRedisUpdate.deleteFriendToRedis(memberId1, memberId2);
     }
 
     private void checkFriendship(Long memberId, Long friendId) {

@@ -42,8 +42,8 @@ public class NotificationSaveListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         notificationCommandService.saveCommentNotification(
@@ -61,8 +61,8 @@ public class NotificationSaveListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handleRollingPaperEvent(RollingPaperEvent event) {
         notificationCommandService.saveMessageNotification(
@@ -79,8 +79,8 @@ public class NotificationSaveListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handlePostFeaturedEvent(PostFeaturedEvent event) {
         notificationCommandService.savePopularNotification(
@@ -100,8 +100,8 @@ public class NotificationSaveListener {
                     DataAccessResourceFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handleFriendEvent(FriendEvent event) {
         notificationCommandService.saveFriendNotification(

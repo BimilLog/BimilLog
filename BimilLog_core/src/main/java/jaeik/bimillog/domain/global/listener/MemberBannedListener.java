@@ -57,8 +57,8 @@ public class MemberBannedListener {
                     RedisConnectionFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void memberBanned(MemberBannedEvent memberBannedEvent) {
         Long memberId = memberBannedEvent.memberId();

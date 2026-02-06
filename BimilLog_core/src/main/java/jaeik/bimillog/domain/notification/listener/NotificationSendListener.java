@@ -50,8 +50,8 @@ public class NotificationSendListener {
                     SocketTimeoutException.class,
                     DataAccessException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void sendSSENotification(AlarmSendEvent event) {
         sseService.sendNotification(
@@ -77,8 +77,8 @@ public class NotificationSendListener {
                     IOException.class,
                     DataAccessException.class
             },
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void sendFCMNotification(AlarmSendEvent event) {
         fcmPushService.sendNotification(
