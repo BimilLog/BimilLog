@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
 /**
  * <h2>친구 관계 Redis 캐시 저장소</h2>
  * <p>Redis를 사용하여 친구 관계를 캐싱합니다.</p>
@@ -22,7 +23,7 @@ import java.util.*;
 public class RedisFriendshipRepository {
     private final RedisTemplate<String, Long> redisTemplate;
 
-    public static final String FRIEND_SHIP_PREFIX = "friend:"; // 친구 관계 테이블 (Set) 키
+    private static final String FRIEND_SHIP_PREFIX = "friend:"; // 친구 관계 테이블 (Set) 키
     private static final int PIPELINE_BATCH_SIZE = 500;
 
     /**

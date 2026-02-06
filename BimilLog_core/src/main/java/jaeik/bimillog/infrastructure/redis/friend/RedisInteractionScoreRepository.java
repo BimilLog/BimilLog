@@ -31,15 +31,15 @@ public class RedisInteractionScoreRepository {
     private final RedisTemplate<String, Object> redisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
 
-    public static final String INTERACTION_PREFIX = "interaction:"; // 상호 작용 점수 테이블(ZSet) 키 접두사
+    private static final String INTERACTION_PREFIX = "interaction:"; // 상호 작용 점수 테이블(ZSet) 키 접두사
     private static final int PIPELINE_BATCH_SIZE = 500;
     private static final RedisScript<Long> INTERACTION_SCORE_ADD_SCRIPT; // 상호 작용 점수 증가 Lua Script
     private static final RedisScript<Long> INTERACTION_SCORE_DECAY_SCRIPT; // 상호 작용 점수 지수 감쇠 Lua Script
     private static final Long IDEMPOTENCY_TTL_SECONDS = 60 * 60L; // 멱등성 키 TTL 1시간
     private static final Double INTERACTION_SCORE_THRESHOLD = 0.2; // 상호 작용 점수 삭제 임계값
-    public static final Double INTERACTION_SCORE_DEFAULT = 0.5; // 상호 작용 점수 증가 기본 값
+    private static final Double INTERACTION_SCORE_DEFAULT = 0.5; // 상호 작용 점수 증가 기본 값
     private static final Double INTERACTION_SCORE_LIMIT = 9.5; // 상호 작용 점수 증가 가능 최대값 (최대값은 10점)
-    public static final Double INTERACTION_SCORE_DECAY_RATE = 0.95; // 상호 작용 점수 지수 감쇠율 (1일마다 0.95)
+    private static final Double INTERACTION_SCORE_DECAY_RATE = 0.95; // 상호 작용 점수 지수 감쇠율 (1일마다 0.95)
 
 
     static {
@@ -110,12 +110,12 @@ public class RedisInteractionScoreRepository {
         try {
             Long result = stringRedisTemplate.execute(
                     INTERACTION_SCORE_ADD_SCRIPT,
-                    List.of(key1, key2, idempotencyKey),
-                    interactionMemberId.toString(),
-                    memberId.toString(),
-                    String.valueOf(INTERACTION_SCORE_DEFAULT),
-                    String.valueOf(INTERACTION_SCORE_LIMIT),
-                    String.valueOf(IDEMPOTENCY_TTL_SECONDS)
+                    List.of(key1, key2, idempotencyKey), // 각각 KEYS[1],[2],[3]
+                    interactionMemberId.toString(), // ARGV[1]
+                    memberId.toString(), // ARGV[2]
+                    String.valueOf(INTERACTION_SCORE_DEFAULT), // ARGV[3]
+                    String.valueOf(INTERACTION_SCORE_LIMIT), // ARGV[4]
+                    String.valueOf(IDEMPOTENCY_TTL_SECONDS) // ARGV[5]
             );
             return result == 1;
         } catch (Exception e) {
@@ -168,8 +168,6 @@ public class RedisInteractionScoreRepository {
             throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_QUERY_ERROR, e);
         }
     }
-
-
 
     /**
      * 회원 탈퇴 시 상호작용 데이터 삭제
