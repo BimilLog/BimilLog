@@ -21,7 +21,6 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Duration;
@@ -43,11 +42,6 @@ import static org.mockito.Mockito.*;
 @SpringBootTest(classes = {
         FriendshipRedisUpdate.class,
         FriendshipRedisUpdateRetryTest.TestConfig.class
-})
-@TestPropertySource(properties = {
-        "retry.max-attempts=3",
-        "retry.backoff.delay=10",
-        "retry.backoff.multiplier=1.0"
 })
 class FriendshipRedisUpdateRetryTest {
 
