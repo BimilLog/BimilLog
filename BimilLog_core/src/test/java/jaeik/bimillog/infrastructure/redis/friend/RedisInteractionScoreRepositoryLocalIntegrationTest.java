@@ -12,8 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 import java.util.Set;
 
-import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.*;
-import static jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository.INTERACTION_SCORE_DECAY_RATE;
+import static jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

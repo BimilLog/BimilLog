@@ -22,10 +22,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Duration;
 
-import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.INTERACTION_SCORE_DEFAULT;
+import static jaeik.bimillog.domain.friend.listener.FriendInteractionListener.INTERACTION_SCORE_DEFAULT;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.*;
 
 /**
