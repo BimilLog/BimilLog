@@ -21,7 +21,7 @@ public class RedisCheck {
             String pong = connectionFactory.getConnection().ping();
             return "PONG".equals(pong);
         } catch (Exception e) {
-            log.warn("[DLQ] Redis ping 실패", e);
+            log.warn(" Redis ping 실패", e);
             return false;
         }
     }

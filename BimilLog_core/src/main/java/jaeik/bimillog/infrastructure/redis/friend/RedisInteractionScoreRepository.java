@@ -52,11 +52,11 @@ public class RedisInteractionScoreRepository {
             local member2 = tostring(ARGV[2])
             local increment = tonumber(ARGV[3])
             local maxScore = tonumber(ARGV[4])
-            local eventId = tostring(ARGV[5])
+            local idempotencyValue = tostring(ARGV[5])
             local ttl = tonumber(ARGV[6])
 
             -- 이미 처리된 이벤트인지 확인
-            if redis.call('SISMEMBER', idempotencyKey, eventId) == 1 then
+            if redis.call('SISMEMBER', idempotencyKey, idempotencyValue) == 1 then
                 return 0  -- 이미 처리됨
             end
 
@@ -71,8 +71,8 @@ public class RedisInteractionScoreRepository {
                 redis.call('ZINCRBY', key2, increment, member2)
             end
 
-            -- 이벤트 ID를 처리 완료로 저장
-            redis.call('SADD', idempotencyKey, eventId)
+            -- 멱등값을 처리 완료로 저장
+            redis.call('SADD', idempotencyKey, idempotencyValue)
             redis.call('EXPIRE', idempotencyKey, ttl)
 
             return 1
