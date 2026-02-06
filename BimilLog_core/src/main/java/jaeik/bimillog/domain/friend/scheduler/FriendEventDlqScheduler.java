@@ -9,25 +9,21 @@ import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepositor
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.*;
-
 /**
  * <h2>친구 이벤트 DLQ 재처리 스케줄러</h2>
- * <p>5분마다 DLQ에 저장된 이벤트를 Redis 파이프라인으로 일괄 재처리합니다.</p>
- * <p>Redis 상태를 Actuator 헬스체크로 확인 후 처리합니다.</p>
+ * <p>10분마다 DLQ에 저장된 이벤트를 Redis 파이프라인으로 일괄 재처리합니다.</p>
+ * <p>친구 추가, 삭제의 유실 친구 상호작용 점수의 유실이 모임/p>
  *
  * @author Jaeik
- * @version 2.5.0
+ * @version 2.7.0
  */
 @Component
 @RequiredArgsConstructor
@@ -46,80 +42,67 @@ public class FriendEventDlqScheduler {
      * 5분마다 DLQ 이벤트를 재처리합니다.
      * <p>Redis가 정상 상태일 때만 실행되며, 파이프라인으로 일괄 처리합니다.</p>
      */
-    @Scheduled(fixedRate = 300000)  // 5분마다
+    @Scheduled(fixedRate = 600000)  // 10분마다
     @Transactional
     public void processDlq() {
-
-        if (!redisCheck.isRedisHealthy()) {
-            log.warn("[DLQ] Redis 비정상 상태, 재처리 건너뜀");
-            return;
-        }
+        if (!redisCheck.isRedisHealthy()) return;
 
         List<FriendEventDlq> events = repository.findPendingEvents(FriendDlqStatus.PENDING, 3, BATCH_SIZE);
+        if (events.isEmpty()) return;
 
-        if (events.isEmpty()) {
-            return;
-        }
-
-        log.info("[DLQ] 재처리 시작: {}건", events.size());
-
+        log.info("[친구 DLQ] 재처리 시작: {}건", events.size());
         List<FriendEventDlq> processedEvents = new ArrayList<>();
         List<FriendEventDlq> failedEvents = new ArrayList<>();
 
         try {
-            redisTemplate.executePipelined((RedisConnection connection) -> {
-                for (FriendEventDlq event : events) {
-                    switch (event.getType()) {
-                        case FRIEND_ADD -> redisFriendshipRepository.processFriendAdd(connection, event);
-                        case FRIEND_REMOVE -> redisFriendshipRepository.processFriendRemove(connection, event);
-                        case SCORE_UP -> redisInteractionScoreRepository.processScoreUp(connection, event);
-                    }
-                }
-                return null;
-            });
-
-            // 파이프라인 성공 시 모두 PROCESSED 처리
-            for (FriendEventDlq event : events) {
-                event.markAsProcessed();
-                processedEvents.add(event);
-            }
-
+            pipelineRestore(events, processedEvents);
         } catch (Exception e) {
-            log.error("[DLQ] 파이프라인 처리 실패, 개별 재시도 진행", e);
-
-            // 파이프라인 실패 시 개별 처리
-            for (FriendEventDlq event : events) {
-                try {
-                    processSingleEvent(event);
-                    event.markAsProcessed();
-                    processedEvents.add(event);
-                } catch (Exception ex) {
-                    event.incrementRetryCount();
-                    if (event.getRetryCount() >= MAX_RETRY) {
-                        event.markAsFailed();
-                        log.error("[DLQ] 최대 재시도 초과, FAILED 처리: id={}, type={}", event.getId(), event.getType());
-                    }
-                    failedEvents.add(event);
-                }
-            }
+            log.error("[친구 DLQ] 파이프라인 처리 실패, 개별 재시도 진행", e);
+            singleRestore(events, processedEvents, failedEvents);
         }
 
         repository.saveAll(processedEvents);
         repository.saveAll(failedEvents);
-
-        log.info("[DLQ] 재처리 완료: 성공={}건, 실패={}건", processedEvents.size(), failedEvents.size());
+        log.info("[친구 DLQ] 재처리 완료: 성공={}건, 실패={}건", processedEvents.size(), failedEvents.size());
     }
 
-    private void processSingleEvent(FriendEventDlq event) {
-        switch (event.getType()) {
-            case FRIEND_ADD -> redisFriendshipRepository.addFriend(event.getMemberId(), event.getTargetId());
-            case FRIEND_REMOVE -> redisFriendshipRepository.deleteFriend(event.getMemberId(), event.getTargetId());
-            case SCORE_UP -> {
-                String key1 = INTERACTION_PREFIX + event.getMemberId();
-                String key2 = INTERACTION_PREFIX + event.getTargetId();
-                double score = event.getScore() != null ? event.getScore() : INTERACTION_SCORE_DEFAULT;
-                redisTemplate.opsForZSet().incrementScore(key1, event.getTargetId(), score);
-                redisTemplate.opsForZSet().incrementScore(key2, event.getMemberId(), score);
+    private void pipelineRestore(List<FriendEventDlq> events, List<FriendEventDlq> processedEvents) {
+        redisTemplate.executePipelined((RedisConnection connection) -> {
+            for (FriendEventDlq event : events) {
+                switch (event.getType()) {
+                    case FRIEND_ADD -> redisFriendshipRepository.processFriendAdd(connection, event);
+                    case FRIEND_REMOVE -> redisFriendshipRepository.processFriendRemove(connection, event);
+                    case SCORE_UP -> redisInteractionScoreRepository.processScoreUp(connection, event);
+                }
+            }
+            return null;
+        });
+
+        // 파이프라인 성공 시 모두 PROCESSED 처리
+        for (FriendEventDlq event : events) {
+            event.markAsProcessed();
+            processedEvents.add(event);
+        }
+    }
+
+    private void singleRestore(List<FriendEventDlq> events, List<FriendEventDlq> processedEvents, List<FriendEventDlq> failedEvents) {
+        // 파이프라인 실패 시 개별 처리
+        for (FriendEventDlq event : events) {
+            try {
+                switch (event.getType()) {
+                    case FRIEND_ADD -> redisFriendshipRepository.addFriend(event.getMemberId(), event.getTargetId());
+                    case FRIEND_REMOVE -> redisFriendshipRepository.deleteFriend(event.getMemberId(), event.getTargetId());
+                    case SCORE_UP -> redisInteractionScoreRepository.addInteractionScore(event.getMemberId(), event.getTargetId(), event.getEventId());
+                }
+                event.markAsProcessed();
+                processedEvents.add(event);
+            } catch (Exception ex) {
+                event.incrementRetryCount();
+                if (event.getRetryCount() >= MAX_RETRY) {
+                    event.markAsFailed();
+                    log.error("[친구 DLQ] 최대 재시도 초과, FAILED 처리: id={}, type={}", event.getId(), event.getType());
+                }
+                failedEvents.add(event);
             }
         }
     }

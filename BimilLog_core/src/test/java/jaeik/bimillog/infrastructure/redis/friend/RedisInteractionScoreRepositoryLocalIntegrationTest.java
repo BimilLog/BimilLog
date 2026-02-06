@@ -12,8 +12,6 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 import java.util.Set;
 
-import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.*;
-import static jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository.INTERACTION_SCORE_DECAY_RATE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -43,6 +41,11 @@ class RedisInteractionScoreRepositoryLocalIntegrationTest {
     private static final Long MEMBER_1 = 1001L;
     private static final Long MEMBER_2 = 1002L;
     private static final Long MEMBER_3 = 1003L;
+    private static final Double INTERACTION_SCORE_DEFAULT = 0.5; // 상호 작용 점수 증가 기본 값
+    private static final Double INTERACTION_SCORE_DECAY_RATE = 0.95; // 상호 작용 점수 지수 감쇠율 (1일마다 0.95)
+    private static final String INTERACTION_PREFIX = "interaction:"; // 상호 작용 점수 테이블(ZSet) 키 접두사
+
+
 
     @BeforeEach
     void setUp() {

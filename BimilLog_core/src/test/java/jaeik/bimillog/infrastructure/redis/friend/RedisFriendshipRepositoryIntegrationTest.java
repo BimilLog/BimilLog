@@ -12,11 +12,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_SHIP_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -35,6 +32,9 @@ class RedisFriendshipRepositoryIntegrationTest {
     void setUp() {
         RedisTestHelper.flushRedis(redisTemplate);
     }
+
+    private static final String FRIEND_SHIP_PREFIX = "friend:"; // 친구 관계 테이블 (Set) 키
+
 
     @Test
     @DisplayName("탈퇴 회원 삭제 시 친구 테이블에서만 타겟 정리")

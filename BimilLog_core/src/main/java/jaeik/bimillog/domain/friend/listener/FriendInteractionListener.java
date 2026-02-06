@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 
 import jaeik.bimillog.infrastructure.log.Log;
 
-import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.INTERACTION_SCORE_DEFAULT;
 
 /**
  * <h2>친구 상호작용 점수 관리 리스너</h2>
@@ -39,6 +38,8 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.INTERAC
 public class FriendInteractionListener {
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
     private final FriendEventDlqService friendEventDlqService;
+
+    public static final Double INTERACTION_SCORE_DEFAULT = 0.5; // 상호 작용 점수 증가 기본 값
 
     /**
      * <h3>상호작용 점수 증가</h3>

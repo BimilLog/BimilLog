@@ -25,7 +25,7 @@ public class InteractionScoreDecayScheduler {
      * 1일마다 상호작용 점수에 지수 감쇠 적용
      * <p>모든 interaction:* 키의 점수에 0.95를 곱하고, 0.1 이하의 점수는 삭제합니다.</p>
      */
-    @Scheduled(fixedRate = 60000 * 60 * 24) // 1일마다
+    @Scheduled(cron = "0 0 3 * * *") // 매일 새벽 3시
     public void applyInteractionScoreDecay() {
         try {
             int processedKeys = redisInteractionScoreRepository.applyInteractionScoreDecay();
