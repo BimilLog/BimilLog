@@ -28,8 +28,7 @@ public class FriendRequestQueryController {
      * 보낸 친구 요청 조회 API
      */
     @GetMapping("/send")
-    public ResponseEntity<Page<FriendSenderRequest>> getFriendSendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                                         Pageable pageable) {
+    public ResponseEntity<Page<FriendSenderRequest>> getFriendSendRequest(@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
         Page<FriendSenderRequest> friendSenderRequests = friendRequestQueryService.getFriendSendRequest(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(friendSenderRequests);
     }
@@ -38,8 +37,7 @@ public class FriendRequestQueryController {
      * 받은 친구 요청 조회 API
      */
     @GetMapping("/receive")
-    public ResponseEntity<Page<FriendReceiverRequest>> getFriendReceiveRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                                            Pageable pageable) {
+    public ResponseEntity<Page<FriendReceiverRequest>> getFriendReceiveRequest(@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
         Page<FriendReceiverRequest> friendSenderRequests = friendRequestQueryService.getFriendReceiveRequest(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(friendSenderRequests);
     }

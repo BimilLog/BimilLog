@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.Friend;
-import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipQueryRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -38,7 +38,6 @@ class FriendshipQueryServiceTest extends BaseUnitTest {
     private static final Long FRIEND_ID_2 = 3L;
 
     @Mock private FriendshipQueryRepository friendshipQueryRepository;
-    @Mock private FriendToMemberAdapter friendToMemberAdapter;
 
     @InjectMocks
     private FriendshipQueryService friendshipQueryService;
@@ -56,7 +55,7 @@ class FriendshipQueryServiceTest extends BaseUnitTest {
      * <h3>친구 목록 조회 시나리오 제공</h3>
      * <p>다양한 페이지네이션 상황을 테스트합니다.</p>
      *
-     * @return Pageable, 친구 리스트, 친구 정보 리스트, 총 개수의 조합
+     * @return Pageable, 친구 리스트, 총 개수의 조합
      */
     static Stream<Arguments> provideFriendListScenarios() {
         Pageable page0 = PageRequest.of(0, 10);
@@ -67,38 +66,29 @@ class FriendshipQueryServiceTest extends BaseUnitTest {
                 Arguments.of(
                         page0,
                         List.of(
-                                new Friend(100L, FRIEND_ID_1, java.time.Instant.now()),
-                                new Friend(101L, FRIEND_ID_2, java.time.Instant.now())
-                        ),
-                        List.of(FRIEND_ID_1, FRIEND_ID_2),
-                        List.of(
-                                new Friend.FriendInfo(FRIEND_ID_1, "테스트회원2", "http://example.com/2.jpg"),
-                                new Friend.FriendInfo(FRIEND_ID_2, "테스트회원3", "http://example.com/3.jpg")
+                                new Friend(100L, FRIEND_ID_1, "테스트회원2", "http://example.com/2.jpg", Instant.now()),
+                                new Friend(101L, FRIEND_ID_2, "테스트회원3", "http://example.com/3.jpg", Instant.now())
                         ),
                         2L
                 ),
                 // 친구가 없는 경우
-                Arguments.of(page0, List.of(), List.of(), List.of(), 0L),
+                Arguments.of(page0, List.of(), 0L),
                 // 페이지네이션 (2페이지)
                 Arguments.of(
                         page1,
-                        List.of(new Friend(105L, 6L, java.time.Instant.now())),
-                        List.of(6L),
-                        List.of(new Friend.FriendInfo(6L, "테스트회원6", "http://example.com/6.jpg")),
+                        List.of(new Friend(105L, 6L, "테스트회원6", "http://example.com/6.jpg", Instant.now())),
                         10L
                 )
         );
     }
 
-    @ParameterizedTest(name = "page={0}, totalElements={4}")
+    @ParameterizedTest(name = "page={0}, totalElements={2}")
     @MethodSource("provideFriendListScenarios")
     @DisplayName("친구 목록 조회 - 다양한 시나리오")
-    void shouldGetFriendList(Pageable pageable, List<Friend> friends, List<Long> friendIds,
-                              List<Friend.FriendInfo> friendInfos, long total) {
+    void shouldGetFriendList(Pageable pageable, List<Friend> friends, long total) {
         // Given
         Page<Friend> friendPage = new PageImpl<>(friends, pageable, total);
-        given(friendshipQueryRepository.getMyFriendIds(MEMBER_ID, pageable)).willReturn(friendPage);
-        given(friendToMemberAdapter.addMyFriendInfo(friendIds)).willReturn(friendInfos);
+        given(friendshipQueryRepository.getFriendPage(MEMBER_ID, pageable)).willReturn(friendPage);
 
         // When
         Page<Friend> result = friendshipQueryService.getMyFriendList(MEMBER_ID, pageable);
@@ -110,20 +100,13 @@ class FriendshipQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("친구 목록 조회 성공 - FriendInfo 주입 확인")
-    void shouldInjectFriendInfo() {
+    @DisplayName("친구 목록 조회 성공 - 친구 정보 확인")
+    void shouldReturnFriendWithInfo() {
         // Given
-        Friend friend = new Friend(100L, FRIEND_ID_1, java.time.Instant.now());
+        Friend friend = new Friend(100L, FRIEND_ID_1, "친구이름", "http://example.com/profile.jpg", Instant.now());
         Page<Friend> friendPage = new PageImpl<>(List.of(friend), pageable, 1);
 
-        Friend.FriendInfo friendInfo = new Friend.FriendInfo(
-                FRIEND_ID_1,
-                "친구이름",
-                "http://example.com/profile.jpg"
-        );
-
-        given(friendshipQueryRepository.getMyFriendIds(MEMBER_ID, pageable)).willReturn(friendPage);
-        given(friendToMemberAdapter.addMyFriendInfo(List.of(FRIEND_ID_1))).willReturn(List.of(friendInfo));
+        given(friendshipQueryRepository.getFriendPage(MEMBER_ID, pageable)).willReturn(friendPage);
 
         // When
         Page<Friend> result = friendshipQueryService.getMyFriendList(MEMBER_ID, pageable);

@@ -56,10 +56,10 @@ public class FriendshipCommandService {
      */
     @Transactional
     public void deleteFriendship(Long memberId, Long friendshipId) {
-        // 친구가 자신의 친구인지 확인한다.
         Friendship friendship = friendshipRepository.findById(friendshipId)
                 .orElseThrow(() -> new CustomException(ErrorCode.FRIEND_SHIP_NOT_FOUND));
 
+        // 친구가 자신의 친구인지 확인한다.
         boolean isParticipant = Objects.equals(friendship.getMember().getId(), memberId) ||
                 Objects.equals(friendship.getFriend().getId(), memberId);
         if (!isParticipant) {

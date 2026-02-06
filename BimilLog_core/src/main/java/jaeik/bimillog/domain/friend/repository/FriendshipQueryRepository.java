@@ -16,7 +16,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
-
+/**
+ * <h2>친구 조회 레포지터리</h2>
+ * @version 2.7.0
+ * @author Jaeik
+ */
 @Repository
 @RequiredArgsConstructor
 public class FriendshipQueryRepository {
@@ -24,7 +28,9 @@ public class FriendshipQueryRepository {
     private final QFriendship friendship = QFriendship.friendship;
     private final QMember member = QMember.member;
 
-
+    /**
+     * <h3>친구 페이지 반환</h3>
+     */
     public Page<Friend> getFriendPage(Long memberId, Pageable pageable) {
         NumberExpression<Long> friendIdPath = new CaseBuilder()
                 .when(friendship.member.id.eq(memberId)).then(friendship.friend.id)
@@ -33,9 +39,9 @@ public class FriendshipQueryRepository {
         List<Friend> content = jpaQueryFactory.select(Projections.constructor(Friend.class,
                         friendship.id,
                         friendIdPath,
-                        friendship.createdAt,
                         member.memberName,
-                        member.thumbnailImage))
+                        member.thumbnailImage,
+                        friendship.createdAt))
                 .from(friendship)
                 .join(member).on(member.id.eq(friendIdPath))
                 .where(friendship.member.id.eq(memberId).or(friendship.friend.id.eq(memberId)))

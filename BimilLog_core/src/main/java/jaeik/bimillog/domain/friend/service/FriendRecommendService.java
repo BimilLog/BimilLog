@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.recommend;
+package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.RecommendCandidate;
 import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
@@ -70,7 +70,7 @@ public class FriendRecommendService {
 
         // 1. 1촌 조회
         Set<Long> myFriends = useRedis
-                ? redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_SCAN_LIMIT)
+                ? redisFriendshipRepository.getFriendIdRandom(memberId, FIRST_FRIEND_SCAN_LIMIT)
                 : friendshipQueryRepository.getMyFriendIdsSet(memberId, FIRST_FRIEND_SCAN_LIMIT);
 
         // 2. 후보자 탐색 (2촌 -> 3촌 순차 확장) 및 점수 계산
