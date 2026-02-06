@@ -1,35 +1,14 @@
 package jaeik.bimillog.domain.friend.adapter;
 
-import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.service.MemberBlacklistService;
-import jaeik.bimillog.domain.member.service.MemberFriendService;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-
 
 @Component
 @RequiredArgsConstructor
 public class FriendToMemberAdapter {
-    private final MemberFriendService memberFriendService;
     private final MemberQueryService memberQueryService;
-
-    /**
-     * <h3>친구 추가 정보 조회</h3>
-     * <p>친구 ID 목록을 받아서 각 친구의 상세 정보를 조회합니다.</p>
-     *
-     * @param friendIds 조회할 친구 ID 목록
-     * @return List&lt;Friend.FriendInfo&gt; 친구 정보 리스트
-     */
-    public List<Friend.FriendInfo> addMyFriendInfo(List<Long> friendIds) {
-        return memberFriendService.addMyFriendInfo(friendIds);
-    }
 
     /**
      * <h3>사용자 ID로 사용자 조회</h3>

@@ -35,8 +35,7 @@ public class FriendRequestCommandController {
      */
     @DeleteMapping("/send/{friendRequestId}")
     public ResponseEntity<Page<FriendSenderRequest>> cancelMyFriendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                                           @PathVariable Long friendRequestId,
-                                                                           Pageable pageable) {
+                                                                           @PathVariable Long friendRequestId, Pageable pageable) {
 
         friendRequestCommandService.cancelFriendRequest(userDetails.getMemberId(), friendRequestId);
         Page<FriendSenderRequest> friendSenderRequests = friendRequestQueryService.getFriendSendRequest(userDetails.getMemberId(), pageable);
@@ -49,8 +48,7 @@ public class FriendRequestCommandController {
      */
     @DeleteMapping("/receive/{friendRequestId}")
     public ResponseEntity<Page<FriendReceiverRequest>> rejectReceiveFriendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                                           @PathVariable Long friendRequestId,
-                                                                           Pageable pageable) {
+                                                                           @PathVariable Long friendRequestId, Pageable pageable) {
 
         friendRequestCommandService.deleteFriendRequest(userDetails.getMemberId(), friendRequestId);
         Page<FriendReceiverRequest> friendSenderRequests = friendRequestQueryService.getFriendReceiveRequest(userDetails.getMemberId(), pageable);
@@ -63,8 +61,8 @@ public class FriendRequestCommandController {
      */
     @PostMapping("/receive/{friendRequestId}")
     public ResponseEntity<Page<Friend>> acceptReceiveFriendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                             @PathVariable Long friendRequestId,
-                                                             Pageable pageable) {
+                                                             @PathVariable Long friendRequestId, Pageable pageable) {
+
         Long senderId = friendRequestQueryService.getSenderId(userDetails.getMemberId(), friendRequestId);
         friendshipCommandService.createFriendship(userDetails.getMemberId(), senderId, friendRequestId);
         Page<Friend> myFriendPages = friendshipQueryService.getMyFriendList(userDetails.getMemberId(), pageable);
@@ -76,8 +74,7 @@ public class FriendRequestCommandController {
      */
     @PostMapping("/send")
     public ResponseEntity<Page<FriendSenderRequest>> sendFriendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                                       @RequestBody FriendSenderRequest friendSenderRequest,
-                                                                       Pageable pageable) {
+                                                                       @RequestBody FriendSenderRequest friendSenderRequest, Pageable pageable) {
 
         friendRequestCommandService.sendFriendRequest(userDetails.getMemberId(), friendSenderRequest.getReceiverMemberId());
         Page<FriendSenderRequest> friendSenderRequests = friendRequestQueryService.getFriendSendRequest(userDetails.getMemberId(), pageable);

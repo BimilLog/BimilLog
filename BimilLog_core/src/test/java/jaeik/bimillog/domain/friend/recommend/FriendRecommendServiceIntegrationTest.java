@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.friend.recommend;
 
 import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
+import jaeik.bimillog.domain.friend.service.FriendRecommendService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberBlacklist;
 import jaeik.bimillog.domain.member.repository.MemberBlacklistRepository;
@@ -140,13 +141,13 @@ class FriendRecommendServiceIntegrationTest {
         Awaitility.await()
                 .atMost(EVENT_TIMEOUT)
                 .untilAsserted(() -> {
-                    assertThat(redisFriendshipRepository.getFriends(member1.getId(), 200))
+                    assertThat(redisFriendshipRepository.getFriendIdRandom(member1.getId(), 200))
                             .containsExactlyInAnyOrder(member2.getId(), member3.getId());
-                    assertThat(redisFriendshipRepository.getFriends(member2.getId(), 200))
+                    assertThat(redisFriendshipRepository.getFriendIdRandom(member2.getId(), 200))
                             .containsExactlyInAnyOrder(member1.getId(), member4.getId());
-                    assertThat(redisFriendshipRepository.getFriends(member3.getId(), 200))
+                    assertThat(redisFriendshipRepository.getFriendIdRandom(member3.getId(), 200))
                             .containsExactlyInAnyOrder(member1.getId(), member5.getId(), member7.getId());
-                    assertThat(redisFriendshipRepository.getFriends(member4.getId(), 200))
+                    assertThat(redisFriendshipRepository.getFriendIdRandom(member4.getId(), 200))
                             .containsExactlyInAnyOrder(member2.getId(), member6.getId());
                 });
     }
@@ -332,7 +333,7 @@ class FriendRecommendServiceIntegrationTest {
     @DisplayName("Redis 캐시 동작 검증 - getFriends 호출 시 데이터 반환")
     void shouldReturnFriendsFromRedisCache() {
         // When
-        var friends = redisFriendshipRepository.getFriends(member1.getId(), 200);
+        var friends = redisFriendshipRepository.getFriendIdRandom(member1.getId(), 200);
 
         // Then
         assertThat(friends).contains(member2.getId(), member3.getId());

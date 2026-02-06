@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
+import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_SHIP_PREFIX;
+import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.*;
 
 /**
  * <h2>친구 관계 Redis 캐시 저장소</h2>
@@ -28,7 +29,7 @@ public class RedisFriendshipRepository {
     /**
      * <h3>특정 회원의 1촌 친구 목록 조회 (랜덤 추출)</h3>
      */
-    public Set<Long> getFriends(Long memberId, int count) {
+    public Set<Long> getFriendIdRandom(Long memberId, int count) {
         String key = FRIEND_SHIP_PREFIX + memberId;
         return redisTemplate.opsForSet().distinctRandomMembers(key, count);
     }
@@ -92,7 +93,7 @@ public class RedisFriendshipRepository {
      */
     public void deleteWithdrawFriendTargeted(Long withdrawFriendId) {
         try {
-            Set<Long> friendIds = getFriends(withdrawFriendId, PIPELINE_BATCH_SIZE);
+            Set<Long> friendIds = getFriendIdRandom(withdrawFriendId, PIPELINE_BATCH_SIZE);
             if (friendIds != null && !friendIds.isEmpty()) {
                 byte[] withdrawMemberIdBytes = String.valueOf(withdrawFriendId).getBytes(StandardCharsets.UTF_8);
                 List<Long> friendIdList = new ArrayList<>(friendIds);
@@ -115,4 +116,30 @@ public class RedisFriendshipRepository {
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_DELETE_ERROR, e);
         }
     }
+
+    public void processFriendAdd(RedisConnection connection, FriendEventDlq event) {
+        String key1 = FRIEND_SHIP_PREFIX + event.getMemberId();
+        String key2 = FRIEND_SHIP_PREFIX + event.getTargetId();
+
+        connection.setCommands().sAdd(
+                key1.getBytes(StandardCharsets.UTF_8),
+                String.valueOf(event.getTargetId()).getBytes(StandardCharsets.UTF_8));
+        connection.setCommands().sAdd(
+                key2.getBytes(StandardCharsets.UTF_8),
+                String.valueOf(event.getMemberId()).getBytes(StandardCharsets.UTF_8));
+    }
+
+    public void processFriendRemove(RedisConnection connection, FriendEventDlq event) {
+        String key1 = FRIEND_SHIP_PREFIX + event.getMemberId();
+        String key2 = FRIEND_SHIP_PREFIX + event.getTargetId();
+
+        connection.setCommands().sRem(
+                key1.getBytes(StandardCharsets.UTF_8),
+                String.valueOf(event.getTargetId()).getBytes(StandardCharsets.UTF_8));
+        connection.setCommands().sRem(
+                key2.getBytes(StandardCharsets.UTF_8),
+                String.valueOf(event.getMemberId()).getBytes(StandardCharsets.UTF_8));
+    }
+
+
 }

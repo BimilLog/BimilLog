@@ -32,8 +32,7 @@ public class FriendshipCommandController {
      */
     @DeleteMapping("/friendship/{friendshipId}")
     public ResponseEntity<Page<Friend>> deleteFriendship(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                   @PathVariable Long friendshipId,
-                                                   Pageable pageable) {
+                                                   @PathVariable Long friendshipId, Pageable pageable) {
         friendshipCommandService.deleteFriendship(userDetails.getMemberId(), friendshipId);
         Page<Friend> myFriendPages = friendshipQueryService.getMyFriendList(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(myFriendPages);

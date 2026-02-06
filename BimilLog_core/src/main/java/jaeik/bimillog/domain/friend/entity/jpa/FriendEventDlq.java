@@ -1,11 +1,7 @@
 package jaeik.bimillog.domain.friend.entity.jpa;
 
-import jaeik.bimillog.domain.friend.entity.FriendEventType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -14,24 +10,21 @@ import java.time.LocalDateTime;
  * <p>Redis 친구 관련 이벤트 처리 실패 시 재처리를 위해 저장하는 Dead Letter Queue 엔티티입니다.</p>
  *
  * @author Jaeik
- * @version 2.5.0
+ * @version 2.7.0
  */
-@Entity
-@Table(name = "friend_event_dlq",
-        indexes = @Index(name = "idx_dlq_status_created", columnList = "status, created_at"),
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_dlq_event_status",
-                columnNames = {"event_id", "status"}
-        ))
 @Getter
+@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@Table(name = "friend_event_dlq", indexes = @Index(name = "idx_dlq_status_created", columnList = "status, created_at"))
 public class FriendEventDlq {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "event_id", nullable = false)
+    @Column(name = "event_id", nullable = false, unique = true)
     private String eventId;
 
     @Enumerated(EnumType.STRING)
@@ -44,36 +37,17 @@ public class FriendEventDlq {
     @Column(name = "target_id", nullable = false)
     private Long targetId;
 
-    @Column
     private Double score;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private DlqStatus status;
+    private FriendDlqStatus status;
 
     @Column(name = "retry_count", nullable = false)
     private Integer retryCount;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    public enum DlqStatus {
-        PENDING,
-        PROCESSED,
-        FAILED
-    }
-
-    @Builder
-    private FriendEventDlq(String eventId, FriendEventType type, Long memberId, Long targetId, Double score) {
-        this.eventId = eventId;
-        this.type = type;
-        this.memberId = memberId;
-        this.targetId = targetId;
-        this.score = score;
-        this.status = DlqStatus.PENDING;
-        this.retryCount = 0;
-        this.createdAt = LocalDateTime.now();
-    }
 
     /**
      * 친구 추가 이벤트용 DLQ 엔티티를 생성합니다.
@@ -85,6 +59,9 @@ public class FriendEventDlq {
                 .type(FriendEventType.FRIEND_ADD)
                 .memberId(memberId)
                 .targetId(friendId)
+                .status(FriendDlqStatus.PENDING)
+                .retryCount(0)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -98,6 +75,9 @@ public class FriendEventDlq {
                 .type(FriendEventType.FRIEND_REMOVE)
                 .memberId(memberId)
                 .targetId(friendId)
+                .status(FriendDlqStatus.PENDING)
+                .retryCount(0)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -112,15 +92,18 @@ public class FriendEventDlq {
                 .memberId(memberId)
                 .targetId(targetId)
                 .score(score)
+                .status(FriendDlqStatus.PENDING)
+                .retryCount(0)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
     public void markAsProcessed() {
-        this.status = DlqStatus.PROCESSED;
+        this.status = FriendDlqStatus.PROCESSED;
     }
 
     public void markAsFailed() {
-        this.status = DlqStatus.FAILED;
+        this.status = FriendDlqStatus.FAILED;
     }
 
     public void incrementRetryCount() {

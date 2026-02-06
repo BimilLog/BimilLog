@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.entity;
+package jaeik.bimillog.domain.friend.entity.jpa;
 
 /**
  * <h2>친구 이벤트 타입</h2>

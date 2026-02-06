@@ -76,7 +76,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
-                        .addInteractionScore(eq(2L), eq(3L), eq(event.getEventId())));
+                        .addInteractionScore(eq(3L), eq(2L), eq(event.getEventId())));
     }
 
     @Test
@@ -94,7 +94,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(friendEventDlqService, times(1))
-                        .saveScoreUp(eq(event.getEventId()), eq(2L), eq(3L), eq(INTERACTION_SCORE_DEFAULT)));
+                        .saveScoreUp(eq(event.getIdempotencyKey()), eq(event.getMemberId()), eq(event.getTargetMemberId()), eq(INTERACTION_SCORE_DEFAULT)));
     }
 
     @Test
@@ -123,14 +123,14 @@ class FriendInteractionListenerRetryTest {
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
                 .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong(), anyString());
 
-        // When
-        listener.handleCommentCreated(event);
+        // When - 통합된 handlePostLiked 메소드 사용
+        listener.handlePostLiked(event);
 
         // Then: 비동기 완료 대기
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
-                        .addInteractionScore(eq(1L), eq(2L), eq(event.getIdempotencyKey())));
+                        .addInteractionScore(eq(event.getMemberId()), eq(event.getTargetMemberId()), eq(event.getIdempotencyKey())));
     }
 
     @Test
@@ -142,13 +142,13 @@ class FriendInteractionListenerRetryTest {
                 .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong(), anyString());
 
         // When
-        listener.handleCommentCreated(event);
+        listener.handlePostLiked(event);
 
         // Then: DLQ 저장 호출 검증
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(friendEventDlqService, times(1))
-                        .saveScoreUp(eq(event.getIdempotencyKey()), eq(1L), eq(2L), eq(INTERACTION_SCORE_DEFAULT)));
+                        .saveScoreUp(eq(event.getIdempotencyKey()), eq(event.getMemberId()), eq(event.getTargetMemberId()), eq(INTERACTION_SCORE_DEFAULT)));
     }
 
     @Test
@@ -158,7 +158,7 @@ class FriendInteractionListenerRetryTest {
         CommentCreatedEvent event = new CommentCreatedEvent(1L, "작성자", null, 100L);
 
         // When
-        listener.handleCommentCreated(event);
+        listener.handlePostLiked(event);
 
         // Then: 비동기 완료 대기 - 상호작용 점수 저장 호출 없음
         Awaitility.await()
@@ -177,14 +177,14 @@ class FriendInteractionListenerRetryTest {
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
                 .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong(), anyString());
 
-        // When
-        listener.handleCommentLiked(event);
+        // When - 통합된 handlePostLiked 메소드 사용
+        listener.handlePostLiked(event);
 
         // Then: 비동기 완료 대기
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
-                        .addInteractionScore(eq(2L), eq(3L), eq(event.getIdempotencyKey())));
+                        .addInteractionScore(eq(event.getMemberId()), eq(event.getTargetMemberId()), eq(event.getIdempotencyKey())));
     }
 
     @Test
@@ -196,13 +196,13 @@ class FriendInteractionListenerRetryTest {
                 .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong(), anyString());
 
         // When
-        listener.handleCommentLiked(event);
+        listener.handlePostLiked(event);
 
         // Then: DLQ 저장 호출 검증
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(friendEventDlqService, times(1))
-                        .saveScoreUp(eq(event.getIdempotencyKey()), eq(2L), eq(3L), eq(INTERACTION_SCORE_DEFAULT)));
+                        .saveScoreUp(eq(event.getIdempotencyKey()), eq(event.getMemberId()), eq(event.getTargetMemberId()), eq(INTERACTION_SCORE_DEFAULT)));
     }
 
     @Test
@@ -212,7 +212,7 @@ class FriendInteractionListenerRetryTest {
         CommentLikeEvent event = new CommentLikeEvent(1L, null, 3L);
 
         // When
-        listener.handleCommentLiked(event);
+        listener.handlePostLiked(event);
 
         // Then: 비동기 완료 대기 - 상호작용 점수 저장 호출 없음
         Awaitility.await()
@@ -231,7 +231,7 @@ class FriendInteractionListenerRetryTest {
         willThrow(new RedisConnectionFailureException("실패"))
                 .willThrow(new RedisConnectionFailureException("실패"))
                 .willReturn(true)
-                .given(redisInteractionScoreRepository).addInteractionScore(eq(2L), eq(3L), eq(event.getEventId()));
+                .given(redisInteractionScoreRepository).addInteractionScore(eq(3L), eq(2L), eq(event.getEventId()));
 
         // When
         listener.handlePostLiked(event);
@@ -240,7 +240,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(redisInteractionScoreRepository, times(3)).addInteractionScore(eq(2L), eq(3L), eq(event.getEventId()));
+                    verify(redisInteractionScoreRepository, times(3)).addInteractionScore(eq(3L), eq(2L), eq(event.getEventId()));
                     verify(friendEventDlqService, never()).saveScoreUp(anyString(), anyLong(), anyLong(), anyDouble());
                 });
     }

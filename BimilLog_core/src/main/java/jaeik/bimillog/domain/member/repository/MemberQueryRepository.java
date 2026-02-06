@@ -6,10 +6,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.auth.entity.QAuthToken;
-import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
 import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO.MemberInfo;
-import jaeik.bimillog.domain.friend.entity.Friend;
-import jaeik.bimillog.domain.friend.entity.Friend.FriendInfo;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QSetting;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
@@ -103,22 +100,6 @@ public class MemberQueryRepository {
                         tuple -> Optional.ofNullable(tuple.get(member.memberName)).orElse(""),
                         (existing, replacement) -> existing
                 ));
-    }
-
-    /**
-     * 여러 사용자 ID로 친구 추가 정보 조회
-     * 친구 조회시 사용
-     */
-    public List<FriendInfo> getMyFriendPages (List<Long> friendIds) {
-        return jpaQueryFactory
-                .select(Projections.constructor(FriendInfo.class,
-                        member.id,
-                        member.memberName,
-                        member.thumbnailImage
-                ))
-                .from(member)
-                .where(member.id.in(friendIds))
-                .fetch();
     }
 
     /**

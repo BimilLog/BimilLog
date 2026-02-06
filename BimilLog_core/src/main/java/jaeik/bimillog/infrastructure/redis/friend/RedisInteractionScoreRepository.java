@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
+import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -23,21 +24,23 @@ import static org.springframework.data.redis.core.ScanOptions.scanOptions;
  * <p>Key: interaction:{memberId}, Member: targetId, Score: 점수</p>
  *
  * @author Jaeik
- * @version 2.2.0
+ * @version 2.7.0
  */
 @Repository
 @RequiredArgsConstructor
 public class RedisInteractionScoreRepository {
-
     private final RedisTemplate<String, Object> redisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
-    private final int PIPELINE_BATCH_SIZE = 500;
 
-    // 상호 작용 점수 증가 Lua Script (멱등성 보장, ZSet 기반)
-    public static final RedisScript<Long> INTERACTION_SCORE_ADD_SCRIPT;
+    private static final int PIPELINE_BATCH_SIZE = 500;
+    private static final RedisScript<Long> INTERACTION_SCORE_ADD_SCRIPT; // 상호 작용 점수 증가 Lua Script
+    private static final RedisScript<Long> INTERACTION_SCORE_DECAY_SCRIPT; // 상호 작용 점수 지수 감쇠 Lua Script
+    private static final String IDEMPOTENCY_PREFIX = "idempotency:interaction:"; // 멱등키 Set
+    private static final Long IDEMPOTENCY_TTL_SECONDS = 24 * 60 * 60L; // 멱등성 키 TTL 1일
+    private static final Double INTERACTION_SCORE_THRESHOLD = 0.2; // 상호 작용 점수 삭제 임계값
+    private static final Double INTERACTION_SCORE_LIMIT = 9.5; // 상호 작용 점수 증가 가능 최대값 (최대값은 10점)
+    public static final Double INTERACTION_SCORE_DECAY_RATE = 0.95; // 상호 작용 점수 지수 감쇠율 (1일마다 0.95)
 
-    // 상호 작용 점수 지수 감쇠 Lua Script
-    public static final RedisScript<Long> INTERACTION_SCORE_DECAY_SCRIPT;
 
     static {
         String luaScript = """
@@ -238,5 +241,20 @@ public class RedisInteractionScoreRepository {
         }
 
         return keys.size();
+    }
+
+    public void processScoreUp(RedisConnection connection, FriendEventDlq event) {
+        String key1 = INTERACTION_PREFIX + event.getMemberId();
+        String key2 = INTERACTION_PREFIX + event.getTargetId();
+        double increment = event.getScore() != null ? event.getScore() : INTERACTION_SCORE_DEFAULT;
+
+        connection.zSetCommands().zIncrBy(
+                key1.getBytes(StandardCharsets.UTF_8),
+                increment,
+                event.getTargetId().toString().getBytes(StandardCharsets.UTF_8));
+        connection.zSetCommands().zIncrBy(
+                key2.getBytes(StandardCharsets.UTF_8),
+                increment,
+                event.getMemberId().toString().getBytes(StandardCharsets.UTF_8));
     }
 }

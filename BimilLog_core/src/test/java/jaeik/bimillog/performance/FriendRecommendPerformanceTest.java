@@ -2,7 +2,7 @@ package jaeik.bimillog.performance;
 
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
-import jaeik.bimillog.domain.friend.recommend.FriendRecommendService;
+import jaeik.bimillog.domain.friend.service.FriendRecommendService;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import jaeik.bimillog.testutil.RedisTestHelper;
@@ -212,7 +212,7 @@ public class FriendRecommendPerformanceTest {
 
         // 시딩 검증
         Long sampleMemberId = friendships.getFirst().getMember().getId();
-        assertThat(redisFriendshipRepository.getFriends(sampleMemberId, 200)).isNotEmpty();
+        assertThat(redisFriendshipRepository.getFriendIdRandom(sampleMemberId, 200)).isNotEmpty();
     }
 
     private void seedInteractionScores(List<Friendship> friendships) {
@@ -243,7 +243,7 @@ public class FriendRecommendPerformanceTest {
 
         // 시딩 검증
         Long sampleMemberId = friendships.getFirst().getMember().getId();
-        Set<Long> sampleTargets = redisFriendshipRepository.getFriends(sampleMemberId, 200);
+        Set<Long> sampleTargets = redisFriendshipRepository.getFriendIdRandom(sampleMemberId, 200);
         if (!sampleTargets.isEmpty()) {
             List<Object> results = redisInteractionScoreRepository
                     .getInteractionScoresBatch(sampleMemberId, new ArrayList<>(sampleTargets));

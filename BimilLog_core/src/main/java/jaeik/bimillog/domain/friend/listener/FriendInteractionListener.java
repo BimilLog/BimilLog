@@ -4,6 +4,7 @@ import io.lettuce.core.RedisCommandTimeoutException;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
+import jaeik.bimillog.domain.global.event.FriendInteractionEvent;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,10 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.INTERAC
  * <p>게시글 좋아요, 댓글 작성, 댓글 좋아요 이벤트를 수신하여 Redis에 상호작용 점수를 기록합니다.</p>
  * <p>친구 추천 알고리즘에서 사용되는 상호작용 점수를 실시간으로 업데이트합니다.</p>
  * <p>익명 사용자의 상호작용은 점수에 반영되지 않습니다.</p>
- * <p>각 상호작용당 +0.5점, 최대 9.5점까지 증가합니다.</p>
+ * <p>각 상호작용당 +0.5점, 최대 10점까지 증가합니다.</p>
  *
  * @author Jaeik
- * @version 2.5.0
+ * @version 2.7.0
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "친구 상호작용 점수")
 @Component
@@ -40,15 +41,14 @@ public class FriendInteractionListener {
     private final FriendEventDlqService friendEventDlqService;
 
     /**
-     * <h3>게시글 좋아요 상호작용 점수 증가</h3>
-     * <p>게시글 좋아요 시 게시글 작성자와 좋아요 누른 사람 간의 상호작용 점수를 증가시킵니다.</p>
-     * <p>익명 게시글의 경우 점수가 증가하지 않습니다.</p>
-     * <p>{@link PostLikeEvent} 발행 시 비동기로 호출됩니다.</p>
+     * <h3>상호작용 점수 증가</h3>
+     * <p>댓글 추천, 글 추천, 댓글 작성의 경우 FriendInteractionEvent로 추상화</p>
+     * <p>자기자신이나 익명 게시글, 댓글의 경우 점수가 증가하지 않습니다.</p>
      *
      * @param event 게시글 좋아요 이벤트
      */
     @EventListener
-    @Async("realtimeEventExecutor")
+    @Async("friendUpdateExecutor")
     @Retryable(
             retryFor = {
                     RedisConnectionFailureException.class,
@@ -57,82 +57,16 @@ public class FriendInteractionListener {
             },
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000, multiplier = 1.5))
-    public void handlePostLiked(PostLikeEvent event) {
-        boolean processed = redisInteractionScoreRepository.addInteractionScore(event.getPostAuthorId(), event.getLikerId(), event.getEventId());
+    public void handlePostLiked(FriendInteractionEvent event) {
+        boolean processed = redisInteractionScoreRepository.addInteractionScore(event.getMemberId(), event.getTargetMemberId(), event.getIdempotencyKey());
         if (!processed) {
-            log.info("이미 처리된 게시글 좋아요 이벤트 : postId={}, idempotencyKey={}", event.getPostId(), event.getEventId());
+            event.getAlreadyProcess();
         }
     }
 
     @Recover
-    public void recoverPostLiked(Exception e, PostLikeEvent event) {
-        log.warn("게시글 추천 상호작용 점수 증가 실패 DLQ 진입: postId={}, authorId={}, likerId={}", event.getPostId(), event.getPostAuthorId(), event.getLikerId(), e);
-        friendEventDlqService.saveScoreUp(event.getEventId(), event.getPostAuthorId(), event.getLikerId(), INTERACTION_SCORE_DEFAULT);
-    }
-
-    /**
-     * <h3>댓글 작성 상호작용 점수 증가</h3>
-     * <p>댓글 작성 시 게시글 작성자와 댓글 작성자 간의 상호작용 점수를 증가시킵니다.</p>
-     * <p>익명 댓글의 경우 점수가 증가하지 않습니다.</p>
-     * <p>{@link CommentCreatedEvent} 발행 시 비동기로 호출됩니다.</p>
-     *
-     * @param event 댓글 작성 이벤트
-     */
-    @EventListener
-    @Async("realtimeEventExecutor")
-    @Retryable(
-            retryFor = {
-                    RedisConnectionFailureException.class,
-                    RedisSystemException.class,
-                    RedisCommandTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 1.5)
-    )
-    public void handleCommentCreated(CommentCreatedEvent event) {
-        boolean processed = redisInteractionScoreRepository.addInteractionScore(
-                event.postUserId(), event.commenterId(), event.getIdempotencyKey());
-        if (!processed) {
-            log.info("이미 처리된 댓글 작성 이벤트: postId={}, idempotencyKey={}", event.postId(), event.getIdempotencyKey());
-        }
-    }
-
-    @Recover
-    public void recoverCommentCreated(Exception e, CommentCreatedEvent event) {
-        log.warn("댓글 작성 상호작용 점수 증가 실패 DLQ 진입: postId={}, postUserId={}, commenterId={}", event.postId(), event.postUserId(), event.commenterId(), e);
-        friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.postUserId(), event.commenterId(), INTERACTION_SCORE_DEFAULT);
-    }
-
-    /**
-     * <h3>댓글 좋아요 상호작용 점수 증가</h3>
-     * <p>댓글 좋아요 시 댓글 작성자와 좋아요 누른 사람 간의 상호작용 점수를 증가시킵니다.</p>
-     * <p>익명 댓글의 경우 점수가 증가하지 않습니다.</p>
-     * <p>{@link CommentLikeEvent} 발행 시 비동기로 호출됩니다.</p>
-     *
-     * @param event 댓글 좋아요 이벤트
-     */
-    @EventListener
-    @Async("realtimeEventExecutor")
-    @Retryable(
-            retryFor = {
-                    RedisConnectionFailureException.class,
-                    RedisSystemException.class,
-                    RedisCommandTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 1.5)
-    )
-    public void handleCommentLiked(CommentLikeEvent event) {
-        boolean processed = redisInteractionScoreRepository.addInteractionScore(
-                event.commentAuthorId(), event.likerId(), event.getIdempotencyKey());
-        if (!processed) {
-            log.info("이미 처리된 댓글 좋아요 이벤트: commentId={}, idempotencyKey={}", event.commentId(), event.getIdempotencyKey());
-        }
-    }
-
-    @Recover
-    public void recoverCommentLiked(Exception e, CommentLikeEvent event) {
-        log.warn("댓글 좋아요 상호작용 점수 증가 실패 DLQ 진입: commentId={}, authorId={}, likerId={}", event.commentId(), event.commentAuthorId(), event.likerId(), e);
-        friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.commentAuthorId(), event.likerId(), INTERACTION_SCORE_DEFAULT);
+    public void recoverPostLiked(Exception e, FriendInteractionEvent event) {
+        event.getDlqMessage(e);
+        friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.getTargetMemberId(), event.getMemberId(), INTERACTION_SCORE_DEFAULT);
     }
 }

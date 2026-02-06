@@ -17,27 +17,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FriendshipQueryService {
     private final FriendshipQueryRepository friendshipQueryRepository;
-    private final FriendToMemberAdapter friendToMemberAdapter;
 
     /**
      * 친구 조회
      */
     @Transactional(readOnly = true)
     public Page<Friend> getMyFriendList(Long memberId, Pageable pageable) {
-        Page<Friend> myFriendPages = friendshipQueryRepository.getMyFriendIds(memberId, pageable);
-        List<Long> friendIds = myFriendPages.getContent().stream().map(Friend::getFriendMemberId).toList();
-        List<Friend.FriendInfo> friendInfos = friendToMemberAdapter.addMyFriendInfo(friendIds);
-
-        Map<Long, Friend.FriendInfo> infoMap = friendInfos.stream()
-                .collect(Collectors.toMap(Friend.FriendInfo::memberId, info -> info));
-
-        // 기존 Page<Friend> 내부 객체에 FriendInfo 주입
-        myFriendPages.getContent().forEach(friend -> {
-            Friend.FriendInfo info = infoMap.get(friend.getFriendMemberId());
-            if (info != null) {
-                friend.updateInfo(info);
-            }
-        });
-        return myFriendPages;
+        return friendshipQueryRepository.getFriendPage(memberId, pageable);
     }
 }
