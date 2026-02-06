@@ -221,25 +221,25 @@ public class PostReadModelSyncListener {
     )
     @Transactional
     public void handleCommentCreated(CommentCreatedEvent event) {
-        String eventId = "CMT_INC:" + event.getIdempotencyKey();
+        String eventId = "CMT_INC:" + event.getEventId();
 
         if (processedEventRepository.existsById(eventId)) {
             log.debug("이미 처리된 이벤트 스킵: {}", eventId);
             return;
         }
 
-        postReadModelRepository.incrementCommentCount(event.postId());
+        postReadModelRepository.incrementCommentCount(event.getPostId());
         processedEventRepository.save(new ProcessedEvent(eventId, "COMMENT_INCREMENT"));
 
-        log.debug("PostReadModel 댓글 수 증가 완료: postId={}", event.postId());
+        log.debug("PostReadModel 댓글 수 증가 완료: postId={}", event.getPostId());
     }
 
     @Recover
     public void recoverCommentCreated(Exception e, CommentCreatedEvent event) {
-        log.error("PostReadModel 댓글 수 증가 최종 실패: postId={}", event.postId(), e);
+        log.error("PostReadModel 댓글 수 증가 최종 실패: postId={}", event.getPostId(), e);
         postReadModelDlqService.saveCommentIncrement(
-                "CMT_INC:" + event.getIdempotencyKey(),
-                event.postId()
+                "CMT_INC:" + event.getEventId(),
+                event.getPostId()
         );
     }
 

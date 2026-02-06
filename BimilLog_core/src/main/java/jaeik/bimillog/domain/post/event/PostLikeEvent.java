@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.post.event;
 
+import jaeik.bimillog.domain.global.event.FriendInteractionEvent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
@@ -16,19 +18,47 @@ import java.util.UUID;
  * @author Jaeik
  * @version 2.7.0
  */
+@Slf4j
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostLikeEvent {
+public class PostLikeEvent implements FriendInteractionEvent {
+    private String eventId;
     private Long postId;
     private Long postAuthorId;
     private Long likerId;
-    private String eventId;
 
     public PostLikeEvent(Long postId, Long postAuthorId, Long likerId) {
         this.postId = postId;
         this.postAuthorId = postAuthorId;
         this.likerId = likerId;
         this.eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+    }
+
+    @Override
+    public Long getMemberId() {
+        return likerId;
+    }
+
+    @Override
+    public Long getTargetMemberId() {
+        return postAuthorId;
+    }
+
+    @Override
+    public String getIdempotencyKey() {
+        return eventId;
+    }
+
+    @Override
+    public void getAlreadyProcess() {
+        log.info("이미 처리된 게시글 좋아요 이벤트 : postId={}, idempotencyKey={}", postId, eventId);
+
+    }
+
+    @Override
+    public void getDlqMessage(Exception e) {
+        log.warn("게시글 추천 상호작용 점수 증가 실패 DLQ 진입: postId={}, authorId={}, likerId={}", postId, postAuthorId, likerId, e);
+
     }
 }

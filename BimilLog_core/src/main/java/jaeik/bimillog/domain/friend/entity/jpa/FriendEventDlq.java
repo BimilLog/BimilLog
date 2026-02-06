@@ -59,6 +59,9 @@ public class FriendEventDlq {
                 .type(FriendEventType.FRIEND_ADD)
                 .memberId(memberId)
                 .targetId(friendId)
+                .status(FriendDlqStatus.PENDING)
+                .retryCount(0)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -72,6 +75,9 @@ public class FriendEventDlq {
                 .type(FriendEventType.FRIEND_REMOVE)
                 .memberId(memberId)
                 .targetId(friendId)
+                .status(FriendDlqStatus.PENDING)
+                .retryCount(0)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -86,6 +92,9 @@ public class FriendEventDlq {
                 .memberId(memberId)
                 .targetId(targetId)
                 .score(score)
+                .status(FriendDlqStatus.PENDING)
+                .retryCount(0)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 

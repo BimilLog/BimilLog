@@ -1,5 +1,11 @@
 package jaeik.bimillog.domain.comment.event;
 
+import jaeik.bimillog.domain.global.event.FriendInteractionEvent;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.UUID;
 
 /**
@@ -9,40 +15,50 @@ import java.util.UUID;
  * <p>상호작용 점수 증가에 사용됩니다.</p>
  * <p>추천 취소 시에는 이벤트를 발행하지 않습니다 (점수 유지).</p>
  *
- * @param commentId 추천된 댓글 ID
- * @param commentAuthorId 댓글 작성자 ID (익명인 경우 null)
- * @param likerId 추천한 사용자 ID
- * @param eventId 이벤트 고유 ID (멱등성 보장용, 재시도 시 동일한 ID 유지)
  * @author Jaeik
  * @version 2.0.0
  */
-public record CommentLikeEvent(
-        Long commentId,
-        Long commentAuthorId,
-        Long likerId,
-        String eventId
-) {
+@Slf4j
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class CommentLikeEvent implements FriendInteractionEvent {
+    private String eventId;
+    private Long commentId;
+    private Long commentAuthorId;
+    private Long likerId;
+
     public CommentLikeEvent(Long commentId, Long commentAuthorId, Long likerId) {
-        this(commentId, commentAuthorId, likerId, UUID.randomUUID().toString().replace("-", "").substring(0, 16));
+        this.commentId = commentId;
+        this.commentAuthorId = commentAuthorId;
+        this.likerId = likerId;
+        this.eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }
 
-    public CommentLikeEvent {
-        if (commentId == null) {
-            throw new IllegalArgumentException("댓글 ID는 null일 수 없습니다.");
-        }
-        if (likerId == null) {
-            throw new IllegalArgumentException("추천한 사용자 ID는 null일 수 없습니다.");
-        }
-        // commentAuthorId는 익명 댓글의 경우 null일 수 있음
+    @Override
+    public Long getMemberId() {
+        return likerId;
     }
 
-    /**
-     * 상호작용 점수 증가의 멱등성 보장을 위한 키를 반환합니다.
-     * 이벤트 발행 시 생성된 UUID를 사용하여 재시도 시에도 동일한 키가 유지됩니다.
-     *
-     * @return 멱등성 키 (UUID)
-     */
+    @Override
+    public Long getTargetMemberId() {
+        return commentAuthorId;
+    }
+
+    @Override
     public String getIdempotencyKey() {
         return eventId;
+    }
+
+    @Override
+    public void getAlreadyProcess() {
+        log.info("이미 처리된 댓글 좋아요 이벤트: commentId={}, idempotencyKey={}", commentId, eventId);
+
+    }
+
+    @Override
+    public void getDlqMessage(Exception e) {
+        log.warn("댓글 좋아요 상호작용 점수 증가 실패 DLQ 진입: commentId={}, authorId={}, likerId={}", commentId, commentAuthorId, likerId, e);
+
     }
 }
