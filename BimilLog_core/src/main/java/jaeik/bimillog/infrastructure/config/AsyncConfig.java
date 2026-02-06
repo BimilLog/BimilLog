@@ -90,7 +90,7 @@ public class AsyncConfig {
     }
 
     /**
-     * 글 수정, 댓글 작성, 추천 상호작용시 조회 테이블에 업데이트 하는 스레드 풀
+     * 글 수정, 댓글 작성, 추천시 조회 테이블에 업데이트 하는 스레드 풀
      */
     @Bean(name = "postCQRSEventExecutor")
     public Executor postCQRSEventExecutor() {

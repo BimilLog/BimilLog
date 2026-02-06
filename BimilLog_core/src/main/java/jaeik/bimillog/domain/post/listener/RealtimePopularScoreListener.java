@@ -56,7 +56,7 @@ public class RealtimePopularScoreListener {
     @TransactionalEventListener
     @Async("realtimeEventExecutor")
     public void handleCommentCreated(CommentCreatedEvent event) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), COMMENT_SCORE);
+        redisRealTimePostAdapter.incrementRealtimePopularScore(event.getPostId(), COMMENT_SCORE);
     }
 
     /**

@@ -47,9 +47,9 @@ public class NotificationSaveListener {
     )
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         notificationCommandService.saveCommentNotification(
-                event.postUserId(),
-                event.commenterName(),
-                event.postId()
+                event.getPostUserId(),
+                event.getCommenterName(),
+                event.getPostId()
         );
     }
 
@@ -120,7 +120,7 @@ public class NotificationSaveListener {
     @Recover
     public void recoverHandleCommentCreatedEvent(Exception e, CommentCreatedEvent event) {
         log.error("댓글 알림 저장 최종 실패: postUserId={}, postId={}",
-                event.postUserId(), event.postId(), e);
+                event.getPostUserId(), event.getPostId(), e);
     }
 
     /**

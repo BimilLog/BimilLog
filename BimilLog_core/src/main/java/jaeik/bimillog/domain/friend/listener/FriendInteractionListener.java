@@ -27,10 +27,10 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.INTERAC
  * <p>게시글 좋아요, 댓글 작성, 댓글 좋아요 이벤트를 수신하여 Redis에 상호작용 점수를 기록합니다.</p>
  * <p>친구 추천 알고리즘에서 사용되는 상호작용 점수를 실시간으로 업데이트합니다.</p>
  * <p>익명 사용자의 상호작용은 점수에 반영되지 않습니다.</p>
- * <p>각 상호작용당 +0.5점, 최대 9.5점까지 증가합니다.</p>
+ * <p>각 상호작용당 +0.5점, 최대 10점까지 증가합니다.</p>
  *
  * @author Jaeik
- * @version 2.5.0
+ * @version 2.7.0
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "친구 상호작용 점수")
 @Component
@@ -48,7 +48,7 @@ public class FriendInteractionListener {
      * @param event 게시글 좋아요 이벤트
      */
     @EventListener
-    @Async("realtimeEventExecutor")
+    @Async("friendUpdateExecutor")
     @Retryable(
             retryFor = {
                     RedisConnectionFailureException.class,
@@ -65,8 +65,8 @@ public class FriendInteractionListener {
     }
 
     @Recover
-    public void recoverPostLiked(Exception e, PostLikeEvent event) {
+    public void recoverPostLiked(Exception e, FriendInteractionEvent event) {
         event.getDlqMessage(e);
-        friendEventDlqService.saveScoreUp(event.getEventId(), event.getPostAuthorId(), event.getLikerId(), INTERACTION_SCORE_DEFAULT);
+        friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.getTargetMemberId(), event.getMemberId(), INTERACTION_SCORE_DEFAULT);
     }
 }
