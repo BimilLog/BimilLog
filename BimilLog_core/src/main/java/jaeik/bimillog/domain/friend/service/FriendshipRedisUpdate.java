@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * <h2>친구관계 레디스 업데이트 클래스</h2>
+ * <P>SADD 명령어는 어차피 멱등성이 있다.</P>
  * @author Jaeik
  * @version 2.7.0
  */

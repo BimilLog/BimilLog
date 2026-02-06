@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * <h2>친구 이벤트 DLQ 서비스</h2>
  * <p>Redis 친구 이벤트 처리 실패 시 DLQ에 저장하는 서비스입니다.</p>
- * <p>REQUIRES_NEW 트랜잭션을 사용하여 호출자의 트랜잭션과 독립적으로 동작합니다.</p>
  *
  * @author Jaeik
  * @version 2.5.0
@@ -30,7 +29,7 @@ public class FriendEventDlqService {
      * @param memberId 회원 ID
      * @param friendId 친구 ID
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void saveFriendAdd(Long memberId, Long friendId) {
         try {
             FriendEventDlq dlq = FriendEventDlq.createFriendAdd(memberId, friendId);
@@ -48,7 +47,7 @@ public class FriendEventDlqService {
      * @param memberId 회원 ID
      * @param friendId 친구 ID
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void saveFriendRemove(Long memberId, Long friendId) {
         try {
             FriendEventDlq dlq = FriendEventDlq.createFriendRemove(memberId, friendId);
@@ -68,7 +67,7 @@ public class FriendEventDlqService {
      * @param targetId 상호작용 대상 ID
      * @param score 증가할 점수
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void saveScoreUp(String eventId, Long memberId, Long targetId, Double score) {
         try {
             FriendEventDlq dlq = FriendEventDlq.createScoreUp(eventId, memberId, targetId, score);
