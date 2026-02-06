@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
@@ -19,6 +20,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,7 +28,6 @@ import java.util.Objects;
  * <h2>글 캐시 갱신 클래스</h2>
  * <p>인기글(실시간/주간/레전드) 목록 캐시의 동기 갱신을 담당합니다.</p>
  * <p>스케줄러({@link jaeik.bimillog.domain.post.scheduler.PostCacheRefreshScheduler})에서 호출됩니다.</p>
- * <p>DB 조회 후 {@link PostCacheRefreshExecutor}에 캐시 저장을 위임합니다.</p>
  *
  * @author Jaeik
  * @version 2.7.0
@@ -38,7 +39,6 @@ import java.util.Objects;
 public class PostCacheRefresh {
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
-    private final PostCacheRefreshExecutor postCacheRefreshExecutor;
     private final PostQueryRepository postQueryRepository;
     private final FeaturedPostRepository featuredPostRepository;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
@@ -62,7 +62,11 @@ public class PostCacheRefresh {
         if (postIds.isEmpty()) return;
 
         List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, postIds);
-        postCacheRefreshExecutor.cachePostsWithType(PostCacheFlag.REALTIME, posts);
+        if (posts.isEmpty()) {
+            return;
+        }
+        Duration ttl = RedisPostKeys.getTtlForType(PostCacheFlag.REALTIME);
+        redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.REALTIME, posts, ttl);
     }
 
     /**
@@ -99,7 +103,11 @@ public class PostCacheRefresh {
     )
     public void refreshFeatured(PostCacheFlag type) {
         List<PostSimpleDetail> posts = queryPostsByType(type, List.of());
-        postCacheRefreshExecutor.cachePostsWithType(type, posts);
+        if (posts.isEmpty()) {
+            return;
+        }
+        Duration ttl = RedisPostKeys.getTtlForType(type);
+        redisSimplePostAdapter.cachePostsWithTtl(type, posts, ttl);
     }
 
     @Recover
@@ -126,7 +134,11 @@ public class PostCacheRefresh {
 
         try {
             List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, zsetPostIds);
-            postCacheRefreshExecutor.cachePostsWithType(PostCacheFlag.REALTIME, posts);
+            if (posts.isEmpty()) {
+                return;
+            }
+            Duration ttl = RedisPostKeys.getTtlForType(PostCacheFlag.REALTIME);
+            redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.REALTIME, posts, ttl);
         } catch (Exception e) {
             log.warn("실시간 인기글 해시 갱신 실패: {}", e.getMessage());
         } finally {
