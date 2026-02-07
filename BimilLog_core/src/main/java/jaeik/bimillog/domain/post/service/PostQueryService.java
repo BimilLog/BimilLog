@@ -12,6 +12,7 @@ import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +26,8 @@ import jaeik.bimillog.domain.post.dto.CursorPageResponse;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.FIRST_PAGE_SIZE;
 
 /**
  * <h2>게시글 조회 서비스</h2>
@@ -47,12 +50,11 @@ public class PostQueryService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final PostSearchRepository postSearchRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final FirstPageCacheService firstPageCacheService;
+    private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
 
     /**
-     * <h3>게시판 목록 조회 (Cursor 기반)</h3>
+     * <h3>게시판 목록 조회</h3>
      * <p>PostReadModel에서 커서 기반 페이지네이션으로 게시글 목록을 조회합니다.</p>
-     * <p>비정규화된 단일 테이블에서 조회하여 JOIN/SubQuery 없이 빠르게 조회됩니다.</p>
      * <p>회원은 블랙리스트 필터링이 적용됩니다.</p>
      * <p>첫 페이지 요청 시 Redis 캐시를 사용합니다.</p>
      *
@@ -63,17 +65,8 @@ public class PostQueryService {
      */
     public CursorPageResponse<PostSimpleDetail> getBoardByCursor(Long cursor, int size, Long memberId) {
         // === 첫 페이지 캐시 분기 ===
-        if (firstPageCacheService.isFirstPage(cursor, size)) {
-            List<PostSimpleDetail> cachedPosts = firstPageCacheService.getFirstPage(memberId);
-            if (!cachedPosts.isEmpty()) {
-                // 요청된 size만큼만 반환
-                boolean hasNext = cachedPosts.size() > size;
-                List<PostSimpleDetail> resultPosts = hasNext
-                        ? new ArrayList<>(cachedPosts.subList(0, size))
-                        : cachedPosts;
-                Long nextCursor = resultPosts.isEmpty() ? null : resultPosts.getLast().getId();
-                return CursorPageResponse.of(resultPosts, nextCursor, hasNext, size);
-            }
+        if (cursor == null) {
+            return getFirstPage(memberId, size);
         }
 
         // PostReadModel에서 조회 (비정규화된 단일 테이블)
@@ -96,6 +89,44 @@ public class PostQueryService {
 
         Long nextCursor = filteredPosts.isEmpty() ? null : filteredPosts.getLast().getId();
         return CursorPageResponse.of(filteredPosts, nextCursor, hasNext, size);
+    }
+
+    /**
+     * <h3>첫 페이지 조회</h3>
+     * <p>캐시에서 게시글 목록을 조회하고, 회원인 경우 블랙리스트 필터링을 적용합니다.</p>
+     *
+     * @param memberId 회원 ID (null이면 비회원)
+     * @return 게시글 목록 (블랙리스트 필터링 적용됨)
+     */
+    public CursorPageResponse<PostSimpleDetail> getFirstPage(Long memberId, int size) {
+        // 1. 캐시 조회
+        List<PostSimpleDetail> posts = redisFirstPagePostAdapter.getFirstPage();
+
+        // 2. 캐시 미스 시 DB 조회 (Redis 장애 대비 - 정상 시 발생 안 함)
+        if (posts.isEmpty()) {
+            log.warn("[FIRST_PAGE_CACHE] 캐시 미스 - DB 폴백");
+            posts = postReadModelQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
+
+            // findBoardPostsByCursor는 size+1 반환하므로 자르기
+            if (posts.size() > FIRST_PAGE_SIZE) {
+                posts = posts.subList(0, FIRST_PAGE_SIZE);
+            }
+        }
+
+        // 3. 블랙리스트 필터링 (회원만)
+        if (memberId != null) {
+            posts = removePostsWithBlacklist(memberId, posts);
+        }
+
+        if (!posts.isEmpty()) {
+            // 요청된 size만큼만 반환
+            boolean hasNext = posts.size() > size;
+            List<PostSimpleDetail> resultPosts = hasNext
+                    ? new ArrayList<>(posts.subList(0, size))
+                    : posts;
+            Long nextCursor = resultPosts.isEmpty() ? null : resultPosts.getLast().getId();
+            return CursorPageResponse.of(resultPosts, nextCursor, hasNext, size);
+        }
     }
 
     /**
