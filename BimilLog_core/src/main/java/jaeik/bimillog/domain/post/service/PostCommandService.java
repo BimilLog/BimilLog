@@ -5,8 +5,6 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.entity.jpa.PostReadModel;
-import jaeik.bimillog.domain.post.event.PostCreatedEvent;
 import jaeik.bimillog.domain.post.event.PostUpdatedEvent;
 import jaeik.bimillog.domain.post.repository.PostReadModelQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
@@ -89,8 +87,8 @@ public class PostCommandService {
         Post post = Post.createPost(member, title, content, password);
         postRepository.save(post);
 
-        // q
-        eventPublisher.publishEvent(new PostCreatedEvent(post.getId(), post.getTitle(), memberId, memberName, post.getCreatedAt()));
+        // 비동기로 조회용테이블 갱신
+        postReadModelSync.handlePostCreated(post.getId(), post.getTitle(), memberId, memberName, post.getCreatedAt());
 
         // 첫 페이지 캐시 추가
         try {

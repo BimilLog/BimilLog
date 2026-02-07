@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.entity.jpa.PostReadModel;
 import jaeik.bimillog.domain.post.entity.jpa.ProcessedEvent;
-import jaeik.bimillog.domain.post.event.PostCreatedEvent;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.domain.post.event.PostUpdatedEvent;
@@ -13,7 +12,6 @@ import jaeik.bimillog.domain.post.repository.ProcessedEventRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
@@ -56,7 +54,8 @@ public class PostReadModelSync {
                     QueryTimeoutException.class
             },
             maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 1.5)
+            backoff = @Backoff(delay = 1000, multiplier = 1.5),
+            recover = "recoverPostCreated"
     )
     @Transactional
     public void handlePostCreated(Long postId, String title, Long memberId, String memberName, Instant createdAt) {
@@ -86,14 +85,14 @@ public class PostReadModelSync {
     }
 
     @Recover
-    public void recoverPostCreated(Exception e, PostCreatedEvent event) {
-        log.error("PostReadModel 생성 최종 실패: postId={}", event.getPostId(), e);
+    public void recoverPostCreated(Exception e, Long postId, String title, Long memberId, String memberName, String eventId) {
+        log.error("PostReadModel 생성 최종 실패: postId={}", postId, e);
         postReadModelDlqService.savePostCreated(
-                event.getIdempotencyKey(),
-                event.getPostId(),
-                event.getTitle(),
-                event.getMemberId(),
-                event.getMemberName()
+                eventId,
+                postId,
+                title,
+                memberId,
+                memberName
         );
     }
 
