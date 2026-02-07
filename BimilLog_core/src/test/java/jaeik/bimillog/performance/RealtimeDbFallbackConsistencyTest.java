@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.post.repository.PostLikeRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestMembers;
@@ -33,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter.REALTIME_POST_SCORE_KEY;
 
 
 /**
@@ -83,7 +84,7 @@ class RealtimeDbFallbackConsistencyTest {
     private static final double VIEW_SCORE = 2.0;
     private static final int MAX_INITIAL_VIEWS = 50;
     private static final int MAX_INITIAL_LIKES = 5;
-    private static final String SCORE_KEY = RedisPostKeys.REALTIME_POST_SCORE_KEY;
+    private static final String SCORE_KEY = REALTIME_POST_SCORE_KEY;
     private static final double ZIPF_EXPONENT = 1.2;
 
     private final List<Post> testPosts = new ArrayList<>();

@@ -10,13 +10,12 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 
 /**
  * <h2>첫 페이지 게시글 Redis List 캐시 어댑터</h2>
@@ -33,8 +32,6 @@ public class RedisFirstPagePostAdapter {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
-
-    // ===================== Lua 스크립트 정의 =====================
 
     /**
      * 새 게시글 추가 스크립트: LPUSH + LTRIM 0 19
@@ -53,6 +50,37 @@ public class RedisFirstPagePostAdapter {
      * <p>반환값: 삭제된 JSON 문자열 또는 nil</p>
      */
     private static final RedisScript<String> DELETE_POST_SCRIPT;
+
+    /**
+     * 첫 페이지 갱신 분산 락 TTL (5분)
+     * <p>스케줄러 갱신 시간보다 충분히 길게 설정</p>
+     */
+    public static final Duration FIRST_PAGE_REFRESH_LOCK_TTL = Duration.ofMinutes(5);
+
+    /**
+     * 첫 페이지 캐시 TTL (1시간)
+     * <p>스케줄러가 30분마다 갱신하므로 정상 시 TTL 만료 안 됨</p>
+     */
+    public static final Duration FIRST_PAGE_CACHE_TTL = Duration.ofHours(1);
+
+    /**
+     * 첫 페이지 캐시 List 키
+     * <p>Value Type: List (PostSimpleDetail JSON 직렬화)</p>
+     * <p>최신 게시글 20개를 순서대로 저장</p>
+     */
+    public static final String FIRST_PAGE_LIST_KEY = "post:board:first-page";
+
+    /**
+     * 첫 페이지 갱신 분산 락 키
+     * <p>다중 인스턴스 환경에서 하나의 스케줄러만 캐시를 갱신하도록 보장</p>
+     */
+    public static final String FIRST_PAGE_REFRESH_LOCK_KEY = "post:board:refresh:lock";
+
+    /**
+     * 첫 페이지 캐시 크기 (20개)
+     */
+    public static final int FIRST_PAGE_SIZE = 20;
+
 
     static {
         // 1. 생성 스크립트: 맨 앞에 추가 후 20개 유지
@@ -130,16 +158,6 @@ public class RedisFirstPagePostAdapter {
         }
     }
 
-    /**
-     * <h3>캐시 존재 여부 확인</h3>
-     *
-     * @return 캐시 존재 시 true
-     */
-    public boolean hasCache() {
-        Boolean exists = redisTemplate.hasKey(FIRST_PAGE_LIST_KEY);
-        return Boolean.TRUE.equals(exists);
-    }
-
     // ===================== CRUD 메서드 =====================
 
     /**
@@ -168,12 +186,11 @@ public class RedisFirstPagePostAdapter {
      *
      * @param postId 수정할 게시글 ID
      * @param post   수정된 게시글 데이터
-     * @return 수정 성공 시 true (해당 ID가 캐시에 없으면 false)
      */
-    public boolean updatePost(Long postId, PostSimpleDetail post) {
+    public void updatePost(Long postId, PostSimpleDetail post) {
         String json = serialize(post);
         if (json == null) {
-            return false;
+            return;
         }
 
         Long result = redisTemplate.execute(
@@ -182,11 +199,10 @@ public class RedisFirstPagePostAdapter {
                 postId.toString(),
                 json
         );
-        boolean updated = result != null && result == 1L;
+        boolean updated = result == 1L;
         if (updated) {
             log.debug("[FIRST_PAGE_CACHE] 게시글 수정: postId={}", postId);
         }
-        return updated;
     }
 
     /**
@@ -203,11 +219,6 @@ public class RedisFirstPagePostAdapter {
                 List.of(FIRST_PAGE_LIST_KEY),
                 postId.toString()
         );
-
-        if (deletedJson == null) {
-            log.debug("[FIRST_PAGE_CACHE] 삭제 대상 없음: postId={}", postId);
-            return;
-        }
 
         log.debug("[FIRST_PAGE_CACHE] 게시글 삭제: postId={}", postId);
 

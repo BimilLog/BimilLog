@@ -16,8 +16,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.FIRST_PAGE_SIZE;
-
 /**
  * <h2>첫 페이지 캐시 갱신 실행기</h2>
  * <p>DB에서 첫 페이지 게시글을 조회하여 Redis 캐시를 갱신합니다.</p>
@@ -33,6 +31,11 @@ public class FirstPageCacheRefreshExecutor {
 
     private final PostReadModelQueryRepository postReadModelQueryRepository;
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
+
+    /**
+     * 첫 페이지 캐시 크기 (20개)
+     */
+    public static final int FIRST_PAGE_SIZE = 20;
 
     /**
      * <h3>첫 페이지 캐시 갱신</h3>

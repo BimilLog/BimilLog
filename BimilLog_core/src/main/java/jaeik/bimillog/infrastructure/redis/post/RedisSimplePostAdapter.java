@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
-
 import java.time.Duration;
 
 /**
@@ -29,6 +27,33 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class RedisSimplePostAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
+
+    /**
+     * 스케줄러 분산 락 TTL (90초)
+     * <p>스케줄러 주기(60초)보다 길게 설정하여 락 해제 전 다른 인스턴스가 획득하지 못하게 합니다.</p>
+     */
+    public static final Duration SCHEDULER_LOCK_TTL = Duration.ofSeconds(90);
+
+    /**
+     * 조회 시 HASH 갱신 분산 락 TTL (10초)
+     */
+    public static final Duration REALTIME_REFRESH_LOCK_TTL = Duration.ofSeconds(10);
+
+    /**
+     * 스케줄러 분산 락 키
+     * <p>다중 인스턴스 환경에서 하나의 스케줄러만 캐시를 갱신하도록 보장합니다.</p>
+     */
+    public static final String SCHEDULER_LOCK_KEY = "post:cache:scheduler:lock";
+
+    /**
+     * 조회 시 HASH 갱신 분산 락 키
+     * <p>HASH-ZSET ID 불일치 감지 시 비동기 갱신을 위한 락입니다.</p>
+     */
+    public static final String REALTIME_REFRESH_LOCK_KEY = "post:realtime:refresh:lock";
+
+
+
+
 
     /**
      * <h3>HGETALL로 Hash 전체 캐시 조회</h3>
@@ -242,6 +267,18 @@ public class RedisSimplePostAdapter {
         String hashKey = getSimplePostHashKey(type);
         redisTemplate.delete(hashKey);
         log.info("[CACHE_DELETE_HASH] hashKey={}", hashKey);
+    }
+
+    /**
+     * <h3>게시글 목록 캐시 Hash 키 생성</h3>
+     * <p>타입별로 하나의 Hash 키를 생성합니다.</p>
+     * <p>예: post:weekly:simple, post:realtime:simple</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @return 생성된 Hash 키 (형식: post:{type}:simple)
+     */
+    public static String getSimplePostHashKey(PostCacheFlag type) {
+        return "post:" + type.name().toLowerCase() + ":simple";
     }
 
 }

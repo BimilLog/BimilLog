@@ -26,9 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.FIRST_PAGE_SIZE;
-
-
 /**
  * <h2>게시글 명령 서비스</h2>
  * <p>게시글 명령 유스케이스의 구현체입니다.</p>
@@ -53,6 +50,11 @@ public class PostCommandService {
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
     private final PostReadModelQueryRepository postReadModelQueryRepository;
     private final PostReadModelRepository postReadModelRepository;
+
+    /**
+     * 첫 페이지 캐시 크기 (20개)
+     */
+    public static final int FIRST_PAGE_SIZE = 20;
 
     /**
      * <h3>게시글 작성</h3>

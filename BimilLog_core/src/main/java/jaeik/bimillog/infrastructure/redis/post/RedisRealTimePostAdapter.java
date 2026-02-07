@@ -12,8 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
-
 /**
  * <h2>레디스 실시간 인기글 저장소 어댑터</h2>
  * <p>실시간 인기글 ZSet 기반으로 인기글 ID를 관리합니다.</p>
@@ -29,6 +27,31 @@ public class RedisRealTimePostAdapter {
 
     private final RedisTemplate<String, Long> redisTemplate;
     private final RealtimeScoreFallbackStore fallbackStore;
+
+    /**
+     * 실시간 인기글 점수 Sorted Set 키
+     * <p>Value Type: ZSet (postId, score)</p>
+     */
+    public static final String REALTIME_POST_SCORE_KEY = "post:realtime:score";
+
+    /**
+     * 실시간 인기글 점수 감쇠율 (0.97)
+     * <p>5분마다 모든 게시글 점수에 곱해져 시간 경과에 따른 인기도 감소를 반영합니다.</p>
+     */
+    public static final double REALTIME_POST_SCORE_DECAY_RATE = 0.97;
+
+    /**
+     * 실시간 인기글 제거 임계값 (1.0)
+     * <p>이 값 이하의 점수를 가진 게시글은 실시간 인기글 목록에서 제거됩니다.</p>
+     */
+    public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
+
+    /**
+     * 게시글 캐시 접두사
+     */
+    public static final String POST_PREFIX = "post:";
+
+
 
     /**
      * <h3>실시간 인기글 조회</h3>
@@ -121,6 +144,21 @@ public class RedisRealTimePostAdapter {
      */
     public void removePostIdFromRealtimeScore(Long postId) {
         redisTemplate.opsForZSet().remove(REALTIME_SCORE_KEY, postId);
+    }
+
+    /**
+     * <h3>점수 저장소 키 생성</h3>
+     * <p>실시간 인기글 점수를 저장하기 위한 Redis Sorted Set 키를 생성합니다.</p>
+     *
+     * @param type 게시글 캐시 유형 (REALTIME만 지원)
+     * @return 생성된 Redis 키 (형식: post:realtime:score)
+     * @throws IllegalArgumentException REALTIME 이외의 타입이 전달된 경우
+     */
+    public static String getScoreStorageKey(PostCacheFlag type) {
+        if (type != PostCacheFlag.REALTIME) {
+            throw new IllegalArgumentException("점수 저장소는 REALTIME 타입만 지원합니다: " + type);
+        }
+        return POST_PREFIX + type.name().toLowerCase() + ":score";
     }
 
 

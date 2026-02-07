@@ -8,8 +8,6 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
-
 /**
  * <h2>게시글 조회 Redis 어댑터</h2>
  * <p>Redis SET 기반 중복 조회 방지 및 조회수 버퍼링을 담당합니다.</p>
@@ -27,7 +25,25 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 public class RedisPostViewAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String VIEW_COUNTS_FLUSH_KEY = VIEW_COUNTS_KEY + ":flush";
+    private static final String VIEW_COUNTS_FLUSH_KEY = "post:view:counts" + ":flush";
+
+    /**
+     * 게시글 조회 이력 SET 키 접두사
+     * <p>Value Type: SET (값: m:{memberId} 또는 ip:{clientIp})</p>
+     * <p>전체 키 형식: post:view:{postId}</p>
+     */
+    public static final String VIEW_PREFIX = "post:view:";
+
+    /**
+     * 조회 이력 TTL (24시간)
+     */
+    public static final long VIEW_TTL_SECONDS = TimeUnit.HOURS.toSeconds(24);
+
+    /**
+     * 게시글 조회수 버퍼 Hash 키
+     * <p>Value Type: Hash (field=postId, value=증가량)</p>
+     */
+    public static final String VIEW_COUNTS_KEY = "post:view:counts";
 
     /**
      * <h3>조회 여부 확인</h3>

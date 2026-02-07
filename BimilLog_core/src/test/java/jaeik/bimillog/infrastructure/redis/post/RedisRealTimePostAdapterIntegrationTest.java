@@ -15,6 +15,8 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 import java.util.Set;
 
+
+import static jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter.REALTIME_POST_SCORE_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -46,7 +48,7 @@ class RedisRealTimePostAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 ID 목록 조회 (상위 5개)")
     void shouldReturnTopPostIds() {
         // Given: 10개의 게시글에 점수 설정 (높은 점수부터)
-        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
+        String scoreKey = REALTIME_POST_SCORE_KEY;
         for (long i = 1; i <= 10; i++) {
             double score = 11.0 - i; // 높은 점수부터 (10, 9, 8, ...)
             redisTemplate.opsForZSet().add(scoreKey, i, score);
@@ -76,7 +78,7 @@ class RedisRealTimePostAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 ID 목록 내림차순 정렬 확인")
     void shouldReturnInDescendingOrder_ByScore() {
         // Given: 랜덤 순서로 점수 설정
-        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
+        String scoreKey = REALTIME_POST_SCORE_KEY;
         redisTemplate.opsForZSet().add(scoreKey, 100L, 15.0);
         redisTemplate.opsForZSet().add(scoreKey, 200L, 25.0);
         redisTemplate.opsForZSet().add(scoreKey, 300L, 10.0);
@@ -96,7 +98,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         // Given
         Long postId = 1L;
         double score = 4.0; // 추천 점수
-        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
+        String scoreKey = REALTIME_POST_SCORE_KEY;
 
         // When: 점수 증가
         redisRealTimePostAdapter.incrementRealtimePopularScore(postId, score);
@@ -111,7 +113,7 @@ class RedisRealTimePostAdapterIntegrationTest {
     void shouldAccumulateScore_WhenMultipleIncrementsOccur() {
         // Given
         Long postId = 1L;
-        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
+        String scoreKey = REALTIME_POST_SCORE_KEY;
 
         // When: 여러 번 점수 증가 (조회 2점 + 댓글 3점 + 추천 4점)
         redisRealTimePostAdapter.incrementRealtimePopularScore(postId, 2.0); // 조회
@@ -127,7 +129,7 @@ class RedisRealTimePostAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 점수 감쇠 적용 (Lua 스크립트)")
     void shouldApplyDecay_WhenScoreDecayInvoked() {
         // Given: 여러 게시글에 초기 점수 설정
-        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
+        String scoreKey = REALTIME_POST_SCORE_KEY;
         redisTemplate.opsForZSet().add(scoreKey, 1L, 10.0);
         redisTemplate.opsForZSet().add(scoreKey, 2L, 5.0);
         redisTemplate.opsForZSet().add(scoreKey, 3L, 2.0);
@@ -149,7 +151,7 @@ class RedisRealTimePostAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 점수 감쇠 시 임계값 이하 제거")
     void shouldRemovePostsBelowThreshold_WhenScoreDecayApplied() {
         // Given: 임계값(1.0) 근처의 점수 설정
-        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
+        String scoreKey = REALTIME_POST_SCORE_KEY;
         redisTemplate.opsForZSet().add(scoreKey, 1L, 10.0);
         redisTemplate.opsForZSet().add(scoreKey, 2L, 1.5);  // 감쇠 후 1.455 (유지)
         redisTemplate.opsForZSet().add(scoreKey, 3L, 1.02);  // 감쇠 후 0.9894 (제거)
@@ -189,7 +191,7 @@ class RedisRealTimePostAdapterIntegrationTest {
     void shouldRemovePostIdFromRealtimeScore() {
         // Given: post:realtime:score에 postId 추가
         Long postId = 1L;
-        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
+        String scoreKey = REALTIME_POST_SCORE_KEY;
 
         redisTemplate.opsForZSet().add(scoreKey, postId, 100.0);
 

@@ -27,8 +27,6 @@ import jaeik.bimillog.domain.post.dto.CursorPageResponse;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.FIRST_PAGE_SIZE;
-
 /**
  * <h2>게시글 조회 서비스</h2>
  * <p>게시글 도메인의 조회 비즈니스 로직을 처리하는 서비스입니다.</p>
@@ -53,6 +51,11 @@ public class PostQueryService {
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
 
     /**
+     * 첫 페이지 캐시 크기 (20개)
+     */
+    public static final int FIRST_PAGE_SIZE = 20;
+
+    /**
      * <h3>게시판 목록 조회</h3>
      * <p>조회용 테이블에서 커서 기반 페이지네이션으로 게시글 목록을 조회합니다.</p>
      * <p>회원은 블랙리스트 필터링이 적용됩니다.</p>
@@ -63,6 +66,7 @@ public class PostQueryService {
      * @param memberId 회원 ID (null이면 비회원)
      * @return CursorPageResponse 커서 기반 페이지 응답
      */
+    @Transactional(readOnly = true)
     public CursorPageResponse<PostSimpleDetail> getBoardByCursor(Long cursor, int size, Long memberId) {
         List<PostSimpleDetail> posts;
 
@@ -73,13 +77,13 @@ public class PostQueryService {
             posts = postReadModelQueryRepository.findBoardPostsByCursor(cursor, size);
         }
 
-        // 빈 페이지라면 즉시 반환
+        // 블랙리스트 필터링 비회원이거나 빈 페이지면 무시됨
+        posts = removePostsWithBlacklist(memberId, posts);
+
+        // 빈 페이지라면 즉시 반환 블랙리스트 필터링으로 인해 빈 페이지가 되어도 반환됨
         if (posts.isEmpty()) {
             return CursorPageResponse.of(posts, null, false, 0);
         }
-
-        // 블랙리스트 필터링 비회원이면 무시됨
-        posts = removePostsWithBlacklist(memberId, posts);
 
         // 다음 페이지가 있는지 판단
         boolean hasNext = posts.size() > size;
@@ -199,23 +203,6 @@ public class PostQueryService {
     }
 
     /**
-     * <h3>게시글 엔티티 조회 </h3>
-     *
-     * @param postId 게시글 ID
-     * @return Post 게시글 엔티티
-     */
-    public Optional<Post> findById(Long postId) {
-        return postRepository.findById(postId);
-    }
-
-    /**
-     * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
-     */
-    public List<Post> findAllByIds(List<Long> postIds) {
-        return postQueryRepository.findAllByIds(postIds);
-    }
-
-    /**
      * <h3>게시글 목록에 댓글 수 주입</h3>
      * <p>게시글 목록의 댓글 수를 배치로 조회하여 주입합니다.</p>
      * <p>좋아요 수는 PostQueryHelper에서 이미 처리되므로, 여기서는 댓글 수만 처리합니다.</p>
@@ -235,12 +222,29 @@ public class PostQueryService {
      * <h3>게시글에서 블랙리스트 제거</h3>
      */
     private List<PostSimpleDetail> removePostsWithBlacklist(Long memberId, List<PostSimpleDetail> posts) {
-        if (memberId == null) {
+        if (memberId == null || posts.isEmpty()) {
             return posts;
         }
 
         List<Long> blacklistIds = postToMemberAdapter.getInterActionBlacklist(memberId);
         Set<Long> blacklistSet = new HashSet<>(blacklistIds);
         return posts.stream().filter(post -> !blacklistSet.contains(post.getMemberId())).collect(Collectors.toList());
+    }
+
+    /**
+     * <h3>게시글 엔티티 조회 </h3>
+     *
+     * @param postId 게시글 ID
+     * @return Post 게시글 엔티티
+     */
+    public Optional<Post> findById(Long postId) {
+        return postRepository.findById(postId);
+    }
+
+    /**
+     * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
+     */
+    public List<Post> findAllByIds(List<Long> postIds) {
+        return postQueryRepository.findAllByIds(postIds);
     }
 }
