@@ -90,16 +90,8 @@ public class PostCommandService {
 
         // 첫 페이지 캐시 추가
         try {
-            PostSimpleDetail newPostDetail = PostSimpleDetail.builder()
-                    .id(post.getId())
-                    .title(post.getTitle())
-                    .viewCount(0)
-                    .likeCount(0)
-                    .createdAt(post.getCreatedAt())
-                    .memberId(memberId)
-                    .memberName(memberName)
-                    .commentCount(0)
-                    .build();
+            PostSimpleDetail newPostDetail = PostSimpleDetail.createNew(
+                    post.getId(), post.getTitle(), post.getCreatedAt(), memberId, memberName);
             redisFirstPagePostAdapter.addNewPost(newPostDetail);
         } catch (Exception e) {
             log.warn("첫 페이지 캐시 추가 실패: postId={}", post.getId());

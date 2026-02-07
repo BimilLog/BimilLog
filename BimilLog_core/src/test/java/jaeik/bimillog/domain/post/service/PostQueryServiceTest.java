@@ -1,19 +1,17 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.async.PostViewCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.*;
-import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
+import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -28,19 +26,18 @@ import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
  * <h2>PostQueryService 테스트</h2>
  * <p>게시글 조회 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>게시판 조회, 상세 조회, 검색 기능을 테스트합니다.</p>
+ * <p>게시판 조회, 상세 조회를 테스트합니다.</p>
  * <p>상세 캐시 제거됨 - 모든 상세 조회는 DB에서 직접 수행</p>
  *
  * @author Jaeik
@@ -57,19 +54,13 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostReadModelQueryRepository postReadModelQueryRepository;
 
     @Mock
-    private PostSearchRepository postSearchRepository;
-
-    @Mock
     private PostLikeRepository postLikeRepository;
 
     @Mock
     private PostRepository postRepository;
 
     @Mock
-    private PostToCommentAdapter postToCommentAdapter;
-
-    @Mock
-    private PostToMemberAdapter postToMemberAdapter;
+    private PostUtil postUtil;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -83,17 +74,8 @@ class PostQueryServiceTest extends BaseUnitTest {
     @Mock
     private RealtimePostSync realtimePostSync;
 
-    @Mock
-    private PostFulltextUtil postFullTextUtil;
-
     @InjectMocks
     private PostQueryService postQueryService;
-
-    @BeforeEach
-    void setUp() {
-        lenient().when(postToCommentAdapter.findCommentCountsByPostIds(anyList()))
-                .thenReturn(Collections.emptyMap());
-    }
 
     @Test
     @DisplayName("게시판 조회 (커서 기반, 비회원) - 캐시 히트")
@@ -104,8 +86,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         List<PostSimpleDetail> posts = List.of(postResult);
 
-        // 첫 페이지 캐시 히트
         given(redisFirstPagePostAdapter.getFirstPage()).willReturn(posts);
+        given(postUtil.removePostsWithBlacklist(null, posts)).willReturn(posts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -113,7 +95,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
-        assertThat(result.hasNext()).isFalse();  // 1개 < 10개이므로 다음 페이지 없음
+        assertThat(result.hasNext()).isFalse();
 
         verify(redisFirstPagePostAdapter).getFirstPage();
         verify(postReadModelQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
@@ -125,7 +107,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long cursor = null;
         int size = 2;
-        // 캐시에 5개가 있지만 size=2만 요청
         List<PostSimpleDetail> cachedPosts = List.of(
                 PostTestDataBuilder.createPostSearchResult(5L, "제목5"),
                 PostTestDataBuilder.createPostSearchResult(4L, "제목4"),
@@ -135,16 +116,17 @@ class PostQueryServiceTest extends BaseUnitTest {
         );
 
         given(redisFirstPagePostAdapter.getFirstPage()).willReturn(cachedPosts);
+        given(postUtil.removePostsWithBlacklist(null, cachedPosts)).willReturn(cachedPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
 
         // Then
-        assertThat(result.content()).hasSize(2);  // 요청된 size만큼만 반환
+        assertThat(result.content()).hasSize(2);
         assertThat(result.content().get(0).getTitle()).isEqualTo("제목5");
         assertThat(result.content().get(1).getTitle()).isEqualTo("제목4");
-        assertThat(result.hasNext()).isTrue();  // 5개 > 2개이므로 다음 페이지 있음
-        assertThat(result.nextCursor()).isEqualTo(4L);  // 마지막 항목의 ID
+        assertThat(result.hasNext()).isTrue();
+        assertThat(result.nextCursor()).isEqualTo(4L);
 
         verify(redisFirstPagePostAdapter).getFirstPage();
         verify(postReadModelQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
@@ -159,11 +141,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         List<PostSimpleDetail> posts = List.of(postResult);
 
-        // 첫 페이지 캐시 미스
         given(redisFirstPagePostAdapter.getFirstPage()).willReturn(Collections.emptyList());
-
-        // DB 폴백 (FIRST_PAGE_SIZE=20으로 조회)
         given(postReadModelQueryRepository.findBoardPostsByCursor(null, 20)).willReturn(posts);
+        given(postUtil.removePostsWithBlacklist(null, posts)).willReturn(posts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -181,13 +161,13 @@ class PostQueryServiceTest extends BaseUnitTest {
     @DisplayName("게시판 조회 (두 번째 페이지) - DB 직접 조회")
     void shouldGetBoardByCursor_SecondPage_DirectDB() {
         // Given
-        Long cursor = 100L;  // 두 번째 페이지
+        Long cursor = 100L;
         int size = 10;
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         List<PostSimpleDetail> posts = List.of(postResult);
 
-        // 첫 페이지가 아님 - 캐시 조회 안 함
         given(postReadModelQueryRepository.findBoardPostsByCursor(cursor, size)).willReturn(posts);
+        given(postUtil.removePostsWithBlacklist(null, posts)).willReturn(posts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -207,16 +187,19 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long cursor = null;
         int size = 20;
         Long memberId = 100L;
-        Long blacklistedMemberId = 2L;
 
         List<PostSimpleDetail> cachedPosts = List.of(
                 PostTestDataBuilder.createPostSearchResultWithMemberId(1L, "게시글1", 1L),
-                PostTestDataBuilder.createPostSearchResultWithMemberId(2L, "블랙게시글", blacklistedMemberId),
+                PostTestDataBuilder.createPostSearchResultWithMemberId(2L, "블랙게시글", 2L),
+                PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
+        );
+        List<PostSimpleDetail> filteredPosts = List.of(
+                PostTestDataBuilder.createPostSearchResultWithMemberId(1L, "게시글1", 1L),
                 PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
         );
 
         given(redisFirstPagePostAdapter.getFirstPage()).willReturn(cachedPosts);
-        given(postToMemberAdapter.getInterActionBlacklist(memberId)).willReturn(List.of(blacklistedMemberId));
+        given(postUtil.removePostsWithBlacklist(memberId, cachedPosts)).willReturn(filteredPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, memberId);
@@ -227,7 +210,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.hasNext()).isFalse();
 
         verify(redisFirstPagePostAdapter).getFirstPage();
-        verify(postToMemberAdapter).getInterActionBlacklist(memberId);
+        verify(postUtil).removePostsWithBlacklist(memberId, cachedPosts);
     }
 
     @Test
@@ -253,7 +236,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(postQueryRepository.findPostDetail(postId, null))
                 .willReturn(Optional.of(mockPostDetail));
 
-        // 회원이므로 isLiked 조회
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
 
         // When
@@ -308,7 +290,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postId = 999L;
         Long memberId = 1L;
 
-        // DB에도 없음
         given(postQueryRepository.findPostDetail(postId, null)).willReturn(Optional.empty());
 
         // When & Then
@@ -318,133 +299,6 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(postQueryRepository).findPostDetail(postId, null);
     }
-
-    @Test
-    @DisplayName("게시글 검색 - 전문검색 전략 (3글자 이상 + TITLE)")
-    void shouldSearchPost_UsingFullTextSearch_When3CharsOrMore() {
-        // Given
-        PostSearchType type = PostSearchType.TITLE;
-        String query = "검색어"; // 3글자
-        Pageable pageable = PageRequest.of(0, 10);
-
-        PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "검색 결과");
-        Object[] rawRow = new Object[]{1L, "검색 결과", 0, Instant.now(), null, null, 0};
-        List<Object[]> rawRows = List.<Object[]>of(rawRow);
-        Page<Object[]> rawPage = new PageImpl<>(rawRows, pageable, 1);
-
-        given(postSearchRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(rawPage);
-        given(postFullTextUtil.mapFullTextRows(rawPage.getContent())).willReturn(List.of(searchResult));
-
-        // When
-        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
-
-        // Then
-        assertThat(result.getContent()).hasSize(1);
-
-        verify(postSearchRepository).findByFullTextSearch(type, query, pageable, null);
-        verify(postFullTextUtil).mapFullTextRows(rawPage.getContent());
-        verify(postSearchRepository, never()).findByPartialMatch(any(), any(), any(), any());
-        verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
-    }
-
-    @Test
-    @DisplayName("게시글 검색 - 전문검색 조건 충족 시 결과 그대로 반환")
-    void shouldNotFallback_WhenFullTextSearchSelected() {
-        // Given
-        PostSearchType type = PostSearchType.TITLE_CONTENT;
-        String query = "검색어"; // 3글자
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Page<Object[]> emptyPage = Page.empty(pageable);
-
-        given(postSearchRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(emptyPage);
-        given(postFullTextUtil.mapFullTextRows(List.of())).willReturn(List.of());
-
-        // When
-        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
-
-        // Then
-        assertThat(result.getContent()).isEmpty();
-
-        verify(postSearchRepository).findByFullTextSearch(type, query, pageable, null);
-        verify(postSearchRepository, never()).findByPartialMatch(type, query, pageable, null);
-    }
-
-    @Test
-    @DisplayName("게시글 검색 - 접두사 검색 전략 (WRITER + 4글자 이상)")
-    void shouldSearchPost_UsingPrefixMatch_WhenWriter4CharsOrMore() {
-        // Given
-        PostSearchType type = PostSearchType.WRITER;
-        String query = "작성자이름"; // 5글자
-        Pageable pageable = PageRequest.of(0, 10);
-
-        PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "작성자 검색 결과");
-        Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
-
-        given(postSearchRepository.findByPrefixMatch(type, query, pageable, null)).willReturn(expectedPage);
-
-        // When
-        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
-
-        // Then
-        assertThat(result).isEqualTo(expectedPage);
-        assertThat(result.getContent()).hasSize(1);
-
-        verify(postSearchRepository).findByPrefixMatch(type, query, pageable, null);
-        verify(postSearchRepository, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postSearchRepository, never()).findByPartialMatch(any(), any(), any(), any());
-    }
-
-    @Test
-    @DisplayName("게시글 검색 - 부분검색 전략 (WRITER + 4글자 미만)")
-    void shouldSearchPost_UsingPartialMatch_WhenWriterLessThan4Chars() {
-        // Given
-        PostSearchType type = PostSearchType.WRITER;
-        String query = "작성자"; // 3글자
-        Pageable pageable = PageRequest.of(0, 10);
-
-        PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "부분 검색 결과");
-        Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
-
-        given(postSearchRepository.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
-
-        // When
-        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
-
-        // Then
-        assertThat(result).isEqualTo(expectedPage);
-        assertThat(result.getContent()).hasSize(1);
-
-        verify(postSearchRepository).findByPartialMatch(type, query, pageable, null);
-        verify(postSearchRepository, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
-    }
-
-    @Test
-    @DisplayName("게시글 검색 - 부분검색 전략 (3글자 미만)")
-    void shouldSearchPost_UsingPartialMatch_WhenLessThan3Chars() {
-        // Given
-        PostSearchType type = PostSearchType.TITLE;
-        String query = "검색"; // 2글자
-        Pageable pageable = PageRequest.of(0, 10);
-
-        PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "부분 검색 결과");
-        Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
-
-        given(postSearchRepository.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
-
-        // When
-        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
-
-        // Then
-        assertThat(result).isEqualTo(expectedPage);
-        assertThat(result.getContent()).hasSize(1);
-
-        verify(postSearchRepository).findByPartialMatch(type, query, pageable, null);
-        verify(postSearchRepository, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
-    }
-
 
     @Test
     @DisplayName("게시글 ID로 조회 - 성공")
@@ -493,7 +347,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         Page<PostSimpleDetail> emptyLikedPage = Page.empty();
         given(postQueryRepository.findPostsByMemberId(memberId, pageable, memberId)).willReturn(expectedPage);
         given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(emptyLikedPage);
-        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L))).willReturn(Map.of(1L, 0));
 
         // When
         MemberActivityPost result = postQueryService.getMemberActivityPosts(memberId, pageable);
@@ -517,7 +370,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         Page<PostSimpleDetail> emptyWritePage = Page.empty();
         given(postQueryRepository.findPostsByMemberId(memberId, pageable, memberId)).willReturn(emptyWritePage);
         given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
-        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L))).willReturn(Map.of(1L, 0));
 
         // When
         MemberActivityPost result = postQueryService.getMemberActivityPosts(memberId, pageable);

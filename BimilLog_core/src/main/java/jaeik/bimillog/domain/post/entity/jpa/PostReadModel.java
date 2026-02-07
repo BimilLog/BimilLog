@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.entity.jpa;
 
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -67,58 +66,26 @@ public class PostReadModel {
     }
 
     /**
-     * PostSimpleDetail로부터 PostReadModel 생성
-     */
-    public static PostReadModel fromPostSimpleDetail(PostSimpleDetail detail) {
-        return PostReadModel.builder()
-                .postId(detail.getId())
-                .title(detail.getTitle())
-                .viewCount(detail.getViewCount())
-                .likeCount(detail.getLikeCount())
-                .commentCount(detail.getCommentCount())
-                .memberId(detail.getMemberId())
-                .memberName(detail.getMemberName())
-                .createdAt(detail.getCreatedAt())
-                .build();
-    }
-
-    /**
-     * Post 엔티티로부터 PostReadModel 생성
-     */
-    public static PostReadModel fromPost(Post post, String memberName) {
-        return PostReadModel.builder()
-                .postId(post.getId())
-                .title(post.getTitle())
-                .viewCount(post.getViews())
-                .likeCount(0)
-                .commentCount(0)
-                .memberId(post.getMember() != null ? post.getMember().getId() : null)
-                .memberName(memberName != null ? memberName : "익명")
-                .createdAt(post.getCreatedAt())
-                .build();
-    }
-
-    /**
-     * 제목 업데이트
+     * 제목 업데이트 (dirty checking 활용)
      */
     public void updateTitle(String newTitle) {
         this.title = newTitle;
-        this.modifiedAt = Instant.now();
     }
 
     /**
-     * PostSimpleDetail로 변환
+     * 새 게시글용 PostReadModel 생성
      */
-    public PostSimpleDetail toPostSimpleDetail() {
-        return PostSimpleDetail.builder()
-                .id(this.postId)
-                .title(this.title)
-                .viewCount(this.viewCount)
-                .likeCount(this.likeCount)
-                .commentCount(this.commentCount)
-                .memberId(this.memberId)
-                .memberName(this.memberName)
-                .createdAt(this.createdAt)
+    public static PostReadModel createNew(Long postId, String title, Long memberId, String memberName, Instant createdAt) {
+        return PostReadModel.builder()
+                .postId(postId)
+                .title(title)
+                .viewCount(0)
+                .likeCount(0)
+                .commentCount(0)
+                .memberId(memberId)
+                .memberName(memberName)
+                .createdAt(createdAt)
                 .build();
     }
+
 }

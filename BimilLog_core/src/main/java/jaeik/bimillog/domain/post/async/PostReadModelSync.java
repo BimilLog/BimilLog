@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.async;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.entity.jpa.PostReadModel;
+import jaeik.bimillog.domain.post.entity.jpa.PostReadModelEventType;
 import jaeik.bimillog.domain.post.entity.jpa.ProcessedEvent;
 import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.ProcessedEventRepository;
@@ -42,6 +43,18 @@ public class PostReadModelSync {
     private final PostReadModelDlqService postReadModelDlqService;
 
     /**
+     * 멱등성 체크 - 이미 처리된 이벤트인지 확인
+     * @return true면 이미 처리됨 (스킵해야 함)
+     */
+    private boolean isAlreadyProcessed(String eventId) {
+        if (processedEventRepository.existsById(eventId)) {
+            log.debug("이미 처리된 이벤트 스킵: {}", eventId);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * <h3>게시글 생성 이벤트 처리</h3>
      * <p>PostReadModel에 새 레코드를 INSERT합니다.</p>
      */
@@ -60,22 +73,9 @@ public class PostReadModelSync {
     public void handlePostCreated(Long postId, String title, Long memberId, String memberName, Instant createdAt) {
         String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
 
-        // 멱등성 체크
-        if (processedEventRepository.existsById(eventId)) {
-            log.debug("이미 처리된 이벤트 스킵: {}", eventId);
-            return;
-        }
+        if (isAlreadyProcessed(eventId)) return;
 
-        PostReadModel readModel = PostReadModel.builder()
-                .postId(postId)
-                .title(title)
-                .viewCount(0)
-                .likeCount(0)
-                .commentCount(0)
-                .memberId(memberId)
-                .memberName(memberName)
-                .createdAt(createdAt)
-                .build();
+        PostReadModel readModel = PostReadModel.createNew(postId, title, memberId, memberName, createdAt);
 
         postReadModelRepository.save(readModel);
         processedEventRepository.save(new ProcessedEvent(eventId, "POST_CREATED"));
@@ -114,12 +114,9 @@ public class PostReadModelSync {
     public void handlePostUpdated(Long postId, String newTitle) {
         String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
 
-        if (processedEventRepository.existsById(eventId)) {
-            log.debug("이미 처리된 이벤트 스킵: {}", eventId);
-            return;
-        }
+        if (isAlreadyProcessed(eventId)) return;
 
-        postReadModelRepository.updateTitle(postId, newTitle);
+        postReadModelRepository.findById(postId).ifPresent(readModel -> readModel.updateTitle(newTitle));
         processedEventRepository.save(new ProcessedEvent(eventId, "POST_UPDATED"));
 
         log.debug("PostReadModel 제목 업데이트 완료: postId={}", postId);
@@ -154,10 +151,7 @@ public class PostReadModelSync {
     public void handlePostLiked(Long postId) {
         String eventId = "LIKE_INC:" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
 
-        if (processedEventRepository.existsById(eventId)) {
-            log.debug("이미 처리된 이벤트 스킵: {}", eventId);
-            return;
-        }
+        if (isAlreadyProcessed(eventId)) return;
 
         postReadModelRepository.incrementLikeCount(postId);
         processedEventRepository.save(new ProcessedEvent(eventId, "LIKE_INCREMENT"));
@@ -168,7 +162,8 @@ public class PostReadModelSync {
     @Recover
     public void recoverPostLiked(Exception e, Long postId) {
         log.error("PostReadModel 좋아요 수 증가 최종 실패: postId={}", postId, e);
-        postReadModelDlqService.saveLikeIncrement(
+        postReadModelDlqService.saveSimpleEvent(
+                PostReadModelEventType.LIKE_INCREMENT,
                 "LIKE_INC:" + UUID.randomUUID().toString().replace("-", "").substring(0, 16),
                 postId
         );
@@ -199,7 +194,8 @@ public class PostReadModelSync {
     @Recover
     public void recoverPostUnliked(Exception e, Long postId) {
         log.error("PostReadModel 좋아요 수 감소 최종 실패: postId={}", postId, e);
-        postReadModelDlqService.saveLikeDecrement(postId);
+        String eventId = "LIKE_DEC:" + postId + ":" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        postReadModelDlqService.saveSimpleEvent(PostReadModelEventType.LIKE_DECREMENT, eventId, postId);
     }
 
     /**
@@ -220,10 +216,7 @@ public class PostReadModelSync {
     public void handleCommentCreated(CommentCreatedEvent event) {
         String eventId = "CMT_INC:" + event.getEventId();
 
-        if (processedEventRepository.existsById(eventId)) {
-            log.debug("이미 처리된 이벤트 스킵: {}", eventId);
-            return;
-        }
+        if (isAlreadyProcessed(eventId)) return;
 
         postReadModelRepository.incrementCommentCount(event.getPostId());
         processedEventRepository.save(new ProcessedEvent(eventId, "COMMENT_INCREMENT"));
@@ -234,7 +227,8 @@ public class PostReadModelSync {
     @Recover
     public void recoverCommentCreated(Exception e, CommentCreatedEvent event) {
         log.error("PostReadModel 댓글 수 증가 최종 실패: postId={}", event.getPostId(), e);
-        postReadModelDlqService.saveCommentIncrement(
+        postReadModelDlqService.saveSimpleEvent(
+                PostReadModelEventType.COMMENT_INCREMENT,
                 "CMT_INC:" + event.getEventId(),
                 event.getPostId()
         );
@@ -264,6 +258,7 @@ public class PostReadModelSync {
     @Recover
     public void recoverCommentDeleted(Exception e, CommentDeletedEvent event) {
         log.error("PostReadModel 댓글 수 감소 최종 실패: postId={}", event.postId(), e);
-        postReadModelDlqService.saveCommentDecrement(event.postId());
+        String eventId = "CMT_DEC:" + event.postId() + ":" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        postReadModelDlqService.saveSimpleEvent(PostReadModelEventType.COMMENT_DECREMENT, eventId, event.postId());
     }
 }

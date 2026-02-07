@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.dto.PostSearchDTO;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.service.PostQueryService;
+import jaeik.bimillog.domain.post.service.PostSearchService;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.log.Log.LogLevel;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class PostQueryController {
     private final PostQueryService postQueryService;
+    private final PostSearchService postSearchService;
 
     /**
      * <h3>게시판 목록 조회 API</h3>
@@ -102,7 +104,7 @@ public class PostQueryController {
                                                           Pageable pageable,
                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        Page<PostSimpleDetail> postList = postQueryService.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable, memberId);
+        Page<PostSimpleDetail> postList = postSearchService.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable, memberId);
         return ResponseEntity.ok(postList);
     }
 

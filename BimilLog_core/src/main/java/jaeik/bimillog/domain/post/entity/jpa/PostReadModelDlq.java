@@ -111,45 +111,12 @@ public class PostReadModelDlq {
     }
 
     /**
-     * 좋아요 증가 이벤트용 DLQ
+     * 단순 이벤트용 DLQ (좋아요 증감, 댓글 수 증감)
      */
-    public static PostReadModelDlq createLikeIncrement(String eventId, Long postId) {
+    public static PostReadModelDlq createSimpleEvent(PostReadModelEventType eventType, String eventId, Long postId) {
         return PostReadModelDlq.builder()
                 .eventId(eventId)
-                .eventType(PostReadModelEventType.LIKE_INCREMENT)
-                .postId(postId)
-                .build();
-    }
-
-    /**
-     * 좋아요 감소 이벤트용 DLQ
-     */
-    public static PostReadModelDlq createLikeDecrement(String eventId, Long postId) {
-        return PostReadModelDlq.builder()
-                .eventId(eventId)
-                .eventType(PostReadModelEventType.LIKE_DECREMENT)
-                .postId(postId)
-                .build();
-    }
-
-    /**
-     * 댓글 수 증가 이벤트용 DLQ
-     */
-    public static PostReadModelDlq createCommentIncrement(String eventId, Long postId) {
-        return PostReadModelDlq.builder()
-                .eventId(eventId)
-                .eventType(PostReadModelEventType.COMMENT_INCREMENT)
-                .postId(postId)
-                .build();
-    }
-
-    /**
-     * 댓글 수 감소 이벤트용 DLQ
-     */
-    public static PostReadModelDlq createCommentDecrement(String eventId, Long postId) {
-        return PostReadModelDlq.builder()
-                .eventId(eventId)
-                .eventType(PostReadModelEventType.COMMENT_DECREMENT)
+                .eventType(eventType)
                 .postId(postId)
                 .build();
     }

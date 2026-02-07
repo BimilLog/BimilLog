@@ -5,7 +5,8 @@ import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.service.PostFulltextUtil;
+import jaeik.bimillog.domain.post.service.PostSearchService;
+import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
@@ -21,7 +22,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
@@ -46,12 +46,12 @@ import static org.mockito.BDDMockito.given;
 @DataJpaTest(
         includeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = {PostQueryRepository.class, PostFulltextUtil.class}
+                classes = {PostQueryRepository.class, PostUtil.class}
         )
 )
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({PostSearchRepository.class, PostFulltextUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
+@Import({PostSearchRepository.class, PostSearchService.class, PostUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
 @Tag("local-integration")
 class PostFulltextSearchIntegrationTest {
 
@@ -59,7 +59,7 @@ class PostFulltextSearchIntegrationTest {
     private PostSearchRepository postSearchRepository;
 
     @Autowired
-    private PostFulltextUtil postFullTextUtil;
+    private PostSearchService postSearchService;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -362,8 +362,6 @@ class PostFulltextSearchIntegrationTest {
     }
 
     private Page<PostSimpleDetail> searchFullText(PostSearchType type, String query, Pageable pageable, Long viewerId) {
-        Page<Object[]> rawResult = postSearchRepository.findByFullTextSearch(type, query, pageable, viewerId);
-        List<PostSimpleDetail> content = postFullTextUtil.mapFullTextRows(rawResult.getContent());
-        return new PageImpl<>(content, rawResult.getPageable(), rawResult.getTotalElements());
+        return postSearchService.searchPost(type, query, pageable, viewerId);
     }
 }

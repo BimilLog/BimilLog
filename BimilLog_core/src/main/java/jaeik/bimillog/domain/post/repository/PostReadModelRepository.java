@@ -57,10 +57,4 @@ public interface PostReadModelRepository extends JpaRepository<PostReadModel, Lo
     @Query("UPDATE PostReadModel p SET p.viewCount = p.viewCount + :amount WHERE p.postId = :postId")
     int incrementViewCountByAmount(@Param("postId") Long postId, @Param("amount") Long amount);
 
-    /**
-     * 제목 업데이트
-     */
-    @Modifying
-    @Query("UPDATE PostReadModel p SET p.title = :title WHERE p.postId = :postId")
-    int updateTitle(@Param("postId") Long postId, @Param("title") String title);
 }
