@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
+import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
@@ -17,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>RealtimePopularScoreListener 단위 테스트</h2>
+ * <h2>RealtimePostSync 단위 테스트</h2>
  * <p>실시간 인기글 점수 리스너의 이벤트 처리 로직을 검증합니다.</p>
  * <p>서킷브레이커 동작은 RedisRealTimePostAdapter에서 테스트합니다.</p>
  *
@@ -25,15 +26,15 @@ import static org.mockito.Mockito.*;
  * @version 2.6.0
  */
 @Tag("unit")
-@DisplayName("RealtimePopularScoreListener 단위 테스트")
+@DisplayName("RealtimePostSync 단위 테스트")
 @ExtendWith(MockitoExtension.class)
-class RealtimePopularScoreListenerTest {
+class RealtimePostSyncTest {
 
     @Mock
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @InjectMocks
-    private RealtimePopularScoreListener listener;
+    private RealtimePostSync listener;
 
     @BeforeEach
     void setUp() {

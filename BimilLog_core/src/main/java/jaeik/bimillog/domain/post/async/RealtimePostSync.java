@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.listener;
+package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.context.event.EventListener;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
@@ -28,7 +27,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class RealtimePopularScoreListener {
+public class RealtimePostSync {
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     private static final double VIEW_SCORE = 2.0;
