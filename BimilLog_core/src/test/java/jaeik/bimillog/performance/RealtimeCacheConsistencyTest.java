@@ -2,7 +2,6 @@ package jaeik.bimillog.performance;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import jaeik.bimillog.testutil.RedisTestHelper;
@@ -22,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter.REALTIME_POST_SCORE_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -68,7 +68,7 @@ class RealtimeCacheConsistencyTest {
     private static final int TOP_N = 5;
     private static final double VIEW_SCORE = 2.0;
     private static final double MAX_ACCEPTABLE_ERROR_RATE = 0.90;
-    private static final String SCORE_KEY = RedisPostKeys.REALTIME_POST_SCORE_KEY;
+    private static final String SCORE_KEY = REALTIME_POST_SCORE_KEY;
 
     // Zipf's Law 지수 (s 값)
     // 1.0에 가까울수록 표준적인 지프 분포, 클수록 상위 쏠림 심화

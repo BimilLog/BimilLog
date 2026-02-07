@@ -5,6 +5,8 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -77,14 +79,20 @@ public class RedisInteractionScoreRepository {
         script.setResultType(Long.class);
         INTERACTION_SCORE_ADD_SCRIPT = script;
 
-        // 지수 감쇠 Lua Script: ZSet의 모든 점수에 감쇠율을 곱함
+        // 지수 감쇠 Lua Script: ZSet의 모든 점수에 감쇠율을 곱하고 임계값 이하 제거
         String decayLuaScript = """
             local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES')
+            local decayRate = tonumber(ARGV[1])
+            local threshold = tonumber(ARGV[2])
             for i = 1, #members, 2 do
                 local member = members[i]
                 local score = tonumber(members[i + 1])
-                local newScore = score * tonumber(ARGV[1])
-                redis.call('ZADD', KEYS[1], newScore, member)
+                local newScore = score * decayRate
+                if newScore <= threshold then
+                    redis.call('ZREM', KEYS[1], member)
+                else
+                    redis.call('ZADD', KEYS[1], newScore, member)
+                end
             end
             return redis.call('ZCARD', KEYS[1])
             """;
@@ -121,6 +129,52 @@ public class RedisInteractionScoreRepository {
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_WRITE_ERROR, e);
         }
+    }
+
+    /**
+     * 모든 상호작용 점수에 지수 감쇠 적용
+     * <p>SCAN으로 모든 interaction:* 키를 찾아 Lua 스크립트로 점수 감쇠 적용</p>
+     * <p>임계값(0.1) 이하의 점수는 삭제</p>
+     *
+     * @return 처리된 키 개수
+     */
+    public int applyInteractionScoreDecay() {
+        String pattern = INTERACTION_PREFIX + "*";
+        List<String> keys = new ArrayList<>();
+
+        // 1. SCAN으로 모든 interaction 키 수집
+        redisTemplate.execute((RedisConnection connection) -> {
+            connection.keyCommands().scan(scanOptions()
+                            .match(pattern)
+                            .count(100)
+                            .build())
+                    .forEachRemaining(key -> keys.add(new String(key, StandardCharsets.UTF_8)));
+            return null;
+        });
+
+        // 2. 파이프라인으로 일괄 감쇠 적용 (키당 Lua 스크립트 원자 실행)
+        byte[] scriptBytes = INTERACTION_SCORE_DECAY_SCRIPT.getScriptAsString().getBytes(StandardCharsets.UTF_8);
+        byte[] decayRateBytes = String.valueOf(INTERACTION_SCORE_DECAY_RATE).getBytes(StandardCharsets.UTF_8);
+        byte[] thresholdBytes = String.valueOf(INTERACTION_SCORE_THRESHOLD).getBytes(StandardCharsets.UTF_8);
+
+        for (int i = 0; i < keys.size(); i += PIPELINE_BATCH_SIZE) {
+            List<String> batch = keys.subList(i, Math.min(i + PIPELINE_BATCH_SIZE, keys.size()));
+            stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+                for (String key : batch) {
+                    connection.scriptingCommands().eval(
+                            scriptBytes,
+                            ReturnType.INTEGER,
+                            1,
+                            key.getBytes(StandardCharsets.UTF_8),
+                            decayRateBytes,
+                            thresholdBytes
+                    );
+                }
+                return null;
+            });
+        }
+
+        return keys.size();
     }
 
     /**
@@ -199,42 +253,7 @@ public class RedisInteractionScoreRepository {
         }
     }
 
-    /**
-     * 모든 상호작용 점수에 지수 감쇠 적용
-     * <p>SCAN으로 모든 interaction:* 키를 찾아 Lua 스크립트로 점수 감쇠 적용</p>
-     * <p>임계값(0.1) 이하의 점수는 삭제</p>
-     *
-     * @return 처리된 키 개수
-     */
-    public int applyInteractionScoreDecay() {
-        String pattern = INTERACTION_PREFIX + "*";
-        List<String> keys = new ArrayList<>();
 
-        // 1. SCAN으로 모든 interaction 키 수집
-        redisTemplate.execute((RedisConnection connection) -> {
-            connection.keyCommands().scan(scanOptions()
-                    .match(pattern)
-                    .count(100)
-                    .build())
-                    .forEachRemaining(key -> keys.add(new String(key, StandardCharsets.UTF_8)));
-            return null;
-        });
-
-        // 2. 각 키에 대해 지수 감쇠 적용
-        for (String key : keys) {
-            // Lua 스크립트로 점수 감쇠
-            stringRedisTemplate.execute(
-                    INTERACTION_SCORE_DECAY_SCRIPT,
-                    List.of(key),
-                    String.valueOf(INTERACTION_SCORE_DECAY_RATE)
-            );
-
-            // 임계값 이하의 멤버 제거
-            redisTemplate.opsForZSet().removeRangeByScore(key, 0, INTERACTION_SCORE_THRESHOLD);
-        }
-
-        return keys.size();
-    }
 
     public void processScoreUp(RedisConnection connection, FriendEventDlq event) {
         String key1 = INTERACTION_PREFIX + event.getMemberId();

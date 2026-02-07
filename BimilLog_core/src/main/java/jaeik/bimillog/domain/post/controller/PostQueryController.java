@@ -40,8 +40,8 @@ public class PostQueryController {
     private final PostQueryService postQueryService;
 
     /**
-     * <h3>게시판 목록 조회 API (Cursor 기반)</h3>
-     * <p>커서 기반 페이지네이션으로 게시글 목록을 최신순 조회합니다.</p>
+     * <h3>게시판 목록 조회 API</h3>
+     * <p>게시글 목록을 최신순 조회합니다.</p>
      * <p>회원은 블랙리스트 필터링이 적용되고, 비회원은 전체 조회됩니다.</p>
      *
      * @param cursor 마지막으로 조회한 게시글 ID (null이면 처음부터)
@@ -52,10 +52,8 @@ public class PostQueryController {
     @Log(level = LogLevel.DEBUG,
          message = "게시판 목록 조회",
          logResult = false)
-    public ResponseEntity<CursorPageResponse<PostSimpleDetail>> getBoard(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "20") int size) {
+    public ResponseEntity<CursorPageResponse<PostSimpleDetail>> getBoard(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                                         @RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "20") int size) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         CursorPageResponse<PostSimpleDetail> postList = postQueryService.getBoardByCursor(cursor, size, memberId);
         return ResponseEntity.ok(postList);

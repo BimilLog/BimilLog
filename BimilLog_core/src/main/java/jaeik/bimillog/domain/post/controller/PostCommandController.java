@@ -20,15 +20,15 @@ import java.net.URI;
 
 /**
  * <h2>게시글 명령 컨트롤러</h2>
- * <p>게시글 도메인의 명령 관련 REST API를 제공하는 웹 어댑터입니다.</p>
+ * <p>게시글 도메인의 명령 처리 컨트롤러</p>
  * <p>게시글 작성, 수정, 삭제, 추천 API</p>
- * <p>익명/회원 사용자 인증 처리</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Log(level = LogLevel.INFO,
         logExecutionTime = true,
+        excludeParams = {"password"},
         logParams = false)
 @RestController
 @RequiredArgsConstructor
@@ -42,27 +42,15 @@ public class PostCommandController {
      * <p>새로운 게시글을 작성하고 저장합니다.</p>
      * <p>로그인/익명 사용자 모두 작성 가능, 익명 시 비밀번호 설정</p>
      *
-     * @param userDetails 현재 로그인 사용자 정보 (익명 사용자는 null)
-     * @param postCreateDTO  게시글 작성 요청 DTO
+     * @param userDetails   현재 로그인 사용자 정보 (익명 사용자는 null)
+     * @param postCreateDTO 게시글 작성 요청 DTO
      * @return 생성된 게시글 URI (201 Created)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PostMapping
-    @Log(level = LogLevel.INFO,
-         message = "게시글 작성",
-         logExecutionTime = true,
-         excludeParams = {"password", "userDetails"})
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                           @RequestBody @Valid PostCreateDTO postCreateDTO) {
-        Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
-        Integer password = postCreateDTO.getPassword();
-
-        if (memberId == null && password == null) {
-            throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
-        }
-
-        Long postId = postCommandService.writePost(memberId, postCreateDTO.getTitle(), postCreateDTO.getContent(), password);
+        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
+        Long postId = postCommandService.writePost(memberId, postCreateDTO.getTitle(), postCreateDTO.getContent(), postCreateDTO.getPassword());
         return ResponseEntity.created(URI.create("/post/" + postId)).build();
     }
 
@@ -70,12 +58,10 @@ public class PostCommandController {
      * <h3>게시글 수정 API</h3>
      * <p>게시글 작성자만 수정 가능합니다.</p>
      *
-     * @param postId      수정할 게시글 ID
-     * @param userDetails 현재 로그인 사용자 정보
-     * @param postUpdateDTO  수정할 게시글 정보 DTO
+     * @param postId        수정할 게시글 ID
+     * @param userDetails   현재 로그인 사용자 정보
+     * @param postUpdateDTO 수정할 게시글 정보 DTO
      * @return 성공 응답 (200 OK)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PutMapping("/{postId}")
     public ResponseEntity<Void> updatePost(@PathVariable Long postId,
@@ -94,8 +80,6 @@ public class PostCommandController {
      * @param userDetails   현재 로그인 사용자 정보
      * @param postDeleteDTO 삭제할 게시글 정보
      * @return 성공 응답 (204 No Content)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(@PathVariable Long postId,
@@ -120,8 +104,6 @@ public class PostCommandController {
      * @param postId      추천 토글할 게시글 ID
      * @param userDetails 현재 로그인 사용자 정보
      * @return 성공 응답 (200 OK)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PostMapping("/{postId}/like")
     public ResponseEntity<Void> likePost(@PathVariable Long postId,

@@ -10,7 +10,6 @@ import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.POST_CACHE_TTL_WEEKLY_LEGEND;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +17,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -41,6 +41,14 @@ public class PostScheduledService {
     private final FeaturedPostScheduleExecutor featuredPostScheduleExecutor;
 
     private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
+
+    /**
+     * 주간/레전드 인기글 캐시 TTL (24시간 30분)
+     * <p>Hash 캐시에 직접 적용</p>
+     */
+    public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofHours(24).plusMinutes(30);
+
+
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>

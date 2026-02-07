@@ -15,7 +15,8 @@ import org.springframework.data.redis.core.SetOperations;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
+import static jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter.VIEW_COUNTS_KEY;
+import static jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter.VIEW_TTL_SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;

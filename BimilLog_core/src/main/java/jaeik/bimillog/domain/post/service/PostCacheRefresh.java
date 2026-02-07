@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
@@ -23,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+
 
 /**
  * <h2>글 캐시 갱신 클래스</h2>
@@ -48,6 +48,12 @@ public class PostCacheRefresh {
     private static final int REALTIME_FALLBACK_LIMIT = 5;
 
     /**
+     * 주간/레전드 인기글 캐시 TTL (24시간 30분)
+     * <p>Hash 캐시에 직접 적용</p>
+     */
+    public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofHours(24).plusMinutes(30);
+
+    /**
      * <h3>실시간 인기글 캐시 동기 갱신</h3>
      * <p>서킷 상태에 따라 Redis ZSet 또는 Caffeine에서 인기글 ID를 조회한 뒤 DB에서 상세 정보를 가져와 캐시에 저장합니다.</p>
      * <p>실패 시 최대 3회 재시도합니다 (2s → 4s 지수 백오프).</p>
@@ -65,7 +71,7 @@ public class PostCacheRefresh {
         if (posts.isEmpty()) {
             return;
         }
-        Duration ttl = RedisPostKeys.getTtlForType(PostCacheFlag.REALTIME);
+        Duration ttl = getTtlForType(PostCacheFlag.REALTIME);
         redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.REALTIME, posts, ttl);
     }
 
@@ -106,7 +112,7 @@ public class PostCacheRefresh {
         if (posts.isEmpty()) {
             return;
         }
-        Duration ttl = RedisPostKeys.getTtlForType(type);
+        Duration ttl = getTtlForType(type);
         redisSimplePostAdapter.cachePostsWithTtl(type, posts, ttl);
     }
 
@@ -137,7 +143,7 @@ public class PostCacheRefresh {
             if (posts.isEmpty()) {
                 return;
             }
-            Duration ttl = RedisPostKeys.getTtlForType(PostCacheFlag.REALTIME);
+            Duration ttl = getTtlForType(PostCacheFlag.REALTIME);
             redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.REALTIME, posts, ttl);
         } catch (Exception e) {
             log.warn("실시간 인기글 해시 갱신 실패: {}", e.getMessage());
@@ -171,5 +177,17 @@ public class PostCacheRefresh {
                 .toList();
     }
 
-
+    /**
+     * <h3>타입별 캐시 TTL 반환</h3>
+     * <p>REALTIME: null (영구 저장), WEEKLY/LEGEND: 24시간 30분, NOTICE: null (영구 저장)</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @return 해당 타입의 TTL (NOTICE는 null 반환 → 영구 저장)
+     */
+    public static Duration getTtlForType(PostCacheFlag type) {
+        return switch (type) {
+            case REALTIME, NOTICE -> null;
+            case WEEKLY, LEGEND -> POST_CACHE_TTL_WEEKLY_LEGEND;
+        };
+    }
 }
