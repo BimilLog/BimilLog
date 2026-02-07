@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.repository;
+package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import lombok.RequiredArgsConstructor;

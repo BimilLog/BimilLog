@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import jaeik.bimillog.domain.post.async.PostReadModelSync;
+import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
@@ -56,6 +58,12 @@ class PostInteractionServiceTest extends BaseUnitTest {
     @Mock
     private PostRepository postRepository;
 
+    @Mock
+    private PostReadModelSync postReadModelSync;
+
+    @Mock
+    private RealtimePostSync realtimePostSync;
+
     @InjectMocks
     private PostInteractionService postInteractionService;
 
@@ -69,7 +77,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(alreadyLiked);
-        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(postToMemberAdapter.getMember(memberId)).willReturn(getTestMember());
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
         // When
@@ -77,7 +85,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         // Then
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(postToMemberAdapter).getReferenceById(memberId);
+        verify(postToMemberAdapter).getMember(memberId);
         verify(postRepository).findById(postId);
 
         if (alreadyLiked) {
@@ -102,7 +110,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Long postId = 999L;
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
-        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(postToMemberAdapter.getMember(memberId)).willReturn(getTestMember());
         given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
@@ -111,7 +119,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(postToMemberAdapter).getReferenceById(memberId);
+        verify(postToMemberAdapter).getMember(memberId);
         verify(postRepository).findById(postId);
         verify(postLikeRepository, never()).save(any());
         verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());

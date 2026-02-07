@@ -70,7 +70,7 @@ public enum ErrorCode {
 
     // ===== Post 도메인 에러 코드 =====
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다.", LogLevel.INFO),
-    POST_BLANK_PASSWORD(HttpStatus.BAD_REQUEST, "비회원은 글을 수정/삭제 할 시 비밀번호를 입력해야 합니다.", LogLevel.WARN),
+    POST_BLANK_PASSWORD(HttpStatus.BAD_REQUEST, "회원은 비밀번호가 없어야하고 비회원은 비밀번호가 있어야 합니다.", LogLevel.WARN),
     POST_FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다.", LogLevel.WARN),
     POST_REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다.", LogLevel.ERROR),
     POST_REDIS_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 삭제 중 오류가 발생했습니다.", LogLevel.ERROR),

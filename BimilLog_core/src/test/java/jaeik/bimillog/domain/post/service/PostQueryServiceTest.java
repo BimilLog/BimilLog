@@ -1,6 +1,8 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
+import jaeik.bimillog.domain.post.async.PostViewCountSync;
+import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.*;
@@ -74,6 +76,15 @@ class PostQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
+
+    @Mock
+    private PostViewCountSync postViewCountSync;
+
+    @Mock
+    private RealtimePostSync realtimePostSync;
+
+    @Mock
+    private PostFulltextUtil postFullTextUtil;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -317,18 +328,21 @@ class PostQueryServiceTest extends BaseUnitTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "검색 결과");
-        Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
+        Object[] rawRow = new Object[]{1L, "검색 결과", 0, Instant.now(), null, null, 0};
+        List<Object[]> rawRows = List.<Object[]>of(rawRow);
+        Page<Object[]> rawPage = new PageImpl<>(rawRows, pageable, 1);
 
-        given(postSearchRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(expectedPage);
+        given(postSearchRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(rawPage);
+        given(postFullTextUtil.mapFullTextRows(rawPage.getContent())).willReturn(List.of(searchResult));
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
 
         // Then
-        assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
         verify(postSearchRepository).findByFullTextSearch(type, query, pageable, null);
+        verify(postFullTextUtil).mapFullTextRows(rawPage.getContent());
         verify(postSearchRepository, never()).findByPartialMatch(any(), any(), any(), any());
         verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
     }
@@ -341,15 +355,16 @@ class PostQueryServiceTest extends BaseUnitTest {
         String query = "검색어"; // 3글자
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<PostSimpleDetail> emptyPage = Page.empty(pageable);
+        Page<Object[]> emptyPage = Page.empty(pageable);
 
         given(postSearchRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(emptyPage);
+        given(postFullTextUtil.mapFullTextRows(List.of())).willReturn(List.of());
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
 
         // Then
-        assertThat(result).isEqualTo(emptyPage);
+        assertThat(result.getContent()).isEmpty();
 
         verify(postSearchRepository).findByFullTextSearch(type, query, pageable, null);
         verify(postSearchRepository, never()).findByPartialMatch(type, query, pageable, null);

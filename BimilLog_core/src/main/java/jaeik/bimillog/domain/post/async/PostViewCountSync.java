@@ -1,13 +1,12 @@
-package jaeik.bimillog.domain.post.listener;
+package jaeik.bimillog.domain.post.async;
 
-import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>게시글 조회수 증가 리스너</h2>
@@ -15,31 +14,32 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * <p>Redis SET으로 24시간 중복 조회를 방지하고, Redis Hash에 조회수를 버퍼링합니다.</p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.7.0
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "조회수 증가")
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PostViewCountListener {
+public class PostViewCountSync {
     private final RedisPostViewAdapter redisPostViewAdapter;
 
     /**
      * <h3>게시글 조회 이벤트 처리</h3>
      * <p>중복 조회가 아닌 경우 조회수를 1 증가시킵니다.</p>
      *
-     * @param event 게시글 조회 이벤트
+     * @param postId    조회된 게시글 ID
+     * @param viewerKey 조회자 식별 키 (중복 조회 방지용)
      */
-    @TransactionalEventListener
     @Async("realtimeEventExecutor")
-    public void handlePostViewed(PostViewedEvent event) {
+    @Transactional
+    public void handlePostViewed(Long postId, String viewerKey) {
         try {
-            if (!redisPostViewAdapter.hasViewed(event.postId(), event.viewerKey())) {
-                redisPostViewAdapter.markViewed(event.postId(), event.viewerKey());
-                redisPostViewAdapter.incrementViewCount(event.postId());
+            if (!redisPostViewAdapter.hasViewed(postId, viewerKey)) {
+                redisPostViewAdapter.markViewed(postId, viewerKey);
+                redisPostViewAdapter.incrementViewCount(postId);
             }
         } catch (Exception e) {
-            log.warn("조회수 처리 실패: postId={}, error={}", event.postId(), e.getMessage());
+            log.warn("조회수 처리 실패: postId={}, error={}", postId, e.getMessage());
         }
     }
 }

@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.scheduler.PostCacheRefreshScheduler;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
@@ -27,7 +28,7 @@ import java.util.Objects;
 /**
  * <h2>글 캐시 갱신 클래스</h2>
  * <p>인기글(실시간/주간/레전드) 목록 캐시의 동기 갱신을 담당합니다.</p>
- * <p>스케줄러({@link jaeik.bimillog.domain.post.scheduler.PostCacheRefreshScheduler})에서 호출됩니다.</p>
+ * <p>스케줄러({@link PostCacheRefreshScheduler})에서 호출됩니다.</p>
  *
  * @author Jaeik
  * @version 2.7.0

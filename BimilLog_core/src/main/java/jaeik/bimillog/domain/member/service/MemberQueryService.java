@@ -78,21 +78,6 @@ public class MemberQueryService {
     }
 
     /**
-     * <h3>ID로 사용자 프록시 조회</h3>
-     * <p>실제 쿼리 없이 ID를 가진 사용자의 프록시(참조) 객체를 반환합니다.</p>
-     * <p>JPA 연관 관계 설정 시 사용됩니다.</p>
-     *
-     * @param memberId 사용자 ID
-     * @return Member 프록시 객체
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Transactional(readOnly = true)
-    public Member getReferenceById(Long memberId) {
-        return memberRepository.getReferenceById(memberId);
-    }
-
-    /**
      * <h3>설정 ID로 설정 조회</h3>
      * <p>Member 엔티티 전체 조회 없이 Setting만 직접 조회합니다.</p>
      * <p>{@link MemberQueryController}에서 사용자 설정 조회 API 시 호출됩니다.</p>

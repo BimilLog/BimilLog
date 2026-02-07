@@ -61,7 +61,7 @@ public class RealtimeScoreFallbackStore {
     /**
      * <h3>점수 지수 감쇠 적용</h3>
      * <p>모든 게시글 점수에 DECAY_RATE(0.9)를 곱하고, 임계값(1점) 이하의 게시글을 제거합니다.</p>
-     * <p>PostScheduledService 스케줄러에서 주기적으로 호출됩니다.</p>
+     * <p>FeaturedPostScheduler 스케줄러에서 주기적으로 호출됩니다.</p>
      */
     public void applyDecay() {
         scoreCache.asMap().entrySet().removeIf(entry -> {

@@ -31,13 +31,12 @@ public class PostToMemberAdapter {
     }
 
     /**
-     * <h3>사용자 ID로 JPA 프록시 참조 조회</h3>
-     * <p>실제 데이터베이스 조회 없이 사용자 ID를 가진 Member 프록시 객체를 반환합니다.</p>
-     *
+     * <h3>사용자 ID로 멤버조회</h3>
+     * *
      * @param memberId 참조할 사용자 ID
-     * @return Member 프록시 객체 (실제 데이터는 지연 로딩)
+     * @return Member 멤버 데이터
      */
-    public Member getReferenceById(Long memberId) {
-        return memberQueryService.getReferenceById(memberId);
+    public Member getMember(Long memberId) {
+        return memberQueryService.findById(memberId);
     }
 }

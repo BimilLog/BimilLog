@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import jaeik.bimillog.domain.post.async.PostReadModelSync;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
@@ -62,10 +62,10 @@ class PostCommandServiceTest extends BaseUnitTest {
     private CommentCommandService commentCommandService;
 
     @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
 
     @Mock
-    private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
+    private PostReadModelSync postReadModelSync;
 
     @Mock
     private PostReadModelQueryRepository postReadModelQueryRepository;
@@ -84,11 +84,11 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long expectedPostId = 123L;
         String title = "테스트 제목";
         String content = "테스트 내용";
-        Integer password = 1234;
+        Integer password = null;
 
         Post createdPost = PostTestDataBuilder.withId(expectedPostId, PostTestDataBuilder.createPost(getTestMember(), title, content));
 
-        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(postToMemberAdapter.getMember(memberId)).willReturn(getTestMember());
         given(postRepository.save(any(Post.class))).willReturn(createdPost);
 
         // When
@@ -97,7 +97,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isEqualTo(expectedPostId);
 
-        verify(postToMemberAdapter, times(1)).getReferenceById(memberId);
+        verify(postToMemberAdapter, times(1)).getMember(memberId);
         verify(postRepository, times(1)).save(any(Post.class));
         verifyNoMoreInteractions(postToMemberAdapter, postRepository);
     }

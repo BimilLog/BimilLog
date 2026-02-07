@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.scheduler;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import jaeik.bimillog.domain.post.async.FeaturedPostScheduleExecutor;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
@@ -21,7 +22,7 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * <h2>PostScheduledService</h2>
+ * <h2>FeaturedPostScheduler</h2>
  * <p>게시글 인기도 기반 캐시 동기화를 담당하는 스케줄링 서비스로서 </p>
  * <p>스프링 스케줄러를 통한 주기적 실행과 이벤트 발행을 통해 도메인 간 통신을 수행</p>
  *
@@ -32,7 +33,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostScheduledService {
+public class FeaturedPostScheduler {
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;

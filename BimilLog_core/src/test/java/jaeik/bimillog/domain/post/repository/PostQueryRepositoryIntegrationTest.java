@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.service.PostFulltextUtil;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
@@ -264,7 +265,7 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
-        Page<PostSimpleDetail> result = postSearchRepository.findByFullTextSearch(searchType, query, pageable, null);
+        Page<Object[]> result = postSearchRepository.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: FULLTEXT 인덱스를 사용하여 검색됨
         assertThat(result).isNotNull();

@@ -23,7 +23,6 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class PostSearchRepository {
     private final PostFulltextRepository postFullTextRepository;
-    private final PostFulltextUtil postFullTextUtil;
     private final PostQueryRepository postQueryRepository;
 
     private static final QPost post = QPost.post;
@@ -42,7 +41,7 @@ public class PostSearchRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> findByFullTextSearch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
+    public Page<Object[]> findByFullTextSearch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
         String searchTerm = query + "*";
         try {
             List<Object[]> rows = switch (type) {
@@ -57,12 +56,7 @@ public class PostSearchRepository {
                 case WRITER -> 0L;
             };
 
-            if (rows.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, total);
-            }
-
-            List<PostSimpleDetail> content = postFullTextUtil.mapFullTextRows(rows);
-            return new PageImpl<>(content, pageable, total);
+            return new PageImpl<>(rows, pageable, total);
         } catch (DataAccessException e) {
             log.warn("FULLTEXT 검색 중 데이터베이스 오류 - type: {}, query: {}, error: {}", type, query, e.getMessage());
             return Page.empty(pageable);

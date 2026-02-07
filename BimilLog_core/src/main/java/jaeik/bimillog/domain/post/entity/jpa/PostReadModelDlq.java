@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.entity.jpa;
 
-import jaeik.bimillog.domain.post.entity.PostReadModelEventType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
