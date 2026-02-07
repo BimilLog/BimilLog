@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.event.PostUpdatedEvent;
 import jaeik.bimillog.domain.post.repository.PostReadModelQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
@@ -18,7 +17,6 @@ import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +42,6 @@ public class PostCommandService {
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final CommentCommandService commentCommandService;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
-    private final ApplicationEventPublisher eventPublisher;
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
     private final PostReadModelQueryRepository postReadModelQueryRepository;
     private final PostReadModelRepository postReadModelRepository;
@@ -140,8 +137,8 @@ public class PostCommandService {
         // 글 수정
         post.updatePost(title, content);
 
-        // PostReadModel 동기화 이벤트 발행
-        eventPublisher.publishEvent(new PostUpdatedEvent(postId, title));
+        // 비동기로 조회용테이블 갱신
+        postReadModelSync.handlePostUpdated(postId, title);
 
         // 캐시 무효화 - 인기글인 경우 해당 Hash 필드 삭제
         try {

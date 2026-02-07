@@ -38,6 +38,7 @@ public class PostInteractionService {
     private final PostLikeRepository postLikeRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
+    private final PostReadModelSync postReadModelSync;
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
      * <p>사용자별 좋아요 상태 토글 규칙을 적용합니다.</p>
@@ -64,11 +65,17 @@ public class PostInteractionService {
         if (isAlreadyLiked) {
             postLikeRepository.deleteByMemberAndPost(member, post);
 
+            // 비동기로 조회용테이블 갱신
+            postReadModelSync.handlePostUnliked(postId);
+
             // 실시간 인기글 점수 감소 이벤트 발행
             eventPublisher.publishEvent(new PostUnlikeEvent(postId));
         } else {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeRepository.save(postLike);
+
+            // 비동기로 조회용테이블 갱신
+            postReadModelSync.handlePostLiked(postId);
 
             // 실시간 인기글 점수 증가 및 상호작용 점수 증가 이벤트 발행
             if (post.getMember() != null) {
