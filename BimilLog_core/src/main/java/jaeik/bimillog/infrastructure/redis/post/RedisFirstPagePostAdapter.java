@@ -214,7 +214,7 @@ public class RedisFirstPagePostAdapter {
      */
     public void deletePost(Long postId, Supplier<PostSimpleDetail> fallback) {
         // 1. Lua 스크립트로 삭제
-        String deletedJson = redisTemplate.execute(
+        redisTemplate.execute(
                 DELETE_POST_SCRIPT,
                 List.of(FIRST_PAGE_LIST_KEY),
                 postId.toString()
