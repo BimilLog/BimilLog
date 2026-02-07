@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -72,7 +73,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private FirstPageCacheService firstPageCacheService;
+    private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -93,8 +94,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         List<PostSimpleDetail> posts = List.of(postResult);
 
         // 첫 페이지 캐시 히트
-        given(firstPageCacheService.isFirstPage(cursor, size)).willReturn(true);
-        given(firstPageCacheService.getFirstPage(null)).willReturn(posts);
+        given(redisFirstPagePostAdapter.getFirstPage()).willReturn(posts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -104,8 +104,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
         assertThat(result.hasNext()).isFalse();  // 1개 < 10개이므로 다음 페이지 없음
 
-        verify(firstPageCacheService).isFirstPage(cursor, size);
-        verify(firstPageCacheService).getFirstPage(null);
+        verify(redisFirstPagePostAdapter).getFirstPage();
         verify(postReadModelQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
@@ -124,8 +123,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 PostTestDataBuilder.createPostSearchResult(1L, "제목1")
         );
 
-        given(firstPageCacheService.isFirstPage(cursor, size)).willReturn(true);
-        given(firstPageCacheService.getFirstPage(null)).willReturn(cachedPosts);
+        given(redisFirstPagePostAdapter.getFirstPage()).willReturn(cachedPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -137,8 +135,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.hasNext()).isTrue();  // 5개 > 2개이므로 다음 페이지 있음
         assertThat(result.nextCursor()).isEqualTo(4L);  // 마지막 항목의 ID
 
-        verify(firstPageCacheService).isFirstPage(cursor, size);
-        verify(firstPageCacheService).getFirstPage(null);
+        verify(redisFirstPagePostAdapter).getFirstPage();
         verify(postReadModelQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
@@ -152,11 +149,10 @@ class PostQueryServiceTest extends BaseUnitTest {
         List<PostSimpleDetail> posts = List.of(postResult);
 
         // 첫 페이지 캐시 미스
-        given(firstPageCacheService.isFirstPage(cursor, size)).willReturn(true);
-        given(firstPageCacheService.getFirstPage(null)).willReturn(Collections.emptyList());
+        given(redisFirstPagePostAdapter.getFirstPage()).willReturn(Collections.emptyList());
 
-        // DB 폴백
-        given(postReadModelQueryRepository.findBoardPostsByCursor(cursor, size)).willReturn(posts);
+        // DB 폴백 (FIRST_PAGE_SIZE=20으로 조회)
+        given(postReadModelQueryRepository.findBoardPostsByCursor(null, 20)).willReturn(posts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -166,7 +162,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
         assertThat(result.hasNext()).isFalse();
 
-        verify(postReadModelQueryRepository).findBoardPostsByCursor(cursor, size);
+        verify(redisFirstPagePostAdapter).getFirstPage();
+        verify(postReadModelQueryRepository).findBoardPostsByCursor(null, 20);
     }
 
     @Test
@@ -178,8 +175,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         List<PostSimpleDetail> posts = List.of(postResult);
 
-        // 첫 페이지가 아님
-        given(firstPageCacheService.isFirstPage(cursor, size)).willReturn(false);
+        // 첫 페이지가 아님 - 캐시 조회 안 함
         given(postReadModelQueryRepository.findBoardPostsByCursor(cursor, size)).willReturn(posts);
 
         // When
@@ -189,9 +185,38 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
 
-        verify(firstPageCacheService).isFirstPage(cursor, size);
-        verify(firstPageCacheService, never()).getFirstPage(any());
+        verify(redisFirstPagePostAdapter, never()).getFirstPage();
         verify(postReadModelQueryRepository).findBoardPostsByCursor(cursor, size);
+    }
+
+    @Test
+    @DisplayName("게시판 조회 (첫 페이지, 회원) - 캐시 히트 + 블랙리스트 필터링")
+    void shouldGetBoardByCursor_ForMember_CacheHit_WithBlacklistFiltering() {
+        // Given
+        Long cursor = null;
+        int size = 20;
+        Long memberId = 100L;
+        Long blacklistedMemberId = 2L;
+
+        List<PostSimpleDetail> cachedPosts = List.of(
+                PostTestDataBuilder.createPostSearchResultWithMemberId(1L, "게시글1", 1L),
+                PostTestDataBuilder.createPostSearchResultWithMemberId(2L, "블랙게시글", blacklistedMemberId),
+                PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
+        );
+
+        given(redisFirstPagePostAdapter.getFirstPage()).willReturn(cachedPosts);
+        given(postToMemberAdapter.getInterActionBlacklist(memberId)).willReturn(List.of(blacklistedMemberId));
+
+        // When
+        var result = postQueryService.getBoardByCursor(cursor, size, memberId);
+
+        // Then
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.content()).extracting(PostSimpleDetail::getId).containsExactly(1L, 3L);
+        assertThat(result.hasNext()).isFalse();
+
+        verify(redisFirstPagePostAdapter).getFirstPage();
+        verify(postToMemberAdapter).getInterActionBlacklist(memberId);
     }
 
     @Test

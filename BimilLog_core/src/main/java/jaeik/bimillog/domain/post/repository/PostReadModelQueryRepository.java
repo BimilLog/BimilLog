@@ -14,7 +14,6 @@ import java.util.List;
 
 /**
  * <h2>Post Read Model Query Repository</h2>
- * <p>PostReadModel에서 QueryDSL을 사용한 조회를 처리합니다.</p>
  * <p>기존 PostQueryRepository의 findBoardPostsByCursor를 대체합니다.</p>
  *
  * @author Jaeik
@@ -25,23 +24,20 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PostReadModelQueryRepository {
-
     private final JPAQueryFactory jpaQueryFactory;
-
     private static final QPostReadModel postReadModel = QPostReadModel.postReadModel;
 
     /**
      * <h3>게시판 게시글 조회 (Cursor 기반)</h3>
      * <p>PostReadModel에서 커서 기반 페이지네이션으로 게시글 목록을 조회합니다.</p>
      * <p>hasNext 판단을 위해 size + 1개를 조회합니다.</p>
-     * <p>기존 JOIN과 SubQuery 없이 단일 테이블에서 조회하여 성능 향상</p>
      *
      * @param cursor 마지막으로 조회한 게시글 ID (null이면 처음부터)
      * @param size   조회할 개수
      * @return 게시글 목록 (size + 1개까지 조회됨)
      */
     public List<PostSimpleDetail> findBoardPostsByCursor(Long cursor, int size) {
-        // 커서 조건: cursor가 있으면 해당 ID보다 작은 게시글만 조회
+        // cursor가 있으면 해당 ID보다 작은 게시글을 size만큼 조회
         BooleanExpression cursorCondition = cursor != null ? postReadModel.postId.lt(cursor) : null;
 
         return jpaQueryFactory
@@ -57,7 +53,7 @@ public class PostReadModelQueryRepository {
                 .from(postReadModel)
                 .where(cursorCondition)
                 .orderBy(postReadModel.postId.desc())  // ID 내림차순 (최신순)
-                .limit(size + 1)                       // hasNext 판단용 +1
+                .limit(size + 1)                       // 다음 페이지 판단용
                 .fetch();
     }
 }
