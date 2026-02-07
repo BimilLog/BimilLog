@@ -10,6 +10,7 @@ import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.*;
+import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -45,14 +46,11 @@ public class PostQueryService {
     private final PostReadModelQueryRepository postReadModelQueryRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
-    private final PostToCommentAdapter postToCommentAdapter;
-    private final PostToMemberAdapter postToMemberAdapter;
-    private final PostSearchRepository postSearchRepository;
+    private final PostUtil postUtil;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
     private final PostViewCountSync postViewCountSync;
     private final RealtimePostSync realtimePostSync;
-    private final PostFulltextUtil postFullTextUtil;
 
     /**
      * 첫 페이지 캐시 크기 (20개)
@@ -82,7 +80,7 @@ public class PostQueryService {
         }
 
         // 블랙리스트 필터링 비회원이거나 빈 페이지면 무시됨
-        posts = removePostsWithBlacklist(memberId, posts);
+        posts = postUtil.removePostsWithBlacklist(memberId, posts);
 
         // 빈 페이지라면 즉시 반환 블랙리스트 필터링으로 인해 빈 페이지가 되어도 반환됨
         if (posts.isEmpty()) {
@@ -165,79 +163,9 @@ public class PostQueryService {
     public MemberActivityPost getMemberActivityPosts(Long memberId, Pageable pageable) {
         Page<PostSimpleDetail> writePosts = postQueryRepository.findPostsByMemberId(memberId, pageable, memberId);
         Page<PostSimpleDetail> likedPosts = postQueryRepository.findLikedPostsByMemberId(memberId, pageable);
-        enrichPostsCommentCount(writePosts.getContent());
-        enrichPostsCommentCount(likedPosts.getContent());
+        postUtil.enrichPostsCommentCount(writePosts.getContent());
+        postUtil.enrichPostsCommentCount(likedPosts.getContent());
         return new MemberActivityPost(writePosts, likedPosts);
-    }
-
-    /**
-     * <h3>게시글 검색 전략 선택</h3>
-     * <p>검색 조건에 따라 최적의 검색 전략을 선택하여 게시글을 검색합니다.</p>
-     * <p>검색 전략:</p>
-     * <ul>
-     *     <li>3글자 이상 + WRITER 아님 → 전문검색 시도 (실패 시 부분검색)</li>
-     *     <li>WRITER + 4글자 이상 → 접두사 검색 (인덱스 활용)</li>
-     *     <li>그 외 → 부분 검색</li>
-     * </ul>
-     * <p>{@link PostQueryController}에서 검색 요청 시 호출됩니다.</p>
-     *
-     * @param type     검색 유형 (TITLE, WRITER, TITLE_CONTENT)
-     * @param query    검색어
-     * @param pageable 페이지 정보
-     * @return Page&lt;PostSimpleDetail&gt; 검색된 게시글 목록 페이지
-     */
-    public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable, Long memberId) {
-        Page<PostSimpleDetail> posts;
-
-        // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
-        if (query.length() >= 3 && type != PostSearchType.WRITER) {
-            Page<Object[]> rawResult = postSearchRepository.findByFullTextSearch(type, query, pageable, memberId);
-            List<PostSimpleDetail> content = postFullTextUtil.mapFullTextRows(rawResult.getContent());
-            posts = new PageImpl<>(content, rawResult.getPageable(), rawResult.getTotalElements());
-        }
-        // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
-        else if (type == PostSearchType.WRITER && query.length() >= 4) {
-            posts = postSearchRepository.findByPrefixMatch(type, query, pageable, memberId);
-        }
-        // 전략 3: 그 외 → 부분 검색
-        else {
-            posts = postSearchRepository.findByPartialMatch(type, query, pageable, memberId);
-        }
-
-        List<PostSimpleDetail> blackListFilterPosts = removePostsWithBlacklist(memberId, posts.getContent());
-        enrichPostsCommentCount(blackListFilterPosts);
-
-        return new PageImpl<>(blackListFilterPosts, posts.getPageable(),
-                posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));
-    }
-
-    /**
-     * <h3>게시글 목록에 댓글 수 주입</h3>
-     * <p>게시글 목록의 댓글 수를 배치로 조회하여 주입합니다.</p>
-     * <p>좋아요 수는 PostQueryHelper에서 이미 처리되므로, 여기서는 댓글 수만 처리합니다.</p>
-     *
-     * @param posts 댓글 수를 채울 게시글 목록
-     */
-    private void enrichPostsCommentCount(List<PostSimpleDetail> posts) {
-        List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
-        Map<Long, Integer> commentCounts = postToCommentAdapter.findCommentCountsByPostIds(postIds);
-
-        posts.forEach(post -> {
-            post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
-        });
-    }
-
-    /**
-     * <h3>게시글에서 블랙리스트 제거</h3>
-     */
-    private List<PostSimpleDetail> removePostsWithBlacklist(Long memberId, List<PostSimpleDetail> posts) {
-        if (memberId == null || posts.isEmpty()) {
-            return posts;
-        }
-
-        List<Long> blacklistIds = postToMemberAdapter.getInterActionBlacklist(memberId);
-        Set<Long> blacklistSet = new HashSet<>(blacklistIds);
-        return posts.stream().filter(post -> !blacklistSet.contains(post.getMemberId())).collect(Collectors.toList());
     }
 
     /**

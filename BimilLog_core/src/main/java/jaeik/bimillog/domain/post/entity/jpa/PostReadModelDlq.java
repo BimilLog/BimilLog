@@ -17,11 +17,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "post_read_model_dlq",
-        indexes = @Index(name = "idx_post_dlq_status_created", columnList = "status, created_at"),
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_post_dlq_event_status",
-                columnNames = {"event_id", "status"}
-        ))
+        indexes = @Index(name = "idx_post_dlq_status_created", columnList = "status, created_at"))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostReadModelDlq {
@@ -30,7 +26,7 @@ public class PostReadModelDlq {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "event_id", nullable = false, length = 64)
+    @Column(name = "event_id", nullable = false, length = 64, unique = true)
     private String eventId;
 
     @Enumerated(EnumType.STRING)
@@ -111,45 +107,12 @@ public class PostReadModelDlq {
     }
 
     /**
-     * 좋아요 증가 이벤트용 DLQ
+     * 단순 이벤트용 DLQ (좋아요 증감, 댓글 수 증감)
      */
-    public static PostReadModelDlq createLikeIncrement(String eventId, Long postId) {
+    public static PostReadModelDlq createSimpleEvent(PostReadModelEventType eventType, String eventId, Long postId) {
         return PostReadModelDlq.builder()
                 .eventId(eventId)
-                .eventType(PostReadModelEventType.LIKE_INCREMENT)
-                .postId(postId)
-                .build();
-    }
-
-    /**
-     * 좋아요 감소 이벤트용 DLQ
-     */
-    public static PostReadModelDlq createLikeDecrement(String eventId, Long postId) {
-        return PostReadModelDlq.builder()
-                .eventId(eventId)
-                .eventType(PostReadModelEventType.LIKE_DECREMENT)
-                .postId(postId)
-                .build();
-    }
-
-    /**
-     * 댓글 수 증가 이벤트용 DLQ
-     */
-    public static PostReadModelDlq createCommentIncrement(String eventId, Long postId) {
-        return PostReadModelDlq.builder()
-                .eventId(eventId)
-                .eventType(PostReadModelEventType.COMMENT_INCREMENT)
-                .postId(postId)
-                .build();
-    }
-
-    /**
-     * 댓글 수 감소 이벤트용 DLQ
-     */
-    public static PostReadModelDlq createCommentDecrement(String eventId, Long postId) {
-        return PostReadModelDlq.builder()
-                .eventId(eventId)
-                .eventType(PostReadModelEventType.COMMENT_DECREMENT)
+                .eventType(eventType)
                 .postId(postId)
                 .build();
     }

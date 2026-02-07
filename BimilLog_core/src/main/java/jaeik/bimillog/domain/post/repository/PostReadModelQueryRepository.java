@@ -28,7 +28,7 @@ public class PostReadModelQueryRepository {
     private static final QPostReadModel postReadModel = QPostReadModel.postReadModel;
 
     /**
-     * <h3>게시판 게시글 조회 (Cursor 기반)</h3>
+     * <h3>게시판 게시글 조회</h3>
      * <p>PostReadModel에서 커서 기반 페이지네이션으로 게시글 목록을 조회합니다.</p>
      * <p>hasNext 판단을 위해 size + 1개를 조회합니다.</p>
      *

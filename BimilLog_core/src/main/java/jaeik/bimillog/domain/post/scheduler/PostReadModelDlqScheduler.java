@@ -72,7 +72,8 @@ public class PostReadModelDlqScheduler {
     private void processEvent(PostReadModelDlq event) {
         switch (event.getEventType()) {
             case POST_CREATED -> processPostCreated(event);
-            case POST_UPDATED -> postReadModelRepository.updateTitle(event.getPostId(), event.getTitle());
+            case POST_UPDATED -> postReadModelRepository.findById(event.getPostId())
+                    .ifPresent(readModel -> readModel.updateTitle(event.getTitle()));
             case LIKE_INCREMENT -> postReadModelRepository.incrementLikeCount(event.getPostId());
             case LIKE_DECREMENT -> postReadModelRepository.decrementLikeCount(event.getPostId());
             case COMMENT_INCREMENT -> postReadModelRepository.incrementCommentCount(event.getPostId());
@@ -91,15 +92,10 @@ public class PostReadModelDlqScheduler {
             return;
         }
 
-        PostReadModel readModel = PostReadModel.builder()
-                .postId(event.getPostId())
-                .title(event.getTitle())
-                .viewCount(0)
-                .likeCount(0)
-                .commentCount(0)
-                .memberId(event.getMemberId())
-                .memberName(event.getMemberName() != null ? event.getMemberName() : "익명")
-                .build();
+        PostReadModel readModel = PostReadModel.createNew(
+                event.getPostId(), event.getTitle(), event.getMemberId(),
+                event.getMemberName(), null
+        );
 
         postReadModelRepository.save(readModel);
     }

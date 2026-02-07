@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.jpa.PostReadModelDlq;
+import jaeik.bimillog.domain.post.entity.jpa.PostReadModelEventType;
 import jaeik.bimillog.domain.post.repository.PostReadModelDlqRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,77 +54,17 @@ public class PostReadModelDlqService {
     }
 
     /**
-     * 좋아요 증가 이벤트를 DLQ에 저장합니다.
+     * 단순 이벤트를 DLQ에 저장합니다. (좋아요 증감, 댓글 수 증감)
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveLikeIncrement(String eventId, Long postId) {
+    public void saveSimpleEvent(PostReadModelEventType eventType, String eventId, Long postId) {
         try {
-            PostReadModelDlq dlq = PostReadModelDlq.createLikeIncrement(eventId, postId);
+            PostReadModelDlq dlq = PostReadModelDlq.createSimpleEvent(eventType, eventId, postId);
             repository.save(dlq);
-            log.info("[DLQ] 좋아요 증가 이벤트 저장: eventId={}, postId={}", eventId, postId);
+            log.info("[DLQ] {} 이벤트 저장: eventId={}, postId={}", eventType, eventId, postId);
         } catch (DataIntegrityViolationException e) {
-            log.debug("[DLQ] 좋아요 증가 이벤트 중복 저장 스킵 (멱등성): eventId={}", eventId);
+            log.debug("[DLQ] {} 이벤트 중복 저장 스킵 (멱등성): eventId={}", eventType, eventId);
         }
-    }
-
-    /**
-     * 좋아요 감소 이벤트를 DLQ에 저장합니다.
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveLikeDecrement(String eventId, Long postId) {
-        try {
-            PostReadModelDlq dlq = PostReadModelDlq.createLikeDecrement(eventId, postId);
-            repository.save(dlq);
-            log.info("[DLQ] 좋아요 감소 이벤트 저장: eventId={}, postId={}", eventId, postId);
-        } catch (DataIntegrityViolationException e) {
-            log.debug("[DLQ] 좋아요 감소 이벤트 중복 저장 스킵 (멱등성): eventId={}", eventId);
-        }
-    }
-
-    /**
-     * 좋아요 감소 이벤트를 DLQ에 저장합니다. (eventId 자동 생성)
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveLikeDecrement(Long postId) {
-        String eventId = "LIKE_DEC:" + postId + ":" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        saveLikeDecrement(eventId, postId);
-    }
-
-    /**
-     * 댓글 수 증가 이벤트를 DLQ에 저장합니다.
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveCommentIncrement(String eventId, Long postId) {
-        try {
-            PostReadModelDlq dlq = PostReadModelDlq.createCommentIncrement(eventId, postId);
-            repository.save(dlq);
-            log.info("[DLQ] 댓글 수 증가 이벤트 저장: eventId={}, postId={}", eventId, postId);
-        } catch (DataIntegrityViolationException e) {
-            log.debug("[DLQ] 댓글 수 증가 이벤트 중복 저장 스킵 (멱등성): eventId={}", eventId);
-        }
-    }
-
-    /**
-     * 댓글 수 감소 이벤트를 DLQ에 저장합니다.
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveCommentDecrement(String eventId, Long postId) {
-        try {
-            PostReadModelDlq dlq = PostReadModelDlq.createCommentDecrement(eventId, postId);
-            repository.save(dlq);
-            log.info("[DLQ] 댓글 수 감소 이벤트 저장: eventId={}, postId={}", eventId, postId);
-        } catch (DataIntegrityViolationException e) {
-            log.debug("[DLQ] 댓글 수 감소 이벤트 중복 저장 스킵 (멱등성): eventId={}", eventId);
-        }
-    }
-
-    /**
-     * 댓글 수 감소 이벤트를 DLQ에 저장합니다. (eventId 자동 생성)
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveCommentDecrement(Long postId) {
-        String eventId = "CMT_DEC:" + postId + ":" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        saveCommentDecrement(eventId, postId);
     }
 
     /**

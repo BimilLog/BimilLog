@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * <h2>PostInteractionService</h2>
@@ -68,7 +69,8 @@ public class PostInteractionService {
             postLikeRepository.deleteByMemberAndPost(member, post);
 
             // 비동기로 조회용테이블 갱신
-            postReadModelSync.handlePostUnliked(postId);
+            String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+            postReadModelSync.handlePostUnliked(eventId, postId);
 
             // 비동기로 실시간 인기글 점수 감소
             realtimePostSync.handlePostUnliked(postId);
@@ -77,7 +79,8 @@ public class PostInteractionService {
             postLikeRepository.save(postLike);
 
             // 비동기로 조회용테이블 갱신
-            postReadModelSync.handlePostLiked(postId);
+            String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+            postReadModelSync.handlePostLiked(eventId, postId);
 
             // 비동기로 실시간 인기글 점수 증가
             realtimePostSync.handlePostLiked(postId);

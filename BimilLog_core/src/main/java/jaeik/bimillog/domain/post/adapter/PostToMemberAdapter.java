@@ -32,7 +32,7 @@ public class PostToMemberAdapter {
 
     /**
      * <h3>사용자 ID로 멤버조회</h3>
-     * *
+     *
      * @param memberId 참조할 사용자 ID
      * @return Member 멤버 데이터
      */
