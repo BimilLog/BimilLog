@@ -63,18 +63,8 @@ public class Post extends BaseEntity {
      * @param content    게시글 내용 (HTML 형식, 순수 텍스트 기준 1-1000자, HTML 태그 포함 최대 3000자)
      * @param password   게시글 비밀번호 (선택적)
      * @return 생성된 Post 엔티티
-     * @throws IllegalArgumentException 제목이나 내용이 null이거나 빈 문자열인 경우
-     * @author Jaeik
-     * @since 2.0.0
      */
     public static Post createPost(Member member, String title, String content, Integer password) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new IllegalArgumentException("게시글 제목은 필수입니다.");
-        }
-        if (content == null || content.trim().isEmpty()) {
-            throw new IllegalArgumentException("게시글 내용은 필수입니다.");
-        }
-
         return Post.builder()
                 .member(member)
                 .title(title)

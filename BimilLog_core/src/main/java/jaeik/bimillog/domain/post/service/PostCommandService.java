@@ -60,7 +60,6 @@ public class PostCommandService {
      * <h3>게시글 작성</h3>
      * <p>새로운 게시글을 생성하고 저장합니다.</p>
      * <p>익명/회원 구분 처리, Post 팩토리 메서드로 엔티티 생성</p>
-     * <p>{@link PostCommandController}에서 게시글 작성 API 처리 시 호출됩니다.</p>
      *
      * @param memberId   작성자 사용자 ID (null이면 익명 게시글)
      * @param title    게시글 제목
@@ -70,7 +69,16 @@ public class PostCommandService {
      */
     @Transactional
     public Long writePost(Long memberId, String title, String content, Integer password) {
-        Member member = (memberId != null) ? postToMemberAdapter.getReferenceById(memberId) : null;
+        Member member = null;
+
+        if (memberId == null) {
+            if (password == null) {
+                throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
+            }
+        }
+
+        member = postToMemberAdapter.getReferenceById(memberId);
+
         Post newPost = Post.createPost(member, title, content, password);
         Post savedPost = postRepository.save(newPost);
 

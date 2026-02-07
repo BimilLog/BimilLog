@@ -14,11 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <h2>게시글 캐시 컨트롤러</h2>
- * <p>Post 도메인의 캐시 기반 조회를 담당하는 웹 어댑터입니다.</p>
- * <p>실시간, 주간, 레전드, 공지사항 카테고리별 조회 기능을 분리하여 제공합니다.</p>
- * <p>실시간, 주간 인기글 조회</p>
- * <p>레전드 인기글 조회</p>
- * <p>공지사항 조회</p>
+ * <p>Post 도메인의 캐시 기반 조회를 담당하는 어댑터입니다.</p>
+ * <p>실시간, 주간, 레전드, 공지사항 목록 제공</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -61,15 +58,10 @@ public class PostCacheController {
     }
 
     /**
-     * <h3>레전드 인기글 조회 API (페이징)</h3>
-     *
-     * <p>
-     * 레전드 인기글로 선정된 게시글 목록을 페이지네이션으로 조회한다.
-     * </p>
+     * <h3>레전드 인기글 조회 API</h3>
+     *<p>레전드 인기글로 선정된 게시글 목록을 페이지네이션으로 조회한다.</p>
      *
      * @param pageable 페이지 정보
-     * @since 2.0.0
-     * @author Jaeik
      * @return 레전드 게시글 목록 페이지
      */
     @GetMapping("/legend")
