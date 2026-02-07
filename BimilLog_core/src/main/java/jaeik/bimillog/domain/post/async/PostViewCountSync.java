@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.listener;
+package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
@@ -21,7 +22,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PostViewCountListener {
+public class PostViewCountSync {
     private final RedisPostViewAdapter redisPostViewAdapter;
 
     /**
@@ -30,8 +31,8 @@ public class PostViewCountListener {
      *
      * @param event 게시글 조회 이벤트
      */
-    @TransactionalEventListener
     @Async("realtimeEventExecutor")
+    @Transactional
     public void handlePostViewed(PostViewedEvent event) {
         try {
             if (!redisPostViewAdapter.hasViewed(event.postId(), event.viewerKey())) {

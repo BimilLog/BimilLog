@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.service;
+package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
@@ -6,10 +6,10 @@ import jaeik.bimillog.domain.post.entity.jpa.PostReadModel;
 import jaeik.bimillog.domain.post.entity.jpa.ProcessedEvent;
 import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.ProcessedEventRepository;
+import jaeik.bimillog.domain.post.service.PostReadModelDlqService;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;

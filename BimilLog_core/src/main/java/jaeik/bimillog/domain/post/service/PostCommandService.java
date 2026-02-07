@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.async.PostReadModelSync;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
