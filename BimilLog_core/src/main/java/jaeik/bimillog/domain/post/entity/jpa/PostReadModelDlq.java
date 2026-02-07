@@ -17,11 +17,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "post_read_model_dlq",
-        indexes = @Index(name = "idx_post_dlq_status_created", columnList = "status, created_at"),
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_post_dlq_event_status",
-                columnNames = {"event_id", "status"}
-        ))
+        indexes = @Index(name = "idx_post_dlq_status_created", columnList = "status, created_at"))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostReadModelDlq {
@@ -30,7 +26,7 @@ public class PostReadModelDlq {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "event_id", nullable = false, length = 64)
+    @Column(name = "event_id", nullable = false, length = 64, unique = true)
     private String eventId;
 
     @Enumerated(EnumType.STRING)

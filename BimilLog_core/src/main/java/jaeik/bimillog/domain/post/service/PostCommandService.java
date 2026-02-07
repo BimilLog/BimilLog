@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * <h2>게시글 명령 서비스</h2>
@@ -86,7 +87,8 @@ public class PostCommandService {
         post = postRepository.save(post);
 
         // 비동기로 조회용테이블 갱신
-        postReadModelSync.handlePostCreated(post.getId(), post.getTitle(), memberId, memberName, post.getCreatedAt());
+        String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        postReadModelSync.handlePostCreated(eventId, post.getId(), post.getTitle(), memberId, memberName, post.getCreatedAt());
 
         // 첫 페이지 캐시 추가
         try {
@@ -131,7 +133,8 @@ public class PostCommandService {
         post.updatePost(title, content);
 
         // 비동기로 조회용테이블 갱신
-        postReadModelSync.handlePostUpdated(postId, title);
+        String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        postReadModelSync.handlePostUpdated(eventId, postId, title);
 
         // 캐시 무효화 - 인기글인 경우 해당 Hash 필드 삭제
         try {
