@@ -52,7 +52,7 @@ public class PostInteractionService {
         boolean isAlreadyLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
         
         // 2. 좋아요 토글을 위해 필요한 엔티티만 로딩
-        Member member = postToMemberAdapter.getReferenceById(memberId);
+        Member member = postToMemberAdapter.getMember(memberId);
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 

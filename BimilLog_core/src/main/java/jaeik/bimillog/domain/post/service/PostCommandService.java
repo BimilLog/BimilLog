@@ -50,6 +50,7 @@ public class PostCommandService {
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
     private final PostReadModelQueryRepository postReadModelQueryRepository;
     private final PostReadModelRepository postReadModelRepository;
+    private final PostReadModelSync postReadModelSync;
 
     /**
      * 첫 페이지 캐시 크기 (20개)
@@ -69,47 +70,46 @@ public class PostCommandService {
      */
     @Transactional
     public Long writePost(Long memberId, String title, String content, Integer password) {
-        Member member = null;
-
-        if (memberId == null) {
-            if (password == null) {
-                throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
-            }
+        // 입력 검증
+        if (memberId == null && password == null || memberId != null && password != null) {
+            throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
         }
 
-        member = postToMemberAdapter.getReferenceById(memberId);
+        // 기본값은 비회원
+        Member member = null;
+        String memberName = "익명";
 
-        Post newPost = Post.createPost(member, title, content, password);
-        Post savedPost = postRepository.save(newPost);
+        // 회원일 경우
+        if (memberId != null) {
+            member = postToMemberAdapter.getMember(memberId);
+            memberName = member.getMemberName();
+        }
 
-        // PostReadModel 동기화 이벤트 발행
-        String memberName = (member != null) ? member.getMemberName() : "익명";
-        eventPublisher.publishEvent(new PostCreatedEvent(
-                savedPost.getId(),
-                savedPost.getTitle(),
-                memberId,
-                memberName,
-                savedPost.getCreatedAt()
-        ));
+        // 영속화
+        Post post = Post.createPost(member, title, content, password);
+        postRepository.save(post);
+
+        // q
+        eventPublisher.publishEvent(new PostCreatedEvent(post.getId(), post.getTitle(), memberId, memberName, post.getCreatedAt()));
 
         // 첫 페이지 캐시 추가
         try {
             PostSimpleDetail newPostDetail = PostSimpleDetail.builder()
-                    .id(savedPost.getId())
-                    .title(savedPost.getTitle())
+                    .id(post.getId())
+                    .title(post.getTitle())
                     .viewCount(0)
                     .likeCount(0)
-                    .createdAt(savedPost.getCreatedAt())
+                    .createdAt(post.getCreatedAt())
                     .memberId(memberId)
                     .memberName(memberName)
                     .commentCount(0)
                     .build();
             redisFirstPagePostAdapter.addNewPost(newPostDetail);
         } catch (Exception e) {
-            log.warn("첫 페이지 캐시 추가 실패: postId={}", savedPost.getId());
+            log.warn("첫 페이지 캐시 추가 실패: postId={}", post.getId());
         }
 
-        return savedPost.getId();
+        return post.getId();
     }
 
 

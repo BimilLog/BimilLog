@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.listener;
+package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
@@ -10,7 +10,6 @@ import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.domain.post.event.PostUpdatedEvent;
 import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.ProcessedEventRepository;
-import jaeik.bimillog.domain.post.service.PostReadModelDlqService;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +24,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.UUID;
+
 /**
- * <h2>Post Read Model 동기화 리스너</h2>
+ * <h2>Post Read Model 동기화 서비스</h2>
  * <p>게시글 관련 이벤트를 수신하여 PostReadModel을 동기화합니다.</p>
  * <p>비동기 + 재시도 + Recover 패턴을 사용합니다.</p>
  *
@@ -37,8 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PostReadModelSyncListener {
-
+public class PostReadModelSync {
     private final PostReadModelRepository postReadModelRepository;
     private final ProcessedEventRepository processedEventRepository;
     private final PostReadModelDlqService postReadModelDlqService;
@@ -47,7 +48,6 @@ public class PostReadModelSyncListener {
      * <h3>게시글 생성 이벤트 처리</h3>
      * <p>PostReadModel에 새 레코드를 INSERT합니다.</p>
      */
-    @EventListener
     @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
@@ -59,8 +59,8 @@ public class PostReadModelSyncListener {
             backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     @Transactional
-    public void handlePostCreated(PostCreatedEvent event) {
-        String eventId = event.getIdempotencyKey();
+    public void handlePostCreated(Long postId, String title, Long memberId, String memberName, Instant createdAt) {
+        String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
 
         // 멱등성 체크
         if (processedEventRepository.existsById(eventId)) {
@@ -69,31 +69,31 @@ public class PostReadModelSyncListener {
         }
 
         PostReadModel readModel = PostReadModel.builder()
-                .postId(event.postId())
-                .title(event.title())
+                .postId(postId)
+                .title(title)
                 .viewCount(0)
                 .likeCount(0)
                 .commentCount(0)
-                .memberId(event.memberId())
-                .memberName(event.memberName() != null ? event.memberName() : "익명")
-                .createdAt(event.createdAt())
+                .memberId(memberId)
+                .memberName(memberName)
+                .createdAt(createdAt)
                 .build();
 
         postReadModelRepository.save(readModel);
         processedEventRepository.save(new ProcessedEvent(eventId, "POST_CREATED"));
 
-        log.debug("PostReadModel 생성 완료: postId={}", event.postId());
+        log.debug("PostReadModel 생성 완료: postId={}", postId);
     }
 
     @Recover
     public void recoverPostCreated(Exception e, PostCreatedEvent event) {
-        log.error("PostReadModel 생성 최종 실패: postId={}", event.postId(), e);
+        log.error("PostReadModel 생성 최종 실패: postId={}", event.getPostId(), e);
         postReadModelDlqService.savePostCreated(
                 event.getIdempotencyKey(),
-                event.postId(),
-                event.title(),
-                event.memberId(),
-                event.memberName()
+                event.getPostId(),
+                event.getTitle(),
+                event.getMemberId(),
+                event.getMemberName()
         );
     }
 
@@ -101,7 +101,6 @@ public class PostReadModelSyncListener {
      * <h3>게시글 수정 이벤트 처리</h3>
      * <p>PostReadModel의 제목을 업데이트합니다.</p>
      */
-    @EventListener
     @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
@@ -141,7 +140,6 @@ public class PostReadModelSyncListener {
      * <h3>게시글 좋아요 이벤트 처리</h3>
      * <p>PostReadModel의 like_count를 +1 합니다.</p>
      */
-    @EventListener
     @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
@@ -181,7 +179,6 @@ public class PostReadModelSyncListener {
      * <p>PostReadModel의 like_count를 -1 합니다.</p>
      * <p>멱등성 체크 없이 실행 (중복 실행해도 DB에서 안전하게 처리)</p>
      */
-    @EventListener
     @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
@@ -208,7 +205,6 @@ public class PostReadModelSyncListener {
      * <h3>댓글 생성 이벤트 처리</h3>
      * <p>PostReadModel의 comment_count를 +1 합니다.</p>
      */
-    @EventListener
     @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {
@@ -248,7 +244,6 @@ public class PostReadModelSyncListener {
      * <p>PostReadModel의 comment_count를 -1 합니다.</p>
      * <p>멱등성 체크 없이 실행 (중복 실행해도 DB에서 안전하게 처리)</p>
      */
-    @EventListener
     @Async("postCQRSEventExecutor")
     @Retryable(
             retryFor = {

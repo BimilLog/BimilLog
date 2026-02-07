@@ -47,6 +47,7 @@ public class CommentCreatedEvent implements FriendInteractionEvent {
     public Long getTargetMemberId() {
         return postUserId;
     }
+
     @Override
     public String getIdempotencyKey() {
         return eventId;
