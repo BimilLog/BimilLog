@@ -2,9 +2,6 @@ package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
-import jaeik.bimillog.domain.post.event.PostLikeEvent;
-import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
-import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
@@ -38,12 +35,33 @@ public class RealtimePostSync {
      * <h3>게시글 조회 이벤트 처리</h3>
      * <p>게시글 조회 시 해당 게시글의 실시간 인기글 점수를 2점 증가시킵니다.</p>
      *
-     * @param event 게시글 조회 이벤트
+     * @param postId 조회된 게시글 ID
      */
-    @TransactionalEventListener
     @Async("realtimeEventExecutor")
-    public void handlePostViewed(PostViewedEvent event) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
+    public void handlePostViewed(Long postId) {
+        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
+    }
+
+    /**
+     * <h3>게시글 추천 이벤트 처리</h3>
+     * <p>게시글 추천 시 실시간 인기글 점수를 4점 증가시킵니다.</p>
+     *
+     * @param postId 추천된 게시글 ID
+     */
+    @Async("realtimeEventExecutor")
+    public void handlePostLiked(Long postId) {
+        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, LIKE_SCORE);
+    }
+
+    /**
+     * <h3>게시글 추천 취소 이벤트 처리</h3>
+     * <p>게시글 추천 취소 시 실시간 인기글 점수를 4점 감소시킵니다.</p>
+     *
+     * @param postId 추천 취소된 게시글 ID
+     */
+    @Async("realtimeEventExecutor")
+    public void handlePostUnliked(Long postId) {
+        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, -LIKE_SCORE);
     }
 
     /**
@@ -58,29 +76,7 @@ public class RealtimePostSync {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.getPostId(), COMMENT_SCORE);
     }
 
-    /**
-     * <h3>게시글 추천 이벤트 처리</h3>
-     * <p>게시글 추천 시 실시간 인기글 점수를 4점 증가시킵니다.</p>
-     *
-     * @param event 게시글 추천 이벤트
-     */
-    @TransactionalEventListener
-    @Async("realtimeEventExecutor")
-    public void handlePostLiked(PostLikeEvent event) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(event.getPostId(), LIKE_SCORE);
-    }
 
-    /**
-     * <h3>게시글 추천 취소 이벤트 처리</h3>
-     * <p>게시글 추천 취소 시 실시간 인기글 점수를 4점 감소시킵니다.</p>
-     *
-     * @param event 게시글 추천 취소 이벤트
-     */
-    @TransactionalEventListener
-    @Async("realtimeEventExecutor")
-    public void handlePostUnliked(PostUnlikeEvent event) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
-    }
 
     /**
      * <h3>댓글 삭제 이벤트 처리</h3>

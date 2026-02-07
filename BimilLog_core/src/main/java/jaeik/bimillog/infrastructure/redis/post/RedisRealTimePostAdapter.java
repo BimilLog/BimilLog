@@ -121,7 +121,7 @@ public class RedisRealTimePostAdapter {
     /**
      * <h3>점수 감쇠 (스케쥴러)</h3>
      * <p>Redis Sorted Set의 모든 게시글 점수에 0.9를 곱하고, 임계값(1점) 이하의 게시글을 제거합니다.</p>
-     * <p>PostScheduledService 스케줄러에서 5분마다 호출됩니다.</p>
+     * <p>FeaturedPostScheduler 스케줄러에서 5분마다 호출됩니다.</p>
      */
     public void applyRealtimePopularScoreDecay() {
         // 1. 모든 항목의 점수에 0.9 곱하기 (Lua 스크립트 사용)

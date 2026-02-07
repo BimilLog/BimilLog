@@ -3,10 +3,10 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.async.PostReadModelSync;
+import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
-import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
 import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
@@ -40,6 +40,7 @@ public class PostInteractionService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final PostReadModelSync postReadModelSync;
+    private final RealtimePostSync realtimePostSync;
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
      * <p>사용자별 좋아요 상태 토글 규칙을 적용합니다.</p>
@@ -69,8 +70,8 @@ public class PostInteractionService {
             // 비동기로 조회용테이블 갱신
             postReadModelSync.handlePostUnliked(postId);
 
-            // 실시간 인기글 점수 감소 이벤트 발행
-            eventPublisher.publishEvent(new PostUnlikeEvent(postId));
+            // 비동기로 실시간 인기글 점수 감소
+            realtimePostSync.handlePostUnliked(postId);
         } else {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeRepository.save(postLike);
@@ -78,7 +79,10 @@ public class PostInteractionService {
             // 비동기로 조회용테이블 갱신
             postReadModelSync.handlePostLiked(postId);
 
-            // 실시간 인기글 점수 증가 및 상호작용 점수 증가 이벤트 발행
+            // 비동기로 실시간 인기글 점수 증가
+            realtimePostSync.handlePostLiked(postId);
+
+            // 상호작용 점수 증가 이벤트 발행
             if (post.getMember() != null) {
                 Long postAuthorId = post.getMember().getId();
                 if (!Objects.equals(postAuthorId, memberId)) {

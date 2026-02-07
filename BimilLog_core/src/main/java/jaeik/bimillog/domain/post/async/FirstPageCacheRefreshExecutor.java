@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.scheduler;
+package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostReadModelQueryRepository;

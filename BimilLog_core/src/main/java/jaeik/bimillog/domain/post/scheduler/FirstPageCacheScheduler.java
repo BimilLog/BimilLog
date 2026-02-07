@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.scheduler;
 
+import jaeik.bimillog.domain.post.async.FirstPageCacheRefreshExecutor;
 import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

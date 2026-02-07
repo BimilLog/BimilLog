@@ -3,8 +3,6 @@ package jaeik.bimillog.domain.post.listener;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
-import jaeik.bimillog.domain.post.event.PostLikeEvent;
-import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,11 +55,8 @@ class RealtimePostSyncTest {
     @Test
     @DisplayName("게시글 추천 이벤트 - 점수 4점 증가")
     void handlePostLiked_shouldIncrementScoreByFour() {
-        // Given
-        PostLikeEvent event = new PostLikeEvent(1L, 2L, 3L);
-
         // When
-        listener.handlePostLiked(event);
+        listener.handlePostLiked(1L);
 
         // Then
         verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, 4.0);
@@ -70,11 +65,8 @@ class RealtimePostSyncTest {
     @Test
     @DisplayName("게시글 추천 취소 이벤트 - 점수 4점 감소")
     void handlePostUnliked_shouldDecrementScoreByFour() {
-        // Given
-        PostUnlikeEvent event = new PostUnlikeEvent(1L);
-
         // When
-        listener.handlePostUnliked(event);
+        listener.handlePostUnliked(1L);
 
         // Then
         verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, -4.0);

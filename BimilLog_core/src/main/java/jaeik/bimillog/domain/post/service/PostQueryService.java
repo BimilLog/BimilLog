@@ -4,10 +4,11 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
+import jaeik.bimillog.domain.post.async.PostViewCountSync;
+import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -49,6 +50,9 @@ public class PostQueryService {
     private final PostSearchRepository postSearchRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
+    private final PostViewCountSync postViewCountSync;
+    private final RealtimePostSync realtimePostSync;
+    private final PostFulltextUtil postFullTextUtil;
 
     /**
      * 첫 페이지 캐시 크기 (20개)
@@ -132,15 +136,18 @@ public class PostQueryService {
         PostDetail result = postQueryRepository.findPostDetail(postId, null)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        // 2. 조회수 증가 + 실시간 인기글 점수 이벤트 발행 (비동기 리스너에서 중복 체크)
-        eventPublisher.publishEvent(new PostViewedEvent(postId, viewerKey));
+        // 2. 비동기로 조회수 증가 (중복 체크 후 Redis 버퍼링)
+        postViewCountSync.handlePostViewed(postId, viewerKey);
 
-        // 3. 비회원이면 바로 반환
+        // 3. 비동기로 실시간 인기글 점수 증가
+        realtimePostSync.handlePostViewed(postId);
+
+        // 4. 비회원이면 바로 반환
         if (memberId == null) {
             return result;
         }
 
-        // 4. 회원이면 좋아요 여부 확인 및 블랙리스트 체크
+        // 5. 회원이면 좋아요 여부 확인 및 블랙리스트 체크
         boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
         result = result.withIsLiked(isLiked);
         eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, result.getMemberId()));
@@ -184,7 +191,9 @@ public class PostQueryService {
 
         // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
         if (query.length() >= 3 && type != PostSearchType.WRITER) {
-            posts = postSearchRepository.findByFullTextSearch(type, query, pageable, memberId);
+            Page<Object[]> rawResult = postSearchRepository.findByFullTextSearch(type, query, pageable, memberId);
+            List<PostSimpleDetail> content = postFullTextUtil.mapFullTextRows(rawResult.getContent());
+            posts = new PageImpl<>(content, rawResult.getPageable(), rawResult.getTotalElements());
         }
         // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
         else if (type == PostSearchType.WRITER && query.length() >= 4) {

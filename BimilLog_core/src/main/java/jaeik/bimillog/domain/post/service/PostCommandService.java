@@ -83,7 +83,7 @@ public class PostCommandService {
 
         // 영속화
         Post post = Post.createPost(member, title, content, password);
-        postRepository.save(post);
+        post = postRepository.save(post);
 
         // 비동기로 조회용테이블 갱신
         postReadModelSync.handlePostCreated(post.getId(), post.getTitle(), memberId, memberName, post.getCreatedAt());

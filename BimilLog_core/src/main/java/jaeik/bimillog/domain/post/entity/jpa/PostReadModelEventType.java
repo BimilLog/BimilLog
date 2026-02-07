@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.entity;
+package jaeik.bimillog.domain.post.entity.jpa;
 
 /**
  * <h2>Post Read Model 이벤트 타입</h2>
