@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.service;
 
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
-import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.async.PostViewCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import jaeik.bimillog.domain.post.dto.CursorPageResponse;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <h2>게시글 조회 서비스</h2>
@@ -43,7 +40,6 @@ import java.util.stream.Collectors;
 @Log
 public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
-    private final PostReadModelQueryRepository postReadModelQueryRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
     private final PostUtil postUtil;
@@ -59,7 +55,7 @@ public class PostQueryService {
 
     /**
      * <h3>게시판 목록 조회</h3>
-     * <p>조회용 테이블에서 커서 기반 페이지네이션으로 게시글 목록을 조회합니다.</p>
+     * <p>커서 기반 페이지네이션으로 게시글 목록을 조회합니다.</p>
      * <p>회원은 블랙리스트 필터링이 적용됩니다.</p>
      * <p>첫 페이지 요청 시 Redis 캐시를 사용합니다.</p>
      *
@@ -72,11 +68,11 @@ public class PostQueryService {
     public CursorPageResponse<PostSimpleDetail> getBoardByCursor(Long cursor, int size, Long memberId) {
         List<PostSimpleDetail> posts;
 
-        // 첫 페이지라면 캐시 조회 아니라면 조회용 테이블 조회
+        // 첫 페이지라면 캐시 조회 아니라면 DB 조회
         if (cursor == null) {
             posts = getFirstPage();
         } else {
-            posts = postReadModelQueryRepository.findBoardPostsByCursor(cursor, size);
+            posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
         }
 
         // 블랙리스트 필터링 비회원이거나 빈 페이지면 무시됨
@@ -108,11 +104,11 @@ public class PostQueryService {
             posts = redisFirstPagePostAdapter.getFirstPage();
             if (posts.isEmpty()) {
                 log.warn("게시판 첫 페이지 캐시 미스 - DB 폴백");
-                return postReadModelQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
+                return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
             }
         } catch (Exception e) {
             log.error("게시판 첫 페이지 캐시 장애 - DB 폴백", e);
-            return postReadModelQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
+            return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
         }
         return posts;
     }
@@ -163,8 +159,6 @@ public class PostQueryService {
     public MemberActivityPost getMemberActivityPosts(Long memberId, Pageable pageable) {
         Page<PostSimpleDetail> writePosts = postQueryRepository.findPostsByMemberId(memberId, pageable, memberId);
         Page<PostSimpleDetail> likedPosts = postQueryRepository.findLikedPostsByMemberId(memberId, pageable);
-        postUtil.enrichPostsCommentCount(writePosts.getContent());
-        postUtil.enrichPostsCommentCount(likedPosts.getContent());
         return new MemberActivityPost(writePosts, likedPosts);
     }
 

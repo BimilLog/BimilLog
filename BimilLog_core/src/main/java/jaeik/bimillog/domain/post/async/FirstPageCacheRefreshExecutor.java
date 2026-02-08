@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.repository.PostReadModelQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ import java.util.List;
 @Slf4j
 public class FirstPageCacheRefreshExecutor {
 
-    private final PostReadModelQueryRepository postReadModelQueryRepository;
+    private final PostQueryRepository postQueryRepository;
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
 
     /**
@@ -56,7 +56,7 @@ public class FirstPageCacheRefreshExecutor {
         log.debug("[FIRST_PAGE_CACHE] 캐시 갱신 시작");
 
         // DB에서 최신 20개 조회 (+1은 hasNext 판단용이므로 정확히 20개만)
-        List<PostSimpleDetail> posts = postReadModelQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
+        List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
 
         // 21개 이상이면 20개로 자르기 (findBoardPostsByCursor가 size+1 반환)
         if (posts.size() > FIRST_PAGE_SIZE) {

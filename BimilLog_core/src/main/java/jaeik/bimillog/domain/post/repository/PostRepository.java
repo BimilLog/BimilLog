@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.post.entity.jpa.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -65,5 +66,33 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
     @Query("UPDATE Post p SET p.views = p.views + :amount WHERE p.id = :postId")
     void incrementViewsByAmount(Long postId, Long amount);
+
+    /**
+     * <h3>좋아요 수 원자적 증가</h3>
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.likeCount = p.likeCount + 1 WHERE p.id = :postId")
+    void incrementLikeCount(@Param("postId") Long postId);
+
+    /**
+     * <h3>좋아요 수 원자적 감소 (음수 방지)</h3>
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.likeCount = CASE WHEN p.likeCount > 0 THEN p.likeCount - 1 ELSE 0 END WHERE p.id = :postId")
+    void decrementLikeCount(@Param("postId") Long postId);
+
+    /**
+     * <h3>댓글 수 원자적 증가</h3>
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.commentCount = p.commentCount + 1 WHERE p.id = :postId")
+    void incrementCommentCount(@Param("postId") Long postId);
+
+    /**
+     * <h3>댓글 수 원자적 감소 (음수 방지)</h3>
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.commentCount = CASE WHEN p.commentCount > 0 THEN p.commentCount - 1 ELSE 0 END WHERE p.id = :postId")
+    void decrementCommentCount(@Param("postId") Long postId);
 }
 

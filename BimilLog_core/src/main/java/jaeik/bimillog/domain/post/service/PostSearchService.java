@@ -63,7 +63,6 @@ public class PostSearchService {
         }
 
         List<PostSimpleDetail> blackListFilterPosts = postUtil.removePostsWithBlacklist(memberId, posts.getContent());
-        postUtil.enrichPostsCommentCount(blackListFilterPosts);
 
         return new PageImpl<>(blackListFilterPosts, posts.getPageable(),
                 posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));

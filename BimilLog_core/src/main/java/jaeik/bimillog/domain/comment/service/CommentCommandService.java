@@ -89,6 +89,9 @@ public class CommentCommandService {
 
             saveCommentWithClosure(post, member, content, password, parentId);
 
+            // 동기적으로 댓글 수 증가
+            postRepository.incrementCommentCount(postId);
+
             // 익명 댓글이 아니고, 자기 게시글이 아닌 경우에만 이벤트 발행
             if (memberId != null && post.getMember() != null && !Objects.equals(post.getMember().getId(), memberId)) {
                 eventPublisher.publishEvent(new CommentCreatedEvent(
@@ -143,6 +146,9 @@ public class CommentCommandService {
         } else {
             commentDeleteRepository.deleteComment(commentId); // 어댑터 직접 호출로 하드 삭제
         }
+
+        // 동기적으로 댓글 수 감소
+        postRepository.decrementCommentCount(postId);
 
         // 실시간 인기글 점수 감소 이벤트 발행
         eventPublisher.publishEvent(new CommentDeletedEvent(postId));
