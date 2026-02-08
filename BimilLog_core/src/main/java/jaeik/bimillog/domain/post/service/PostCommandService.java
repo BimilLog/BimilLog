@@ -5,15 +5,12 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.post.async.CacheRefreshExecutor;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,16 +35,8 @@ import java.util.List;
 public class PostCommandService {
     private final PostRepository postRepository;
     private final PostToMemberAdapter postToMemberAdapter;
-    private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final CommentCommandService commentCommandService;
-    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
-    private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
-    private final PostQueryRepository postQueryRepository;
-
-    /**
-     * 첫 페이지 캐시 크기 (20개)
-     */
-    public static final int FIRST_PAGE_SIZE = 20;
+    private final CacheRefreshExecutor cacheRefreshExecutor;
 
     /**
      * <h3>게시글 작성</h3>
@@ -81,23 +70,17 @@ public class PostCommandService {
         Post post = Post.createPost(member, title, content, password, memberName);
         post = postRepository.save(post);
 
-        // 첫 페이지 캐시 추가
-        try {
-            PostSimpleDetail newPostDetail = PostSimpleDetail.createNew(post.getId(), post.getTitle(), post.getCreatedAt(), memberId, memberName);
-            redisFirstPagePostAdapter.addNewPost(newPostDetail);
-        } catch (Exception e) {
-            log.warn("첫 페이지 캐시 추가 실패: postId={}", post.getId());
-        }
+        // 첫 페이지 캐시 비동기 추가 (실패 시 어댑터 내부에서 캐시 무효화)
+        PostSimpleDetail newPostDetail = PostSimpleDetail.createNew(post.getId(), post.getTitle(), post.getCreatedAt(), memberId, memberName);
+        cacheRefreshExecutor.asyncAddNewPost(newPostDetail);
 
         return post.getId();
     }
 
-
     /**
-     * <h3>게시글 수정 (Cache Invalidation 패턴)</h3>
+     * <h3>게시글 수정</h3>
      * <p>기존 게시글의 제목과 내용을 수정하고 캐시를 무효화합니다.</p>
      * <p>작성자 권한 검증 → 게시글 업데이트 → 캐시 무효화</p>
-     * <p>{@link PostCommandController}에서 게시글 수정 API 처리 시 호출됩니다.</p>
      *
      * @param memberId  현재 로그인 사용자 ID
      * @param postId  수정할 게시글 ID
@@ -106,10 +89,6 @@ public class PostCommandService {
      */
     @Transactional
     public void updatePost(Long memberId, Long postId, String title, String content, Integer password) {
-        // 비회원은 비밀번호를 입력해야만 한다.
-        if (memberId == null && password == null) {
-            throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
-        }
 
         // 글 조회
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
@@ -122,29 +101,18 @@ public class PostCommandService {
         // 글 수정
         post.updatePost(title, content);
 
-        // 캐시 무효화 - 인기글인 경우 해당 Hash 필드 삭제
-        try {
-            redisSimplePostAdapter.removePostFromCache(postId);
-        } catch (Exception e) {
-            log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
-        }
-
-        // 첫 페이지 캐시 수정 (post 엔티티에서 직접 읽기)
-        try {
-            PostSimpleDetail updatedDetail = PostSimpleDetail.builder()
-                    .id(postId)
-                    .title(title)  // 새로운 제목 반영
-                    .viewCount(post.getViews())
-                    .likeCount(post.getLikeCount())
-                    .createdAt(post.getCreatedAt())
-                    .memberId(post.getMember() != null ? post.getMember().getId() : null)
-                    .memberName(post.getMemberName())
-                    .commentCount(post.getCommentCount())
-                    .build();
-            redisFirstPagePostAdapter.updatePost(postId, updatedDetail);
-        } catch (Exception e) {
-            log.warn("첫 페이지 캐시 수정 실패: postId={}", postId);
-        }
+        // 모든 캐시 비동기 처리 (인기글 Hash 무효화 + 첫 페이지 LSET)
+        PostSimpleDetail updatedDetail = PostSimpleDetail.builder()
+                .id(postId)
+                .title(title)
+                .viewCount(post.getViews())
+                .likeCount(post.getLikeCount())
+                .createdAt(post.getCreatedAt())
+                .memberId(post.getMember() != null ? post.getMember().getId() : null)
+                .memberName(post.getMemberName())
+                .commentCount(post.getCommentCount())
+                .build();
+        cacheRefreshExecutor.asyncUpdatePost(postId, updatedDetail);
     }
 
     /**
@@ -168,25 +136,8 @@ public class PostCommandService {
         // CASCADE로 Comment와 PostLike 자동 삭제
         postRepository.delete(post);
 
-        // 모든 관련 캐시 무효화
-        try {
-            redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
-            redisSimplePostAdapter.removePostFromCache(postId);
-        } catch (Exception e) {
-            log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
-        }
-
-        // 첫 페이지 캐시 삭제 (삭제 후 21번째 게시글로 빈 자리 채움)
-        try {
-            redisFirstPagePostAdapter.deletePost(postId, () -> {
-                // 삭제 후 21번째 게시글 조회 (빈 자리 채움)
-                List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE + 2);
-                // 21번째 게시글이 있으면 반환 (인덱스 20)
-                return posts.size() > FIRST_PAGE_SIZE ? posts.get(FIRST_PAGE_SIZE) : null;
-            });
-        } catch (Exception e) {
-            log.warn("첫 페이지 캐시 삭제 실패: postId={}", postId);
-        }
+        // 모든 캐시 비동기 처리 (실시간 ZSet + 인기글 Hash + 첫 페이지 List)
+        cacheRefreshExecutor.asyncDeletePost(postId);
     }
 
     /**

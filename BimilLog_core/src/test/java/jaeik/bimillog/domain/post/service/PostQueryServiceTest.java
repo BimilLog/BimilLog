@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.async.CacheRefreshExecutor;
 import jaeik.bimillog.domain.post.async.PostViewCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
@@ -64,6 +65,9 @@ class PostQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
+
+    @Mock
+    private CacheRefreshExecutor cacheRefreshExecutor;
 
     @Mock
     private PostViewCountSync postViewCountSync;

@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
@@ -48,7 +49,7 @@ class RealtimePostCacheServiceTest {
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Mock
-    private PostCacheRefresh postCacheRefresh;
+    private RealtimePostSync realtimePostSync;
 
     @Mock
     private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
@@ -64,7 +65,7 @@ class RealtimePostCacheServiceTest {
                 postQueryRepository,
                 redisSimplePostAdapter,
                 redisRealTimePostAdapter,
-                postCacheRefresh,
+                realtimePostSync,
                 realtimeScoreFallbackStore
         );
     }
@@ -92,7 +93,7 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(2);
 
         verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.REALTIME);
-        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock(any());
+        verify(realtimePostSync, never()).asyncRefreshRealtimeWithLock(any());
     }
 
     @Test
@@ -115,7 +116,7 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
 
-        verify(postCacheRefresh).asyncRefreshRealtimeWithLock(List.of(3L, 2L));
+        verify(realtimePostSync).asyncRefreshRealtimeWithLock(List.of(3L, 2L));
     }
 
     @Test
@@ -135,7 +136,7 @@ class RealtimePostCacheServiceTest {
 
         // Then: HASH 데이터 그대로 반환, 비동기 갱신 미트리거
         assertThat(result.getContent()).hasSize(1);
-        verify(postCacheRefresh, never()).asyncRefreshRealtimeWithLock(any());
+        verify(realtimePostSync, never()).asyncRefreshRealtimeWithLock(any());
     }
 
     @Test

@@ -38,9 +38,9 @@ SELECT NOW() AS '완료 시각', '숫자 테이블 생성 완료 (10,000개)' AS
 -- 2. 테스트용 회원 1,000명 생성
 -- =====================================================
 
--- setting 먼저 생성
-INSERT INTO setting (comment_notification, message_notification, post_featured_notification)
-SELECT 1, 1, 1 FROM _numbers WHERE n < 1000;
+-- setting 먼저 생성 (friend_send_notification 컬럼 추가)
+INSERT INTO setting (comment_notification, message_notification, post_featured_notification, friend_send_notification)
+SELECT 1, 1, 1, 1 FROM _numbers WHERE n < 1000;
 
 COMMIT;
 
@@ -68,135 +68,166 @@ SET @member_end = (SELECT MAX(member_id) FROM member WHERE member_name LIKE 'lt_
 SELECT NOW() AS '완료 시각', CONCAT('회원 생성 완료: ', @member_end - @member_start + 1, '명') AS status;
 
 -- =====================================================
--- 3. 게시글 10만개 생성 (10번 × 10,000개)
--- is_notice 컬럼 제거됨 (v2.14 마이그레이션)
+-- 3. 게시글 10만개 생성 (10번 x 10,000개)
+-- post 테이블에 like_count, comment_count, member_name 비정규화 (V2.18)
+-- is_notice 컬럼 제거됨 (V2.14)
 -- =====================================================
 
 -- 1차 (0 ~ 9,999)
-INSERT INTO post (member_id, title, content, views, password, created_at)
+INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', n),
     CONCAT('<p>부하테스트 게시글 #', n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
     n % 10000,
     CASE WHEN n % 5 = 0 THEN 1234 ELSE NULL END,
+    0,
+    0,
+    CASE WHEN n % 5 = 0 THEN '익명' ELSE CONCAT('lt_user_', n % 1000) END,
     DATE_SUB(NOW(), INTERVAL (n % 180) DAY)
 FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 10,000개 완료' AS progress;
 
 -- 2차 (10,000 ~ 19,999)
-INSERT INTO post (member_id, title, content, views, password, created_at)
+INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 10000 + n),
     CONCAT('<p>부하테스트 게시글 #', 10000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
     (10000 + n) % 10000,
     CASE WHEN n % 5 = 0 THEN 1234 ELSE NULL END,
+    0,
+    0,
+    CASE WHEN n % 5 = 0 THEN '익명' ELSE CONCAT('lt_user_', n % 1000) END,
     DATE_SUB(NOW(), INTERVAL (n % 180) DAY)
 FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 20,000개 완료' AS progress;
 
 -- 3차 (20,000 ~ 29,999)
-INSERT INTO post (member_id, title, content, views, password, created_at)
+INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 20000 + n),
     CONCAT('<p>부하테스트 게시글 #', 20000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
     (20000 + n) % 10000,
     CASE WHEN n % 5 = 0 THEN 1234 ELSE NULL END,
+    0,
+    0,
+    CASE WHEN n % 5 = 0 THEN '익명' ELSE CONCAT('lt_user_', n % 1000) END,
     DATE_SUB(NOW(), INTERVAL (n % 180) DAY)
 FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 30,000개 완료' AS progress;
 
 -- 4차 (30,000 ~ 39,999)
-INSERT INTO post (member_id, title, content, views, password, created_at)
+INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 30000 + n),
     CONCAT('<p>부하테스트 게시글 #', 30000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
     (30000 + n) % 10000,
     CASE WHEN n % 5 = 0 THEN 1234 ELSE NULL END,
+    0,
+    0,
+    CASE WHEN n % 5 = 0 THEN '익명' ELSE CONCAT('lt_user_', n % 1000) END,
     DATE_SUB(NOW(), INTERVAL (n % 180) DAY)
 FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 40,000개 완료' AS progress;
 
 -- 5차 (40,000 ~ 49,999)
-INSERT INTO post (member_id, title, content, views, password, created_at)
+INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 40000 + n),
     CONCAT('<p>부하테스트 게시글 #', 40000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
     (40000 + n) % 10000,
     CASE WHEN n % 5 = 0 THEN 1234 ELSE NULL END,
+    0,
+    0,
+    CASE WHEN n % 5 = 0 THEN '익명' ELSE CONCAT('lt_user_', n % 1000) END,
     DATE_SUB(NOW(), INTERVAL (n % 180) DAY)
 FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 50,000개 완료' AS progress;
 
 -- 6차 (50,000 ~ 59,999)
-INSERT INTO post (member_id, title, content, views, password, created_at)
+INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 50000 + n),
     CONCAT('<p>부하테스트 게시글 #', 50000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
     (50000 + n) % 10000,
     CASE WHEN n % 5 = 0 THEN 1234 ELSE NULL END,
+    0,
+    0,
+    CASE WHEN n % 5 = 0 THEN '익명' ELSE CONCAT('lt_user_', n % 1000) END,
     DATE_SUB(NOW(), INTERVAL (n % 180) DAY)
 FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 60,000개 완료' AS progress;
 
 -- 7차 (60,000 ~ 69,999)
-INSERT INTO post (member_id, title, content, views, password, created_at)
+INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 60000 + n),
     CONCAT('<p>부하테스트 게시글 #', 60000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
     (60000 + n) % 10000,
     CASE WHEN n % 5 = 0 THEN 1234 ELSE NULL END,
+    0,
+    0,
+    CASE WHEN n % 5 = 0 THEN '익명' ELSE CONCAT('lt_user_', n % 1000) END,
     DATE_SUB(NOW(), INTERVAL (n % 180) DAY)
 FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 70,000개 완료' AS progress;
 
 -- 8차 (70,000 ~ 79,999)
-INSERT INTO post (member_id, title, content, views, password, created_at)
+INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 70000 + n),
     CONCAT('<p>부하테스트 게시글 #', 70000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
     (70000 + n) % 10000,
     CASE WHEN n % 5 = 0 THEN 1234 ELSE NULL END,
+    0,
+    0,
+    CASE WHEN n % 5 = 0 THEN '익명' ELSE CONCAT('lt_user_', n % 1000) END,
     DATE_SUB(NOW(), INTERVAL (n % 180) DAY)
 FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 80,000개 완료' AS progress;
 
 -- 9차 (80,000 ~ 89,999)
-INSERT INTO post (member_id, title, content, views, password, created_at)
+INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 80000 + n),
     CONCAT('<p>부하테스트 게시글 #', 80000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
     (80000 + n) % 10000,
     CASE WHEN n % 5 = 0 THEN 1234 ELSE NULL END,
+    0,
+    0,
+    CASE WHEN n % 5 = 0 THEN '익명' ELSE CONCAT('lt_user_', n % 1000) END,
     DATE_SUB(NOW(), INTERVAL (n % 180) DAY)
 FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 90,000개 완료' AS progress;
 
 -- 10차 (90,000 ~ 99,999)
-INSERT INTO post (member_id, title, content, views, password, created_at)
+INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 90000 + n),
     CONCAT('<p>부하테스트 게시글 #', 90000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
     (90000 + n) % 10000,
     CASE WHEN n % 5 = 0 THEN 1234 ELSE NULL END,
+    0,
+    0,
+    CASE WHEN n % 5 = 0 THEN '익명' ELSE CONCAT('lt_user_', n % 1000) END,
     DATE_SUB(NOW(), INTERVAL (n % 180) DAY)
 FROM _numbers WHERE n < 10000;
 COMMIT;
@@ -208,7 +239,7 @@ SELECT NOW() AS '완료 시각', CONCAT('게시글 생성 완료: ', @post_end -
 
 -- =====================================================
 -- 4. 추천 데이터 100만개 생성 (글당 10개)
--- 10만 글 × 10개 = 100만개
+-- 10만 글 x 10개 = 100만개
 -- =====================================================
 
 -- 숫자 테이블 확장 (10만개)
@@ -328,31 +359,20 @@ COMMIT;
 SELECT NOW() AS '완료 시각', '추천 1,000,000개 완료 (10/10)' AS status;
 
 -- =====================================================
--- 5. Post Read Model 테이블 동기화 (CQRS 조회 전용)
+-- 5. post 테이블 like_count 동기화 (비정규화 컬럼)
 -- =====================================================
 
-SELECT NOW() AS '시각', 'post_read_model 동기화 시작...' AS status;
+SELECT NOW() AS '시각', 'post.like_count 동기화 시작...' AS status;
 
--- post_read_model 데이터 삽입 (post + member JOIN + post_like COUNT)
-INSERT INTO post_read_model (post_id, title, view_count, like_count, comment_count, member_id, member_name, created_at, modified_at)
-SELECT
-    p.post_id,
-    p.title,
-    p.views,
-    COALESCE(pl.cnt, 0),
-    0,  -- comment 데이터가 없으므로 0
-    m.member_id,
-    COALESCE(m.member_name, '익명'),
-    p.created_at,
-    p.modified_at
-FROM post p
-LEFT JOIN member m ON p.member_id = m.member_id
-LEFT JOIN (SELECT post_id, COUNT(*) cnt FROM post_like GROUP BY post_id) pl ON p.post_id = pl.post_id
+UPDATE post p
+    JOIN (SELECT post_id, COUNT(*) cnt FROM post_like GROUP BY post_id) pl
+    ON p.post_id = pl.post_id
+SET p.like_count = pl.cnt
 WHERE p.title LIKE '테스트 글%';
 
 COMMIT;
 
-SELECT NOW() AS '완료 시각', CONCAT('post_read_model 동기화 완료: ', (SELECT COUNT(*) FROM post_read_model WHERE title LIKE '테스트 글%'), '개') AS status;
+SELECT NOW() AS '완료 시각', 'post.like_count 동기화 완료' AS status;
 
 -- =====================================================
 -- 6. 정리 및 최적화
@@ -365,7 +385,6 @@ DROP TABLE IF EXISTS _numbers_100k;
 -- 통계 갱신
 ANALYZE TABLE post;
 ANALYZE TABLE post_like;
-ANALYZE TABLE post_read_model;
 ANALYZE TABLE member;
 
 -- 설정 복원
@@ -381,7 +400,6 @@ SELECT '시드 데이터 생성 완료' AS 결과;
 SELECT '========================================' AS '';
 SELECT COUNT(*) AS '총 회원 수' FROM member WHERE member_name LIKE 'lt_user_%';
 SELECT COUNT(*) AS '총 게시글 수' FROM post WHERE title LIKE '테스트 글%';
-SELECT COUNT(*) AS '총 조회용 테이블 수' FROM post_read_model WHERE title LIKE '테스트 글%';
 SELECT COUNT(*) AS '총 추천 수' FROM post_like WHERE post_id BETWEEN @post_start AND @post_end;
 SELECT ROUND(COUNT(*) / 100000, 2) AS '평균 추천/글' FROM post_like WHERE post_id BETWEEN @post_start AND @post_end;
 SELECT NOW() AS '종료 시각';
