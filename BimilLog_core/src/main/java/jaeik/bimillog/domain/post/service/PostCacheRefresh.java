@@ -38,15 +38,10 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 public class PostCacheRefresh {
-    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final PostQueryRepository postQueryRepository;
     private final FeaturedPostRepository featuredPostRepository;
-    private final CircuitBreakerRegistry circuitBreakerRegistry;
-    private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
 
-    private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
-    private static final int REALTIME_FALLBACK_LIMIT = 5;
 
     /**
      * 주간/레전드 인기글 캐시 TTL (24시간 30분)
@@ -54,46 +49,7 @@ public class PostCacheRefresh {
      */
     public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofHours(24).plusMinutes(30);
 
-    /**
-     * <h3>실시간 인기글 캐시 동기 갱신</h3>
-     * <p>서킷 상태에 따라 Redis ZSet 또는 Caffeine에서 인기글 ID를 조회한 뒤 DB에서 상세 정보를 가져와 캐시에 저장합니다.</p>
-     * <p>실패 시 최대 3회 재시도합니다 (2s → 4s 지수 백오프).</p>
-     */
-    @Retryable(
-            retryFor = Exception.class,
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 2000, multiplier = 2)
-    )
-    public void refreshRealtime() {
-        List<Long> postIds = getRealtimePostIds();
-        if (postIds.isEmpty()) return;
 
-        List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, postIds);
-        if (posts.isEmpty()) {
-            return;
-        }
-        Duration ttl = getTtlForType(PostCacheFlag.REALTIME);
-        redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.REALTIME, posts, ttl);
-    }
-
-    /**
-     * <h3>실시간 인기글 ID 조회</h3>
-     * 서킷이 열리면 카페인 닫히면 레디스에서 5위까지의 인기글 ID를 조회한다.
-     * @return 5위까지 글 ID
-     */
-    private List<Long> getRealtimePostIds() {
-        List<Long> postIds;
-        CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(REALTIME_REDIS_CIRCUIT);
-        CircuitBreaker.State state = cb.getState();
-
-        if (state == CircuitBreaker.State.OPEN || state == CircuitBreaker.State.FORCED_OPEN) {
-            log.info("[SCHEDULER] REALTIME 서킷 OPEN - Caffeine 폴백으로 갱신");
-            postIds = realtimeScoreFallbackStore.getTopPostIds(0, REALTIME_FALLBACK_LIMIT);
-        } else {
-            postIds = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
-        }
-        return postIds;
-    }
 
 
     /**
@@ -109,7 +65,7 @@ public class PostCacheRefresh {
             backoff = @Backoff(delay = 2000, multiplier = 2)
     )
     public void refreshFeatured(PostCacheFlag type) {
-        List<PostSimpleDetail> posts = queryPostsByType(type, List.of());
+        List<PostSimpleDetail> posts = queryPostsByType(type);
         if (posts.isEmpty()) {
             return;
         }
@@ -127,45 +83,17 @@ public class PostCacheRefresh {
         log.error("{} 캐시 갱신 최종 실패 (3회 시도): {}", type, e.getMessage());
     }
 
-    /**
-     * <h3>조회 시 HASH-ZSET 불일치 감지 → 비동기 HASH 갱신</h3>
-     * <p>조회 경로에서 HASH와 ZSET의 글 ID가 불일치할 때 호출됩니다.</p>
-     * <p>분산 락을 획득한 뒤 ZSET에서 인기글 ID를 조회하고 DB에서 상세 정보를 가져와 HASH를 갱신합니다.</p>
-     * <p>락 획득 실패 시 다른 스레드가 이미 갱신 중이므로 스킵합니다.</p>
-     */
-    @Async("cacheRefreshExecutor")
-    public void asyncRefreshRealtimeWithLock(List<Long> zsetPostIds) {
-        if (!redisSimplePostAdapter.tryAcquireRealtimeRefreshLock()) {
-            return;
-        }
 
-        try {
-            List<PostSimpleDetail> posts = queryPostsByType(PostCacheFlag.REALTIME, zsetPostIds);
-            if (posts.isEmpty()) {
-                return;
-            }
-            Duration ttl = getTtlForType(PostCacheFlag.REALTIME);
-            redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.REALTIME, posts, ttl);
-        } catch (Exception e) {
-            log.warn("실시간 인기글 해시 갱신 실패: {}", e.getMessage());
-        } finally {
-            redisSimplePostAdapter.releaseRealtimeRefreshLock();
-        }
-    }
 
     /**
      * <h3>타입별 게시글 DB 조회</h3>
-     * <p>REALTIME: 전달받은 postId 목록으로 조회</p>
      * <p>WEEKLY/LEGEND/NOTICE: featured_post 테이블에서 postId 조회 후 DB 조회</p>
      *
      * @param type       캐시 유형
-     * @param allPostIds postId 목록 (REALTIME: ZSet에서 조회한 ID, 그 외: 빈 리스트)
      * @return 조회된 게시글 목록
      */
-    private List<PostSimpleDetail> queryPostsByType(PostCacheFlag type, List<Long> allPostIds) {
-        List<Long> postIds = (type == PostCacheFlag.REALTIME)
-                ? allPostIds
-                : featuredPostRepository.findPostIdsByType(type);
+    private List<PostSimpleDetail> queryPostsByType(PostCacheFlag type) {
+        List<Long> postIds = featuredPostRepository.findPostIdsByType(type);
 
         if (postIds.isEmpty()) {
             return List.of();

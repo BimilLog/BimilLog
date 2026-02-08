@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.scheduler;
 
+import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.service.PostCacheRefresh;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 public class PostCacheRefreshScheduler {
 
     private final PostCacheRefresh postCacheRefresh;
+    private final RealtimePostSync realtimePostSync;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
 
     /**
@@ -40,7 +42,7 @@ public class PostCacheRefreshScheduler {
         }
 
         try {
-            safeRefresh("REALTIME", postCacheRefresh::refreshRealtime);
+            safeRefresh("REALTIME", realtimePostSync::refreshRealtime);
             safeRefresh("WEEKLY", () -> postCacheRefresh.refreshFeatured(PostCacheFlag.WEEKLY));
             safeRefresh("LEGEND", () -> postCacheRefresh.refreshFeatured(PostCacheFlag.LEGEND));
         } finally {

@@ -91,18 +91,11 @@ public class RedisSimplePostAdapter {
      * @param postId 제거할 게시글 ID
      */
     public void removePostFromCache(Long postId) {
-        if (postId == null) {
-            return;
-        }
-
         String field = postId.toString();
-
         for (PostCacheFlag type : PostCacheFlag.values()) {
             String hashKey = getSimplePostHashKey(type);
             redisTemplate.opsForHash().delete(hashKey, field);
         }
-
-        log.debug("[CACHE_DELETE] postId={}, allTypes", postId);
     }
 
     /**

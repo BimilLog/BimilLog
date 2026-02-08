@@ -62,8 +62,8 @@ public class AsyncConfig {
     public Executor saveNotificationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(10); // 기본 스레드 수
-        executor.setMaxPoolSize(30); // 최대 스레드 수
-        executor.setQueueCapacity(70); // 대기열 크기
+        executor.setMaxPoolSize(20); // 최대 스레드 수
+        executor.setQueueCapacity(30); // 대기열 크기
         executor.setThreadNamePrefix("save-notification-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
@@ -81,7 +81,7 @@ public class AsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2); // 기본 스레드 수 (회원 이벤트는 빈도 낮음)
         executor.setMaxPoolSize(5); // 최대 스레드 수
-        executor.setQueueCapacity(30); // 대기열 크기
+        executor.setQueueCapacity(10); // 대기열 크기
         executor.setThreadNamePrefix("member-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(60); // 회원 정리 작업은 완료 대기
@@ -95,15 +95,16 @@ public class AsyncConfig {
     @Bean(name = "friendUpdateExecutor")
     public Executor friendUpdateExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(3);
-        executor.setMaxPoolSize(15);
-        executor.setQueueCapacity(50);
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("friend-update-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
         executor.initialize();
         return executor;
     }
+
     /**
      * 실시간 인기글 실시간 롤링페이퍼 점수 스레드 풀
      * <p>Redis 기반의 실시간 점수 업데이트를 처리합니다.</p>
@@ -113,8 +114,8 @@ public class AsyncConfig {
     public Executor realtimeEventExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(15);
-        executor.setQueueCapacity(50);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(20);
         executor.setThreadNamePrefix("realtime-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
@@ -129,9 +130,9 @@ public class AsyncConfig {
     @Bean(name = "cacheRefreshExecutor")
     public Executor cacheRefreshExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(5);
-        executor.setQueueCapacity(10);
+        executor.setCorePoolSize(15);
+        executor.setMaxPoolSize(60);
+        executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("cache-refresh-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);

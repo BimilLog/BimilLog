@@ -1,15 +1,12 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
+import jaeik.bimillog.domain.post.async.CacheRefreshExecutor;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -48,22 +45,13 @@ class PostCommandServiceTest extends BaseUnitTest {
     private PostToMemberAdapter postToMemberAdapter;
 
     @Mock
-    private RedisRealTimePostAdapter redisRealTimePostAdapter;
-
-    @Mock
-    private RedisSimplePostAdapter redisSimplePostAdapter;
-
-    @Mock
     private PostRepository postRepository;
 
     @Mock
     private CommentCommandService commentCommandService;
 
     @Mock
-    private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
-
-    @Mock
-    private PostQueryRepository postQueryRepository;
+    private CacheRefreshExecutor cacheRefreshExecutor;
 
     @InjectMocks
     private PostCommandService postCommandService;
@@ -113,8 +101,8 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(postRepository, times(1)).findById(postId);
         verify(existingPost, times(1)).isAuthor(memberId, null);
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
-        // Cache Invalidation: 해당 Hash 필드 삭제
-        verify(redisSimplePostAdapter, times(1)).removePostFromCache(postId);
+        // Cache Invalidation: 비동기 캐시 업데이트
+        verify(cacheRefreshExecutor, times(1)).asyncUpdatePost(eq(postId), any());
     }
 
     @ParameterizedTest(name = "게시글 {0} - 게시글 없음 예외")
@@ -199,8 +187,8 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(postToDelete, times(1)).isAuthor(memberId, null);
         // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
         verify(postRepository, times(1)).delete(postToDelete);
-        verify(redisRealTimePostAdapter, times(1)).removePostIdFromRealtimeScore(postId);
-        verify(redisSimplePostAdapter, times(1)).removePostFromCache(postId);
+        // 모든 캐시 비동기 삭제 처리
+        verify(cacheRefreshExecutor, times(1)).asyncDeletePost(postId);
     }
 
     @Test
@@ -251,8 +239,8 @@ class PostCommandServiceTest extends BaseUnitTest {
 
 
     @Test
-    @DisplayName("게시글 수정 - 캐시 무효화 실패해도 정상 완료")
-    void shouldUpdatePostEvenWhenCacheInvalidationFails() {
+    @DisplayName("게시글 수정 - 캐시 무효화는 @Async로 비동기 실행")
+    void shouldUpdatePostAndTriggerAsyncCacheUpdate() {
         // Given
         Long memberId = 1L;
         Long postId = 123L;
@@ -261,13 +249,12 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(existingPost));
         given(existingPost.isAuthor(memberId, null)).willReturn(true);
-        doThrow(new RuntimeException("Cache invalidation failed")).when(redisSimplePostAdapter).removePostFromCache(postId);
 
-        // When - 예외가 발생하지 않고 정상 완료되어야 함
+        // When
         postCommandService.updatePost(memberId, postId, "title", "content", null);
 
-        // Then - 게시글 수정은 완료되고, 캐시 무효화도 시도됨
+        // Then - 게시글 수정 완료 + 비동기 캐시 갱신 트리거
         verify(existingPost, times(1)).updatePost("title", "content");
-        verify(redisSimplePostAdapter, times(1)).removePostFromCache(postId);
+        verify(cacheRefreshExecutor, times(1)).asyncUpdatePost(eq(postId), any());
     }
 }

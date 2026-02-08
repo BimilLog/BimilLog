@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
@@ -39,7 +40,7 @@ public class RealtimePostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
-    private final PostCacheRefresh postCacheRefresh;
+    private final RealtimePostSync realtimePostSync;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
 
     private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
@@ -121,7 +122,7 @@ public class RealtimePostCacheService {
             Set<Long> zsetPostIdSet = new HashSet<>(zsetPostIds);
 
             if (!hashPostIds.equals(zsetPostIdSet)) {
-                postCacheRefresh.asyncRefreshRealtimeWithLock(zsetPostIds);
+                realtimePostSync.asyncRefreshRealtimeWithLock(zsetPostIds);
             }
         } catch (Exception e) {
             log.debug("[COMPARE_SKIP] HASH-ZSET 비교 실패, 무시: {}", e.getMessage());

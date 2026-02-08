@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.scheduler;
 
+import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.service.PostCacheRefresh;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
@@ -19,7 +20,7 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>PostCacheRefreshScheduler 테스트</h2>
  * <p>스케줄러의 분산 락, 순차 갱신, 타입별 독립 실행을 검증합니다.</p>
- * <p>재시도 로직은 PostCacheRefresh의 @Retryable이 담당하므로 여기서는 테스트하지 않습니다.</p>
+ * <p>재시도 로직은 PostCacheRefresh/RealtimePostSync의 @Retryable이 담당하므로 여기서는 테스트하지 않습니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostCacheRefreshScheduler 테스트")
@@ -28,6 +29,9 @@ class PostCacheRefreshSchedulerTest {
 
     @Mock
     private PostCacheRefresh postCacheRefresh;
+
+    @Mock
+    private RealtimePostSync realtimePostSync;
 
     @Mock
     private RedisSimplePostAdapter redisSimplePostAdapter;
@@ -45,7 +49,7 @@ class PostCacheRefreshSchedulerTest {
         scheduler.refreshAllCaches();
 
         // Then
-        verify(postCacheRefresh).refreshRealtime();
+        verify(realtimePostSync).refreshRealtime();
         verify(postCacheRefresh).refreshFeatured(PostCacheFlag.WEEKLY);
         verify(postCacheRefresh).refreshFeatured(PostCacheFlag.LEGEND);
         verify(redisSimplePostAdapter).releaseSchedulerLock();
@@ -61,7 +65,7 @@ class PostCacheRefreshSchedulerTest {
         scheduler.refreshAllCaches();
 
         // Then
-        verify(postCacheRefresh, never()).refreshRealtime();
+        verify(realtimePostSync, never()).refreshRealtime();
         verify(postCacheRefresh, never()).refreshFeatured(PostCacheFlag.WEEKLY);
         verify(postCacheRefresh, never()).refreshFeatured(PostCacheFlag.LEGEND);
         verify(redisSimplePostAdapter, never()).releaseSchedulerLock();
@@ -73,7 +77,7 @@ class PostCacheRefreshSchedulerTest {
         // Given
         given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn(true);
         willThrow(new RuntimeException("Redis 연결 실패"))
-                .given(postCacheRefresh).refreshRealtime();
+                .given(realtimePostSync).refreshRealtime();
 
         // When
         scheduler.refreshAllCaches();
@@ -90,7 +94,7 @@ class PostCacheRefreshSchedulerTest {
         // Given
         given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn(true);
         willThrow(new RuntimeException("예상치 못한 오류"))
-                .given(postCacheRefresh).refreshRealtime();
+                .given(realtimePostSync).refreshRealtime();
         willThrow(new RuntimeException("예상치 못한 오류"))
                 .given(postCacheRefresh).refreshFeatured(PostCacheFlag.WEEKLY);
         willThrow(new RuntimeException("예상치 못한 오류"))

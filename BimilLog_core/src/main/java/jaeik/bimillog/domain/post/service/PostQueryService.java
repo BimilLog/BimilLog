@@ -2,10 +2,9 @@ package jaeik.bimillog.domain.post.service;
 
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
-import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
+import jaeik.bimillog.domain.post.async.CacheRefreshExecutor;
 import jaeik.bimillog.domain.post.async.PostViewCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
-import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.*;
@@ -45,6 +44,7 @@ public class PostQueryService {
     private final PostUtil postUtil;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
+    private final CacheRefreshExecutor cacheRefreshExecutor;
     private final PostViewCountSync postViewCountSync;
     private final RealtimePostSync realtimePostSync;
 
@@ -94,7 +94,7 @@ public class PostQueryService {
 
     /**
      * <h3>첫 페이지 조회</h3>
-     * <p>캐시 조회, 캐시 장애나 미스시 DB 조회</p>
+     * <p>캐시 조회, 캐시 장애나 미스 시 DB 폴백 + 비동기 캐시 갱신</p>
      *
      * @return 게시글 목록
      */
@@ -104,10 +104,12 @@ public class PostQueryService {
             posts = redisFirstPagePostAdapter.getFirstPage();
             if (posts.isEmpty()) {
                 log.warn("게시판 첫 페이지 캐시 미스 - DB 폴백");
+                cacheRefreshExecutor.asyncRefreshWithLock();
                 return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
             }
         } catch (Exception e) {
             log.error("게시판 첫 페이지 캐시 장애 - DB 폴백", e);
+            cacheRefreshExecutor.asyncRefreshWithLock();
             return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
         }
         return posts;
