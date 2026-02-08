@@ -190,7 +190,8 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
                 null,  // 익명 게시글 (member = null)
                 "익명 게시글",
                 "익명 게시글 내용",
-                1234
+                1234,
+                "익명"
         );
         Post savedPost = postRepository.save(anonymousPost);
 
@@ -218,7 +219,8 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
                 null,  // 익명 게시글 (member = null)
                 "익명 게시글",
                 "익명 게시글 내용",
-                1234
+                1234,
+                "익명"
         );
         Post savedPost = postRepository.save(anonymousPost);
 
@@ -247,7 +249,8 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
                 null,  // 익명 게시글 (member = null)
                 "익명 게시글",
                 "익명 게시글 내용",
-                1234
+                1234,
+                "익명"
         );
         Post savedPost = postRepository.save(anonymousPost);
 
@@ -341,7 +344,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("비회원 게시글 수정 성공 - 올바른 비밀번호")
     void updateAnonymousPost_Success_WithCorrectPassword() throws Exception {
-        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234);
+        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234, "익명");
         Post savedPost = postRepository.save(anonymousPost);
 
         PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
@@ -366,7 +369,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("비회원 게시글 수정 실패 - 잘못된 비밀번호")
     void updateAnonymousPost_Fail_WithWrongPassword() throws Exception {
-        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234);
+        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234, "익명");
         Post savedPost = postRepository.save(anonymousPost);
 
         PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
@@ -386,7 +389,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("비회원 게시글 수정 실패 - 비밀번호 없음")
     void updateAnonymousPost_Fail_WithoutPassword() throws Exception {
-        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234);
+        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234, "익명");
         Post savedPost = postRepository.save(anonymousPost);
 
         PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
@@ -405,7 +408,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("회원이 비회원 게시글 수정 실패")
     void updateAnonymousPost_Fail_WithMemberUser() throws Exception {
-        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234);
+        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234, "익명");
         Post savedPost = postRepository.save(anonymousPost);
 
         PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()

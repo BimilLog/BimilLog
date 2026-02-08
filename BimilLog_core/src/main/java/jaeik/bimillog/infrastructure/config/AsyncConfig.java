@@ -90,22 +90,6 @@ public class AsyncConfig {
     }
 
     /**
-     * 글 수정, 댓글 작성, 추천시 조회 테이블에 업데이트 하는 스레드 풀
-     */
-    @Bean(name = "postCQRSEventExecutor")
-    public Executor postCQRSEventExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);
-        executor.setMaxPoolSize(15);
-        executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("post-CQRS-event-");
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(30);
-        executor.initialize();
-        return executor;
-    }
-
-    /**
      * 친구 관계 추가 친구 상호작용 점수 전용 스레드 풀
      */
     @Bean(name = "friendUpdateExecutor")

@@ -18,14 +18,16 @@ public class PostTestDataBuilder {
      * Post 엔티티 생성
      */
     public static Post createPost(Member author, String title, String content) {
-        return Post.createPost(author, title, content, 1234);
+        String memberName = author != null ? author.getMemberName() : "익명";
+        return Post.createPost(author, title, content, 1234, memberName);
     }
 
     /**
      * 익명 비밀번호가 있는 Post 엔티티 생성
      */
     public static Post createPost(Member author, String title, String content, int password) {
-        return Post.createPost(author, title, content, password);
+        String memberName = author != null ? author.getMemberName() : "익명";
+        return Post.createPost(author, title, content, password, memberName);
     }
 
     /**

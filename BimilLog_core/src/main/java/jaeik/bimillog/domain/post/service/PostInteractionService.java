@@ -2,13 +2,11 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.async.PostReadModelSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
-import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -21,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * <h2>PostInteractionService</h2>
@@ -36,11 +33,9 @@ import java.util.UUID;
 @Slf4j
 public class PostInteractionService {
     private final PostRepository postRepository;
-    private final PostReadModelRepository postReadModelRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final PostReadModelSync postReadModelSync;
     private final RealtimePostSync realtimePostSync;
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
@@ -54,7 +49,7 @@ public class PostInteractionService {
     public void likePost(Long memberId, Long postId) {
         // 1. ID 기반으로 좋아요 존재 여부 확인 (엔티티 로딩 최소화)
         boolean isAlreadyLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
-        
+
         // 2. 좋아요 토글을 위해 필요한 엔티티만 로딩
         Member member = postToMemberAdapter.getMember(memberId);
         Post post = postRepository.findById(postId)
@@ -68,9 +63,8 @@ public class PostInteractionService {
         if (isAlreadyLiked) {
             postLikeRepository.deleteByMemberAndPost(member, post);
 
-            // 비동기로 조회용테이블 갱신
-            String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-            postReadModelSync.handlePostUnliked(eventId, postId);
+            // 동기적으로 좋아요 수 감소
+            postRepository.decrementLikeCount(postId);
 
             // 비동기로 실시간 인기글 점수 감소
             realtimePostSync.handlePostUnliked(postId);
@@ -78,9 +72,8 @@ public class PostInteractionService {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeRepository.save(postLike);
 
-            // 비동기로 조회용테이블 갱신
-            String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-            postReadModelSync.handlePostLiked(eventId, postId);
+            // 동기적으로 좋아요 수 증가
+            postRepository.incrementLikeCount(postId);
 
             // 비동기로 실시간 인기글 점수 증가
             realtimePostSync.handlePostLiked(postId);
@@ -98,20 +91,17 @@ public class PostInteractionService {
     /**
      * <h3>게시글 조회수 증가 비즈니스 로직 실행</h3>
      * <p>PostQueryController에서 게시글 상세 조회 완료 후 호출됩니다.</p>
-     * <p>Post 테이블과 PostReadModel 테이블 모두 업데이트합니다.</p>
      *
      * @param postId 조회수를 증가시킬 게시글 ID
      */
     @Transactional
     public void incrementViewCount(Long postId) {
         postRepository.incrementViewsByPostId(postId);
-        postReadModelRepository.incrementViewCount(postId);
     }
 
     /**
      * <h3>조회수 일괄 증가</h3>
      * <p>Redis에서 누적된 조회수를 DB에 벌크 반영합니다.</p>
-     * <p>Post 테이블과 PostReadModel 테이블 모두 업데이트합니다.</p>
      *
      * @param counts postId → 증가량 맵
      */
@@ -119,7 +109,6 @@ public class PostInteractionService {
     public void bulkIncrementViewCounts(Map<Long, Long> counts) {
         for (Map.Entry<Long, Long> entry : counts.entrySet()) {
             postRepository.incrementViewsByAmount(entry.getKey(), entry.getValue());
-            postReadModelRepository.incrementViewCountByAmount(entry.getKey(), entry.getValue());
         }
     }
 }

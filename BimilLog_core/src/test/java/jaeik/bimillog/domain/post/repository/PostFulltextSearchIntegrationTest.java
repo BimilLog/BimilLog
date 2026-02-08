@@ -104,19 +104,19 @@ class PostFulltextSearchIntegrationTest {
 
     private void createTestPosts() {
         // 한글 게시글 1: 제목과 내용에 "자바" 포함
-        koreanPost1 = Post.createPost(testMember, "자바 프로그래밍 기초", "자바 언어로 프로그래밍하는 방법을 배웁니다.", 1234);
+        koreanPost1 = Post.createPost(testMember, "자바 프로그래밍 기초", "자바 언어로 프로그래밍하는 방법을 배웁니다.", 1234, testMember.getMemberName());
         entityManager.persistAndFlush(koreanPost1);
 
         // 한글 게시글 2: 제목에만 "스프링" 포함
-        koreanPost2 = Post.createPost(testMember, "스프링 부트 완벽 가이드", "Spring Boot를 사용한 웹 개발 튜토리얼입니다.", 1234);
+        koreanPost2 = Post.createPost(testMember, "스프링 부트 완벽 가이드", "Spring Boot를 사용한 웹 개발 튜토리얼입니다.", 1234, testMember.getMemberName());
         entityManager.persistAndFlush(koreanPost2);
 
         // 한글 게시글 3: 내용에만 "데이터베이스" 포함
-        koreanPost3 = Post.createPost(testMember, "백엔드 개발 입문", "효율적인 데이터베이스 설계 및 최적화 기법을 다룹니다.", 1234);
+        koreanPost3 = Post.createPost(testMember, "백엔드 개발 입문", "효율적인 데이터베이스 설계 및 최적화 기법을 다룹니다.", 1234, testMember.getMemberName());
         entityManager.persistAndFlush(koreanPost3);
 
         // 영문 게시글
-        englishPost = Post.createPost(testMember, "Java Programming Tutorial", "Learn advanced Java concepts and patterns.", 1234);
+        englishPost = Post.createPost(testMember, "Java Programming Tutorial", "Learn advanced Java concepts and patterns.", 1234, testMember.getMemberName());
         entityManager.persistAndFlush(englishPost);
 
         entityManager.flush();

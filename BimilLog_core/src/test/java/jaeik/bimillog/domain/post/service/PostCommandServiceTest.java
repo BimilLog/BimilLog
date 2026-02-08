@@ -2,8 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.repository.PostReadModelQueryRepository;
-import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -19,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import jaeik.bimillog.domain.post.async.PostReadModelSync;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
@@ -65,13 +63,7 @@ class PostCommandServiceTest extends BaseUnitTest {
     private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
 
     @Mock
-    private PostReadModelSync postReadModelSync;
-
-    @Mock
-    private PostReadModelQueryRepository postReadModelQueryRepository;
-
-    @Mock
-    private PostReadModelRepository postReadModelRepository;
+    private PostQueryRepository postQueryRepository;
 
     @InjectMocks
     private PostCommandService postCommandService;

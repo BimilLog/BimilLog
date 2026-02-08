@@ -51,9 +51,6 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private PostReadModelQueryRepository postReadModelQueryRepository;
-
-    @Mock
     private PostLikeRepository postLikeRepository;
 
     @Mock
@@ -98,7 +95,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.hasNext()).isFalse();
 
         verify(redisFirstPagePostAdapter).getFirstPage();
-        verify(postReadModelQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
+        verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
     @Test
@@ -129,7 +126,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.nextCursor()).isEqualTo(4L);
 
         verify(redisFirstPagePostAdapter).getFirstPage();
-        verify(postReadModelQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
+        verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
     @Test
@@ -142,7 +139,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         List<PostSimpleDetail> posts = List.of(postResult);
 
         given(redisFirstPagePostAdapter.getFirstPage()).willReturn(Collections.emptyList());
-        given(postReadModelQueryRepository.findBoardPostsByCursor(null, 20)).willReturn(posts);
+        given(postQueryRepository.findBoardPostsByCursor(null, 20)).willReturn(posts);
         given(postUtil.removePostsWithBlacklist(null, posts)).willReturn(posts);
 
         // When
@@ -154,7 +151,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.hasNext()).isFalse();
 
         verify(redisFirstPagePostAdapter).getFirstPage();
-        verify(postReadModelQueryRepository).findBoardPostsByCursor(null, 20);
+        verify(postQueryRepository).findBoardPostsByCursor(null, 20);
     }
 
     @Test
@@ -166,7 +163,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         List<PostSimpleDetail> posts = List.of(postResult);
 
-        given(postReadModelQueryRepository.findBoardPostsByCursor(cursor, size)).willReturn(posts);
+        given(postQueryRepository.findBoardPostsByCursor(cursor, size)).willReturn(posts);
         given(postUtil.removePostsWithBlacklist(null, posts)).willReturn(posts);
 
         // When
@@ -177,7 +174,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
 
         verify(redisFirstPagePostAdapter, never()).getFirstPage();
-        verify(postReadModelQueryRepository).findBoardPostsByCursor(cursor, size);
+        verify(postQueryRepository).findBoardPostsByCursor(cursor, size);
     }
 
     @Test

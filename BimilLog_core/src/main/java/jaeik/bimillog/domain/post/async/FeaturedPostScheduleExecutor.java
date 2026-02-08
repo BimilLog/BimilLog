@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.async;
 
-import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.FeaturedPost;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
@@ -19,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <h2>FeaturedPostScheduleExecutor</h2>
@@ -41,7 +39,6 @@ import java.util.Map;
 public class FeaturedPostScheduleExecutor {
 
     private final PostQueryRepository postQueryRepository;
-    private final PostToCommentAdapter postToCommentAdapter;
     private final FeaturedPostRepository featuredPostRepository;
 
     /**
@@ -61,9 +58,7 @@ public class FeaturedPostScheduleExecutor {
             backoff = @Backoff(delay = 1000, multiplier = 3)
     )
     public List<PostSimpleDetail> fetchWeeklyPosts() {
-        List<PostSimpleDetail> posts = postQueryRepository.findWeeklyPopularPosts();
-        enrichPostsCommentCount(posts);
-        return posts;
+        return postQueryRepository.findWeeklyPopularPosts();
     }
 
     /**
@@ -83,9 +78,7 @@ public class FeaturedPostScheduleExecutor {
             backoff = @Backoff(delay = 1000, multiplier = 3)
     )
     public List<PostSimpleDetail> fetchLegendaryPosts() {
-        List<PostSimpleDetail> posts = postQueryRepository.findLegendaryPosts();
-        enrichPostsCommentCount(posts);
-        return posts;
+        return postQueryRepository.findLegendaryPosts();
     }
 
     /**
@@ -139,19 +132,4 @@ public class FeaturedPostScheduleExecutor {
         log.error("[FEATURED_SCHEDULE] {} DB 저장 최종 실패 (7회 시도): {}", type, e.getMessage(), e);
     }
 
-    private void enrichPostsCommentCount(List<PostSimpleDetail> posts) {
-        if (posts.isEmpty()) {
-            return;
-        }
-
-        List<Long> postIds = posts.stream()
-                .map(PostSimpleDetail::getId)
-                .toList();
-
-        Map<Long, Integer> commentCounts = postToCommentAdapter.findCommentCountsByPostIds(postIds);
-
-        posts.forEach(post -> {
-            post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
-        });
-    }
 }

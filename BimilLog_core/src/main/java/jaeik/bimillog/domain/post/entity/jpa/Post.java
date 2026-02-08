@@ -17,7 +17,7 @@ import lombok.experimental.SuperBuilder;
  * <p>MySQL 전문검색 인덱스를 지원합니다.</p>
  *
  * @author Jaeik
- * @version 2.8.0
+ * @version 2.9.0
  */
 @Entity
 @Getter
@@ -50,6 +50,15 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private int views;
 
+    @Column(nullable = false)
+    private int likeCount;
+
+    @Column(nullable = false)
+    private int commentCount;
+
+    @Column(length = 50)
+    private String memberName;
+
     private Integer password;
 
     /**
@@ -64,12 +73,15 @@ public class Post extends BaseEntity {
      * @param password   게시글 비밀번호 (선택적)
      * @return 생성된 Post 엔티티
      */
-    public static Post createPost(Member member, String title, String content, Integer password) {
+    public static Post createPost(Member member, String title, String content, Integer password, String memberName) {
         return Post.builder()
                 .member(member)
                 .title(title)
                 .content(content)
                 .views(0)
+                .likeCount(0)
+                .commentCount(0)
+                .memberName(memberName)
                 .password(password)
                 .build();
     }

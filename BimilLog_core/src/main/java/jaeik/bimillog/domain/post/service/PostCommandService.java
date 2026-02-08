@@ -2,12 +2,10 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.async.PostReadModelSync;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.repository.PostReadModelQueryRepository;
-import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -22,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * <h2>게시글 명령 서비스</h2>
@@ -45,9 +42,7 @@ public class PostCommandService {
     private final CommentCommandService commentCommandService;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
-    private final PostReadModelQueryRepository postReadModelQueryRepository;
-    private final PostReadModelRepository postReadModelRepository;
-    private final PostReadModelSync postReadModelSync;
+    private final PostQueryRepository postQueryRepository;
 
     /**
      * 첫 페이지 캐시 크기 (20개)
@@ -83,12 +78,8 @@ public class PostCommandService {
         }
 
         // 영속화
-        Post post = Post.createPost(member, title, content, password);
+        Post post = Post.createPost(member, title, content, password, memberName);
         post = postRepository.save(post);
-
-        // 비동기로 조회용테이블 갱신
-        String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        postReadModelSync.handlePostCreated(eventId, post.getId(), post.getTitle(), memberId, memberName, post.getCreatedAt());
 
         // 첫 페이지 캐시 추가
         try {
@@ -131,10 +122,6 @@ public class PostCommandService {
         // 글 수정
         post.updatePost(title, content);
 
-        // 비동기로 조회용테이블 갱신
-        String eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        postReadModelSync.handlePostUpdated(eventId, postId, title);
-
         // 캐시 무효화 - 인기글인 경우 해당 Hash 필드 삭제
         try {
             redisSimplePostAdapter.removePostFromCache(postId);
@@ -142,21 +129,19 @@ public class PostCommandService {
             log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
         }
 
-        // 첫 페이지 캐시 수정 (PostReadModel에서 조회 후 제목 반영)
+        // 첫 페이지 캐시 수정 (post 엔티티에서 직접 읽기)
         try {
-            postReadModelRepository.findById(postId).ifPresent(readModel -> {
-                PostSimpleDetail updatedDetail = PostSimpleDetail.builder()
-                        .id(postId)
-                        .title(title)  // 새로운 제목 반영
-                        .viewCount(readModel.getViewCount())
-                        .likeCount(readModel.getLikeCount())
-                        .createdAt(readModel.getCreatedAt())
-                        .memberId(readModel.getMemberId())
-                        .memberName(readModel.getMemberName())
-                        .commentCount(readModel.getCommentCount())
-                        .build();
-                redisFirstPagePostAdapter.updatePost(postId, updatedDetail);
-            });
+            PostSimpleDetail updatedDetail = PostSimpleDetail.builder()
+                    .id(postId)
+                    .title(title)  // 새로운 제목 반영
+                    .viewCount(post.getViews())
+                    .likeCount(post.getLikeCount())
+                    .createdAt(post.getCreatedAt())
+                    .memberId(post.getMember() != null ? post.getMember().getId() : null)
+                    .memberName(post.getMemberName())
+                    .commentCount(post.getCommentCount())
+                    .build();
+            redisFirstPagePostAdapter.updatePost(postId, updatedDetail);
         } catch (Exception e) {
             log.warn("첫 페이지 캐시 수정 실패: postId={}", postId);
         }
@@ -195,7 +180,7 @@ public class PostCommandService {
         try {
             redisFirstPagePostAdapter.deletePost(postId, () -> {
                 // 삭제 후 21번째 게시글 조회 (빈 자리 채움)
-                List<PostSimpleDetail> posts = postReadModelQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE + 2);
+                List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE + 2);
                 // 21번째 게시글이 있으면 반환 (인덱스 20)
                 return posts.size() > FIRST_PAGE_SIZE ? posts.get(FIRST_PAGE_SIZE) : null;
             });

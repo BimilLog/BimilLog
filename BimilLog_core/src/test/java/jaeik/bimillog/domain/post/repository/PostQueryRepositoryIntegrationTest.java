@@ -95,15 +95,15 @@ class PostQueryRepositoryIntegrationTest {
 
     private void createTestPosts() {
         // 일반 게시글 1
-        testPost1 = Post.createPost(testMember, "첫 번째 게시글", "첫 번째 게시글 내용", 1234);
+        testPost1 = Post.createPost(testMember, "첫 번째 게시글", "첫 번째 게시글 내용", 1234, testMember.getMemberName());
         entityManager.persistAndFlush(testPost1);
 
         // 일반 게시글 2
-        testPost2 = Post.createPost(testMember, "두 번째 게시글", "두 번째 게시글 내용", 1234);
+        testPost2 = Post.createPost(testMember, "두 번째 게시글", "두 번째 게시글 내용", 1234, testMember.getMemberName());
         entityManager.persistAndFlush(testPost2);
 
         // 일반 게시글 3
-        testPost3 = Post.createPost(testMember, "세 번째 게시글", "세 번째 게시글 내용", 1234);
+        testPost3 = Post.createPost(testMember, "세 번째 게시글", "세 번째 게시글 내용", 1234, testMember.getMemberName());
         entityManager.persistAndFlush(testPost3);
 
         entityManager.flush();

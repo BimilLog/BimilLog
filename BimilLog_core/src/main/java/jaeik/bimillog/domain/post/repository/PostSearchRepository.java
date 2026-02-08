@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
-import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
@@ -26,7 +25,6 @@ public class PostSearchRepository {
     private final PostQueryRepository postQueryRepository;
 
     private static final QPost post = QPost.post;
-    private static final QMember member = QMember.member;
 
     /**
      * <h3>MySQL FULLTEXT 전문 검색</h3>
@@ -80,7 +78,7 @@ public class PostSearchRepository {
      */
     public Page<PostSimpleDetail> findByPrefixMatch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
         BooleanExpression condition = switch (type) {
-            case WRITER -> member.memberName.startsWith(query);
+            case WRITER -> post.memberName.startsWith(query);
             case TITLE -> post.title.startsWith(query);
             case TITLE_CONTENT -> post.title.startsWith(query).or(post.content.startsWith(query));
         };
@@ -104,7 +102,7 @@ public class PostSearchRepository {
     public Page<PostSimpleDetail> findByPartialMatch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
         BooleanExpression condition = switch (type) {
             case TITLE -> post.title.contains(query);
-            case WRITER -> member.memberName.contains(query);
+            case WRITER -> post.memberName.contains(query);
             case TITLE_CONTENT -> post.title.contains(query).or(post.content.contains(query));
         };
 

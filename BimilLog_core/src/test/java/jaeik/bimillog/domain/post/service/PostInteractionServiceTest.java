@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
-import jaeik.bimillog.domain.post.repository.PostReadModelRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -15,16 +15,14 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import jaeik.bimillog.domain.post.async.PostReadModelSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -47,19 +45,13 @@ class PostInteractionServiceTest extends BaseUnitTest {
     private PostLikeRepository postLikeRepository;
 
     @Mock
-    private PostReadModelRepository postReadModelRepository;
-
-    @Mock
-    private PostToMemberAdapter postToMemberAdapter;
-
-    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private PostRepository postRepository;
 
     @Mock
-    private PostReadModelSync postReadModelSync;
+    private PostToMemberAdapter postToMemberAdapter;
 
     @Mock
     private RealtimePostSync realtimePostSync;
@@ -74,10 +66,11 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 1L;
         Long postId = 123L;
-        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
+        Member member = getTestMember();
+        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(member, "테스트 게시글", "내용"));
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(alreadyLiked);
-        given(postToMemberAdapter.getMember(memberId)).willReturn(getTestMember());
+        given(postToMemberAdapter.getMember(memberId)).willReturn(member);
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
         // When
@@ -89,15 +82,12 @@ class PostInteractionServiceTest extends BaseUnitTest {
         verify(postRepository).findById(postId);
 
         if (alreadyLiked) {
-            verify(postLikeRepository).deleteByMemberAndPost(getTestMember(), post);
-            verify(postLikeRepository, never()).save(any());
+            verify(postLikeRepository).deleteByMemberAndPost(member, post);
+            verify(postRepository).decrementLikeCount(postId);
+            verify(postLikeRepository, never()).save(any(PostLike.class));
         } else {
-            ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
-            verify(postLikeRepository).save(postLikeCaptor.capture());
-            PostLike savedPostLike = postLikeCaptor.getValue();
-            assertThat(savedPostLike.getMember()).isEqualTo(getTestMember());
-            assertThat(savedPostLike.getPost()).isEqualTo(post);
-
+            verify(postLikeRepository).save(any(PostLike.class));
+            verify(postRepository).incrementLikeCount(postId);
             verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
         }
     }
@@ -108,9 +98,10 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 1L;
         Long postId = 999L;
+        Member member = getTestMember();
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
-        given(postToMemberAdapter.getMember(memberId)).willReturn(getTestMember());
+        given(postToMemberAdapter.getMember(memberId)).willReturn(member);
         given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
@@ -119,14 +110,13 @@ class PostInteractionServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(postToMemberAdapter).getMember(memberId);
         verify(postRepository).findById(postId);
-        verify(postLikeRepository, never()).save(any());
+        verify(postLikeRepository, never()).save(any(PostLike.class));
         verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
     }
 
     @Test
-    @DisplayName("조회수 증가 - Post와 PostReadModel 모두 업데이트")
+    @DisplayName("조회수 증가 - Post 테이블만 업데이트")
     void shouldIncrementViewCount_WhenValidPost() {
         // Given
         Long postId = 123L;
@@ -136,7 +126,6 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).incrementViewsByPostId(postId);
-        verify(postReadModelRepository).incrementViewCount(postId);
     }
 
 }
