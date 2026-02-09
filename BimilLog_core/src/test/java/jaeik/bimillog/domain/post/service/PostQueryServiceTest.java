@@ -134,28 +134,25 @@ class PostQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("게시판 조회 (커서 기반, 비회원) - 캐시 미스 시 DB 조회")
+    @DisplayName("게시판 조회 (커서 기반, 비회원) - 캐시 미스 시 빈 리스트 반환 + 비동기 갱신")
     void shouldGetBoardByCursor_ForGuest_CacheMiss() {
         // Given
         Long cursor = null;
         int size = 10;
-        PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
-        List<PostSimpleDetail> posts = List.of(postResult);
 
         given(redisFirstPagePostAdapter.getFirstPage()).willReturn(Collections.emptyList());
-        given(postQueryRepository.findBoardPostsByCursor(null, 20)).willReturn(posts);
-        given(postUtil.removePostsWithBlacklist(null, posts)).willReturn(posts);
+        given(postUtil.removePostsWithBlacklist(null, Collections.emptyList())).willReturn(Collections.emptyList());
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
 
-        // Then
-        assertThat(result.content()).hasSize(1);
-        assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
+        // Then: 캐시 미스 시 빈 리스트 반환, DB 폴백 없음
+        assertThat(result.content()).isEmpty();
         assertThat(result.hasNext()).isFalse();
 
         verify(redisFirstPagePostAdapter).getFirstPage();
-        verify(postQueryRepository).findBoardPostsByCursor(null, 20);
+        verify(cacheRefreshExecutor).asyncRefreshWithLock();
+        verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
     @Test

@@ -98,9 +98,10 @@ public class RealtimePostSync {
      * <p>분산 락을 획득한 뒤 ZSET에서 인기글 ID를 조회하고 DB에서 상세 정보를 가져와 HASH를 갱신합니다.</p>
      * <p>락 획득 실패 시 다른 스레드가 이미 갱신 중이므로 스킵합니다.</p>
      */
-    @Async("cacheRefreshExecutor")
+    @Async("cacheRefreshPool")
     public void asyncRefreshRealtimeWithLock(List<Long> zsetPostIds) {
-        if (!redisSimplePostAdapter.tryAcquireRealtimeRefreshLock()) {
+        String lockValue = redisSimplePostAdapter.tryAcquireRealtimeRefreshLock();
+        if (lockValue == null) {
             return;
         }
 
@@ -117,7 +118,7 @@ public class RealtimePostSync {
         } catch (Exception e) {
             log.warn("실시간 인기글 해시 갱신 실패: {}", e.getMessage());
         } finally {
-            redisSimplePostAdapter.releaseRealtimeRefreshLock();
+            redisSimplePostAdapter.releaseRealtimeRefreshLock(lockValue);
         }
     }
 

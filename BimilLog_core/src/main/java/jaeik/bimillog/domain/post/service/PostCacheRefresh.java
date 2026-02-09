@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.scheduler.PostCacheRefreshScheduler;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
@@ -43,11 +44,7 @@ public class PostCacheRefresh {
     private final FeaturedPostRepository featuredPostRepository;
 
 
-    /**
-     * 주간/레전드 인기글 캐시 TTL (24시간 30분)
-     * <p>Hash 캐시에 직접 적용</p>
-     */
-    public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofHours(24).plusMinutes(30);
+    public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND;
 
 
 

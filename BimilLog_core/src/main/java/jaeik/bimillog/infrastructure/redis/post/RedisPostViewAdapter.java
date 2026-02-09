@@ -1,8 +1,10 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -25,25 +27,34 @@ import java.util.concurrent.TimeUnit;
 public class RedisPostViewAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String VIEW_COUNTS_FLUSH_KEY = "post:view:counts" + ":flush";
+    private static final String VIEW_PREFIX = RedisKey.VIEW_PREFIX;
+    private static final long VIEW_TTL_SECONDS = RedisKey.VIEW_TTL_SECONDS;
+    private static final String VIEW_COUNTS_KEY = RedisKey.VIEW_COUNTS_KEY;
 
     /**
-     * 게시글 조회 이력 SET 키 접두사
-     * <p>Value Type: SET (값: m:{memberId} 또는 ip:{clientIp})</p>
-     * <p>전체 키 형식: post:view:{postId}</p>
+     * 조회 마킹 + 조회수 증가를 원자적으로 수행하는 Lua 스크립트.
+     * SISMEMBER → SADD → EXPIRE → HINCRBY를 단일 트랜잭션으로 처리하여 레이스 컨디션 방지.
      */
-    public static final String VIEW_PREFIX = "post:view:";
+    private static final String MARK_VIEWED_AND_INCREMENT_SCRIPT =
+            "if redis.call('SISMEMBER', KEYS[1], ARGV[1]) == 1 then " +
+            "    return 0 " +
+            "end " +
+            "redis.call('SADD', KEYS[1], ARGV[1]) " +
+            "redis.call('EXPIRE', KEYS[1], tonumber(ARGV[3])) " +
+            "redis.call('HINCRBY', KEYS[2], ARGV[2], 1) " +
+            "return 1";
 
     /**
-     * 조회 이력 TTL (24시간)
+     * 조회수 버퍼를 원자적으로 읽고 삭제하는 Lua 스크립트.
+     * EXISTS → HGETALL → DEL을 단일 트랜잭션으로 처리하여 RENAME 갭 문제 해결.
      */
-    public static final long VIEW_TTL_SECONDS = TimeUnit.HOURS.toSeconds(24);
-
-    /**
-     * 게시글 조회수 버퍼 Hash 키
-     * <p>Value Type: Hash (field=postId, value=증가량)</p>
-     */
-    public static final String VIEW_COUNTS_KEY = "post:view:counts";
+    private static final String GET_AND_CLEAR_VIEW_COUNTS_SCRIPT =
+            "if redis.call('EXISTS', KEYS[1]) == 0 then " +
+            "    return nil " +
+            "end " +
+            "local entries = redis.call('HGETALL', KEYS[1]) " +
+            "redis.call('DEL', KEYS[1]) " +
+            "return entries";
 
     /**
      * <h3>조회 여부 확인</h3>
@@ -83,28 +94,49 @@ public class RedisPostViewAdapter {
     }
 
     /**
-     * <h3>조회수 버퍼 조회 및 초기화</h3>
-     * <p>RENAME 패턴으로 버퍼를 임시 키로 옮긴 후 안전하게 읽습니다.</p>
-     * <p>RENAME은 원자적이므로 키 스왑 시점에 유입되는 HINCRBY는 새 키에 쌓입니다.</p>
+     * <h3>조회 마킹 + 조회수 증가 (원자적)</h3>
+     * <p>Lua 스크립트로 SISMEMBER → SADD → EXPIRE → HINCRBY를 원자적으로 처리합니다.</p>
+     * <p>동시 요청 시 중복 조회수 증가를 방지합니다.</p>
+     *
+     * @param postId    게시글 ID
+     * @param viewerKey 조회자 키 (m:{memberId} 또는 ip:{clientIp})
+     * @return 조회수가 증가되었으면 true, 이미 조회한 경우 false
+     */
+    public boolean markViewedAndIncrement(Long postId, String viewerKey) {
+        String viewSetKey = VIEW_PREFIX + postId;
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(MARK_VIEWED_AND_INCREMENT_SCRIPT, Long.class);
+        Long result = redisTemplate.execute(
+                script,
+                List.of(viewSetKey, VIEW_COUNTS_KEY),
+                viewerKey, postId.toString(), String.valueOf(VIEW_TTL_SECONDS)
+        );
+
+        return result != null && result == 1L;
+    }
+
+    /**
+     * <h3>조회수 버퍼 조회 및 초기화 (원자적)</h3>
+     * <p>Lua 스크립트로 EXISTS → HGETALL → DEL을 원자적으로 처리합니다.</p>
+     * <p>RENAME 패턴의 갭 문제와 다중 인스턴스 데이터 손실을 방지합니다.</p>
      *
      * @return postId → 증가량 맵 (비어있으면 빈 맵)
      */
+    @SuppressWarnings("unchecked")
     public Map<Long, Long> getAndClearViewCounts() {
-        Boolean exists = redisTemplate.hasKey(VIEW_COUNTS_KEY);
-        if (Boolean.FALSE.equals(exists)) {
+        DefaultRedisScript<List> script = new DefaultRedisScript<>(GET_AND_CLEAR_VIEW_COUNTS_SCRIPT, List.class);
+        List<Object> result = redisTemplate.execute(script, List.of(VIEW_COUNTS_KEY));
+
+        if (result == null || result.isEmpty()) {
             return Collections.emptyMap();
         }
-
-        Boolean renamed = redisTemplate.renameIfAbsent(VIEW_COUNTS_KEY, VIEW_COUNTS_FLUSH_KEY);
-        if (Boolean.FALSE.equals(renamed)) {
-            return Collections.emptyMap();
-        }
-
-        Map<Object, Object> entries = redisTemplate.opsForHash().entries(VIEW_COUNTS_FLUSH_KEY);
-        redisTemplate.delete(VIEW_COUNTS_FLUSH_KEY);
 
         Map<Long, Long> counts = new HashMap<>();
-        entries.forEach((k, v) -> counts.put(Long.parseLong(k.toString()), Long.parseLong(v.toString())));
+        for (int i = 0; i < result.size(); i += 2) {
+            String key = result.get(i).toString();
+            String value = result.get(i + 1).toString();
+            counts.put(Long.parseLong(key), Long.parseLong(value));
+        }
         return counts;
     }
 }

@@ -91,6 +91,7 @@ class PopularPostQueryRepositoryIntegrationTest {
                 .content(content)
                 .views(views)
                 .password(1234)
+                .memberName(testMember.getMemberName())
                 .createdAt(createdAt)
                 .modifiedAt(Instant.now())
                 .build();
@@ -121,6 +122,11 @@ class PopularPostQueryRepositoryIntegrationTest {
                     .build();
             postLikeRepository.save(postLike);
         }
+        // 비정규화 컬럼 likeCount 동기화
+        entityManager.createQuery("UPDATE Post p SET p.likeCount = :count WHERE p.id = :id")
+                .setParameter("count", count)
+                .setParameter("id", post.getId())
+                .executeUpdate();
         entityManager.flush();
     }
 

@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.paper;
 
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 
@@ -14,11 +15,7 @@ public final class RedisPaperKeys {
 
     // ===================== 1. KEYS (Redis 키) =====================
 
-    /**
-     * 실시간 인기 롤링페이퍼 점수 Sorted Set 키
-     * <p>Value Type: ZSet (memberId, score)</p>
-     */
-    public static final String REALTIME_PAPER_SCORE_KEY = "paper:realtime:score";
+    public static final String REALTIME_PAPER_SCORE_KEY = RedisKey.REALTIME_PAPER_SCORE_KEY;
 
     // ===================== 2. SCORE CONSTANTS (점수 관련 상수) =====================
 

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter.REALTIME_POST_SCORE_KEY;
+import static jaeik.bimillog.infrastructure.redis.RedisKey.REALTIME_POST_SCORE_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

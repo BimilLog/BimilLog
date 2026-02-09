@@ -68,6 +68,6 @@ public class FriendInteractionListener {
     @Recover
     public void recoverPostLiked(Exception e, FriendInteractionEvent event) {
         event.getDlqMessage(e);
-        friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.getTargetMemberId(), event.getMemberId(), INTERACTION_SCORE_DEFAULT);
+        friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.getMemberId(), event.getTargetMemberId(), INTERACTION_SCORE_DEFAULT);
     }
 }

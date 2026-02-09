@@ -55,10 +55,10 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 작성 성공 - 유효한 데이터")
     void writePost_Success() throws Exception {
-        PostCreateDTO postCreateDTO = TestFixtures.createPostRequest(
-                "통합 테스트 게시글",
-                "게시글 작성 통합 테스트 내용입니다."
-        );
+        PostCreateDTO postCreateDTO = PostCreateDTO.builder()
+                .title("통합 테스트 게시글")
+                .content("게시글 작성 통합 테스트 내용입니다.")
+                .build();
 
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -267,7 +267,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 삭제 실패 - 존재하지 않는 게시글")
     void deletePost_Fail_NotFound() throws Exception {
-        mockMvc.perform(delete("/api/post/{postId}", 99999L)
+        mockMvc.perform(delete("/api/post/{postId}", Long.MAX_VALUE)
                         .with(user(savedUserDetails))
                         .with(csrf()))
                 .andDo(print())
@@ -294,7 +294,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 추천 실패 - 존재하지 않는 게시글")
     void likePost_Fail_NotFound() throws Exception {
-        mockMvc.perform(post("/api/post/{postId}/like", 99999L)
+        mockMvc.perform(post("/api/post/{postId}/like", Long.MAX_VALUE)
                         .with(user(savedUserDetails))
                         .with(csrf()))
                 .andDo(print())
@@ -323,7 +323,10 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         String title = "a".repeat(30);
         String content = "가".repeat(1000);
 
-        PostCreateDTO postCreateDTO = TestFixtures.createPostRequest(title, content);
+        PostCreateDTO postCreateDTO = PostCreateDTO.builder()
+                .title(title)
+                .content(content)
+                .build();
 
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -402,7 +405,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(updateReqDTO))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     @Test

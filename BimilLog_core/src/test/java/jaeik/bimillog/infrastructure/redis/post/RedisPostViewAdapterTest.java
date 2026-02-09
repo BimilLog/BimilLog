@@ -11,12 +11,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
+import org.springframework.data.redis.core.script.RedisScript;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter.VIEW_COUNTS_KEY;
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter.VIEW_TTL_SECONDS;
+import static jaeik.bimillog.infrastructure.redis.RedisKey.VIEW_COUNTS_KEY;
+import static jaeik.bimillog.infrastructure.redis.RedisKey.VIEW_TTL_SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -104,15 +106,39 @@ class RedisPostViewAdapterTest {
     }
 
     @Test
-    @DisplayName("조회수 버퍼 조회 및 초기화 - 키가 존재하고 RENAME 성공 시 데이터 반환")
-    void getAndClearViewCounts_shouldReturnMapAndClear() {
+    @DisplayName("원자적 조회 마킹 + 조회수 증가 - 새로운 조회 시 1 반환")
+    void markViewedAndIncrement_shouldReturnTrue_whenNewView() {
         // Given
-        String flushKey = VIEW_COUNTS_KEY + ":flush";
-        given(redisTemplate.hasKey(VIEW_COUNTS_KEY)).willReturn(true);
-        given(redisTemplate.renameIfAbsent(VIEW_COUNTS_KEY, flushKey)).willReturn(true);
-        given(redisTemplate.opsForHash()).willReturn(hashOperations);
-        given(hashOperations.entries(flushKey)).willReturn(Map.of("1", 5L, "2", 3L));
-        given(redisTemplate.delete(flushKey)).willReturn(true);
+        given(redisTemplate.execute(any(RedisScript.class), anyList(), any(), any(), any()))
+                .willReturn(1L);
+
+        // When
+        boolean result = adapter.markViewedAndIncrement(1L, "m:100");
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    @DisplayName("원자적 조회 마킹 + 조회수 증가 - 이미 조회한 경우 0 반환")
+    void markViewedAndIncrement_shouldReturnFalse_whenAlreadyViewed() {
+        // Given
+        given(redisTemplate.execute(any(RedisScript.class), anyList(), any(), any(), any()))
+                .willReturn(0L);
+
+        // When
+        boolean result = adapter.markViewedAndIncrement(1L, "m:100");
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("조회수 버퍼 조회 및 초기화 - Lua 스크립트로 원자적 처리 후 데이터 반환")
+    void getAndClearViewCounts_shouldReturnMapAndClear() {
+        // Given: Lua 스크립트가 HGETALL 결과를 flat list로 반환
+        given(redisTemplate.execute(any(RedisScript.class), anyList()))
+                .willReturn(List.of("1", "5", "2", "3"));
 
         // When
         Map<Long, Long> result = adapter.getAndClearViewCounts();
@@ -121,28 +147,14 @@ class RedisPostViewAdapterTest {
         assertThat(result).hasSize(2);
         assertThat(result.get(1L)).isEqualTo(5L);
         assertThat(result.get(2L)).isEqualTo(3L);
-        verify(redisTemplate).delete(flushKey);
     }
 
     @Test
     @DisplayName("조회수 버퍼 조회 및 초기화 - 키가 존재하지 않으면 빈 맵 반환")
     void getAndClearViewCounts_shouldReturnEmptyMap_whenKeyNotExists() {
-        // Given
-        given(redisTemplate.hasKey(VIEW_COUNTS_KEY)).willReturn(false);
-
-        // When
-        Map<Long, Long> result = adapter.getAndClearViewCounts();
-
-        // Then
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    @DisplayName("조회수 버퍼 조회 및 초기화 - RENAME 실패 시 빈 맵 반환")
-    void getAndClearViewCounts_shouldReturnEmptyMap_whenRenameFails() {
-        // Given
-        given(redisTemplate.hasKey(VIEW_COUNTS_KEY)).willReturn(true);
-        given(redisTemplate.renameIfAbsent(VIEW_COUNTS_KEY, VIEW_COUNTS_KEY + ":flush")).willReturn(false);
+        // Given: Lua 스크립트가 nil 반환 → Java에서 null
+        given(redisTemplate.execute(any(RedisScript.class), anyList()))
+                .willReturn(null);
 
         // When
         Map<Long, Long> result = adapter.getAndClearViewCounts();

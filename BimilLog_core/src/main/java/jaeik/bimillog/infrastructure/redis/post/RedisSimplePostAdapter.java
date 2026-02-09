@@ -3,15 +3,16 @@ package jaeik.bimillog.infrastructure.redis.post;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import java.time.Duration;
 
 /**
  * <h2>레디스 게시글 캐시 저장소 어댑터</h2>
@@ -29,27 +30,15 @@ public class RedisSimplePostAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**
-     * 스케줄러 분산 락 TTL (90초)
-     * <p>스케줄러 주기(60초)보다 길게 설정하여 락 해제 전 다른 인스턴스가 획득하지 못하게 합니다.</p>
+     * 락 해제 시 자신의 UUID인 경우에만 DEL하는 Lua 스크립트.
+     * TTL 만료 후 다른 인스턴스의 락을 삭제하는 Lock Overlap 문제를 방지.
      */
-    public static final Duration SCHEDULER_LOCK_TTL = Duration.ofSeconds(90);
+    private static final String SAFE_RELEASE_LOCK_SCRIPT =
+            "if redis.call('GET', KEYS[1]) == ARGV[1] then " +
+            "    return redis.call('DEL', KEYS[1]) " +
+            "end " +
+            "return 0";
 
-    /**
-     * 조회 시 HASH 갱신 분산 락 TTL (10초)
-     */
-    public static final Duration REALTIME_REFRESH_LOCK_TTL = Duration.ofSeconds(10);
-
-    /**
-     * 스케줄러 분산 락 키
-     * <p>다중 인스턴스 환경에서 하나의 스케줄러만 캐시를 갱신하도록 보장합니다.</p>
-     */
-    public static final String SCHEDULER_LOCK_KEY = "post:cache:scheduler:lock";
-
-    /**
-     * 조회 시 HASH 갱신 분산 락 키
-     * <p>HASH-ZSET ID 불일치 감지 시 비동기 갱신을 위한 락입니다.</p>
-     */
-    public static final String REALTIME_REFRESH_LOCK_KEY = "post:realtime:refresh:lock";
 
 
 
@@ -204,62 +193,67 @@ public class RedisSimplePostAdapter {
     // ===================== 스케줄러 분산 락 관련 메서드 =====================
 
     /**
-     * <h3>스케줄러 분산 락 획득 시도 (SET NX)</h3>
+     * <h3>스케줄러 분산 락 획득 시도 (SET NX + UUID)</h3>
      * <p>다중 인스턴스 환경에서 하나의 스케줄러만 캐시를 갱신하도록 보장합니다.</p>
+     * <p>UUID를 락 값으로 저장하여 해제 시 자신의 락만 삭제할 수 있도록 합니다.</p>
      *
-     * @return 락 획득 성공 시 true
+     * @return 락 획득 성공 시 UUID, 실패 시 null
      */
-    public boolean tryAcquireSchedulerLock() {
+    public String tryAcquireSchedulerLock() {
+        String lockValue = UUID.randomUUID().toString();
         Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
-                SCHEDULER_LOCK_KEY,
-                "1",
-                SCHEDULER_LOCK_TTL
+                RedisKey.SCHEDULER_LOCK_KEY,
+                lockValue,
+                RedisKey.SCHEDULER_LOCK_TTL
         );
 
-        return Boolean.TRUE.equals(acquired);
+        return Boolean.TRUE.equals(acquired) ? lockValue : null;
     }
 
     /**
-     * <h3>스케줄러 분산 락 해제</h3>
-     * <p>스케줄러 실행 완료 후 락을 해제합니다.</p>
+     * <h3>스케줄러 분산 락 안전 해제 (Lua 스크립트)</h3>
+     * <p>자신의 UUID와 일치하는 경우에만 락을 삭제합니다.</p>
+     * <p>TTL 만료 후 다른 인스턴스가 획득한 락을 실수로 삭제하는 문제를 방지합니다.</p>
+     *
+     * @param lockValue 락 획득 시 반환받은 UUID
      */
-    public void releaseSchedulerLock() {
-        redisTemplate.delete(SCHEDULER_LOCK_KEY);
+    public void releaseSchedulerLock(String lockValue) {
+        if (lockValue == null) {
+            return;
+        }
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(SAFE_RELEASE_LOCK_SCRIPT, Long.class);
+        redisTemplate.execute(script, List.of(RedisKey.SCHEDULER_LOCK_KEY), lockValue);
     }
 
     /**
-     * <h3>조회 시 HASH 갱신 분산 락 획득 시도 (SET NX)</h3>
+     * <h3>조회 시 HASH 갱신 분산 락 획득 시도 (SET NX + UUID)</h3>
      * <p>HASH-ZSET ID 불일치 감지 시 비동기 갱신을 위한 락입니다.</p>
      * <p>스케줄러 락과 별도로 동작합니다.</p>
      *
-     * @return 락 획득 성공 시 true
+     * @return 락 획득 성공 시 UUID, 실패 시 null
      */
-    public boolean tryAcquireRealtimeRefreshLock() {
+    public String tryAcquireRealtimeRefreshLock() {
+        String lockValue = UUID.randomUUID().toString();
         Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
-                REALTIME_REFRESH_LOCK_KEY,
-                "1",
-                REALTIME_REFRESH_LOCK_TTL
+                RedisKey.REALTIME_REFRESH_LOCK_KEY,
+                lockValue,
+                RedisKey.REALTIME_REFRESH_LOCK_TTL
         );
-        return Boolean.TRUE.equals(acquired);
+        return Boolean.TRUE.equals(acquired) ? lockValue : null;
     }
 
     /**
-     * <h3>조회 시 HASH 갱신 분산 락 해제</h3>
-     */
-    public void releaseRealtimeRefreshLock() {
-        redisTemplate.delete(REALTIME_REFRESH_LOCK_KEY);
-    }
-
-    /**
-     * <h3>Hash 키 전체 삭제</h3>
-     * <p>특정 타입의 Hash 캐시를 전체 삭제합니다.</p>
+     * <h3>조회 시 HASH 갱신 분산 락 안전 해제 (Lua 스크립트)</h3>
+     * <p>자신의 UUID와 일치하는 경우에만 락을 삭제합니다.</p>
      *
-     * @param type 삭제할 캐시 유형
+     * @param lockValue 락 획득 시 반환받은 UUID
      */
-    public void deleteHash(PostCacheFlag type) {
-        String hashKey = getSimplePostHashKey(type);
-        redisTemplate.delete(hashKey);
-        log.info("[CACHE_DELETE_HASH] hashKey={}", hashKey);
+    public void releaseRealtimeRefreshLock(String lockValue) {
+        if (lockValue == null) {
+            return;
+        }
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(SAFE_RELEASE_LOCK_SCRIPT, Long.class);
+        redisTemplate.execute(script, List.of(RedisKey.REALTIME_REFRESH_LOCK_KEY), lockValue);
     }
 
     /**
@@ -271,7 +265,12 @@ public class RedisSimplePostAdapter {
      * @return 생성된 Hash 키 (형식: post:{type}:simple)
      */
     public static String getSimplePostHashKey(PostCacheFlag type) {
-        return "post:" + type.name().toLowerCase() + ":simple";
+        return switch (type) {
+            case REALTIME -> RedisKey.REALTIME_SIMPLE_KEY;
+            case WEEKLY -> RedisKey.WEEKLY_SIMPLE_KEY;
+            case LEGEND -> RedisKey.LEGEND_SIMPLE_KEY;
+            case NOTICE -> RedisKey.NOTICE_SIMPLE_KEY;
+        };
     }
 
 }

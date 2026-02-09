@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
@@ -43,7 +44,8 @@ class PostCacheRefreshSchedulerTest {
     @DisplayName("분산 락 획득 성공 → REALTIME, WEEKLY, LEGEND 순차 갱신")
     void shouldRefreshAllCaches_WhenLockAcquired() {
         // Given
-        given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn(true);
+        String lockValue = "test-uuid";
+        given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn(lockValue);
 
         // When
         scheduler.refreshAllCaches();
@@ -52,14 +54,14 @@ class PostCacheRefreshSchedulerTest {
         verify(realtimePostSync).refreshRealtime();
         verify(postCacheRefresh).refreshFeatured(PostCacheFlag.WEEKLY);
         verify(postCacheRefresh).refreshFeatured(PostCacheFlag.LEGEND);
-        verify(redisSimplePostAdapter).releaseSchedulerLock();
+        verify(redisSimplePostAdapter).releaseSchedulerLock(lockValue);
     }
 
     @Test
     @DisplayName("분산 락 획득 실패 → 갱신 스킵")
     void shouldSkipRefresh_WhenLockNotAcquired() {
         // Given
-        given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn(false);
+        given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn(null);
 
         // When
         scheduler.refreshAllCaches();
@@ -68,14 +70,15 @@ class PostCacheRefreshSchedulerTest {
         verify(realtimePostSync, never()).refreshRealtime();
         verify(postCacheRefresh, never()).refreshFeatured(PostCacheFlag.WEEKLY);
         verify(postCacheRefresh, never()).refreshFeatured(PostCacheFlag.LEGEND);
-        verify(redisSimplePostAdapter, never()).releaseSchedulerLock();
+        verify(redisSimplePostAdapter, never()).releaseSchedulerLock(anyString());
     }
 
     @Test
     @DisplayName("REALTIME 갱신 실패 → WEEKLY, LEGEND 계속 진행 (safeRefresh)")
     void shouldContinueToNextType_WhenRealtimeFails() {
         // Given
-        given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn(true);
+        String lockValue = "test-uuid";
+        given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn(lockValue);
         willThrow(new RuntimeException("Redis 연결 실패"))
                 .given(realtimePostSync).refreshRealtime();
 
@@ -85,14 +88,15 @@ class PostCacheRefreshSchedulerTest {
         // Then: REALTIME 실패해도 WEEKLY, LEGEND는 계속 진행
         verify(postCacheRefresh).refreshFeatured(PostCacheFlag.WEEKLY);
         verify(postCacheRefresh).refreshFeatured(PostCacheFlag.LEGEND);
-        verify(redisSimplePostAdapter).releaseSchedulerLock();
+        verify(redisSimplePostAdapter).releaseSchedulerLock(lockValue);
     }
 
     @Test
     @DisplayName("모든 타입 갱신 실패해도 분산 락은 반드시 해제")
     void shouldReleaseLock_WhenAllRefreshFails() {
         // Given
-        given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn(true);
+        String lockValue = "test-uuid";
+        given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn(lockValue);
         willThrow(new RuntimeException("예상치 못한 오류"))
                 .given(realtimePostSync).refreshRealtime();
         willThrow(new RuntimeException("예상치 못한 오류"))
@@ -104,6 +108,6 @@ class PostCacheRefreshSchedulerTest {
         scheduler.refreshAllCaches();
 
         // Then: 모든 갱신 실패해도 락 해제
-        verify(redisSimplePostAdapter).releaseSchedulerLock();
+        verify(redisSimplePostAdapter).releaseSchedulerLock(lockValue);
     }
 }

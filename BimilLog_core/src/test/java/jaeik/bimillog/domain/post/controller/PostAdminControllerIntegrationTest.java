@@ -137,7 +137,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 공지 토글 실패 - 존재하지 않는 게시글")
     void togglePostNotice_Fail_PostNotFound() throws Exception {
         // Given
-        Long nonExistentPostId = 99999L;
+        Long nonExistentPostId = Long.MAX_VALUE;
 
         // When & Then - 404 Not Found 예상 (CustomException -> PostExceptionHandler)
         performPost("/api/post/" + nonExistentPostId + "/notice", null, adminUserDetails)

@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter.REALTIME_POST_SCORE_KEY;
+import static jaeik.bimillog.infrastructure.redis.RedisKey.REALTIME_POST_SCORE_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

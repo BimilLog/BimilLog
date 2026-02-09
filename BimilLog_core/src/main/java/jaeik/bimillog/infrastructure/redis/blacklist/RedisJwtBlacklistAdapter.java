@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.blacklist;
 
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,8 +24,7 @@ public class RedisJwtBlacklistAdapter {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    // Redis 키 접두사
-    private static final String BLACKLIST_KEY_PREFIX = "TemporaryToken:blacklist:";
+    private static final String BLACKLIST_KEY_PREFIX = RedisKey.BLACKLIST_KEY_PREFIX;
 
     /**
      * <h3>토큰 해시 블랙리스트 여부 확인</h3>
