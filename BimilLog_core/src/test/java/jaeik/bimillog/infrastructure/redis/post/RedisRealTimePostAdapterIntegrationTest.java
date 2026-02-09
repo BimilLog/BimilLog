@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,7 +54,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         }
 
         // When: 실시간 인기글 ID 조회 (항상 상위 5개)
-        List<Long> result = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
+        List<Long> result = redisRealTimePostAdapter.getRangePostId();
 
         // Then: 상위 5개 반환
         assertThat(result).hasSize(5);
@@ -68,7 +67,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         // Given: 데이터 없음
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
+        List<Long> result = redisRealTimePostAdapter.getRangePostId();
 
         // Then: 빈 목록 반환
         assertThat(result).isEmpty();
@@ -86,7 +85,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, 500L, 20.0);
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
+        List<Long> result = redisRealTimePostAdapter.getRangePostId();
 
         // Then: 점수 내림차순으로 정렬됨
         assertThat(result).containsExactly(400L, 200L, 500L, 100L, 300L); // 30, 25, 20, 15, 10

@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
@@ -16,8 +15,8 @@ import java.util.stream.Collectors;
 
 /**
  * <h2>레디스 게시글 캐시 저장소 어댑터</h2>
- * <p>게시글 목록 캐시를 타입별 Hash 구조로 관리합니다.</p>
- * <p>각 타입별로 하나의 Hash 키를 사용하여 N+1 문제를 해결합니다.</p>
+ * <p>게시글 목록 캐시를 Hash 구조로 관리합니다.</p>
+ * <p>각 캐시는 RedisKey 상수로 직접 참조합니다.</p>
  * <p>키 형식: post:{type}:simple (Hash, field=postId, value=PostSimpleDetail)</p>
  *
  * @author Jaeik
@@ -39,25 +38,27 @@ public class RedisSimplePostAdapter {
             "end " +
             "return 0";
 
-
-
-
-
+    /**
+     * 전체 게시글 목록 Hash 키 (수정/삭제 시 캐시 정리용)
+     */
+    private static final List<String> ALL_SIMPLE_HASH_KEYS = List.of(
+            RedisKey.REALTIME_SIMPLE_KEY,
+            RedisKey.WEEKLY_SIMPLE_KEY,
+            RedisKey.LEGEND_SIMPLE_KEY,
+            RedisKey.NOTICE_SIMPLE_KEY
+    );
 
     /**
      * <h3>HGETALL로 Hash 전체 캐시 조회</h3>
-     * <p>타입별 Hash에서 모든 게시글을 한 번에 조회합니다.</p>
+     * <p>지정된 Hash 키에서 모든 게시글을 한 번에 조회합니다.</p>
      *
-     * @param type 캐시 유형
+     * @param hashKey Redis Hash 키
      * @return postId를 키로, PostSimpleDetail을 값으로 하는 Map (캐시가 없으면 빈 Map)
      */
-    public Map<Long, PostSimpleDetail> getAllCachedPosts(PostCacheFlag type) {
-        String hashKey = getSimplePostHashKey(type);
-        String logPrefix = "post:" + type.name().toLowerCase() + ":simple";
-
+    public Map<Long, PostSimpleDetail> getAllCachedPosts(String hashKey) {
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(hashKey);
         if (entries.isEmpty()) {
-            CacheMetricsLogger.miss(log, logPrefix, "hgetall", "empty");
+            CacheMetricsLogger.miss(log, hashKey, "hgetall", "empty");
             return Collections.emptyMap();
         }
 
@@ -69,38 +70,35 @@ public class RedisSimplePostAdapter {
             }
         }
 
-        CacheMetricsLogger.hit(log, logPrefix, "hgetall", result.size());
+        CacheMetricsLogger.hit(log, hashKey, "hgetall", result.size());
         return result;
     }
 
     /**
-     * <h3>단일 캐시 삭제 (HDEL)</h3>
-     * <p>모든 캐시 유형의 Hash에서 특정 postId 필드를 삭제합니다.</p>
+     * <h3>모든 featured 캐시에서 단일 게시글 삭제 (HDEL)</h3>
+     * <p>주간/레전드/공지 Hash에서 특정 postId 필드를 삭제합니다.</p>
      *
      * @param postId 제거할 게시글 ID
      */
     public void removePostFromCache(Long postId) {
         String field = postId.toString();
-        for (PostCacheFlag type : PostCacheFlag.values()) {
-            String hashKey = getSimplePostHashKey(type);
+        for (String hashKey : ALL_SIMPLE_HASH_KEYS) {
             redisTemplate.opsForHash().delete(hashKey, field);
         }
     }
 
     /**
-     * <h3>특정 타입의 단일 캐시 삭제 (HDEL)</h3>
+     * <h3>특정 Hash에서 단일 캐시 삭제 (HDEL)</h3>
      *
-     * @param type   캐시 유형
-     * @param postId 제거할 게시글 ID
+     * @param hashKey Redis Hash 키
+     * @param postId  제거할 게시글 ID
      */
-    public void removePostFromCache(PostCacheFlag type, Long postId) {
+    public void removePostFromCache(String hashKey, Long postId) {
         if (postId == null) {
             return;
         }
 
-        String hashKey = getSimplePostHashKey(type);
         String field = postId.toString();
-
         redisTemplate.opsForHash().delete(hashKey, field);
 
         log.debug("[CACHE_DELETE] hashKey={}, field={}", hashKey, field);
@@ -108,19 +106,17 @@ public class RedisSimplePostAdapter {
 
     /**
      * <h3>단일 게시글 Hash 캐시 추가 (HSET)</h3>
-     * <p>특정 타입의 Hash에 게시글 1건을 추가합니다.</p>
+     * <p>특정 Hash에 게시글 1건을 추가합니다.</p>
      *
-     * @param type 캐시 유형
-     * @param post 저장할 게시글
+     * @param hashKey Redis Hash 키
+     * @param post    저장할 게시글
      */
-    public void putPostToCache(PostCacheFlag type, PostSimpleDetail post) {
+    public void putPostToCache(String hashKey, PostSimpleDetail post) {
         if (post == null || post.getId() == null) {
             return;
         }
 
-        String hashKey = getSimplePostHashKey(type);
         String field = post.getId().toString();
-
         redisTemplate.opsForHash().put(hashKey, field, post);
 
         log.debug("[CACHE_PUT] hashKey={}, field={}", hashKey, field);
@@ -130,25 +126,19 @@ public class RedisSimplePostAdapter {
 
     /**
      * <h3>여러 게시글 Hash 캐시 저장 (TTL 지정)</h3>
-     * <p>주간/레전드 인기글에 TTL 1일을 적용하기 위해 사용합니다.</p>
      * <p>기존 Hash를 삭제 후 새로 저장합니다.</p>
      *
-     * @param type  캐시 유형
-     * @param posts 저장할 게시글 목록
-     * @param ttl   캐시 TTL
+     * @param hashKey Redis Hash 키
+     * @param posts   저장할 게시글 목록
+     * @param ttl     캐시 TTL (null이면 영구 저장)
      */
-    public void cachePostsWithTtl(PostCacheFlag type, List<PostSimpleDetail> posts, Duration ttl) {
+    public void cachePostsWithTtl(String hashKey, List<PostSimpleDetail> posts, Duration ttl) {
         if (posts == null || posts.isEmpty()) {
             return;
         }
 
-        String hashKey = getSimplePostHashKey(type);
-
         log.info("[CACHE_WRITE] START - hashKey={}, count={}, ttl={}",
                 hashKey, posts.size(), ttl);
-
-        // 기존 캐시 삭제 (전체 교체)
-        redisTemplate.delete(hashKey);
 
         // Map<String, PostSimpleDetail>로 변환
         Map<String, PostSimpleDetail> hashData = posts.stream()
@@ -158,13 +148,14 @@ public class RedisSimplePostAdapter {
                         p -> p
                 ));
 
-        // HMSET 1회로 저장
-        redisTemplate.opsForHash().putAll(hashKey, hashData);
-
-        // TTL 적용 (null이면 TTL 없음 = 영구 저장)
+        // 임시 키에 HMSET → RENAME으로 원자적 교체 (빈 상태 노출 방지)
+        String tmpKey = hashKey + ":tmp";
+        redisTemplate.delete(tmpKey);
+        redisTemplate.opsForHash().putAll(tmpKey, hashData);
         if (ttl != null) {
-            redisTemplate.expire(hashKey, ttl);
+            redisTemplate.expire(tmpKey, ttl);
         }
+        redisTemplate.rename(tmpKey, hashKey);
 
         log.info("[CACHE_WRITE] SUCCESS - hashKey={}, count={}, ttl={}",
                 hashKey, hashData.size(), ttl != null ? ttl : "PERMANENT");
@@ -172,14 +163,13 @@ public class RedisSimplePostAdapter {
 
     /**
      * <h3>HGETALL로 Hash 전체 캐시 조회 (List 반환)</h3>
-     * <p>타입별 Hash에서 모든 게시글을 조회하여 List로 반환합니다.</p>
-     * <p>주간/레전드/공지는 ID 순으로 정렬되어 반환됩니다.</p>
+     * <p>지정된 Hash에서 모든 게시글을 조회하여 ID 역순 List로 반환합니다.</p>
      *
-     * @param type 캐시 유형
+     * @param hashKey Redis Hash 키
      * @return PostSimpleDetail 리스트 (캐시가 없으면 빈 리스트)
      */
-    public List<PostSimpleDetail> getAllCachedPostsList(PostCacheFlag type) {
-        Map<Long, PostSimpleDetail> cachedPosts = getAllCachedPosts(type);
+    public List<PostSimpleDetail> getAllCachedPostsList(String hashKey) {
+        Map<Long, PostSimpleDetail> cachedPosts = getAllCachedPosts(hashKey);
         if (cachedPosts.isEmpty()) {
             return Collections.emptyList();
         }
@@ -254,23 +244,6 @@ public class RedisSimplePostAdapter {
         }
         DefaultRedisScript<Long> script = new DefaultRedisScript<>(SAFE_RELEASE_LOCK_SCRIPT, Long.class);
         redisTemplate.execute(script, List.of(RedisKey.REALTIME_REFRESH_LOCK_KEY), lockValue);
-    }
-
-    /**
-     * <h3>게시글 목록 캐시 Hash 키 생성</h3>
-     * <p>타입별로 하나의 Hash 키를 생성합니다.</p>
-     * <p>예: post:weekly:simple, post:realtime:simple</p>
-     *
-     * @param type 게시글 캐시 유형
-     * @return 생성된 Hash 키 (형식: post:{type}:simple)
-     */
-    public static String getSimplePostHashKey(PostCacheFlag type) {
-        return switch (type) {
-            case REALTIME -> RedisKey.REALTIME_SIMPLE_KEY;
-            case WEEKLY -> RedisKey.WEEKLY_SIMPLE_KEY;
-            case LEGEND -> RedisKey.LEGEND_SIMPLE_KEY;
-            case NOTICE -> RedisKey.NOTICE_SIMPLE_KEY;
-        };
     }
 
 }

@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.domain.post.util.PostUtil;
@@ -25,7 +25,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -64,7 +63,7 @@ class RealtimePostCacheServiceTest {
     @BeforeEach
     void setUp() {
         // 기본: ZSET 조회 시 빈 리스트 반환 (비교 로직에서 사용)
-        given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong())).willReturn(List.of());
+        given(redisRealTimePostAdapter.getRangePostId()).willReturn(List.of());
 
         realtimePostCacheService = new RealtimePostCacheService(
                 postQueryRepository,
@@ -85,9 +84,9 @@ class RealtimePostCacheServiceTest {
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2");
         List<PostSimpleDetail> cachedPosts = List.of(simpleDetail2, simpleDetail1);
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
+        given(redisSimplePostAdapter.getAllCachedPostsList(RedisKey.REALTIME_SIMPLE_KEY))
                 .willReturn(cachedPosts);
-        given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
+        given(redisRealTimePostAdapter.getRangePostId())
                 .willReturn(List.of(2L, 1L));
         given(postUtil.paginate(cachedPosts, pageable))
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
@@ -101,7 +100,7 @@ class RealtimePostCacheServiceTest {
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("실시간 인기글 1");
         assertThat(result.getTotalElements()).isEqualTo(2);
 
-        verify(redisSimplePostAdapter).getAllCachedPostsList(PostCacheFlag.REALTIME);
+        verify(redisSimplePostAdapter).getAllCachedPostsList(RedisKey.REALTIME_SIMPLE_KEY);
         verify(realtimePostSync, never()).asyncRefreshRealtimeWithLock(any());
     }
 
@@ -114,9 +113,9 @@ class RealtimePostCacheServiceTest {
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2");
         List<PostSimpleDetail> cachedPosts = List.of(simpleDetail2, simpleDetail1);
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
+        given(redisSimplePostAdapter.getAllCachedPostsList(RedisKey.REALTIME_SIMPLE_KEY))
                 .willReturn(cachedPosts);
-        given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
+        given(redisRealTimePostAdapter.getRangePostId())
                 .willReturn(List.of(3L, 2L));
         given(postUtil.paginate(cachedPosts, pageable))
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
@@ -139,9 +138,9 @@ class RealtimePostCacheServiceTest {
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
         List<PostSimpleDetail> cachedPosts = List.of(simpleDetail1);
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
+        given(redisSimplePostAdapter.getAllCachedPostsList(RedisKey.REALTIME_SIMPLE_KEY))
                 .willReturn(cachedPosts);
-        given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
+        given(redisRealTimePostAdapter.getRangePostId())
                 .willThrow(new RuntimeException("ZSET 조회 실패"));
         given(postUtil.paginate(cachedPosts, pageable))
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 1));
@@ -160,7 +159,7 @@ class RealtimePostCacheServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME)).willReturn(List.of());
+        given(redisSimplePostAdapter.getAllCachedPostsList(RedisKey.REALTIME_SIMPLE_KEY)).willReturn(List.of());
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);

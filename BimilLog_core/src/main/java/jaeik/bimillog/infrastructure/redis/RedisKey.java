@@ -18,7 +18,7 @@ public final class RedisKey {
 
     public static final String FIRST_PAGE_LIST_KEY = "post:board:first-page";
     public static final String FIRST_PAGE_REFRESH_LOCK_KEY = "post:board:refresh:lock";
-    public static final Duration FIRST_PAGE_CACHE_TTL = Duration.ofHours(1);
+    public static final Duration FIRST_PAGE_CACHE_TTL = Duration.ofHours(24);
     public static final Duration FIRST_PAGE_REFRESH_LOCK_TTL = Duration.ofMinutes(5);
     public static final int FIRST_PAGE_SIZE = 20;
 

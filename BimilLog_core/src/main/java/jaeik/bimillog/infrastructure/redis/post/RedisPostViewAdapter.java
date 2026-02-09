@@ -112,7 +112,7 @@ public class RedisPostViewAdapter {
                 viewerKey, postId.toString(), String.valueOf(VIEW_TTL_SECONDS)
         );
 
-        return result != null && result == 1L;
+        return result == 1L;
     }
 
     /**
@@ -127,7 +127,7 @@ public class RedisPostViewAdapter {
         DefaultRedisScript<List> script = new DefaultRedisScript<>(GET_AND_CLEAR_VIEW_COUNTS_SCRIPT, List.class);
         List<Object> result = redisTemplate.execute(script, List.of(VIEW_COUNTS_KEY));
 
-        if (result == null || result.isEmpty()) {
+        if (result.isEmpty()) {
             return Collections.emptyMap();
         }
 

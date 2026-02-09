@@ -1,9 +1,8 @@
 package jaeik.bimillog.domain.post.entity.jpa;
 
 /**
- * <h2>게시글 캐시 플래그</h2>
- * <p>게시글의 캐시 분류와 인기글 상태를 나타내는 열거형입니다.</p>
- * <p>REALTIME: 실시간 인기 게시글 (최근 24시간 내 인기글)</p>
+ * <h2>게시글 특집 타입</h2>
+ * <p>Post.featuredType 컬럼에 저장되는 게시글 분류 열거형입니다.</p>
  * <p>WEEKLY: 주간 인기 게시글 (7일 간 인기글)</p>
  * <p>LEGEND: 전설의 게시글 (높은 인기도를 얻은 명예의 게시글)</p>
  * <p>NOTICE: 공지사항 게시글 (관리자가 지정한 공지)</p>
@@ -12,5 +11,5 @@ package jaeik.bimillog.domain.post.entity.jpa;
  * @version 2.0.0
  */
 public enum PostCacheFlag {
-    REALTIME, WEEKLY, LEGEND, NOTICE;
+    WEEKLY, LEGEND, NOTICE;
 }

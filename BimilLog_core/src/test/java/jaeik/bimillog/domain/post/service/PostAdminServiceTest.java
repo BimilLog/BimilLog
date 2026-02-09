@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -81,7 +82,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Then
         verify(postRepository).findById(postId);
         // NOTICE 캐시 단건 추가 (HSET)
-        verify(redisSimplePostAdapter).putPostToCache(PostCacheFlag.NOTICE, mockDetail);
+        verify(redisSimplePostAdapter).putPostToCache(RedisKey.NOTICE_SIMPLE_KEY, mockDetail);
     }
 
     @Test
@@ -98,7 +99,7 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postRepository).findById(postId);
-        verify(redisSimplePostAdapter, never()).removePostFromCache(PostCacheFlag.NOTICE, postId);
+        verify(redisSimplePostAdapter, never()).removePostFromCache(RedisKey.NOTICE_SIMPLE_KEY, postId);
     }
 
     @Test
@@ -123,6 +124,6 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Then
         verify(postRepository).findById(postId);
         // NOTICE 캐시 단건 삭제 (HDEL)
-        verify(redisSimplePostAdapter).removePostFromCache(PostCacheFlag.NOTICE, postId);
+        verify(redisSimplePostAdapter).removePostFromCache(RedisKey.NOTICE_SIMPLE_KEY, postId);
     }
 }

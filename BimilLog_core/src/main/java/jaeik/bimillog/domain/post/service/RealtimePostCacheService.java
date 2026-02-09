@@ -1,12 +1,13 @@
 package jaeik.bimillog.domain.post.service;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import jaeik.bimillog.domain.post.scheduler.RealTimePostScheduler;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
  * <h2>RealtimePostCacheService</h2>
  * <p>실시간 인기글 목록 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
  * <p>Hash 캐시에서 직접 조회하며, 캐시 미스 시 빈 페이지를 즉시 반환합니다.</p>
- * <p>캐시 갱신은 {@link jaeik.bimillog.domain.post.scheduler.PostCacheRefreshScheduler}가 담당합니다.</p>
+ * <p>캐시 갱신은 {@link RealTimePostScheduler}가 담당합니다.</p>
  * <p>realtimeRedis 서킷브레이커가 적용되어 Redis 장애 시 Caffeine → DB 폴백 경로로 전환합니다.</p>
  *
  * @author Jaeik
@@ -56,7 +57,7 @@ public class RealtimePostCacheService {
      */
     @CircuitBreaker(name = REALTIME_REDIS_CIRCUIT, fallbackMethod = "getRealtimePostsFallback")
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
-        List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME);
+        List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(RedisKey.REALTIME_SIMPLE_KEY);
 
         if (!cachedPosts.isEmpty()) {
             CacheMetricsLogger.hit(log, "realtime", "simple", cachedPosts.size());
@@ -117,7 +118,7 @@ public class RealtimePostCacheService {
                     .map(PostSimpleDetail::getId)
                     .collect(Collectors.toSet());
 
-            List<Long> zsetPostIds = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
+            List<Long> zsetPostIds = redisRealTimePostAdapter.getRangePostId();
             if (zsetPostIds.isEmpty()) {
                 return;
             }

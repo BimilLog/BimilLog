@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,12 +51,12 @@ public class PostAdminService {
             if (isCurrentlyNotice) {
                 // 공지 해제: featuredType null로 + 캐시 단건 삭제
                 post.updateFeaturedType(null);
-                redisSimplePostAdapter.removePostFromCache(PostCacheFlag.NOTICE, postId);
+                redisSimplePostAdapter.removePostFromCache(RedisKey.NOTICE_SIMPLE_KEY, postId);
             } else {
                 // 공지 설정: featuredType NOTICE로 + 캐시 단건 추가
                 post.updateFeaturedType(PostCacheFlag.NOTICE);
                 Optional<PostSimpleDetail> detail = postQueryRepository.findPostSimpleDetailById(postId);
-                detail.ifPresent(d -> redisSimplePostAdapter.putPostToCache(PostCacheFlag.NOTICE, d));
+                detail.ifPresent(d -> redisSimplePostAdapter.putPostToCache(RedisKey.NOTICE_SIMPLE_KEY, d));
             }
         } catch (Exception e) {
             log.error("공지 설정/해제 중 오류 발생: postId={}", postId, e);

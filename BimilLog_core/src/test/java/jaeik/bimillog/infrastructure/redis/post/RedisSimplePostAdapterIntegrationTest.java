@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,14 +14,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static jaeik.bimillog.domain.post.service.PostCacheRefresh.getTtlForType;
-import static jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter.getSimplePostHashKey;
-import jaeik.bimillog.infrastructure.redis.RedisKey;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -113,15 +111,15 @@ class RedisSimplePostAdapterIntegrationTest {
     @DisplayName("정상 케이스 - HGETALL로 Hash 전체 캐시 조회")
     void shouldReturnAllCachedPosts_WhenCacheExists() {
         // Given: Hash 캐시로 저장
-        PostCacheFlag type = PostCacheFlag.WEEKLY;
+        String hashKey = RedisKey.WEEKLY_SIMPLE_KEY;
         List<PostSimpleDetail> posts = List.of(
                 toSimpleDetail(testPostDetail1),
                 toSimpleDetail(testPostDetail2)
         );
-        redisSimplePostAdapter.cachePostsWithTtl(type, posts, getTtlForType(type));
+        redisSimplePostAdapter.cachePostsWithTtl(hashKey, posts, RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND);
 
         // When: HGETALL로 조회
-        Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getAllCachedPosts(type);
+        Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getAllCachedPosts(hashKey);
 
         // Then
         assertThat(result).hasSize(2);
@@ -133,10 +131,9 @@ class RedisSimplePostAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 빈 Hash 조회 시 빈 Map 반환")
     void shouldReturnEmptyMap_WhenCacheEmpty() {
         // Given: 캐시 없음
-        PostCacheFlag type = PostCacheFlag.WEEKLY;
 
         // When
-        Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getAllCachedPosts(type);
+        Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getAllCachedPosts(RedisKey.WEEKLY_SIMPLE_KEY);
 
         // Then
         assertThat(result).isEmpty();
@@ -146,14 +143,13 @@ class RedisSimplePostAdapterIntegrationTest {
     @DisplayName("정상 케이스 - Hash 캐시 저장 및 TTL 확인")
     void shouldCachePosts_WithCorrectTTL() {
         // Given
-        PostCacheFlag type = PostCacheFlag.WEEKLY;
+        String hashKey = RedisKey.WEEKLY_SIMPLE_KEY;
         List<PostSimpleDetail> posts = List.of(toSimpleDetail(testPostDetail1));
 
         // When: 저장
-        redisSimplePostAdapter.cachePostsWithTtl(type, posts, getTtlForType(type));
+        redisSimplePostAdapter.cachePostsWithTtl(hashKey, posts, RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND);
 
         // Then: Hash 키 존재 및 TTL 확인
-        String hashKey = getSimplePostHashKey(type);
         assertThat(redisTemplate.hasKey(hashKey)).isTrue();
 
         Long ttl = redisTemplate.getExpire(hashKey, TimeUnit.SECONDS);
@@ -168,18 +164,17 @@ class RedisSimplePostAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 여러 게시글 Hash 캐시 저장 (HMSET)")
     void shouldCachePosts_WhenMultiplePostsProvided() {
         // Given
-        PostCacheFlag type = PostCacheFlag.REALTIME;
+        String hashKey = RedisKey.REALTIME_SIMPLE_KEY;
         List<PostSimpleDetail> posts = List.of(
                 toSimpleDetail(testPostDetail1),
                 toSimpleDetail(testPostDetail2),
                 toSimpleDetail(testPostDetail3)
         );
 
-        // When: 여러 개 저장 (HMSET)
-        redisSimplePostAdapter.cachePostsWithTtl(type, posts, getTtlForType(type));
+        // When: 여러 개 저장 (HMSET) - 영구 저장
+        redisSimplePostAdapter.cachePostsWithTtl(hashKey, posts, null);
 
         // Then: Hash 키 존재 확인
-        String hashKey = getSimplePostHashKey(type);
         assertThat(redisTemplate.hasKey(hashKey)).isTrue();
 
         // Hash 필드 개수 확인
@@ -193,19 +188,19 @@ class RedisSimplePostAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 단일 캐시 삭제 (HDEL)")
+    @DisplayName("정상 케이스 - 단일 캐시 삭제 (HDEL) - 모든 featured 캐시에서 삭제")
     void shouldRemovePostFromCache() {
-        // Given: 모든 타입에 게시글 캐시 저장
+        // Given: 모든 featured 타입에 게시글 캐시 저장
         Long postId = 1L;
         List<PostSimpleDetail> posts = List.of(toSimpleDetail(testPostDetail1));
 
-        for (PostCacheFlag type : PostCacheFlag.values()) {
-            redisSimplePostAdapter.cachePostsWithTtl(type, posts, getTtlForType(type));
+        String[] hashKeys = {RedisKey.WEEKLY_SIMPLE_KEY, RedisKey.LEGEND_SIMPLE_KEY, RedisKey.NOTICE_SIMPLE_KEY};
+        for (String hashKey : hashKeys) {
+            redisSimplePostAdapter.cachePostsWithTtl(hashKey, posts, null);
         }
 
         // 저장 확인
-        for (PostCacheFlag type : PostCacheFlag.values()) {
-            String hashKey = getSimplePostHashKey(type);
+        for (String hashKey : hashKeys) {
             assertThat(redisTemplate.opsForHash().hasKey(hashKey, "1")).isTrue();
         }
 
@@ -213,8 +208,7 @@ class RedisSimplePostAdapterIntegrationTest {
         redisSimplePostAdapter.removePostFromCache(postId);
 
         // Then: 모든 타입에서 삭제됨
-        for (PostCacheFlag type : PostCacheFlag.values()) {
-            String hashKey = getSimplePostHashKey(type);
+        for (String hashKey : hashKeys) {
             assertThat(redisTemplate.opsForHash().hasKey(hashKey, "1")).isFalse();
         }
     }
@@ -226,45 +220,25 @@ class RedisSimplePostAdapterIntegrationTest {
         Long postId = 1L;
         List<PostSimpleDetail> posts = List.of(toSimpleDetail(testPostDetail1));
 
-        redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.WEEKLY, posts, getTtlForType(PostCacheFlag.WEEKLY));
-        redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.LEGEND, posts, getTtlForType(PostCacheFlag.LEGEND));
+        redisSimplePostAdapter.cachePostsWithTtl(RedisKey.WEEKLY_SIMPLE_KEY, posts, RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND);
+        redisSimplePostAdapter.cachePostsWithTtl(RedisKey.LEGEND_SIMPLE_KEY, posts, RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND);
 
         // When: WEEKLY만 삭제
-        redisSimplePostAdapter.removePostFromCache(PostCacheFlag.WEEKLY, postId);
+        redisSimplePostAdapter.removePostFromCache(RedisKey.WEEKLY_SIMPLE_KEY, postId);
 
         // Then: WEEKLY는 삭제, LEGEND는 유지
-        String weeklyHashKey = getSimplePostHashKey(PostCacheFlag.WEEKLY);
-        String legendHashKey = getSimplePostHashKey(PostCacheFlag.LEGEND);
-
-        assertThat(redisTemplate.opsForHash().hasKey(weeklyHashKey, "1")).isFalse();
-        assertThat(redisTemplate.opsForHash().hasKey(legendHashKey, "1")).isTrue();
+        assertThat(redisTemplate.opsForHash().hasKey(RedisKey.WEEKLY_SIMPLE_KEY, "1")).isFalse();
+        assertThat(redisTemplate.opsForHash().hasKey(RedisKey.LEGEND_SIMPLE_KEY, "1")).isTrue();
     }
 
     @Test
-    @DisplayName("정상 케이스 - Hash 키 생성 확인")
-    void shouldGenerateHashKey() {
-        // Given
-        PostCacheFlag type = PostCacheFlag.REALTIME;
-
-        // When
-        String hashKey = getSimplePostHashKey(type);
-
-        // Then: Hash 키 형식 확인
-        assertThat(hashKey).isEqualTo("post:realtime:simple");
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 각 타입별 Hash 키 생성")
-    void shouldGenerateHashKeysForAllTypes() {
+    @DisplayName("정상 케이스 - 각 타입별 Hash 키 확인")
+    void shouldHaveCorrectHashKeys() {
         // When & Then
-        assertThat(getSimplePostHashKey(PostCacheFlag.WEEKLY))
-                .isEqualTo("post:weekly:simple");
-        assertThat(getSimplePostHashKey(PostCacheFlag.LEGEND))
-                .isEqualTo("post:legend:simple");
-        assertThat(getSimplePostHashKey(PostCacheFlag.NOTICE))
-                .isEqualTo("post:notice:simple");
-        assertThat(getSimplePostHashKey(PostCacheFlag.REALTIME))
-                .isEqualTo("post:realtime:simple");
+        assertThat(RedisKey.WEEKLY_SIMPLE_KEY).isEqualTo("post:weekly:simple");
+        assertThat(RedisKey.LEGEND_SIMPLE_KEY).isEqualTo("post:legend:simple");
+        assertThat(RedisKey.NOTICE_SIMPLE_KEY).isEqualTo("post:notice:simple");
+        assertThat(RedisKey.REALTIME_SIMPLE_KEY).isEqualTo("post:realtime:simple");
     }
 
 }

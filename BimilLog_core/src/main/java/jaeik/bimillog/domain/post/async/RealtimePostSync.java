@@ -1,38 +1,33 @@
 package jaeik.bimillog.domain.post.async;
 
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * <h2>실시간 인기글 점수 업데이트 리스너</h2>
+ * <h2>실시간 인기글 점수 업데이트 및 비동기 캐시 갱신</h2>
  * <p>게시글 조회, 댓글 작성, 추천 이벤트를 수신하여 실시간 인기글 점수를 업데이트합니다.</p>
  * <p>조회: +2점, 댓글: +3점/-3점, 추천: +4점/-4점</p>
  * <p>비동기 처리를 통해 이벤트 발행자와 독립적으로 실행됩니다.</p>
- * <p>Redis 장애 시 @CircuitBreaker가 자동으로 ConcurrentHashMap 폴백을 처리합니다.</p>
+ * <p>HASH-ZSET 불일치 감지 시 비동기 락 기반 HASH 갱신을 수행합니다.</p>
+ * <p>스케줄 기반 캐시 갱신은 {@link jaeik.bimillog.domain.post.scheduler.RealTimePostScheduler}가 담당합니다.</p>
  *
  * @author Jaeik
- * @version 2.6.0
+ * @version 2.8.0
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "실시간 인기글 점수")
 @Component
@@ -42,55 +37,10 @@ public class RealtimePostSync {
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final PostQueryRepository postQueryRepository;
-    private final CircuitBreakerRegistry circuitBreakerRegistry;
-    private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
 
-    private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
-    private static final int REALTIME_FALLBACK_LIMIT = 5;
     private static final double VIEW_SCORE = 2.0;
     private static final double COMMENT_SCORE = 3.0;
     private static final double LIKE_SCORE = 4.0;
-
-    /**
-     * <h3>실시간 인기글 캐시 동기 갱신</h3>
-     * <p>서킷 상태에 따라 Redis ZSet 또는 Caffeine에서 인기글 ID를 조회한 뒤 DB에서 상세 정보를 가져와 캐시에 저장합니다.</p>
-     * <p>실패 시 최대 3회 재시도합니다 (2s → 4s 지수 백오프).</p>
-     */
-    @Retryable(
-            retryFor = Exception.class,
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 2000, multiplier = 2)
-    )
-    public void refreshRealtime() {
-        List<Long> postIds = getRealtimePostIds();
-        if (postIds.isEmpty()) return;
-
-        List<PostSimpleDetail> posts = postIds.stream()
-                .map(postId -> postQueryRepository.findPostDetail(postId, null).orElse(null))
-                .filter(Objects::nonNull)
-                .map(PostDetail::toSimpleDetail)
-                .toList();
-
-        if (posts.isEmpty()) return;
-
-        redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.REALTIME, posts, null);
-    }
-
-    /**
-     * <h3>실시간 인기글 ID 조회</h3>
-     * 서킷이 열리면 카페인, 닫히면 레디스에서 5위까지의 인기글 ID를 조회한다.
-     * @return 5위까지 글 ID
-     */
-    private List<Long> getRealtimePostIds() {
-        CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(REALTIME_REDIS_CIRCUIT);
-        CircuitBreaker.State state = cb.getState();
-
-        if (state == CircuitBreaker.State.OPEN || state == CircuitBreaker.State.FORCED_OPEN) {
-            log.info("[SCHEDULER] REALTIME 서킷 OPEN - Caffeine 폴백으로 갱신");
-            return realtimeScoreFallbackStore.getTopPostIds(0, REALTIME_FALLBACK_LIMIT);
-        }
-        return redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
-    }
 
     /**
      * <h3>조회 시 HASH-ZSET 불일치 감지 → 비동기 HASH 갱신</h3>
@@ -114,7 +64,7 @@ public class RealtimePostSync {
             if (posts.isEmpty()) {
                 return;
             }
-            redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.REALTIME, posts, null);
+            redisSimplePostAdapter.cachePostsWithTtl(RedisKey.REALTIME_SIMPLE_KEY, posts, null);
         } catch (Exception e) {
             log.warn("실시간 인기글 해시 갱신 실패: {}", e.getMessage());
         } finally {
