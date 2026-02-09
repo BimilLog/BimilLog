@@ -16,6 +16,8 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,7 +37,7 @@ import java.util.Objects;
  * <p>이벤트 발행을 통한 알림 시스템 연동</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 3.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -48,6 +50,8 @@ public class CommentCommandService {
     private final CommentDeleteRepository commentDeleteRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentClosureRepository commentClosureRepository;
+    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
+    private final RedisPostHashAdapter redisPostHashAdapter;
 
     /**
      * <h3>댓글 작성</h3>
@@ -89,8 +93,8 @@ public class CommentCommandService {
 
             saveCommentWithClosure(post, member, content, password, parentId);
 
-            // 동기적으로 댓글 수 증가
-            postRepository.incrementCommentCount(postId);
+            // Redis 버퍼 + 캐시 즉시 반영 (DB는 스케줄러가 배치 처리)
+            incrementCommentCountWithFallback(postId, 1);
 
             // 익명 댓글이 아니고, 자기 게시글이 아닌 경우에만 이벤트 발행
             if (memberId != null && post.getMember() != null && !Objects.equals(post.getMember().getId(), memberId)) {
@@ -147,8 +151,8 @@ public class CommentCommandService {
             commentDeleteRepository.deleteComment(commentId); // 어댑터 직접 호출로 하드 삭제
         }
 
-        // 동기적으로 댓글 수 감소
-        postRepository.decrementCommentCount(postId);
+        // Redis 버퍼 + 캐시 즉시 반영 (DB는 스케줄러가 배치 처리)
+        incrementCommentCountWithFallback(postId, -1);
 
         // 실시간 인기글 점수 감소 이벤트 발행
         eventPublisher.publishEvent(new CommentDeletedEvent(postId));
@@ -248,8 +252,6 @@ public class CommentCommandService {
      * @param memberId    사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param password  댓글 비밀번호 (익명 댓글인 경우)
      * @return Comment 유효성 검사를 통과한 댓글 엔티티
-     * @author Jaeik
-     * @since 2.0.0
      */
     private Comment validateComment(Long commentId, Long memberId, Integer password) {
         Comment comment = commentRepository.findById(commentId)
@@ -273,9 +275,25 @@ public class CommentCommandService {
      * @param content  댓글 내용
      * @param password 댓글 비밀번호 (선택 사항)
      * @param parentId 부모 댓글 ID (대댓글인 경우)
-     * @author Jaeik
-     * @since 2.0.0
      */
+    /**
+     * <h3>댓글수 Redis 버퍼 증감 + 캐시 즉시 반영</h3>
+     * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
+     */
+    private void incrementCommentCountWithFallback(Long postId, long delta) {
+        try {
+            redisPostUpdateAdapter.incrementCommentBuffer(postId, delta);
+            redisPostHashAdapter.incrementCount(postId, RedisPostHashAdapter.FIELD_COMMENT_COUNT, delta);
+        } catch (Exception e) {
+            log.warn("[COMMENT_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
+            if (delta > 0) {
+                postRepository.incrementCommentCount(postId);
+            } else {
+                postRepository.decrementCommentCount(postId);
+            }
+        }
+    }
+
     private void saveCommentWithClosure(Post post, Member member, String content, Integer password, Long parentId) {
         Comment comment = Comment.createComment(post, member, content, password);
         Comment savedComment = commentRepository.save(comment);

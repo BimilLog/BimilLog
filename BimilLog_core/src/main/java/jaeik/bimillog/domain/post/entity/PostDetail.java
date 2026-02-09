@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.entity;
 
 import com.querydsl.core.annotations.QueryProjection;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,7 +35,9 @@ public class PostDetail implements Serializable {
     private String memberName;
     private Integer commentCount;
     private boolean isLiked;
-    private PostCacheFlag featuredType;
+    private boolean isWeekly;
+    private boolean isLegend;
+    private boolean isNotice;
 
     /**
      * <h3>생성자 - QueryDSL Projection용</h3>
@@ -48,7 +49,7 @@ public class PostDetail implements Serializable {
     public PostDetail(Long id, String title, String content, Integer viewCount,
                      Integer likeCount, Instant createdAt, Long memberId,
                      String memberName, Integer commentCount, boolean isLiked,
-                     PostCacheFlag featuredType) {
+                     boolean isWeekly, boolean isLegend, boolean isNotice) {
         this.id = id;
         this.title = title;
         this.content = content;
@@ -59,7 +60,9 @@ public class PostDetail implements Serializable {
         this.memberName = memberName;
         this.commentCount = commentCount;
         this.isLiked = isLiked;
-        this.featuredType = featuredType;
+        this.isWeekly = isWeekly;
+        this.isLegend = isLegend;
+        this.isNotice = isNotice;
     }
 
     /**
@@ -85,7 +88,9 @@ public class PostDetail implements Serializable {
                 .memberName(this.memberName)
                 .commentCount(this.commentCount)
                 .isLiked(isLiked)
-                .featuredType(this.featuredType)
+                .isWeekly(this.isWeekly)
+                .isLegend(this.isLegend)
+                .isNotice(this.isNotice)
                 .build();
     }
 
@@ -109,7 +114,9 @@ public class PostDetail implements Serializable {
                 .memberId(this.memberId)
                 .memberName(this.memberName)
                 .commentCount(this.commentCount)
-                .featuredType(this.featuredType)
+                .isWeekly(this.isWeekly)
+                .isLegend(this.isLegend)
+                .isNotice(this.isNotice)
                 .build();
     }
 }

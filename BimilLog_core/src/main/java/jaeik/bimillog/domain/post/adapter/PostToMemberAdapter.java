@@ -3,8 +3,6 @@ package jaeik.bimillog.domain.post.adapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.service.MemberBlacklistService;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

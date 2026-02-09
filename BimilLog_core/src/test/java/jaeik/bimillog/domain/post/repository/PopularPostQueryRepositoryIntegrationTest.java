@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.post.repository;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestMembers;
@@ -84,7 +83,7 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.flush();
     }
 
-    private Post createAndSavePost(String title, String content, int views, PostCacheFlag flag, Instant createdAt) {
+    private Post createAndSavePost(String title, String content, int views, Instant createdAt) {
         Post post = Post.builder()
                 .member(testMember)
                 .title(title)
@@ -134,9 +133,9 @@ class PopularPostQueryRepositoryIntegrationTest {
     @DisplayName("정상 케이스 - 주간 인기 게시글 조회 (지난 7일)")
     void shouldFindWeeklyPopularPosts() {
         // Given
-        Post weekPost1 = createAndSavePost("주간 인기 게시글1", "내용", 20, PostCacheFlag.WEEKLY, Instant.now().minus(3, ChronoUnit.DAYS));
-        Post weekPost2 = createAndSavePost("주간 인기 게시글2", "내용", 15, PostCacheFlag.WEEKLY, Instant.now().minus(5, ChronoUnit.DAYS));
-        createAndSavePost("오래된 게시글", "내용", 200, PostCacheFlag.WEEKLY, Instant.now().minus(10, ChronoUnit.DAYS));
+        Post weekPost1 = createAndSavePost("주간 인기 게시글1", "내용", 20, Instant.now().minus(3, ChronoUnit.DAYS));
+        Post weekPost2 = createAndSavePost("주간 인기 게시글2", "내용", 15, Instant.now().minus(5, ChronoUnit.DAYS));
+        createAndSavePost("오래된 게시글", "내용", 200, Instant.now().minus(10, ChronoUnit.DAYS));
 
         addLikesToPost(weekPost1, 10);
         addLikesToPost(weekPost2, 12);
@@ -161,9 +160,9 @@ class PopularPostQueryRepositoryIntegrationTest {
     @DisplayName("정상 케이스 - 전설의 게시글 조회 (추천 20개 이상)")
     void shouldFindLegendaryPosts() {
         // Given
-        Post legendPost1 = createAndSavePost("전설의 게시글1", "내용", 50, PostCacheFlag.LEGEND, Instant.now().minus(30, ChronoUnit.DAYS));
-        Post legendPost2 = createAndSavePost("전설의 게시글2", "내용", 60, PostCacheFlag.LEGEND, Instant.now().minus(60, ChronoUnit.DAYS));
-        Post normalPost = createAndSavePost("일반 게시글", "내용", 5, PostCacheFlag.LEGEND, Instant.now().minus(10, ChronoUnit.DAYS));
+        Post legendPost1 = createAndSavePost("전설의 게시글1", "내용", 50, Instant.now().minus(30, ChronoUnit.DAYS));
+        Post legendPost2 = createAndSavePost("전설의 게시글2", "내용", 60, Instant.now().minus(60, ChronoUnit.DAYS));
+        Post normalPost = createAndSavePost("일반 게시글", "내용", 5, Instant.now().minus(10, ChronoUnit.DAYS));
 
         addLikesToPost(legendPost1, 25);
         addLikesToPost(legendPost2, 30);
@@ -189,11 +188,11 @@ class PopularPostQueryRepositoryIntegrationTest {
     @DisplayName("정상 케이스 - 최근 인기 게시글 조회 (1시간 이내, 조회수+추천수*30 정렬)")
     void shouldFindRecentPopularPosts() {
         // Given: 1시간 이내 게시글 3개 (인기도 다르게 설정)
-        Post recentPost1 = createAndSavePost("최근 인기글1", "내용", 100, PostCacheFlag.REALTIME, Instant.now().minus(30, ChronoUnit.MINUTES));
-        Post recentPost2 = createAndSavePost("최근 인기글2", "내용", 10, PostCacheFlag.REALTIME, Instant.now().minus(20, ChronoUnit.MINUTES));
-        Post recentPost3 = createAndSavePost("최근 인기글3", "내용", 50, PostCacheFlag.REALTIME, Instant.now().minus(10, ChronoUnit.MINUTES));
+        Post recentPost1 = createAndSavePost("최근 인기글1", "내용", 100, Instant.now().minus(30, ChronoUnit.MINUTES));
+        Post recentPost2 = createAndSavePost("최근 인기글2", "내용", 10, Instant.now().minus(20, ChronoUnit.MINUTES));
+        Post recentPost3 = createAndSavePost("최근 인기글3", "내용", 50, Instant.now().minus(10, ChronoUnit.MINUTES));
         // 2시간 전 게시글 (조회되면 안 됨)
-        createAndSavePost("오래된 게시글", "내용", 500, PostCacheFlag.REALTIME, Instant.now().minus(2, ChronoUnit.HOURS));
+        createAndSavePost("오래된 게시글", "내용", 500, Instant.now().minus(2, ChronoUnit.HOURS));
 
         // recentPost2에 좋아요 5개 추가 → 인기도: 10 + (5*30) = 160
         addLikesToPost(recentPost2, 5);
@@ -217,7 +216,7 @@ class PopularPostQueryRepositoryIntegrationTest {
     @DisplayName("정상 케이스 - 게시글 상세 조회")
     void shouldFindPostDetail_WhenValidPostIdProvided() {
         // Given
-        Post post = createAndSavePost("상세 조회 게시글", "상세 내용", 10, PostCacheFlag.REALTIME, Instant.now());
+        Post post = createAndSavePost("상세 조회 게시글", "상세 내용", 10, Instant.now());
         addLikesToPost(post, 3);
 
         entityManager.flush();

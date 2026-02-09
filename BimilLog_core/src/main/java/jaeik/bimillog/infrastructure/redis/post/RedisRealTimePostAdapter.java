@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +42,7 @@ public class RedisRealTimePostAdapter {
      * @param end 조회 개수
      * @return List<Long> 게시글 ID 목록 (점수 내림차순)
      */
-    public List<Long> getRangePostId(PostCacheFlag type, long start, long end) {
+    public List<Long> getRangePostId() {
         Set<Long> set = redisTemplate.opsForZSet().reverseRange(REALTIME_SCORE_KEY, 0, 4);
         return new ArrayList<>(Optional.ofNullable(set).orElseGet(Collections::emptySet));
     }

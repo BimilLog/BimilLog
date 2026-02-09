@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.repository;
 
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -97,27 +96,47 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void decrementCommentCount(@Param("postId") Long postId);
 
     /**
-     * <h3>특정 타입의 featuredType 일괄 초기화</h3>
-     * <p>스케줄러에서 WEEKLY/LEGEND 전체 교체 시 기존 값을 null로 초기화합니다.</p>
+     * <h3>주간 인기 플래그 일괄 초기화</h3>
      */
     @Modifying
-    @Query("UPDATE Post p SET p.featuredType = null WHERE p.featuredType = :type")
-    void clearFeaturedType(@Param("type") PostCacheFlag type);
+    @Query("UPDATE Post p SET p.isWeekly = false WHERE p.isWeekly = true")
+    void clearWeeklyFlag();
 
     /**
-     * <h3>featuredType 설정 (null인 경우만)</h3>
-     * <p>WEEKLY 스케줄러에서 사용. NOTICE/LEGEND를 덮어쓰지 않습니다.</p>
+     * <h3>주간 인기 플래그 일괄 설정</h3>
      */
     @Modifying
-    @Query("UPDATE Post p SET p.featuredType = :type WHERE p.id IN :ids AND p.featuredType IS NULL")
-    void setFeaturedType(@Param("ids") List<Long> ids, @Param("type") PostCacheFlag type);
+    @Query("UPDATE Post p SET p.isWeekly = true WHERE p.id IN :ids")
+    void setWeeklyFlag(@Param("ids") List<Long> ids);
 
     /**
-     * <h3>featuredType 설정 (null 또는 특정 타입 덮어쓰기)</h3>
-     * <p>LEGEND 스케줄러에서 사용. WEEKLY는 덮어쓰지만 NOTICE는 유지합니다.</p>
+     * <h3>레전드 플래그 일괄 초기화</h3>
      */
     @Modifying
-    @Query("UPDATE Post p SET p.featuredType = :newType WHERE p.id IN :ids AND (p.featuredType IS NULL OR p.featuredType = :overridable)")
-    void setFeaturedTypeOverriding(@Param("ids") List<Long> ids, @Param("newType") PostCacheFlag newType, @Param("overridable") PostCacheFlag overridable);
+    @Query("UPDATE Post p SET p.isLegend = false WHERE p.isLegend = true")
+    void clearLegendFlag();
+
+    /**
+     * <h3>레전드 플래그 일괄 설정</h3>
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.isLegend = true WHERE p.id IN :ids")
+    void setLegendFlag(@Param("ids") List<Long> ids);
+
+    /**
+     * <h3>좋아요 수 일괄 증감</h3>
+     * <p>카운트 버퍼에서 누적된 증감량을 DB에 반영합니다.</p>
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.likeCount = p.likeCount + :amount WHERE p.id = :postId")
+    void incrementLikeCountByAmount(@Param("postId") Long postId, @Param("amount") Long amount);
+
+    /**
+     * <h3>댓글 수 일괄 증감</h3>
+     * <p>카운트 버퍼에서 누적된 증감량을 DB에 반영합니다.</p>
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.commentCount = p.commentCount + :amount WHERE p.id = :postId")
+    void incrementCommentCountByAmount(@Param("postId") Long postId, @Param("amount") Long amount);
 }
 

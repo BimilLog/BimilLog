@@ -1,13 +1,14 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -26,10 +27,11 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>PostAdminService 테스트</h2>
  * <p>게시글 공지사항 서비스의 핵심 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>공지 설정/해제 시 Post.featuredType 변경 + NOTICE Hash 캐시에서 해당 field만 추가/삭제합니다.</p>
+ * <p>공지 설정: Post.isNotice true + 글 단위 Hash 생성 + SET 인덱스 SADD</p>
+ * <p>공지 해제: Post.isNotice false + SET 인덱스 SREM (Hash는 유지)</p>
  *
  * @author Jaeik
- * @version 2.9.0
+ * @version 3.0.0
  */
 @DisplayName("PostAdminService 테스트")
 @Tag("unit")
@@ -42,13 +44,16 @@ class PostAdminServiceTest extends BaseUnitTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private RedisSimplePostAdapter redisSimplePostAdapter;
+    private RedisPostHashAdapter redisPostHashAdapter;
+
+    @Mock
+    private RedisPostIndexAdapter redisPostIndexAdapter;
 
     @InjectMocks
     private PostAdminService postAdminService;
 
     @Test
-    @DisplayName("게시글 공지 토글 - 일반 게시글을 공지로 설정 → Post.featuredType NOTICE + 캐시 단건 추가")
+    @DisplayName("게시글 공지 토글 - 일반 게시글을 공지로 설정 → Post.isNotice true + Hash 생성 + SET SADD")
     void shouldTogglePostNotice_WhenNormalPostToNotice() {
         // Given
         Long postId = 123L;
@@ -69,7 +74,7 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .memberId(1L)
                 .memberName("테스트")
                 .commentCount(5)
-                .featuredType(PostCacheFlag.NOTICE)
+                .isNotice(true)
                 .build();
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
@@ -80,8 +85,9 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        // NOTICE 캐시 단건 추가 (HSET)
-        verify(redisSimplePostAdapter).putPostToCache(PostCacheFlag.NOTICE, mockDetail);
+        // 글 단위 Hash 생성 + SET 인덱스 SADD
+        verify(redisPostHashAdapter).createPostHash(mockDetail);
+        verify(redisPostIndexAdapter).addToIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
     }
 
     @Test
@@ -98,11 +104,11 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postRepository).findById(postId);
-        verify(redisSimplePostAdapter, never()).removePostFromCache(PostCacheFlag.NOTICE, postId);
+        verify(redisPostIndexAdapter, never()).removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
     }
 
     @Test
-    @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제 → Post.featuredType null + 캐시 단건 삭제")
+    @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제 → Post.isNotice false + SET SREM")
     void shouldTogglePostNotice_WhenNoticePostToNormal() {
         // Given
         Long postId = 123L;
@@ -113,7 +119,7 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .likeCount(10)
                 .commentCount(5)
                 .build();
-        post.updateFeaturedType(PostCacheFlag.NOTICE);
+        post.updateNotice(true);
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
@@ -122,7 +128,7 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        // NOTICE 캐시 단건 삭제 (HDEL)
-        verify(redisSimplePostAdapter).removePostFromCache(PostCacheFlag.NOTICE, postId);
+        // SET 인덱스에서 제거 (Hash는 삭제하지 않음 - 다른 목록에서 참조 가능)
+        verify(redisPostIndexAdapter).removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
     }
 }

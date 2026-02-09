@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.dto;
 
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import lombok.*;
 
 import java.time.Instant;
@@ -29,7 +28,9 @@ public class FullPostDTO {
     private Integer commentCount;
     private Instant createdAt;
     private boolean liked;
-    private PostCacheFlag featuredType;
+    private boolean weekly;
+    private boolean legend;
+    private boolean notice;
 
     public static FullPostDTO convertToFullPostResDTO(PostDetail postDetail) {
         return FullPostDTO.builder()
@@ -43,7 +44,9 @@ public class FullPostDTO {
                 .memberName(postDetail.getMemberName())
                 .commentCount(postDetail.getCommentCount())
                 .liked(postDetail.isLiked())
-                .featuredType(postDetail.getFeaturedType())
+                .weekly(postDetail.isWeekly())
+                .legend(postDetail.isLegend())
+                .notice(postDetail.isNotice())
                 .build();
     }
 }

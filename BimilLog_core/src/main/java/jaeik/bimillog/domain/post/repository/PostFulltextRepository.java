@@ -30,7 +30,7 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
      */
     @Query(value = """
             SELECT p.post_id, p.title, p.views, p.created_at, p.member_id, m.member_name,
-            p.like_count, p.comment_count, p.featured_type
+            p.like_count, p.comment_count, p.is_weekly, p.is_legend, p.is_notice
             FROM post p
             LEFT JOIN member m ON p.member_id = m.member_id
             WHERE MATCH(p.title) AGAINST(:keyword IN BOOLEAN MODE)
@@ -49,7 +49,7 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
      */
     @Query(value = """
             SELECT p.post_id, p.title, p.views, p.created_at, p.member_id, m.member_name,
-            p.like_count, p.comment_count, p.featured_type
+            p.like_count, p.comment_count, p.is_weekly, p.is_legend, p.is_notice
             FROM post p
             LEFT JOIN member m ON p.member_id = m.member_id
             WHERE MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE)

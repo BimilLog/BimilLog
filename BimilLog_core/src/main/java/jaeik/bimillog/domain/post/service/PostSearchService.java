@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.repository.PostSearchRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -89,7 +88,9 @@ public class PostSearchService {
         String memberName = row[5] != null ? row[5].toString() : null;
         Integer likeCount = ((Number) row[6]).intValue();
         Integer commentCount = row[7] != null ? ((Number) row[7]).intValue() : 0;
-        PostCacheFlag featuredType = row[8] != null ? PostCacheFlag.valueOf(row[8].toString()) : null;
+        boolean isWeekly = row[8] != null && ((Boolean) row[8]);
+        boolean isLegend = row[9] != null && ((Boolean) row[9]);
+        boolean isNotice = row[10] != null && ((Boolean) row[10]);
 
         return PostSimpleDetail.builder()
                 .id(id)
@@ -100,7 +101,9 @@ public class PostSearchService {
                 .memberId(memberId)
                 .memberName(memberName)
                 .commentCount(commentCount)
-                .featuredType(featuredType)
+                .isWeekly(isWeekly)
+                .isLegend(isLegend)
+                .isNotice(isNotice)
                 .build();
     }
 
