@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
  * Redis 키 & TTL 중앙 관리
  *
  * @author jaeik
- * @version 2.5.0
+ * @version 3.0.0
  */
 public final class RedisKey {
 
@@ -22,11 +22,16 @@ public final class RedisKey {
     public static final Duration FIRST_PAGE_REFRESH_LOCK_TTL = Duration.ofMinutes(5);
     public static final int FIRST_PAGE_SIZE = 20;
 
-    // ==================== 캐시글 목록 (Hash) ====================
+    // ==================== 글 단위 Hash (per-post) ====================
 
-    public static final String WEEKLY_SIMPLE_KEY = "post:weekly:simple";           // TTL 24시간 30분
-    public static final String LEGEND_SIMPLE_KEY = "post:legend:simple";           // TTL 24시간 30분
-    public static final String NOTICE_SIMPLE_KEY = "post:notice:simple";           // TTL 없음 (영구)
+    public static final String POST_SIMPLE_PREFIX = "post:simple:";               // Hash: 글 단위 캐시
+    public static final Duration POST_SIMPLE_TTL = Duration.ofHours(25);          // 글 단위 Hash TTL
+
+    // ==================== 인덱스 (SET) ====================
+
+    public static final String POST_WEEKLY_IDS_KEY = "post:weekly:ids";           // SET (TTL 24시간 30분)
+    public static final String POST_LEGEND_IDS_KEY = "post:legend:ids";           // SET (TTL 24시간 30분)
+    public static final String POST_NOTICE_IDS_KEY = "post:notice:ids";           // SET (TTL 없음)
     public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofHours(24).plusMinutes(30);
 
     public static final String SCHEDULER_LOCK_KEY = "post:cache:scheduler:lock";
@@ -35,17 +40,14 @@ public final class RedisKey {
     // ==================== 글 : 실시간 (ZSet) ====================
 
     public static final String REALTIME_POST_SCORE_KEY = "post:realtime:score";
-    public static final String REALTIME_SIMPLE_KEY = "post:realtime:simple";       // TTL 없음 (영구)
-    public static final String REALTIME_REFRESH_LOCK_KEY = "post:realtime:refresh:lock";
-    public static final Duration REALTIME_REFRESH_LOCK_TTL = Duration.ofSeconds(10);
 
-
-
-    // ==================== 글 : 조회수 (Set + Hash) ====================
-    // key: post:view:{postId}, post:view:counts
+    // ==================== 글 : 카운트 버퍼 (Hash) ====================
+    // key: post:view:counts, post:like:counts, post:comment:counts
 
     public static final String VIEW_PREFIX = "post:view:";
     public static final String VIEW_COUNTS_KEY = "post:view:counts";
+    public static final String LIKE_COUNTS_KEY = "post:like:counts";
+    public static final String COMMENT_COUNTS_KEY = "post:comment:counts";
     public static final long VIEW_TTL_SECONDS = TimeUnit.HOURS.toSeconds(24);
 
     // ==================== 롤링페이퍼 : 실시간 (ZSet) ====================

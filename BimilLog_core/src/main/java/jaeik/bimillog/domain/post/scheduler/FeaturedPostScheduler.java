@@ -8,7 +8,8 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -19,13 +20,15 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <h2>FeaturedPostScheduler</h2>
  * <p>게시글 인기도 기반 캐시 동기화를 담당하는 스케줄링 서비스</p>
- * <p>DB 조회 → featuredType 업데이트 → Redis 캐시 저장을 통째로 재시도합니다. (2s→8s→32s→128s→512s)</p>
+ * <p>DB 조회 → featuredType 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체를 통째로 재시도합니다.</p>
  * <p>이벤트 발행은 재시도 범위에서 제외됩니다.</p>
  *
  * @author Jaeik
@@ -36,21 +39,16 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class FeaturedPostScheduler {
-    private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final RedisPostHashAdapter redisPostHashAdapter;
+    private final RedisPostIndexAdapter redisPostIndexAdapter;
     private final PostQueryRepository postQueryRepository;
     private final PostRepository postRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
-     * 주간/레전드 인기글 캐시 TTL (24시간 30분)
-     */
-    public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofHours(24).plusMinutes(30);
-
-    /**
      * <h3>주간 인기 게시글 스케줄링 갱신</h3>
-     * <p>1일마다 DB 조회 → featuredType 업데이트 → Redis 캐시 저장을 수행합니다.</p>
+     * <p>1일마다 DB 조회 → featuredType 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체</p>
      * <p>실패 시 전체를 재시도합니다. (2s→8s→32s→128s→512s, 최대 5회 재시도)</p>
-     * <p>이벤트 발행은 try-catch로 감싸 재시도 범위에서 제외됩니다.</p>
      */
     @Scheduled(fixedRate = 60000 * 1440)
     @Retryable(
@@ -73,8 +71,10 @@ public class FeaturedPostScheduler {
         postRepository.setFeaturedType(ids, PostCacheFlag.WEEKLY);
         log.info("WEEKLY featuredType 업데이트 완료: {}개", ids.size());
 
-        // Hash 캐시에 TTL로 저장
-        redisSimplePostAdapter.cachePostsWithTtl(RedisKey.WEEKLY_SIMPLE_KEY, posts, POST_CACHE_TTL_WEEKLY_LEGEND);
+        // 글 단위 Hash 생성 + SET 인덱스 교체
+        posts.forEach(redisPostHashAdapter::createPostHash);
+        Set<Long> idSet = posts.stream().map(PostSimpleDetail::getId).collect(Collectors.toCollection(LinkedHashSet::new));
+        redisPostIndexAdapter.replaceIndex(RedisKey.POST_WEEKLY_IDS_KEY, idSet, RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND);
         log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
 
         // 이벤트 발행 (재시도 범위 제외)
@@ -89,9 +89,8 @@ public class FeaturedPostScheduler {
 
     /**
      * <h3>전설 게시글 스케줄링 갱신</h3>
-     * <p>1일마다 DB 조회 → featuredType 업데이트 → Redis 캐시 저장을 수행합니다.</p>
+     * <p>1일마다 DB 조회 → featuredType 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체</p>
      * <p>실패 시 전체를 재시도합니다. (2s→8s→32s→128s→512s, 최대 5회 재시도)</p>
-     * <p>이벤트 발행은 try-catch로 감싸 재시도 범위에서 제외됩니다.</p>
      */
     @Scheduled(fixedRate = 60000 * 1440)
     @Retryable(
@@ -114,8 +113,10 @@ public class FeaturedPostScheduler {
         postRepository.setFeaturedTypeOverriding(ids, PostCacheFlag.LEGEND, PostCacheFlag.WEEKLY);
         log.info("LEGEND featuredType 업데이트 완료: {}개", ids.size());
 
-        // Hash 캐시에 TTL로 저장
-        redisSimplePostAdapter.cachePostsWithTtl(RedisKey.LEGEND_SIMPLE_KEY, posts, POST_CACHE_TTL_WEEKLY_LEGEND);
+        // 글 단위 Hash 생성 + SET 인덱스 교체
+        posts.forEach(redisPostHashAdapter::createPostHash);
+        Set<Long> idSet = posts.stream().map(PostSimpleDetail::getId).collect(Collectors.toCollection(LinkedHashSet::new));
+        redisPostIndexAdapter.replaceIndex(RedisKey.POST_LEGEND_IDS_KEY, idSet, RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND);
         log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
 
         // 이벤트 발행 (재시도 범위 제외)

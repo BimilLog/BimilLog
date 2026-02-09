@@ -5,7 +5,8 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,19 +23,20 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
  * <h2>FeaturedPostCacheService 테스트</h2>
  * <p>주간/레전드/공지 인기글 캐시 조회 로직을 검증합니다.</p>
- * <p>Hash 캐시 조회, 캐시 미스 시 빈 페이지 반환, 예외 시 DB 폴백 경로를 검증합니다.</p>
+ * <p>SET 인덱스 → 글 단위 Hash pipeline 조회, 캐시 미스 시 빈 페이지 반환, 예외 시 DB 폴백 경로를 검증합니다.</p>
  * <p>DB 폴백은 Post.featuredType 기반 쿼리를 사용합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +48,10 @@ class FeaturedPostCacheServiceTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private RedisSimplePostAdapter redisSimplePostAdapter;
+    private RedisPostHashAdapter redisPostHashAdapter;
+
+    @Mock
+    private RedisPostIndexAdapter redisPostIndexAdapter;
 
     @Mock
     private PostUtil postUtil;
@@ -58,13 +62,14 @@ class FeaturedPostCacheServiceTest {
     void setUp() {
         featuredPostCacheService = new FeaturedPostCacheService(
                 postQueryRepository,
-                redisSimplePostAdapter,
+                redisPostHashAdapter,
+                redisPostIndexAdapter,
                 postUtil
         );
     }
 
     @Test
-    @DisplayName("주간 인기글 조회 - 캐시 히트")
+    @DisplayName("주간 인기글 조회 - SET 인덱스 + 글 단위 Hash 캐시 히트")
     void shouldGetWeeklyPosts_CacheHit() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
@@ -72,9 +77,11 @@ class FeaturedPostCacheServiceTest {
         PostSimpleDetail weeklyPost2 = PostTestDataBuilder.createPostSearchResult(2L, "주간 인기글 2");
         List<PostSimpleDetail> cachedPosts = List.of(weeklyPost2, weeklyPost1);
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(RedisKey.WEEKLY_SIMPLE_KEY))
+        given(redisPostIndexAdapter.getIndexMembers(RedisKey.POST_WEEKLY_IDS_KEY))
+                .willReturn(Set.of(1L, 2L));
+        given(redisPostHashAdapter.getPostHashes(anyCollection()))
                 .willReturn(cachedPosts);
-        given(postUtil.paginate(cachedPosts, pageable))
+        given(postUtil.paginate(anyList(), eq(pageable)))
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
         // When
@@ -83,7 +90,8 @@ class FeaturedPostCacheServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
-        verify(redisSimplePostAdapter).getAllCachedPostsList(RedisKey.WEEKLY_SIMPLE_KEY);
+        verify(redisPostIndexAdapter).getIndexMembers(RedisKey.POST_WEEKLY_IDS_KEY);
+        verify(redisPostHashAdapter).getPostHashes(anyCollection());
     }
 
     @Test
@@ -95,9 +103,11 @@ class FeaturedPostCacheServiceTest {
         PostSimpleDetail legendPost2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
         List<PostSimpleDetail> cachedPosts = List.of(legendPost2, legendPost1);
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(RedisKey.LEGEND_SIMPLE_KEY))
+        given(redisPostIndexAdapter.getIndexMembers(RedisKey.POST_LEGEND_IDS_KEY))
+                .willReturn(Set.of(1L, 2L));
+        given(redisPostHashAdapter.getPostHashes(anyCollection()))
                 .willReturn(cachedPosts);
-        given(postUtil.paginate(cachedPosts, pageable))
+        given(postUtil.paginate(anyList(), eq(pageable)))
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
         // When
@@ -105,7 +115,7 @@ class FeaturedPostCacheServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(2);
-        verify(redisSimplePostAdapter).getAllCachedPostsList(RedisKey.LEGEND_SIMPLE_KEY);
+        verify(redisPostIndexAdapter).getIndexMembers(RedisKey.POST_LEGEND_IDS_KEY);
     }
 
     @Test
@@ -116,9 +126,11 @@ class FeaturedPostCacheServiceTest {
         PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
         List<PostSimpleDetail> cachedPosts = List.of(noticePost);
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(RedisKey.NOTICE_SIMPLE_KEY))
+        given(redisPostIndexAdapter.getIndexMembers(RedisKey.POST_NOTICE_IDS_KEY))
+                .willReturn(Set.of(1L));
+        given(redisPostHashAdapter.getPostHashes(anyCollection()))
                 .willReturn(cachedPosts);
-        given(postUtil.paginate(cachedPosts, pageable))
+        given(postUtil.paginate(anyList(), eq(pageable)))
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 1));
 
         // When
@@ -127,17 +139,17 @@ class FeaturedPostCacheServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("공지사항");
-        verify(redisSimplePostAdapter).getAllCachedPostsList(RedisKey.NOTICE_SIMPLE_KEY);
+        verify(redisPostIndexAdapter).getIndexMembers(RedisKey.POST_NOTICE_IDS_KEY);
     }
 
-    @ParameterizedTest(name = "{0} - 캐시 비어있음 - 빈 페이지 반환")
+    @ParameterizedTest(name = "{0} - SET 인덱스 비어있음 → 빈 페이지 반환")
     @MethodSource("provideCacheEmptyScenarios")
-    @DisplayName("캐시 비어있음 - 빈 페이지 반환")
-    void shouldReturnEmptyPage_WhenCacheEmpty(String hashKey, PostCacheFlag flag) {
+    @DisplayName("SET 인덱스 비어있음 - 빈 페이지 반환")
+    void shouldReturnEmptyPage_WhenIndexEmpty(String indexKey, PostCacheFlag flag) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(hashKey)).willReturn(List.of());
+        given(redisPostIndexAdapter.getIndexMembers(indexKey)).willReturn(Set.of());
 
         // When
         Page<PostSimpleDetail> result = switch (flag) {
@@ -154,12 +166,12 @@ class FeaturedPostCacheServiceTest {
     @ParameterizedTest(name = "{1} - Redis 장애 시 DB fallback (featuredType 기반)")
     @MethodSource("provideRedisFallbackScenarios")
     @DisplayName("Redis 장애 시 DB fallback (featuredType 기반)")
-    void shouldFallbackToDb_WhenRedisFails(String hashKey, PostCacheFlag cacheFlag, String expectedTitle) {
+    void shouldFallbackToDb_WhenRedisFails(String indexKey, PostCacheFlag cacheFlag, String expectedTitle) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, expectedTitle);
 
-        given(redisSimplePostAdapter.getAllCachedPostsList(hashKey))
+        given(redisPostIndexAdapter.getIndexMembers(indexKey))
                 .willThrow(new RuntimeException("Redis connection failed"));
 
         given(postQueryRepository.findPostsByFeaturedType(eq(cacheFlag), any(Pageable.class)))
@@ -180,17 +192,17 @@ class FeaturedPostCacheServiceTest {
 
     static Stream<Arguments> provideCacheEmptyScenarios() {
         return Stream.of(
-                Arguments.of(RedisKey.WEEKLY_SIMPLE_KEY, PostCacheFlag.WEEKLY),
-                Arguments.of(RedisKey.LEGEND_SIMPLE_KEY, PostCacheFlag.LEGEND),
-                Arguments.of(RedisKey.NOTICE_SIMPLE_KEY, PostCacheFlag.NOTICE)
+                Arguments.of(RedisKey.POST_WEEKLY_IDS_KEY, PostCacheFlag.WEEKLY),
+                Arguments.of(RedisKey.POST_LEGEND_IDS_KEY, PostCacheFlag.LEGEND),
+                Arguments.of(RedisKey.POST_NOTICE_IDS_KEY, PostCacheFlag.NOTICE)
         );
     }
 
     static Stream<Arguments> provideRedisFallbackScenarios() {
         return Stream.of(
-                Arguments.of(RedisKey.WEEKLY_SIMPLE_KEY, PostCacheFlag.WEEKLY, "주간 인기글"),
-                Arguments.of(RedisKey.LEGEND_SIMPLE_KEY, PostCacheFlag.LEGEND, "레전드 게시글"),
-                Arguments.of(RedisKey.NOTICE_SIMPLE_KEY, PostCacheFlag.NOTICE, "공지사항")
+                Arguments.of(RedisKey.POST_WEEKLY_IDS_KEY, PostCacheFlag.WEEKLY, "주간 인기글"),
+                Arguments.of(RedisKey.POST_LEGEND_IDS_KEY, PostCacheFlag.LEGEND, "레전드 게시글"),
+                Arguments.of(RedisKey.POST_NOTICE_IDS_KEY, PostCacheFlag.NOTICE, "공지사항")
         );
     }
 }

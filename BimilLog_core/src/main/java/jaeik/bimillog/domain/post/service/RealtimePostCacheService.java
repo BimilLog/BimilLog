@@ -1,15 +1,14 @@
 package jaeik.bimillog.domain.post.service;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.scheduler.RealTimePostScheduler;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,20 +18,18 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * <h2>RealtimePostCacheService</h2>
  * <p>실시간 인기글 목록 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
- * <p>Hash 캐시에서 직접 조회하며, 캐시 미스 시 빈 페이지를 즉시 반환합니다.</p>
- * <p>캐시 갱신은 {@link RealTimePostScheduler}가 담당합니다.</p>
+ * <p>ZSET에서 top 5 ID를 조회하고, 글 단위 Hash(post:simple:{postId})에서 데이터를 가져옵니다.</p>
+ * <p>캐시 미스된 글은 DB에서 조회하여 Hash를 생성합니다.</p>
  * <p>realtimeRedis 서킷브레이커가 적용되어 Redis 장애 시 Caffeine → DB 폴백 경로로 전환합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 3.0.0
  */
 @Log(logResult = false, logExecutionTime = true)
 @Service
@@ -40,9 +37,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RealtimePostCacheService {
     private final PostQueryRepository postQueryRepository;
-    private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
-    private final RealtimePostSync realtimePostSync;
+    private final RedisPostHashAdapter redisPostHashAdapter;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
     private final PostUtil postUtil;
 
@@ -51,22 +47,58 @@ public class RealtimePostCacheService {
 
     /**
      * 실시간 인기글 목록 조회
-     * <p>Hash 캐시에서 조회하고, ZSET과 ID를 비교합니다.</p>
-     * <p>HASH-ZSET ID가 불일치하면 비동기로 락을 획득하여 HASH를 갱신합니다.</p>
+     * <p>ZSET에서 top 5 ID를 조회하고, 글 단위 Hash에서 pipeline으로 데이터를 가져옵니다.</p>
+     * <p>누락된 글은 DB에서 조회하여 Hash를 생성합니다.</p>
      * <p>Redis 장애 시 서킷브레이커가 {@link #getRealtimePostsFallback}을 호출합니다.</p>
      */
     @CircuitBreaker(name = REALTIME_REDIS_CIRCUIT, fallbackMethod = "getRealtimePostsFallback")
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
-        List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(RedisKey.REALTIME_SIMPLE_KEY);
+        List<Long> postIds = redisRealTimePostAdapter.getRangePostId();
 
-        if (!cachedPosts.isEmpty()) {
-            CacheMetricsLogger.hit(log, "realtime", "simple", cachedPosts.size());
-            compareAndTriggerRefreshIfNeeded(cachedPosts);
-            return postUtil.paginate(cachedPosts, pageable);
+        if (postIds.isEmpty()) {
+            CacheMetricsLogger.miss(log, "realtime", "zset", "empty");
+            return new PageImpl<>(List.of(), pageable, 0);
         }
 
-        CacheMetricsLogger.miss(log, "realtime", "simple", "empty");
-        return new PageImpl<>(List.of(), pageable, 0);
+        List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(postIds);
+
+        // 누락된 글이 있으면 DB에서 조회하여 Hash 생성
+        if (cachedPosts.size() < postIds.size()) {
+            List<Long> cachedIds = cachedPosts.stream().map(PostSimpleDetail::getId).toList();
+            List<Long> missingIds = postIds.stream()
+                    .filter(id -> !cachedIds.contains(id))
+                    .toList();
+
+            if (!missingIds.isEmpty()) {
+                List<PostSimpleDetail> dbPosts = missingIds.stream()
+                        .map(id -> postQueryRepository.findPostDetail(id, null).orElse(null))
+                        .filter(detail -> detail != null)
+                        .map(PostDetail::toSimpleDetail)
+                        .toList();
+
+                dbPosts.forEach(redisPostHashAdapter::createPostHash);
+
+                cachedPosts = new ArrayList<>(cachedPosts);
+                cachedPosts.addAll(dbPosts);
+            }
+        }
+
+        if (cachedPosts.isEmpty()) {
+            CacheMetricsLogger.miss(log, "realtime", "simple", "empty");
+            return new PageImpl<>(List.of(), pageable, 0);
+        }
+
+        CacheMetricsLogger.hit(log, "realtime", "simple", cachedPosts.size());
+
+        // ZSET 순서(점수 내림차순)대로 정렬
+        List<Long> orderedIds = postIds;
+        List<PostSimpleDetail> finalPosts = cachedPosts;
+        List<PostSimpleDetail> orderedPosts = orderedIds.stream()
+                .map(id -> finalPosts.stream().filter(p -> p.getId().equals(id)).findFirst().orElse(null))
+                .filter(p -> p != null)
+                .toList();
+
+        return postUtil.paginate(orderedPosts, pageable);
     }
 
     /**
@@ -86,9 +118,6 @@ public class RealtimePostCacheService {
 
     /**
      * <h3>Caffeine 폴백 경로</h3>
-     * <p>Caffeine RealtimeScoreFallbackStore의 실시간 점수 데이터를 활용합니다.</p>
-     * <p>Caffeine에서 점수 내림차순으로 글 ID를 조회하고, DB에서 상세 정보를 가져옵니다.</p>
-     * <p>Caffeine이 비어있으면 빈 페이지를 반환합니다.</p>
      */
     private Page<PostSimpleDetail> getRealtimePostsFromCaffeine(Pageable pageable) {
         List<Long> postIds = realtimeScoreFallbackStore.getTopPostIds(0, REALTIME_FALLBACK_LIMIT);
@@ -100,35 +129,5 @@ public class RealtimePostCacheService {
 
         log.info("[CIRCUIT_OPEN] Caffeine 폴백 데이터 있음 (count={}) - DB 배치 조회", postIds.size());
         return postQueryRepository.findPostSimpleDetailsByIds(postIds, pageable);
-    }
-
-    // ========== HASH-ZSET 비교 메서드 ==========
-
-    /**
-     * <h3>HASH-ZSET ID 비교 후 불일치 시 비동기 갱신 트리거</h3>
-     * <p>HASH에 저장된 글 ID와 ZSET 상위 글 ID를 비교합니다.</p>
-     * 비동기로 락 획득 → HASH 갱신을 수행합니다.</p>
-     * <p>ZSET 조회 실패 시 비교를 스킵합니다 (기존 HASH 데이터를 그대로 반환).</p>
-     *
-     * @param cachedPosts HASH에서 조회한 게시글 목록 (빈 리스트 가능)
-     */
-    private void compareAndTriggerRefreshIfNeeded(List<PostSimpleDetail> cachedPosts) {
-        try {
-            Set<Long> hashPostIds = cachedPosts.stream()
-                    .map(PostSimpleDetail::getId)
-                    .collect(Collectors.toSet());
-
-            List<Long> zsetPostIds = redisRealTimePostAdapter.getRangePostId();
-            if (zsetPostIds.isEmpty()) {
-                return;
-            }
-            Set<Long> zsetPostIdSet = new HashSet<>(zsetPostIds);
-
-            if (!hashPostIds.equals(zsetPostIdSet)) {
-                realtimePostSync.asyncRefreshRealtimeWithLock(zsetPostIds);
-            }
-        } catch (Exception e) {
-            log.debug("[COMPARE_SKIP] HASH-ZSET 비교 실패, 무시: {}", e.getMessage());
-        }
     }
 }

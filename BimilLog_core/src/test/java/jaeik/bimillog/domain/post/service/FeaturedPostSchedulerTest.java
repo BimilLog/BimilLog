@@ -8,7 +8,8 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.scheduler.FeaturedPostScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -23,8 +24,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import static jaeik.bimillog.domain.post.scheduler.FeaturedPostScheduler.POST_CACHE_TTL_WEEKLY_LEGEND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>FeaturedPostScheduler 테스트</h2>
  * <p>게시글 캐시 동기화 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>DB 조회 → featuredType 업데이트 → Hash 캐시 저장 → 이벤트 발행 흐름을 검증합니다.</p>
+ * <p>DB 조회 → featuredType 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체 → 이벤트 발행 흐름을 검증합니다.</p>
  *
  * @author Jaeik
  * @version 3.0.0
@@ -45,7 +46,10 @@ import static org.mockito.Mockito.*;
 class FeaturedPostSchedulerTest {
 
     @Mock
-    private RedisSimplePostAdapter redisSimplePostAdapter;
+    private RedisPostHashAdapter redisPostHashAdapter;
+
+    @Mock
+    private RedisPostIndexAdapter redisPostIndexAdapter;
 
     @Mock
     private PostQueryRepository postQueryRepository;
@@ -61,7 +65,8 @@ class FeaturedPostSchedulerTest {
     @BeforeEach
     void setUp() {
         featuredPostScheduler = new FeaturedPostScheduler(
-                redisSimplePostAdapter,
+                redisPostHashAdapter,
+                redisPostIndexAdapter,
                 postQueryRepository,
                 postRepository,
                 eventPublisher
@@ -69,7 +74,7 @@ class FeaturedPostSchedulerTest {
     }
 
     @Test
-    @DisplayName("주간 인기 게시글 업데이트 - 성공 (featuredType 업데이트 + Hash 캐시 저장 + 이벤트 발행)")
+    @DisplayName("주간 인기 게시글 업데이트 - 성공 (featuredType 업데이트 + 글 단위 Hash 생성 + SET 인덱스 교체 + 이벤트 발행)")
     void shouldUpdateWeeklyPopularPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail post1 = createPostSimpleDetail(1L, "주간인기글1", 1L);
@@ -85,8 +90,11 @@ class FeaturedPostSchedulerTest {
         // featuredType 업데이트
         verify(postRepository).clearFeaturedType(PostCacheFlag.WEEKLY);
         verify(postRepository).setFeaturedType(List.of(1L, 2L), PostCacheFlag.WEEKLY);
-        // Hash 캐시에 TTL로 저장
-        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(RedisKey.WEEKLY_SIMPLE_KEY), any(), eq(POST_CACHE_TTL_WEEKLY_LEGEND));
+        // 글 단위 Hash 생성
+        verify(redisPostHashAdapter).createPostHash(post1);
+        verify(redisPostHashAdapter).createPostHash(post2);
+        // SET 인덱스 교체
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(Set.class), eq(RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -115,7 +123,8 @@ class FeaturedPostSchedulerTest {
 
         // Then
         verify(postRepository).clearFeaturedType(PostCacheFlag.WEEKLY);
-        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(RedisKey.WEEKLY_SIMPLE_KEY), any(), any(Duration.class));
+        verify(redisPostHashAdapter, times(2)).createPostHash(any(PostSimpleDetail.class));
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(Set.class), any(Duration.class));
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -127,7 +136,7 @@ class FeaturedPostSchedulerTest {
     }
 
     @Test
-    @DisplayName("전설의 게시글 업데이트 - 성공 (featuredType 업데이트 + Hash 캐시 저장)")
+    @DisplayName("전설의 게시글 업데이트 - 성공 (featuredType 업데이트 + 글 단위 Hash 생성 + SET 인덱스 교체)")
     void shouldUpdateLegendaryPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
@@ -141,7 +150,8 @@ class FeaturedPostSchedulerTest {
         // Then
         verify(postRepository).clearFeaturedType(PostCacheFlag.LEGEND);
         verify(postRepository).setFeaturedTypeOverriding(List.of(1L), PostCacheFlag.LEGEND, PostCacheFlag.WEEKLY);
-        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(RedisKey.LEGEND_SIMPLE_KEY), any(), eq(POST_CACHE_TTL_WEEKLY_LEGEND));
+        verify(redisPostHashAdapter).createPostHash(legendPost);
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_LEGEND_IDS_KEY), any(Set.class), eq(RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -168,7 +178,8 @@ class FeaturedPostSchedulerTest {
 
         // 게시글이 없으면 featuredType 업데이트, 캐시, 이벤트 발행 안함
         verify(postRepository, never()).clearFeaturedType(any());
-        verify(redisSimplePostAdapter, never()).cachePostsWithTtl(any(), any(), any());
+        verify(redisPostHashAdapter, never()).createPostHash(any());
+        verify(redisPostIndexAdapter, never()).replaceIndex(any(), any(), any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -184,7 +195,8 @@ class FeaturedPostSchedulerTest {
         featuredPostScheduler.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(RedisKey.WEEKLY_SIMPLE_KEY), any(), any(Duration.class));
+        verify(redisPostHashAdapter, times(100)).createPostHash(any(PostSimpleDetail.class));
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(Set.class), any(Duration.class));
 
         // 100개 게시글 중 memberId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));

@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Recover;
@@ -16,11 +16,11 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * <h2>첫 페이지 캐시 갱신 실행기</h2>
- * <p>DB에서 첫 페이지 게시글을 조회하여 Redis 캐시를 갱신합니다.</p>
+ * <h2>캐시 갱신 실행기</h2>
+ * <p>글 수정/삭제 시 글 단위 Hash, SET 인덱스, 첫 페이지 캐시를 갱신합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 3.0.0
  */
 @Component
 @RequiredArgsConstructor
@@ -28,7 +28,8 @@ import java.util.List;
 public class CacheRefreshExecutor {
     private final PostQueryRepository postQueryRepository;
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
-    private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final RedisPostHashAdapter redisPostHashAdapter;
+    private final RedisPostIndexAdapter redisPostIndexAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     /**
@@ -40,7 +41,6 @@ public class CacheRefreshExecutor {
      * <h3>비동기 캐시 갱신 (분산 락)</h3>
      * <p>캐시 미스 또는 수정/삭제 시 호출됩니다.</p>
      * <p>분산 락을 획득하여 하나의 인스턴스만 갱신하도록 보장합니다.</p>
-     * <p>갱신 실패 시에도 캐시가 이미 무효화되어 DB 폴백이 동작합니다.</p>
      */
     @Async("cacheRefreshPool")
     public void asyncRefreshWithLock() {
@@ -50,7 +50,6 @@ public class CacheRefreshExecutor {
     /**
      * <h3>비동기 게시글 추가</h3>
      * <p>새 게시글을 첫 페이지 캐시에 비동기로 추가합니다.</p>
-     * <p>실패 시 캐시 무효화되어 다음 조회 시 DB 폴백이 동작합니다.</p>
      */
     @Async("cacheRefreshPool")
     public void asyncAddNewPost(PostSimpleDetail post) {
@@ -59,36 +58,27 @@ public class CacheRefreshExecutor {
 
     /**
      * <h3>비동기 게시글 수정 반영</h3>
-     * <p>실시간 인기글 Hash에서 해당 필드를 삭제합니다. (ZSet에는 글ID만 있어 수정 반영 불가)</p>
-     * <p>공지/주간/레전드 글이면 해당 타입 Hash에 HSET으로 업데이트합니다.</p>
-     * <p>첫 페이지에 없는 글이면 첫 페이지 캐시는 무시됩니다.</p>
+     * <p>글 단위 Hash의 제목을 업데이트하고, 첫 페이지 캐시를 갱신합니다.</p>
      */
     @Async("cacheRefreshPool")
     public void asyncUpdatePost(Long postId, PostSimpleDetail updatedPost) {
-        redisSimplePostAdapter.removePostFromCache(RedisKey.REALTIME_SIMPLE_KEY, postId);
-        if (updatedPost.getFeaturedType() != null) {
-            redisSimplePostAdapter.putPostToCache(toHashKey(updatedPost.getFeaturedType()), updatedPost);
-        }
+        redisPostHashAdapter.updateTitle(postId, updatedPost.getTitle());
         redisFirstPagePostAdapter.updatePost(postId, updatedPost);
-    }
-
-    private static String toHashKey(PostCacheFlag type) {
-        return switch (type) {
-            case WEEKLY -> RedisKey.WEEKLY_SIMPLE_KEY;
-            case LEGEND -> RedisKey.LEGEND_SIMPLE_KEY;
-            case NOTICE -> RedisKey.NOTICE_SIMPLE_KEY;
-        };
     }
 
     /**
      * <h3>비동기 게시글 삭제 반영</h3>
-     * <p>실시간 ZSet + 인기글 Hash + 첫 페이지 List 캐시를 비동기로 정리합니다.</p>
-     * <p>첫 페이지에 없는 글이면 첫 페이지 캐시는 무시됩니다.</p>
+     * <p>실시간 ZSET + 글 단위 Hash + SET 인덱스(weekly/legend/notice) + 첫 페이지 캐시를 정리합니다.</p>
      */
     @Async("cacheRefreshPool")
     public void asyncDeletePost(Long postId) {
         redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
-        redisSimplePostAdapter.removePostFromCache(postId);
+        redisPostHashAdapter.deletePostHash(postId);
+
+        // 모든 SET 인덱스에서 제거
+        redisPostIndexAdapter.removeFromIndex(RedisKey.POST_WEEKLY_IDS_KEY, postId);
+        redisPostIndexAdapter.removeFromIndex(RedisKey.POST_LEGEND_IDS_KEY, postId);
+        redisPostIndexAdapter.removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
 
         Long lastPostId = redisFirstPagePostAdapter.deletePost(postId);
         if (lastPostId != null) {
@@ -101,7 +91,6 @@ public class CacheRefreshExecutor {
 
     /**
      * <h3>첫 페이지 캐시 갱신 (분산 락)</h3>
-     * <p>DB에서 최신 20개 게시글을 조회하여 Redis 캐시를 갱신합니다.</p>
      */
     public void refreshFirstPage() {
         List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
@@ -114,7 +103,6 @@ public class CacheRefreshExecutor {
 
     /**
      * <h3>캐시 갱신 최종 실패 복구</h3>
-     * <p>재시도 후에도 실패 시 로그를 남기고 종료합니다.</p>
      */
     @Recover
     public void recoverRefreshFirstPage(Exception e) {

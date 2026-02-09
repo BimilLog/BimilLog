@@ -8,7 +8,8 @@ import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -16,17 +17,19 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <h2>FeaturedPostCacheService</h2>
  * <p>주간/레전드/공지 인기글 목록 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
- * <p>Hash 캐시에서 직접 조회하며, 캐시 미스 시 빈 페이지를 반환합니다.</p>
+ * <p>SET 인덱스에서 postId를 조회하고, 글 단위 Hash(post:simple:{postId})에서 데이터를 가져옵니다.</p>
  * <p>캐시 갱신은 {@link FeaturedPostScheduler}(주간/레전드)와 관리자 토글/글 수정(공지)이 담당합니다.</p>
  * <p>Redis 장애 시 Post 테이블에서 featuredType 기반으로 DB 폴백합니다.</p>
  *
  * @author Jaeik
- * @version 2.8.0
+ * @version 3.0.0
  */
 @Log(logResult = false, logExecutionTime = true)
 @Service
@@ -34,56 +37,68 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FeaturedPostCacheService {
     private final PostQueryRepository postQueryRepository;
-    private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final RedisPostHashAdapter redisPostHashAdapter;
+    private final RedisPostIndexAdapter redisPostIndexAdapter;
     private final PostUtil postUtil;
 
     /**
      * 주간 인기글 목록 조회
      */
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
-        return getFeaturedCachedPosts(RedisKey.WEEKLY_SIMPLE_KEY, PostCacheFlag.WEEKLY, pageable);
+        return getFeaturedCachedPosts(RedisKey.POST_WEEKLY_IDS_KEY, PostCacheFlag.WEEKLY, pageable);
     }
 
     /**
      * 전설 인기글 목록 조회
      */
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
-        return getFeaturedCachedPosts(RedisKey.LEGEND_SIMPLE_KEY, PostCacheFlag.LEGEND, pageable);
+        return getFeaturedCachedPosts(RedisKey.POST_LEGEND_IDS_KEY, PostCacheFlag.LEGEND, pageable);
     }
 
     /**
      * 공지사항 목록 조회
      */
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
-        return getFeaturedCachedPosts(RedisKey.NOTICE_SIMPLE_KEY, PostCacheFlag.NOTICE, pageable);
+        return getFeaturedCachedPosts(RedisKey.POST_NOTICE_IDS_KEY, PostCacheFlag.NOTICE, pageable);
     }
 
     /**
      * <h3>주간/레전드/공지 캐시 조회</h3>
-     * <p>Hash 캐시에서 직접 조회합니다.</p>
-     * <p>캐시 미스 시 빈 페이지를 반환합니다.</p>
+     * <p>SET 인덱스에서 postId를 조회하고, 글 단위 Hash에서 pipeline으로 데이터를 가져옵니다.</p>
+     * <p>ID 역순 정렬 후 반환합니다.</p>
      * <p>Redis 장애 시 Post 테이블에서 featuredType 기반으로 DB 폴백합니다.</p>
      *
-     * @param hashKey      Redis Hash 키
-     * @param type         DB 폴백용 캐시 유형 (WEEKLY, LEGEND, NOTICE)
-     * @param pageable     페이징 정보
+     * @param indexKey    Redis SET 인덱스 키
+     * @param type        DB 폴백용 캐시 유형 (WEEKLY, LEGEND, NOTICE)
+     * @param pageable    페이징 정보
      * @return 페이징된 게시글 목록
      */
-    private Page<PostSimpleDetail> getFeaturedCachedPosts(String hashKey, PostCacheFlag type, Pageable pageable) {
+    private Page<PostSimpleDetail> getFeaturedCachedPosts(String indexKey, PostCacheFlag type, Pageable pageable) {
         try {
-            List<PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPostsList(hashKey);
+            Set<Long> postIds = redisPostIndexAdapter.getIndexMembers(indexKey);
 
-            if (cachedPosts.isEmpty()) {
-                CacheMetricsLogger.miss(log, hashKey, "simple", "empty");
+            if (postIds.isEmpty()) {
+                CacheMetricsLogger.miss(log, indexKey, "index", "empty");
                 return new PageImpl<>(List.of(), pageable, 0);
             }
 
-            CacheMetricsLogger.hit(log, hashKey, "simple", cachedPosts.size());
-            return postUtil.paginate(cachedPosts, pageable);
+            List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(postIds);
+
+            if (cachedPosts.isEmpty()) {
+                CacheMetricsLogger.miss(log, indexKey, "simple", "empty");
+                return new PageImpl<>(List.of(), pageable, 0);
+            }
+
+            // ID 역순 정렬 (최신 글이 먼저)
+            List<PostSimpleDetail> sortedPosts = cachedPosts.stream()
+                    .sorted(Comparator.comparingLong(PostSimpleDetail::getId).reversed())
+                    .toList();
+
+            CacheMetricsLogger.hit(log, indexKey, "simple", sortedPosts.size());
+            return postUtil.paginate(sortedPosts, pageable);
         } catch (Exception e) {
-            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", hashKey, e.getMessage());
+            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", indexKey, e.getMessage());
             return postQueryRepository.findPostsByFeaturedType(type, pageable);
         }
     }
-
 }

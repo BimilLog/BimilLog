@@ -11,6 +11,8 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,7 +28,7 @@ import java.util.Objects;
  * <p>좋아요 토글과 조회수 증가 등</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 3.0.0
  */
 @Service
 @RequiredArgsConstructor
@@ -37,6 +39,8 @@ public class PostInteractionService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RealtimePostSync realtimePostSync;
+    private final RedisPostViewAdapter redisPostViewAdapter;
+    private final RedisPostHashAdapter redisPostHashAdapter;
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
      * <p>사용자별 좋아요 상태 토글 규칙을 적용합니다.</p>
@@ -63,8 +67,8 @@ public class PostInteractionService {
         if (isAlreadyLiked) {
             postLikeRepository.deleteByMemberAndPost(member, post);
 
-            // 동기적으로 좋아요 수 감소
-            postRepository.decrementLikeCount(postId);
+            // Redis 버퍼 + 캐시 즉시 반영 (DB는 스케줄러가 배치 처리)
+            incrementLikeWithFallback(postId, -1);
 
             // 비동기로 실시간 인기글 점수 감소
             realtimePostSync.handlePostUnliked(postId);
@@ -72,8 +76,8 @@ public class PostInteractionService {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeRepository.save(postLike);
 
-            // 동기적으로 좋아요 수 증가
-            postRepository.incrementLikeCount(postId);
+            // Redis 버퍼 + 캐시 즉시 반영 (DB는 스케줄러가 배치 처리)
+            incrementLikeWithFallback(postId, 1);
 
             // 비동기로 실시간 인기글 점수 증가
             realtimePostSync.handlePostLiked(postId);
@@ -109,6 +113,50 @@ public class PostInteractionService {
     public void bulkIncrementViewCounts(Map<Long, Long> counts) {
         for (Map.Entry<Long, Long> entry : counts.entrySet()) {
             postRepository.incrementViewsByAmount(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * <h3>좋아요 수 일괄 증감</h3>
+     * <p>Redis에서 누적된 좋아요 증감량을 DB에 벌크 반영합니다.</p>
+     *
+     * @param counts postId → 증감량 맵
+     */
+    @Transactional
+    public void bulkIncrementLikeCounts(Map<Long, Long> counts) {
+        for (Map.Entry<Long, Long> entry : counts.entrySet()) {
+            postRepository.incrementLikeCountByAmount(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * <h3>댓글 수 일괄 증감</h3>
+     * <p>Redis에서 누적된 댓글수 증감량을 DB에 벌크 반영합니다.</p>
+     *
+     * @param counts postId → 증감량 맵
+     */
+    @Transactional
+    public void bulkIncrementCommentCounts(Map<Long, Long> counts) {
+        for (Map.Entry<Long, Long> entry : counts.entrySet()) {
+            postRepository.incrementCommentCountByAmount(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * <h3>좋아요 수 Redis 버퍼 증감 + 캐시 즉시 반영</h3>
+     * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
+     */
+    private void incrementLikeWithFallback(Long postId, long delta) {
+        try {
+            redisPostViewAdapter.incrementLikeBuffer(postId, delta);
+            redisPostHashAdapter.incrementCount(postId, RedisPostHashAdapter.FIELD_LIKE_COUNT, delta);
+        } catch (Exception e) {
+            log.warn("[LIKE_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
+            if (delta > 0) {
+                postRepository.incrementLikeCount(postId);
+            } else {
+                postRepository.decrementLikeCount(postId);
+            }
         }
     }
 }

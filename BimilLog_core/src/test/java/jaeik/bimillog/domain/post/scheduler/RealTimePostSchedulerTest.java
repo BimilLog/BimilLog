@@ -5,7 +5,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
-import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * <h2>RealTimePostScheduler 테스트</h2>
- * <p>실시간 인기글 캐시 갱신 스케줄러의 분산 락, 서킷 분기, 갱신, 재시도, 예외 처리를 검증합니다.</p>
+ * <p>실시간 인기글 캐시 갱신 스케줄러의 분산 락, 서킷 분기, 증분 갱신, 재시도, 예외 처리를 검증합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RealTimePostScheduler 테스트")
@@ -43,6 +43,9 @@ class RealTimePostSchedulerTest {
 
     @Mock
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
+
+    @Mock
+    private RedisPostHashAdapter redisPostHashAdapter;
 
     @Mock
     private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
@@ -63,13 +66,15 @@ class RealTimePostSchedulerTest {
     }
 
     @Test
-    @DisplayName("분산 락 획득 성공 → 서킷 닫힘 → Redis에서 ID 조회 후 캐시 갱신")
+    @DisplayName("분산 락 획득 성공 → 서킷 닫힘 → ZSET에서 ID 조회 → 없는 글만 DB 조회 후 Hash 생성")
     void shouldRefreshRealtimeCache_WhenLockAcquiredAndCircuitClosed() {
         // Given
         PostDetail detail1 = mockPostDetail();
         PostDetail detail2 = mockPostDetail();
         given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn("test-uuid");
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(List.of(1L, 2L));
+        given(redisPostHashAdapter.existsPostHash(1L)).willReturn(false);
+        given(redisPostHashAdapter.existsPostHash(2L)).willReturn(false);
         given(postQueryRepository.findPostDetail(eq(1L), isNull())).willReturn(Optional.of(detail1));
         given(postQueryRepository.findPostDetail(eq(2L), isNull())).willReturn(Optional.of(detail2));
 
@@ -77,18 +82,19 @@ class RealTimePostSchedulerTest {
         scheduler.refreshRealtimeCache();
 
         // Then
-        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(RedisKey.REALTIME_SIMPLE_KEY), anyList(), isNull());
+        verify(redisPostHashAdapter, times(2)).createPostHash(any(PostSimpleDetail.class));
         verify(redisSimplePostAdapter).releaseSchedulerLock("test-uuid");
     }
 
     @Test
-    @DisplayName("서킷 OPEN → Caffeine 폴백에서 ID 조회 후 캐시 갱신")
+    @DisplayName("서킷 OPEN → Caffeine 폴백에서 ID 조회 후 증분 갱신")
     void shouldUseCaffeineFallback_WhenCircuitOpen() {
         // Given
         PostDetail detail = mockPostDetail();
         given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.OPEN);
         given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn("test-uuid");
         given(realtimeScoreFallbackStore.getTopPostIds(0, 5)).willReturn(List.of(1L));
+        given(redisPostHashAdapter.existsPostHash(1L)).willReturn(false);
         given(postQueryRepository.findPostDetail(eq(1L), isNull())).willReturn(Optional.of(detail));
 
         // When
@@ -97,7 +103,25 @@ class RealTimePostSchedulerTest {
         // Then
         verify(redisRealTimePostAdapter, never()).getRangePostId();
         verify(realtimeScoreFallbackStore).getTopPostIds(0, 5);
-        verify(redisSimplePostAdapter).cachePostsWithTtl(eq(RedisKey.REALTIME_SIMPLE_KEY), anyList(), isNull());
+        verify(redisPostHashAdapter).createPostHash(any(PostSimpleDetail.class));
+    }
+
+    @Test
+    @DisplayName("이미 Hash가 존재하는 글은 DB 조회 스킵")
+    void shouldSkipDbQuery_WhenPostHashExists() {
+        // Given
+        given(redisSimplePostAdapter.tryAcquireSchedulerLock()).willReturn("test-uuid");
+        given(redisRealTimePostAdapter.getRangePostId()).willReturn(List.of(1L, 2L));
+        given(redisPostHashAdapter.existsPostHash(1L)).willReturn(true);
+        given(redisPostHashAdapter.existsPostHash(2L)).willReturn(true);
+
+        // When
+        scheduler.refreshRealtimeCache();
+
+        // Then: 모든 Hash가 존재하므로 DB 조회 없음
+        verify(postQueryRepository, never()).findPostDetail(anyLong(), any());
+        verify(redisPostHashAdapter, never()).createPostHash(any());
+        verify(redisSimplePostAdapter).releaseSchedulerLock("test-uuid");
     }
 
     @Test
