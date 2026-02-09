@@ -64,11 +64,14 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     private void createTestPosts(Member savedMember) {
+        String name = savedMember.getMemberName();
+
         testPost1 = Post.builder()
                 .member(savedMember)
                 .title("첫 번째 테스트 게시글")
                 .content("첫 번째 게시글의 내용입니다.")
                 .password(123456)
+                .memberName(name)
                 .views(10)
                 .build();
 
@@ -77,6 +80,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .title("두 번째 검색 게시글")
                 .content("검색용 키워드가 포함된 내용입니다.")
                 .password(123456)
+                .memberName(name)
                 .views(20)
                 .build();
 
@@ -85,6 +89,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .title("최신 게시글")
                 .content("가장 최근에 작성된 게시글입니다.")
                 .password(123456)
+                .memberName(name)
                 .views(5)
                 .build();
 
@@ -223,7 +228,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 상세 조회 실패 - 존재하지 않는 게시글")
     void getPost_Fail_NotFound() throws Exception {
-        mockMvc.perform(get("/api/post/{postId}", 99999L))
+        mockMvc.perform(get("/api/post/{postId}", Long.MAX_VALUE))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }

@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.redis.friend;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,7 +24,7 @@ import java.util.*;
 public class RedisFriendshipRepository {
     private final RedisTemplate<String, Long> redisTemplate;
 
-    private static final String FRIEND_SHIP_PREFIX = "friend:"; // 친구 관계 테이블 (Set) 키
+    private static final String FRIEND_SHIP_PREFIX = RedisKey.FRIENDSHIP_PREFIX;
     private static final int PIPELINE_BATCH_SIZE = 500;
 
     /**

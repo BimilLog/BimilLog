@@ -1,12 +1,8 @@
 package jaeik.bimillog.domain.post.controller;
 
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.FeaturedPost;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
-import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 
-import java.time.Instant;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
@@ -22,12 +18,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * <h2>게시글 Admin 컨트롤러 통합 테스트</h2>
  * <p>@SpringBootTest를 사용한 실제 Post Admin API 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
  * <p>관리자 권한이 필요한 공지 설정/해제 API 동작을 검증</p>
- * <p>공지 상태는 FeaturedPost 테이블(type=NOTICE)로 관리됨</p>
+ * <p>공지 상태는 Post.featuredType 필드로 관리됨</p>
  *
  * @author Jaeik
- * @version 2.6.0
+ * @version 2.7.0
  */
 @IntegrationTest
 @DisplayName("게시글 Admin 컨트롤러 통합 테스트")
@@ -36,14 +31,10 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PostRepository postRepository;
 
-    @Autowired
-    private FeaturedPostRepository featuredPostRepository;
-
     private Post testPost;
 
     @Override
     protected void setUpChild() {
-        // 테스트용 게시글 생성
         createTestPost();
     }
 
@@ -53,27 +44,20 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     /**
-     * 해당 게시글이 공지사항인지 확인 (FeaturedPost 테이블 기반)
+     * 해당 게시글이 공지사항인지 확인 (Post.featuredType 기반)
      */
     private boolean isNotice(Long postId) {
-        return featuredPostRepository.existsByPostIdAndType(postId, PostCacheFlag.NOTICE);
+        return postRepository.findById(postId)
+                .map(post -> post.getFeaturedType() == PostCacheFlag.NOTICE)
+                .orElse(false);
     }
 
     /**
      * 해당 게시글을 공지사항으로 설정 (테스트 setup용)
      */
     private void setAsNotice(Post post) {
-        PostSimpleDetail detail = PostSimpleDetail.builder()
-                .id(post.getId())
-                .title(post.getTitle())
-                .memberName(post.getMember() != null ? post.getMember().getMemberName() : null)
-                .viewCount(post.getViews())
-                .likeCount(0)
-                .commentCount(0)
-                .createdAt(Instant.now())
-                .build();
-        FeaturedPost featuredPost = FeaturedPost.createFeaturedPost(detail, PostCacheFlag.NOTICE);
-        featuredPostRepository.save(featuredPost);
+        post.updateFeaturedType(PostCacheFlag.NOTICE);
+        postRepository.save(post);
     }
 
     @Test
@@ -137,7 +121,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 공지 토글 실패 - 존재하지 않는 게시글")
     void togglePostNotice_Fail_PostNotFound() throws Exception {
         // Given
-        Long nonExistentPostId = 99999L;
+        Long nonExistentPostId = Long.MAX_VALUE;
 
         // When & Then - 404 Not Found 예상 (CustomException -> PostExceptionHandler)
         performPost("/api/post/" + nonExistentPostId + "/notice", null, adminUserDetails)

@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.entity;
 
 import com.querydsl.core.annotations.QueryProjection;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,20 +36,19 @@ public class PostDetail implements Serializable {
     private String memberName;
     private Integer commentCount;
     private boolean isLiked;
+    private PostCacheFlag featuredType;
 
     /**
      * <h3>생성자 - QueryDSL Projection용</h3>
      * <p>QueryDSL @QueryProjection을 위한 전용 생성자입니다.</p>
      * <p>PostQueryAdapter에서 게시글 상세 조회 시 QueryDSL을 통해 호출됩니다.</p>
-     *
-     * @since 2.0.0
-     * @author Jaeik
      */
     @Builder
     @QueryProjection
     public PostDetail(Long id, String title, String content, Integer viewCount,
                      Integer likeCount, Instant createdAt, Long memberId,
-                     String memberName, Integer commentCount, boolean isLiked) {
+                     String memberName, Integer commentCount, boolean isLiked,
+                     PostCacheFlag featuredType) {
         this.id = id;
         this.title = title;
         this.content = content;
@@ -59,6 +59,7 @@ public class PostDetail implements Serializable {
         this.memberName = memberName;
         this.commentCount = commentCount;
         this.isLiked = isLiked;
+        this.featuredType = featuredType;
     }
 
     /**
@@ -84,6 +85,7 @@ public class PostDetail implements Serializable {
                 .memberName(this.memberName)
                 .commentCount(this.commentCount)
                 .isLiked(isLiked)
+                .featuredType(this.featuredType)
                 .build();
     }
 
@@ -107,6 +109,7 @@ public class PostDetail implements Serializable {
                 .memberId(this.memberId)
                 .memberName(this.memberName)
                 .commentCount(this.commentCount)
+                .featuredType(this.featuredType)
                 .build();
     }
 }

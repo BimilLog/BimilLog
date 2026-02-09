@@ -5,14 +5,12 @@ import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -24,7 +22,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({PostSearchRepository.class, PostQueryRepository.class, PostUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
 @Tag("local-integration")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PostQueryRepositoryIntegrationTest {
 
     @Autowired
@@ -58,14 +61,33 @@ class PostQueryRepositoryIntegrationTest {
     @Autowired
     private TestEntityManager entityManager;
 
+    @Autowired
+    private DataSource dataSource;
+
+    @MockitoBean
+    private PostToMemberAdapter postToMemberAdapter;
+
     private Member testMember;
     private Post testPost1, testPost2, testPost3;
 
+    /**
+     * 로컬 MySQL 데이터베이스의 기존 데이터를 테스트 시작 전 1회만 정리
+     * @DataJpaTest의 @Transactional이 각 테스트 후 자동 롤백하므로 매번 정리할 필요 없음
+     * FULLTEXT(ngram) 인덱스가 있는 테이블의 DELETE는 매우 느리므로 반복 실행을 피함
+     */
+    @BeforeAll
+    void cleanUpOnce() throws Exception {
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("DELETE FROM post_like");
+            stmt.execute("DELETE FROM comment_closure");
+            stmt.execute("DELETE FROM comment");
+            stmt.execute("DELETE FROM post");
+        }
+    }
+
     @BeforeEach
     void setUp() {
-        // 로컬 MySQL 데이터베이스의 기존 데이터 정리
-        cleanUpDatabase();
-
         // 테스트용 사용자 생성
         testMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         if (testMember.getSetting() != null) {
@@ -78,19 +100,6 @@ class PostQueryRepositoryIntegrationTest {
 
         // 테스트용 게시글들 생성
         createTestPosts();
-    }
-
-    /**
-     * 로컬 MySQL 데이터베이스의 기존 데이터 정리
-     * local-integration 테스트는 실제 MySQL을 사용하므로 기존 데이터가 있을 수 있음
-     */
-    private void cleanUpDatabase() {
-        // 외래키 제약으로 인해 순서대로 삭제
-        entityManager.getEntityManager().createNativeQuery("DELETE FROM post_like").executeUpdate();
-        entityManager.getEntityManager().createNativeQuery("DELETE FROM comment_closure").executeUpdate();
-        entityManager.getEntityManager().createNativeQuery("DELETE FROM comment").executeUpdate();
-        entityManager.getEntityManager().createNativeQuery("DELETE FROM post").executeUpdate();
-        entityManager.flush();
     }
 
     private void createTestPosts() {

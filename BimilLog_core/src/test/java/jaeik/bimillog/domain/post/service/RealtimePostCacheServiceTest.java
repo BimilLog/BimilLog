@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -54,6 +56,9 @@ class RealtimePostCacheServiceTest {
     @Mock
     private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
 
+    @Mock
+    private PostUtil postUtil;
+
     private RealtimePostCacheService realtimePostCacheService;
 
     @BeforeEach
@@ -66,7 +71,8 @@ class RealtimePostCacheServiceTest {
                 redisSimplePostAdapter,
                 redisRealTimePostAdapter,
                 realtimePostSync,
-                realtimeScoreFallbackStore
+                realtimeScoreFallbackStore,
+                postUtil
         );
     }
 
@@ -77,11 +83,14 @@ class RealtimePostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2");
+        List<PostSimpleDetail> cachedPosts = List.of(simpleDetail2, simpleDetail1);
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
-                .willReturn(List.of(simpleDetail2, simpleDetail1));
+                .willReturn(cachedPosts);
         given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
                 .willReturn(List.of(2L, 1L));
+        given(postUtil.paginate(cachedPosts, pageable))
+                .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
@@ -103,11 +112,14 @@ class RealtimePostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2");
+        List<PostSimpleDetail> cachedPosts = List.of(simpleDetail2, simpleDetail1);
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
-                .willReturn(List.of(simpleDetail2, simpleDetail1));
+                .willReturn(cachedPosts);
         given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
                 .willReturn(List.of(3L, 2L));
+        given(postUtil.paginate(cachedPosts, pageable))
+                .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
@@ -125,11 +137,14 @@ class RealtimePostCacheServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
+        List<PostSimpleDetail> cachedPosts = List.of(simpleDetail1);
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.REALTIME))
-                .willReturn(List.of(simpleDetail1));
+                .willReturn(cachedPosts);
         given(redisRealTimePostAdapter.getRangePostId(any(), anyLong(), anyLong()))
                 .willThrow(new RuntimeException("ZSET 조회 실패"));
+        given(postUtil.paginate(cachedPosts, pageable))
+                .willReturn(new PageImpl<>(cachedPosts, pageable, 1));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);

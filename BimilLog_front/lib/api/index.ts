@@ -78,7 +78,8 @@ export type {
 
 export type {
   Post,
-  SimplePost
+  SimplePost,
+  FeaturedType
 } from '@/types/domains/post'
 
 export type {

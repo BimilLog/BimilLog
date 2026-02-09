@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import static jaeik.bimillog.domain.post.service.PostCacheRefresh.getTtlForType;
 import static jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter.getSimplePostHashKey;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

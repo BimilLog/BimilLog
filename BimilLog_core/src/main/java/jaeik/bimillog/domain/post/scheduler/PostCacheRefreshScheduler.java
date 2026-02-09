@@ -13,11 +13,12 @@ import org.springframework.stereotype.Service;
 /**
  * <h2>캐시 갱신 스케줄러</h2>
  * <p>1분마다 실시간/주간/레전드 캐시를 갱신합니다.</p>
+ * <p>공지사항은 관리자 토글 시 즉시 HSET으로 반영되므로 스케줄러에서 제외됩니다.</p>
  * <p>분산 락을 사용하여 다중 인스턴스 환경에서 하나의 인스턴스만 갱신을 수행합니다.</p>
  * <p>재시도는 {@link PostCacheRefresh}의 {@code @Retryable}이 담당합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.8.0
  */
 @Log(logResult = false, logExecutionTime = true, message = "캐시 갱신 스케줄러")
 @Service
@@ -32,11 +33,13 @@ public class PostCacheRefreshScheduler {
     /**
      * <h3>1분마다 캐시 갱신 실행</h3>
      * <p>분산 락 획득 → REALTIME → WEEKLY → LEGEND 순차 갱신 → 락 해제</p>
+     * <p>NOTICE는 관리자 토글 시 즉시 HSET으로 반영되므로 스케줄러에서 제외</p>
      * <p>각 타입은 독립적으로 실행되며, 하나가 실패해도 나머지는 계속 진행합니다.</p>
      */
     @Scheduled(fixedRate = 60000)
     public void refreshAllCaches() {
-        if (!redisSimplePostAdapter.tryAcquireSchedulerLock()) {
+        String lockValue = redisSimplePostAdapter.tryAcquireSchedulerLock();
+        if (lockValue == null) {
             log.debug("[SCHEDULER] 분산 락 획득 실패 - 다른 인스턴스가 갱신 중");
             return;
         }
@@ -46,7 +49,7 @@ public class PostCacheRefreshScheduler {
             safeRefresh("WEEKLY", () -> postCacheRefresh.refreshFeatured(PostCacheFlag.WEEKLY));
             safeRefresh("LEGEND", () -> postCacheRefresh.refreshFeatured(PostCacheFlag.LEGEND));
         } finally {
-            redisSimplePostAdapter.releaseSchedulerLock();
+            redisSimplePostAdapter.releaseSchedulerLock(lockValue);
         }
     }
 

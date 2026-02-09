@@ -24,8 +24,9 @@ public class PostViewCountSync {
     private final RedisPostViewAdapter redisPostViewAdapter;
 
     /**
-     * <h3>게시글 조회 이벤트 처리</h3>
-     * <p>중복 조회가 아닌 경우 조회수를 1 증가시킵니다.</p>
+     * <h3>게시글 조회 이벤트 처리 (원자적)</h3>
+     * <p>Lua 스크립트로 중복 확인 + 마킹 + 조회수 증가를 원자적으로 처리합니다.</p>
+     * <p>동시 요청 시 Check-Then-Act 레이스 컨디션을 방지합니다.</p>
      *
      * @param postId    조회된 게시글 ID
      * @param viewerKey 조회자 식별 키 (중복 조회 방지용)
@@ -34,10 +35,7 @@ public class PostViewCountSync {
     @Transactional
     public void handlePostViewed(Long postId, String viewerKey) {
         try {
-            if (!redisPostViewAdapter.hasViewed(postId, viewerKey)) {
-                redisPostViewAdapter.markViewed(postId, viewerKey);
-                redisPostViewAdapter.incrementViewCount(postId);
-            }
+            redisPostViewAdapter.markViewedAndIncrement(postId, viewerKey);
         } catch (Exception e) {
             log.warn("조회수 처리 실패: postId={}, error={}", postId, e.getMessage());
         }

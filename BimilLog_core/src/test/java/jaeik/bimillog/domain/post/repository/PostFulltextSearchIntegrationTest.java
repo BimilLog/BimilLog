@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -66,6 +68,9 @@ class PostFulltextSearchIntegrationTest {
 
     @MockitoBean
     private PostToCommentAdapter postToCommentAdapter;
+
+    @MockitoBean
+    private PostToMemberAdapter postToMemberAdapter;
 
     // PostLikeQueryRepository는 삭제되었으므로 Mock 제거
     // 추천수는 이제 서브쿼리로 직접 조회됨
@@ -282,20 +287,19 @@ class PostFulltextSearchIntegrationTest {
     }
 
     @Test
-    @DisplayName("엣지 케이스 - 1글자 검색어 (ngram 토큰 크기 미만, 전문검색 미동작)")
-    void shouldReturnEmptyResult_WhenSingleCharacterQuery() {
-        // Given: 1글자 검색어 (ngram_token_size=2 미만)
+    @DisplayName("엣지 케이스 - 1글자 검색어 (ngram 미만이지만 LIKE 부분검색 폴백)")
+    void shouldFallbackToPartialMatch_WhenSingleCharacterQuery() {
+        // Given: 1글자 검색어 (ngram_token_size=2 미만 → 전문검색 대신 LIKE 부분검색 폴백)
         PostSearchType searchType = PostSearchType.TITLE;
         String query = "자";
         Pageable pageable = PageRequest.of(0, 10);
 
-        // When: 전문 검색 시도
+        // When: 검색 시도 (3글자 미만이므로 부분검색 전략 사용)
         Page<PostSimpleDetail> result = searchFullText(searchType, query, pageable, null);
 
-        // Then: ngram 파서가 1글자를 토큰화하지 않으므로 빈 결과 반환
+        // Then: LIKE 부분검색으로 "자바 프로그래밍 입문" 등 매칭
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isZero();
+        assertThat(result.getContent()).isNotEmpty();
     }
 
     @Test

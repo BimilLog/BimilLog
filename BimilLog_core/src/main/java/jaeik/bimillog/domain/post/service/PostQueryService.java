@@ -94,25 +94,23 @@ public class PostQueryService {
 
     /**
      * <h3>첫 페이지 조회</h3>
-     * <p>캐시 조회, 캐시 장애나 미스 시 DB 폴백 + 비동기 캐시 갱신</p>
+     * <p>캐시 조회, 캐시 미스 또는 장애 시 빈 리스트 반환 + 비동기 캐시 갱신</p>
      *
-     * @return 게시글 목록
+     * @return 게시글 목록 (캐시 미스 시 빈 리스트)
      */
     private List<PostSimpleDetail> getFirstPage() {
-        List<PostSimpleDetail> posts;
         try {
-            posts = redisFirstPagePostAdapter.getFirstPage();
+            List<PostSimpleDetail> posts = redisFirstPagePostAdapter.getFirstPage();
             if (posts.isEmpty()) {
-                log.warn("게시판 첫 페이지 캐시 미스 - DB 폴백");
+                log.warn("게시판 첫 페이지 캐시 미스 - 비동기 갱신 트리거");
                 cacheRefreshExecutor.asyncRefreshWithLock();
-                return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
             }
+            return posts;
         } catch (Exception e) {
-            log.error("게시판 첫 페이지 캐시 장애 - DB 폴백", e);
+            log.error("게시판 첫 페이지 캐시 장애 - 비동기 갱신 트리거", e);
             cacheRefreshExecutor.asyncRefreshWithLock();
-            return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
+            return Collections.emptyList();
         }
-        return posts;
     }
 
     /**

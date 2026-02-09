@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.repository.PostSearchRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -50,7 +51,10 @@ public class PostSearchService {
         // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
         if (query.length() >= 3 && type != PostSearchType.WRITER) {
             Page<Object[]> rawResult = postSearchRepository.findByFullTextSearch(type, query, pageable, memberId);
-            List<PostSimpleDetail> content = mapFullTextRows(rawResult.getContent());
+            List<PostSimpleDetail> content = rawResult.stream()
+                    .map(this::mapFullTextRow)
+                    .collect(Collectors.toList());
+
             posts = new PageImpl<>(content, rawResult.getPageable(), rawResult.getTotalElements());
         }
         // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
@@ -69,19 +73,6 @@ public class PostSearchService {
     }
 
     /**
-     * <h3>FULLTEXT 검색 결과 매핑</h3>
-     * <p>FULLTEXT 검색으로 조회한 Object[] 배열 목록을 PostSimpleDetail 목록으로 변환합니다.</p>
-     *
-     * @param rows FULLTEXT 검색 결과 행 목록
-     * @return 변환된 게시글 간략 정보 목록
-     */
-    private List<PostSimpleDetail> mapFullTextRows(List<Object[]> rows) {
-        return rows.stream()
-                .map(this::mapFullTextRow)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * <h3>FULLTEXT 검색 단일 행 매핑</h3>
      * <p>FULLTEXT 검색으로 조회한 Object[] 배열을 PostSimpleDetail 객체로 변환합니다.</p>
      * <p>댓글 수는 0으로 초기화되며, 이후 배치 조회로 채워집니다.</p>
@@ -97,6 +88,8 @@ public class PostSearchService {
         Long memberId = row[4] != null ? ((Number) row[4]).longValue() : null;
         String memberName = row[5] != null ? row[5].toString() : null;
         Integer likeCount = ((Number) row[6]).intValue();
+        Integer commentCount = row[7] != null ? ((Number) row[7]).intValue() : 0;
+        PostCacheFlag featuredType = row[8] != null ? PostCacheFlag.valueOf(row[8].toString()) : null;
 
         return PostSimpleDetail.builder()
                 .id(id)
@@ -106,7 +99,8 @@ public class PostSearchService {
                 .createdAt(createdAt)
                 .memberId(memberId)
                 .memberName(memberName)
-                .commentCount(0)
+                .commentCount(commentCount)
+                .featuredType(featuredType)
                 .build();
     }
 

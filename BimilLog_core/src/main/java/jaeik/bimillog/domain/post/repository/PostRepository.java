@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.repository;
 
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -94,5 +95,29 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
     @Query("UPDATE Post p SET p.commentCount = CASE WHEN p.commentCount > 0 THEN p.commentCount - 1 ELSE 0 END WHERE p.id = :postId")
     void decrementCommentCount(@Param("postId") Long postId);
+
+    /**
+     * <h3>특정 타입의 featuredType 일괄 초기화</h3>
+     * <p>스케줄러에서 WEEKLY/LEGEND 전체 교체 시 기존 값을 null로 초기화합니다.</p>
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.featuredType = null WHERE p.featuredType = :type")
+    void clearFeaturedType(@Param("type") PostCacheFlag type);
+
+    /**
+     * <h3>featuredType 설정 (null인 경우만)</h3>
+     * <p>WEEKLY 스케줄러에서 사용. NOTICE/LEGEND를 덮어쓰지 않습니다.</p>
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.featuredType = :type WHERE p.id IN :ids AND p.featuredType IS NULL")
+    void setFeaturedType(@Param("ids") List<Long> ids, @Param("type") PostCacheFlag type);
+
+    /**
+     * <h3>featuredType 설정 (null 또는 특정 타입 덮어쓰기)</h3>
+     * <p>LEGEND 스케줄러에서 사용. WEEKLY는 덮어쓰지만 NOTICE는 유지합니다.</p>
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.featuredType = :newType WHERE p.id IN :ids AND (p.featuredType IS NULL OR p.featuredType = :overridable)")
+    void setFeaturedTypeOverriding(@Param("ids") List<Long> ids, @Param("newType") PostCacheFlag newType, @Param("overridable") PostCacheFlag overridable);
 }
 

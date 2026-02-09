@@ -6,7 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,35 +28,8 @@ public class RedisFirstPagePostAdapter {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    /**
-     * 첫 페이지 갱신 분산 락 TTL (5분)
-     * <p>스케줄러 갱신 시간보다 충분히 길게 설정</p>
-     */
-    public static final Duration FIRST_PAGE_REFRESH_LOCK_TTL = Duration.ofMinutes(5);
-
-    /**
-     * 첫 페이지 캐시 TTL (1시간)
-     * <p>스케줄러가 30분마다 갱신하므로 정상 시 TTL 만료 안 됨</p>
-     */
-    public static final Duration FIRST_PAGE_CACHE_TTL = Duration.ofHours(1);
-
-    /**
-     * 첫 페이지 캐시 List 키
-     * <p>Value Type: List (PostSimpleDetail JSON 직렬화)</p>
-     * <p>최신 게시글 20개를 순서대로 저장</p>
-     */
-    public static final String FIRST_PAGE_LIST_KEY = "post:board:first-page";
-
-    /**
-     * 첫 페이지 갱신 분산 락 키
-     * <p>다중 인스턴스 환경에서 하나의 스케줄러만 캐시를 갱신하도록 보장</p>
-     */
-    public static final String FIRST_PAGE_REFRESH_LOCK_KEY = "post:board:refresh:lock";
-
-    /**
-     * 첫 페이지 캐시 크기 (20개)
-     */
-    public static final int FIRST_PAGE_SIZE = 20;
+    private static final String FIRST_PAGE_LIST_KEY = RedisKey.FIRST_PAGE_LIST_KEY;
+    private static final int FIRST_PAGE_SIZE = RedisKey.FIRST_PAGE_SIZE;
 
     // ===================== 조회 메서드 =====================
 
@@ -139,23 +113,57 @@ public class RedisFirstPagePostAdapter {
      *
      * @param postId 삭제할 게시글 ID
      */
-    public void deletePost(Long postId) {
+    /**
+     * <h3>게시글 삭제</h3>
+     * <p>LRANGE로 List 조회 후 postId 매칭 → LREM으로 제거</p>
+     * <p>첫 페이지에 없는 글이면 아무 동작 안 함</p>
+     *
+     * @param postId 삭제할 게시글 ID
+     * @return 삭제 후 리스트의 마지막 게시글 ID (삭제되지 않았거나 리스트가 비면 null)
+     */
+    public Long deletePost(Long postId) {
         try {
             List<Object> rawList = redisTemplate.opsForList().range(FIRST_PAGE_LIST_KEY, 0, FIRST_PAGE_SIZE - 1);
             if (rawList == null || rawList.isEmpty()) {
-                return;
+                return null;
             }
 
             for (Object raw : rawList) {
                 if (raw instanceof PostSimpleDetail post && post.getId().equals(postId)) {
                     redisTemplate.opsForList().remove(FIRST_PAGE_LIST_KEY, 1, raw);
                     log.debug("[FIRST_PAGE_CACHE] 게시글 삭제: postId={}", postId);
-                    return;
+
+                    // 삭제 후 마지막 게시글 ID 반환 (다음 글 보충용)
+                    Object last = redisTemplate.opsForList().index(FIRST_PAGE_LIST_KEY, -1);
+                    if (last instanceof PostSimpleDetail lastPost) {
+                        return lastPost.getId();
+                    }
+                    return null;
                 }
             }
+            return null;
         } catch (Exception e) {
             log.warn("[FIRST_PAGE_CACHE] 게시글 삭제 실패, 캐시 무효화: postId={}, error={}", postId, e.getMessage());
             invalidateCache();
+            return null;
+        }
+    }
+
+    /**
+     * <h3>게시글 보충 (RPUSH)</h3>
+     * <p>삭제로 인해 부족해진 첫 페이지 캐시에 다음 게시글을 추가합니다.</p>
+     *
+     * @param post 보충할 게시글
+     */
+    public void appendPost(PostSimpleDetail post) {
+        try {
+            Long currentSize = redisTemplate.opsForList().size(FIRST_PAGE_LIST_KEY);
+            if (currentSize != null && currentSize < FIRST_PAGE_SIZE) {
+                redisTemplate.opsForList().rightPush(FIRST_PAGE_LIST_KEY, post);
+                log.debug("[FIRST_PAGE_CACHE] 게시글 보충: postId={}", post.getId());
+            }
+        } catch (Exception e) {
+            log.warn("[FIRST_PAGE_CACHE] 게시글 보충 실패: postId={}, error={}", post.getId(), e.getMessage());
         }
     }
 
@@ -176,7 +184,7 @@ public class RedisFirstPagePostAdapter {
         // DEL → RPUSH → EXPIRE
         redisTemplate.delete(FIRST_PAGE_LIST_KEY);
         redisTemplate.opsForList().rightPushAll(FIRST_PAGE_LIST_KEY, posts.toArray());
-        redisTemplate.expire(FIRST_PAGE_LIST_KEY, FIRST_PAGE_CACHE_TTL.toSeconds(), TimeUnit.SECONDS);
+        redisTemplate.expire(FIRST_PAGE_LIST_KEY, RedisKey.FIRST_PAGE_CACHE_TTL.toSeconds(), TimeUnit.SECONDS);
 
         log.info("[FIRST_PAGE_CACHE] 캐시 갱신 완료: {}개", posts.size());
     }
@@ -190,9 +198,9 @@ public class RedisFirstPagePostAdapter {
      */
     public boolean tryAcquireRefreshLock() {
         Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
-                FIRST_PAGE_REFRESH_LOCK_KEY,
+                RedisKey.FIRST_PAGE_REFRESH_LOCK_KEY,
                 "locked",
-                FIRST_PAGE_REFRESH_LOCK_TTL.toSeconds(),
+                RedisKey.FIRST_PAGE_REFRESH_LOCK_TTL.toSeconds(),
                 TimeUnit.SECONDS
         );
         return Boolean.TRUE.equals(acquired);
@@ -202,7 +210,7 @@ public class RedisFirstPagePostAdapter {
      * <h3>갱신 락 해제</h3>
      */
     public void releaseRefreshLock() {
-        redisTemplate.delete(FIRST_PAGE_REFRESH_LOCK_KEY);
+        redisTemplate.delete(RedisKey.FIRST_PAGE_REFRESH_LOCK_KEY);
     }
 
     // ===================== 캐시 무효화 =====================

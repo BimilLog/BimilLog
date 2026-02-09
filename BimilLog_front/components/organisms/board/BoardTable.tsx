@@ -10,8 +10,9 @@ import { usePostReadStatus } from "@/hooks/features/useReadingProgress";
 import {
   ThumbsUp,
   Eye,
-  User
+  User,
 } from "lucide-react";
+import { FeaturedBadge } from "@/components/organisms/board/featured-badge";
 import {
   Table,
   TableBody,
@@ -83,21 +84,26 @@ const BoardTableRow = memo<TableRowProps>(({
 
       {/* 제목 */}
       <TableCell>
-        <Link
-          href={`/board/post/${post.id}`}
-          className={`block line-clamp-2 font-semibold transition-colors ${
-            isRead
-              ? 'text-muted-foreground'
-              : 'text-foreground hover:text-purple-600 dark:hover:text-purple-300'
-          }`}
-        >
-          {post.title}
-          {post.commentCount > 0 && (
-            <span className="ml-2 text-purple-500 font-normal">
-              [{post.commentCount}]
-            </span>
+        <div className="flex items-center gap-2">
+          {post.featuredType && (
+            <FeaturedBadge featuredType={post.featuredType} />
           )}
-        </Link>
+          <Link
+            href={`/board/post/${post.id}`}
+            className={`block line-clamp-2 font-semibold transition-colors ${
+              isRead
+                ? 'text-muted-foreground'
+                : 'text-foreground hover:text-purple-600 dark:hover:text-purple-300'
+            }`}
+          >
+            {post.title}
+            {post.commentCount > 0 && (
+              <span className="ml-2 text-purple-500 font-normal">
+                [{post.commentCount}]
+              </span>
+            )}
+          </Link>
+        </div>
       </TableCell>
 
       {/* 작성자 */}
@@ -188,13 +194,16 @@ const BoardMobileCard = memo<TableRowProps>(({
         <div className="mb-1.5 flex items-start justify-between">
           <div className="flex-1">
             {/* 순위 표시 (인기글 탭에서만) */}
-            {showRanking && (
-              <div className="mb-1.5">
+            <div className="flex items-center gap-2 mb-1.5">
+              {showRanking && (
                 <span className="text-lg font-bold text-purple-600 dark:text-purple-300">
                   #{index + 1}
                 </span>
-              </div>
-            )}
+              )}
+              {post.featuredType && (
+                <FeaturedBadge featuredType={post.featuredType} />
+              )}
+            </div>
 
             {/* 제목 */}
             <Link

@@ -85,7 +85,7 @@ public class FeaturedPostScheduler {
      * <p>1일마다 주간 인기 게시글을 갱신하고 PostSimpleDetail을 Redis Hash에 저장합니다.</p>
      * <p>지난 7일간의 조회수와 좋아요 종합 점수를 기반으로 주간 인기 게시글을 선정합니다.</p>
      * <p>인기 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 알림을 전송합니다.</p>
-     * <p>선정된 인기글은 featured_post 테이블에 영속화됩니다.</p>
+     * <p>선정된 인기글은 Post.featuredType 필드로 영속화됩니다.</p>
      */
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     public void updateWeeklyPopularPosts() {
@@ -96,11 +96,11 @@ public class FeaturedPostScheduler {
             return;
         }
 
-        // DB에 특집 게시글 저장 (기존 WEEKLY 삭제 후 새로 저장)
-        featuredPostScheduleExecutor.saveFeaturedPosts(posts, PostCacheFlag.WEEKLY);
+        // Post.featuredType 업데이트 (기존 WEEKLY 초기화 후 새로 설정)
+        featuredPostScheduleExecutor.updateWeeklyFeaturedType(posts);
 
         try {
-            // Hash 캐시에 TTL 1분으로 저장
+            // Hash 캐시에 TTL로 저장
             redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.WEEKLY, posts, POST_CACHE_TTL_WEEKLY_LEGEND);
             log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
         } catch (Exception e) {
@@ -116,7 +116,7 @@ public class FeaturedPostScheduler {
      * <h3>전설 게시글 스케줄링 갱신 및 명예의 전당 알림 발행</h3>
      * <p>PostSimpleDetail을 Redis Hash에 저장</p>
      * <p>전설 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 알림을 전송합니다.</p>
-     * <p>선정된 레전드는 featured_post 테이블에 영속화됩니다.</p>
+     * <p>선정된 레전드는 Post.featuredType 필드로 영속화됩니다.</p>
      */
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     public void updateLegendaryPosts() {
@@ -127,8 +127,8 @@ public class FeaturedPostScheduler {
             return;
         }
 
-        // DB에 특집 게시글 저장 (기존 LEGEND 삭제 후 새로 저장)
-        featuredPostScheduleExecutor.saveFeaturedPosts(posts, PostCacheFlag.LEGEND);
+        // Post.featuredType 업데이트 (기존 LEGEND 초기화 후 새로 설정, WEEKLY 덮어쓰기)
+        featuredPostScheduleExecutor.updateLegendFeaturedType(posts);
 
         try {
             redisSimplePostAdapter.cachePostsWithTtl(PostCacheFlag.LEGEND, posts, POST_CACHE_TTL_WEEKLY_LEGEND);

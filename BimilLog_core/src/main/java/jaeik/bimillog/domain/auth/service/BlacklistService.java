@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.auth.repository.BlackListRepository;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.blacklist.RedisJwtBlacklistAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,7 @@ public class BlacklistService {
     private final AuthTokenRepository authTokenRepository;
     private final BlackListRepository blackListRepository;
 
-    private static final Duration DEFAULT_TTL = Duration.ofDays(30);
+    private static final Duration DEFAULT_TTL = RedisKey.BLACKLIST_DEFAULT_TTL;
 
     /**
      * <h3>JWT 토큰 블랙리스트 검증</h3>

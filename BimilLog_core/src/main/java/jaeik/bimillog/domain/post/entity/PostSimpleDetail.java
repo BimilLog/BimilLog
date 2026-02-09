@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.entity;
 
 import com.querydsl.core.annotations.QueryProjection;
+import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,11 +35,12 @@ public class PostSimpleDetail implements Serializable {
     private Long memberId;
     private String memberName;
     private Integer commentCount;
+    private PostCacheFlag featuredType;
 
     @Builder
     @QueryProjection
     public PostSimpleDetail(Long id, String title, Integer viewCount, Integer likeCount, Instant createdAt,
-                            Long memberId, String memberName, Integer commentCount) {
+                            Long memberId, String memberName, Integer commentCount, PostCacheFlag featuredType) {
         this.id = id;
         this.title = title;
         this.viewCount = viewCount;
@@ -47,12 +49,13 @@ public class PostSimpleDetail implements Serializable {
         this.memberId = memberId;
         this.memberName = memberName;
         this.commentCount = commentCount;
+        this.featuredType = featuredType;
     }
 
     /**
      * 새 게시글용 PostSimpleDetail 생성 (모든 카운트 0)
      */
     public static PostSimpleDetail createNew(Long id, String title, Instant createdAt, Long memberId, String memberName) {
-        return new PostSimpleDetail(id, title, 0, 0, createdAt, memberId, memberName, 0);
+        return new PostSimpleDetail(id, title, 0, 0, createdAt, memberId, memberName, 0, null);
     }
 }

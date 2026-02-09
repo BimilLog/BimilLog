@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -30,8 +31,8 @@ public class RedisMemberDataAdapter {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String TEMP_KEY_PREFIX = "temp:member:";
-    private static final Duration TTL = Duration.ofMinutes(5);
+    private static final String TEMP_KEY_PREFIX = RedisKey.TEMP_MEMBER_KEY_PREFIX;
+    private static final Duration TTL = RedisKey.TEMP_MEMBER_TTL;
     
     private static final String NULL_UUID_MESSAGE = "유효하지 않은 임시 UUID 제공됨: {}";
     private static final String NULL_PROFILE_MESSAGE = "UUID {}에 대해 유효하지 않은 사용자 프로필 제공됨";

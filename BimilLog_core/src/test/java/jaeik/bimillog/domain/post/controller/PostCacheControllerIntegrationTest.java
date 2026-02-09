@@ -1,14 +1,10 @@
 package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.FeaturedPost;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
-import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 
-import java.time.Instant;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
@@ -46,9 +42,6 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private PostLikeRepository postLikeRepository;
-
-    @Autowired
-    private FeaturedPostRepository featuredPostRepository;
 
     private Member savedMember;
     private List<Member> likeMembers;
@@ -106,7 +99,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 
         testPosts = postRepository.saveAll(testPosts);
 
-        // 공지사항 게시글 생성 및 FeaturedPost 등록
+        // 공지사항 게시글 생성 - Post.featuredType으로 직접 관리
         for (int i = 1; i <= 2; i++) {
             Post noticePost = Post.builder()
                     .member(savedMember)
@@ -116,20 +109,9 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
                     .views(0)
                     .build();
             noticePost = postRepository.save(noticePost);
+            noticePost.updateFeaturedType(PostCacheFlag.NOTICE);
+            postRepository.save(noticePost);
             testPosts.add(noticePost);
-
-            // FeaturedPost 테이블에 공지사항으로 등록
-            PostSimpleDetail detail = PostSimpleDetail.builder()
-                    .id(noticePost.getId())
-                    .title(noticePost.getTitle())
-                    .memberName(savedMember.getMemberName())
-                    .viewCount(0)
-                    .likeCount(0)
-                    .commentCount(0)
-                    .createdAt(Instant.now())
-                    .build();
-            FeaturedPost featuredPost = FeaturedPost.createFeaturedPost(detail, PostCacheFlag.NOTICE);
-            featuredPostRepository.save(featuredPost);
         }
 
         int likeUserIndex = 0;

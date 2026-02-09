@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.redis.friend;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
@@ -33,15 +34,15 @@ public class RedisInteractionScoreRepository {
     private final RedisTemplate<String, Object> redisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
 
-    private static final String INTERACTION_PREFIX = "interaction:"; // 상호 작용 점수 테이블(ZSet) 키 접두사
+    private static final String INTERACTION_PREFIX = RedisKey.INTERACTION_PREFIX;
+    private static final long IDEMPOTENCY_TTL_SECONDS = RedisKey.IDEMPOTENCY_TTL_SECONDS;
     private static final int PIPELINE_BATCH_SIZE = 500;
-    private static final RedisScript<Long> INTERACTION_SCORE_ADD_SCRIPT; // 상호 작용 점수 증가 Lua Script
-    private static final RedisScript<Long> INTERACTION_SCORE_DECAY_SCRIPT; // 상호 작용 점수 지수 감쇠 Lua Script
-    private static final Long IDEMPOTENCY_TTL_SECONDS = 60 * 60L; // 멱등성 키 TTL 1시간
-    private static final Double INTERACTION_SCORE_THRESHOLD = 0.2; // 상호 작용 점수 삭제 임계값
-    private static final Double INTERACTION_SCORE_DEFAULT = 0.5; // 상호 작용 점수 증가 기본 값
-    private static final Double INTERACTION_SCORE_LIMIT = 9.5; // 상호 작용 점수 증가 가능 최대값 (최대값은 10점)
-    private static final Double INTERACTION_SCORE_DECAY_RATE = 0.95; // 상호 작용 점수 지수 감쇠율 (1일마다 0.95)
+    private static final RedisScript<Long> INTERACTION_SCORE_ADD_SCRIPT;
+    private static final RedisScript<Long> INTERACTION_SCORE_DECAY_SCRIPT;
+    private static final Double INTERACTION_SCORE_THRESHOLD = 0.2;
+    private static final Double INTERACTION_SCORE_DEFAULT = 0.5;
+    private static final Double INTERACTION_SCORE_LIMIT = 9.5;
+    private static final Double INTERACTION_SCORE_DECAY_RATE = 0.95;
 
 
     static {
