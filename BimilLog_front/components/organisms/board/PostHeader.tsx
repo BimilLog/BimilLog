@@ -14,7 +14,7 @@ import {
 import { Post } from "@/lib/api";
 import { KakaoShareButton } from "@/components";
 import { Button as FlowbiteButton } from "flowbite-react";
-import { FeaturedBadge } from "@/components/organisms/board/featured-badge";
+import { FeaturedBadges } from "@/components/organisms/board/featured-badge";
 import { UserActionPopover } from "@/components/molecules/UserActionPopover";
 import { formatDateTime } from "@/lib/utils/date";
 
@@ -67,9 +67,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
           {post.password && (
             <Lock className="w-4 h-4 stroke-red-500 fill-red-100" />
           )}
-          {post.featuredType && (
-            <FeaturedBadge featuredType={post.featuredType} />
-          )}
+          <FeaturedBadges weekly={post.weekly} legend={post.legend} notice={post.notice} />
         </div>
         <CardTitle className="text-xl md:text-2xl font-bold text-brand-primary leading-tight">
           {post.title}

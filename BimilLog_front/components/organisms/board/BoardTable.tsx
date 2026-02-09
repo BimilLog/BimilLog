@@ -12,7 +12,7 @@ import {
   Eye,
   User,
 } from "lucide-react";
-import { FeaturedBadge } from "@/components/organisms/board/featured-badge";
+import { FeaturedBadges } from "@/components/organisms/board/featured-badge";
 import {
   Table,
   TableBody,
@@ -85,9 +85,7 @@ const BoardTableRow = memo<TableRowProps>(({
       {/* 제목 */}
       <TableCell>
         <div className="flex items-center gap-2">
-          {post.featuredType && (
-            <FeaturedBadge featuredType={post.featuredType} />
-          )}
+          <FeaturedBadges weekly={post.weekly} legend={post.legend} notice={post.notice} />
           <Link
             href={`/board/post/${post.id}`}
             className={`block line-clamp-2 font-semibold transition-colors ${
@@ -200,9 +198,7 @@ const BoardMobileCard = memo<TableRowProps>(({
                   #{index + 1}
                 </span>
               )}
-              {post.featuredType && (
-                <FeaturedBadge featuredType={post.featuredType} />
-              )}
+              <FeaturedBadges weekly={post.weekly} legend={post.legend} notice={post.notice} />
             </div>
 
             {/* 제목 */}

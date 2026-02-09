@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
@@ -19,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <h2>게시글 Admin 컨트롤러 통합 테스트</h2>
  * <p>@SpringBootTest를 사용한 실제 Post Admin API 통합 테스트</p>
  * <p>관리자 권한이 필요한 공지 설정/해제 API 동작을 검증</p>
- * <p>공지 상태는 Post.featuredType 필드로 관리됨</p>
+ * <p>공지 상태는 Post.isNotice 플래그로 관리됨</p>
  *
  * @author Jaeik
  * @version 2.7.0
@@ -44,11 +43,11 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     /**
-     * 해당 게시글이 공지사항인지 확인 (Post.featuredType 기반)
+     * 해당 게시글이 공지사항인지 확인 (Post.isNotice 플래그 기반)
      */
     private boolean isNotice(Long postId) {
         return postRepository.findById(postId)
-                .map(post -> post.getFeaturedType() == PostCacheFlag.NOTICE)
+                .map(Post::isNotice)
                 .orElse(false);
     }
 
@@ -56,7 +55,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
      * 해당 게시글을 공지사항으로 설정 (테스트 setup용)
      */
     private void setAsNotice(Post post) {
-        post.updateFeaturedType(PostCacheFlag.NOTICE);
+        post.updateNotice(true);
         postRepository.save(post);
     }
 

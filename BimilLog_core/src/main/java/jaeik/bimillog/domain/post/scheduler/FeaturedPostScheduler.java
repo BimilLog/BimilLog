@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.scheduler;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
 /**
  * <h2>FeaturedPostScheduler</h2>
  * <p>게시글 인기도 기반 캐시 동기화를 담당하는 스케줄링 서비스</p>
- * <p>DB 조회 → featuredType 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체를 통째로 재시도합니다.</p>
+ * <p>DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체를 통째로 재시도합니다.</p>
  * <p>이벤트 발행은 재시도 범위에서 제외됩니다.</p>
  *
  * @author Jaeik
@@ -47,7 +46,7 @@ public class FeaturedPostScheduler {
 
     /**
      * <h3>주간 인기 게시글 스케줄링 갱신</h3>
-     * <p>1일마다 DB 조회 → featuredType 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체</p>
+     * <p>1일마다 DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체</p>
      * <p>실패 시 전체를 재시도합니다. (2s→8s→32s→128s→512s, 최대 5회 재시도)</p>
      */
     @Scheduled(fixedRate = 60000 * 1440)
@@ -65,11 +64,11 @@ public class FeaturedPostScheduler {
             return;
         }
 
-        // Post.featuredType 업데이트 (기존 WEEKLY 초기화 후 새로 설정)
-        postRepository.clearFeaturedType(PostCacheFlag.WEEKLY);
+        // isWeekly 플래그 업데이트 (기존 초기화 후 새로 설정)
+        postRepository.clearWeeklyFlag();
         List<Long> ids = posts.stream().map(PostSimpleDetail::getId).toList();
-        postRepository.setFeaturedType(ids, PostCacheFlag.WEEKLY);
-        log.info("WEEKLY featuredType 업데이트 완료: {}개", ids.size());
+        postRepository.setWeeklyFlag(ids);
+        log.info("WEEKLY 플래그 업데이트 완료: {}개", ids.size());
 
         // 글 단위 Hash 생성 + SET 인덱스 교체
         posts.forEach(redisPostHashAdapter::createPostHash);
@@ -89,7 +88,7 @@ public class FeaturedPostScheduler {
 
     /**
      * <h3>전설 게시글 스케줄링 갱신</h3>
-     * <p>1일마다 DB 조회 → featuredType 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체</p>
+     * <p>1일마다 DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체</p>
      * <p>실패 시 전체를 재시도합니다. (2s→8s→32s→128s→512s, 최대 5회 재시도)</p>
      */
     @Scheduled(fixedRate = 60000 * 1440)
@@ -107,11 +106,11 @@ public class FeaturedPostScheduler {
             return;
         }
 
-        // Post.featuredType 업데이트 (기존 LEGEND 초기화 후 새로 설정, WEEKLY 덮어쓰기)
-        postRepository.clearFeaturedType(PostCacheFlag.LEGEND);
+        // isLegend 플래그 업데이트 (기존 초기화 후 새로 설정)
+        postRepository.clearLegendFlag();
         List<Long> ids = posts.stream().map(PostSimpleDetail::getId).toList();
-        postRepository.setFeaturedTypeOverriding(ids, PostCacheFlag.LEGEND, PostCacheFlag.WEEKLY);
-        log.info("LEGEND featuredType 업데이트 완료: {}개", ids.size());
+        postRepository.setLegendFlag(ids);
+        log.info("LEGEND 플래그 업데이트 완료: {}개", ids.size());
 
         // 글 단위 Hash 생성 + SET 인덱스 교체
         posts.forEach(redisPostHashAdapter::createPostHash);
@@ -142,7 +141,7 @@ public class FeaturedPostScheduler {
             backoff = @Backoff(delay = 2000, multiplier = 4)
     )
     public void refreshNoticePosts() {
-        List<PostSimpleDetail> posts = postQueryRepository.findPostsByFeaturedType(PostCacheFlag.NOTICE);
+        List<PostSimpleDetail> posts = postQueryRepository.findNoticePostsForScheduler();
 
         if (posts.isEmpty()) {
             log.info("NOTICE 게시글이 없어 캐시 업데이트를 건너뜁니다.");

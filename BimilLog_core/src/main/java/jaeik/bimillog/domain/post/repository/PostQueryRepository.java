@@ -68,7 +68,9 @@ public class PostQueryRepository {
                         post.member.id,
                         post.memberName,
                         post.commentCount,
-                        post.featuredType))
+                        post.isWeekly,
+                        post.isLegend,
+                        post.isNotice))
                 .from(post)
                 .where(cursorCondition)
                 .orderBy(post.id.desc())  // ID 내림차순 (최신순)
@@ -114,7 +116,9 @@ public class PostQueryRepository {
                         post.member.id,
                         post.memberName,
                         post.commentCount,
-                        post.featuredType
+                        post.isWeekly,
+                        post.isLegend,
+                        post.isNotice
                 ))
                 .from(post)
                 .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
@@ -222,7 +226,7 @@ public class PostQueryRepository {
                                 .when(userPostLike.id.isNotNull())
                                 .then(true)
                                 .otherwise(false),
-                        post.featuredType
+                        post.isWeekly, post.isLegend, post.isNotice
                 ))
                 .from(post)
                 .leftJoin(userPostLike).on(
@@ -237,7 +241,7 @@ public class PostQueryRepository {
 
     /**
      * <h3>공지사항 목록 조회 (스케줄러용)</h3>
-     * <p>Post.featuredType=NOTICE인 게시글 목록을 최신순으로 조회합니다.</p>
+     * <p>isNotice=true인 게시글 목록을 최신순으로 조회합니다.</p>
      *
      * @return 공지사항 게시글 목록 (최대 100개, PostSimpleDetail)
      */
@@ -248,7 +252,7 @@ public class PostQueryRepository {
 
     /**
      * <h3>공지사항 목록 조회 (페이징)</h3>
-     * <p>Post.featuredType=NOTICE인 게시글 목록을 페이징으로 조회합니다.</p>
+     * <p>isNotice=true인 게시글 목록을 페이징으로 조회합니다.</p>
      *
      * @param pageable 페이지 정보
      * @return 공지사항 페이지
@@ -256,24 +260,59 @@ public class PostQueryRepository {
     @Transactional(readOnly = true)
     public Page<PostSimpleDetail> findNoticePosts(Pageable pageable) {
         Consumer<JPAQuery<?>> contentCustomizer = query -> query
-                .where(post.featuredType.eq(jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag.NOTICE))
+                .where(post.isNotice.eq(true))
                 .orderBy(post.id.desc());
 
         Consumer<JPAQuery<?>> countCustomizer = query -> query
-                .where(post.featuredType.eq(jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag.NOTICE));
+                .where(post.isNotice.eq(true));
 
         return findPostsWithQuery(contentCustomizer, countCustomizer, pageable);
     }
 
     /**
-     * <h3>featuredType 기반 게시글 조회 (캐시 갱신/DB 폴백용)</h3>
-     * <p>Post 테이블에서 featuredType이 일치하는 게시글을 단일 쿼리로 조회합니다.</p>
-     *
-     * @param type featuredType (WEEKLY, LEGEND, NOTICE)
-     * @return 해당 타입의 게시글 목록
+     * <h3>주간 인기 게시글 DB 폴백 조회 (페이징)</h3>
      */
     @Transactional(readOnly = true)
-    public List<PostSimpleDetail> findPostsByFeaturedType(jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag type) {
+    public Page<PostSimpleDetail> findWeeklyPostsFallback(Pageable pageable) {
+        Consumer<JPAQuery<?>> customizer = query -> query
+                .where(post.isWeekly.eq(true))
+                .orderBy(post.id.desc());
+        Consumer<JPAQuery<?>> countCustomizer = query -> query
+                .where(post.isWeekly.eq(true));
+        return findPostsWithQuery(customizer, countCustomizer, pageable);
+    }
+
+    /**
+     * <h3>레전드 게시글 DB 폴백 조회 (페이징)</h3>
+     */
+    @Transactional(readOnly = true)
+    public Page<PostSimpleDetail> findLegendPostsFallback(Pageable pageable) {
+        Consumer<JPAQuery<?>> customizer = query -> query
+                .where(post.isLegend.eq(true))
+                .orderBy(post.id.desc());
+        Consumer<JPAQuery<?>> countCustomizer = query -> query
+                .where(post.isLegend.eq(true));
+        return findPostsWithQuery(customizer, countCustomizer, pageable);
+    }
+
+    /**
+     * <h3>공지사항 DB 폴백 조회 (페이징)</h3>
+     */
+    @Transactional(readOnly = true)
+    public Page<PostSimpleDetail> findNoticePostsFallback(Pageable pageable) {
+        Consumer<JPAQuery<?>> customizer = query -> query
+                .where(post.isNotice.eq(true))
+                .orderBy(post.id.desc());
+        Consumer<JPAQuery<?>> countCustomizer = query -> query
+                .where(post.isNotice.eq(true));
+        return findPostsWithQuery(customizer, countCustomizer, pageable);
+    }
+
+    /**
+     * <h3>공지사항 게시글 목록 조회 (스케줄러 캐시 갱신용)</h3>
+     */
+    @Transactional(readOnly = true)
+    public List<PostSimpleDetail> findNoticePostsForScheduler() {
         return jpaQueryFactory
                 .select(new QPostSimpleDetail(
                         post.id,
@@ -284,26 +323,13 @@ public class PostQueryRepository {
                         post.member.id,
                         post.memberName,
                         post.commentCount,
-                        post.featuredType))
+                        post.isWeekly,
+                        post.isLegend,
+                        post.isNotice))
                 .from(post)
-                .where(post.featuredType.eq(type))
+                .where(post.isNotice.eq(true))
                 .orderBy(post.id.desc())
                 .fetch();
-    }
-
-    /**
-     * <h3>featuredType 기반 게시글 페이징 조회 (DB 폴백용)</h3>
-     */
-    @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> findPostsByFeaturedType(jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag type, Pageable pageable) {
-        Consumer<JPAQuery<?>> customizer = query -> query
-                .where(post.featuredType.eq(type))
-                .orderBy(post.id.desc());
-
-        Consumer<JPAQuery<?>> countCustomizer = query -> query
-                .where(post.featuredType.eq(type));
-
-        return findPostsWithQuery(customizer, countCustomizer, pageable);
     }
 
     /**
@@ -341,7 +367,9 @@ public class PostQueryRepository {
                         post.member.id,
                         post.memberName,
                         post.commentCount,
-                        post.featuredType
+                        post.isWeekly,
+                        post.isLegend,
+                        post.isNotice
                 ))
                 .from(post)
                 .where(recentCondition)
@@ -399,7 +427,9 @@ public class PostQueryRepository {
                         post.member.id,
                         post.memberName,
                         post.commentCount,
-                        post.featuredType))
+                        post.isWeekly,
+                        post.isLegend,
+                        post.isNotice))
                 .from(post)
                 .where(post.id.in(postIds))
                 .orderBy(post.id.desc())
@@ -433,7 +463,9 @@ public class PostQueryRepository {
                         post.member.id,
                         post.memberName,
                         post.commentCount,
-                        post.featuredType))
+                        post.isWeekly,
+                        post.isLegend,
+                        post.isNotice))
                 .from(post)
                 .where(post.id.eq(postId))
                 .fetchOne();
@@ -464,7 +496,9 @@ public class PostQueryRepository {
                         post.member.id,
                         post.memberName,
                         post.commentCount,
-                        post.featuredType))
+                        post.isWeekly,
+                        post.isLegend,
+                        post.isNotice))
                 .from(post);
 
         // 커스터마이징 적용 (JOIN, WHERE 등)

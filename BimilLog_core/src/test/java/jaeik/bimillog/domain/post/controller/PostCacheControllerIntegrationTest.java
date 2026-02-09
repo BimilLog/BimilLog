@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
@@ -99,7 +98,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 
         testPosts = postRepository.saveAll(testPosts);
 
-        // 공지사항 게시글 생성 - Post.featuredType으로 직접 관리
+        // 공지사항 게시글 생성 - Post.isNotice 플래그로 직접 관리
         for (int i = 1; i <= 2; i++) {
             Post noticePost = Post.builder()
                     .member(savedMember)
@@ -109,7 +108,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
                     .views(0)
                     .build();
             noticePost = postRepository.save(noticePost);
-            noticePost.updateFeaturedType(PostCacheFlag.NOTICE);
+            noticePost.updateNotice(true);
             postRepository.save(noticePost);
             testPosts.add(noticePost);
         }

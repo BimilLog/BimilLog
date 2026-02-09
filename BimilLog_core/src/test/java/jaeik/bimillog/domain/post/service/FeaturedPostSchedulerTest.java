@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
@@ -35,7 +34,7 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>FeaturedPostScheduler 테스트</h2>
  * <p>게시글 캐시 동기화 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>DB 조회 → featuredType 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체 → 이벤트 발행 흐름을 검증합니다.</p>
+ * <p>DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체 → 이벤트 발행 흐름을 검증합니다.</p>
  *
  * @author Jaeik
  * @version 3.0.0
@@ -74,7 +73,7 @@ class FeaturedPostSchedulerTest {
     }
 
     @Test
-    @DisplayName("주간 인기 게시글 업데이트 - 성공 (featuredType 업데이트 + 글 단위 Hash 생성 + SET 인덱스 교체 + 이벤트 발행)")
+    @DisplayName("주간 인기 게시글 업데이트 - 성공 (플래그 업데이트 + 글 단위 Hash 생성 + SET 인덱스 교체 + 이벤트 발행)")
     void shouldUpdateWeeklyPopularPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail post1 = createPostSimpleDetail(1L, "주간인기글1", 1L);
@@ -87,9 +86,9 @@ class FeaturedPostSchedulerTest {
         featuredPostScheduler.updateWeeklyPopularPosts();
 
         // Then
-        // featuredType 업데이트
-        verify(postRepository).clearFeaturedType(PostCacheFlag.WEEKLY);
-        verify(postRepository).setFeaturedType(List.of(1L, 2L), PostCacheFlag.WEEKLY);
+        // 플래그 업데이트
+        verify(postRepository).clearWeeklyFlag();
+        verify(postRepository).setWeeklyFlag(List.of(1L, 2L));
         // 글 단위 Hash 생성
         verify(redisPostHashAdapter).createPostHash(post1);
         verify(redisPostHashAdapter).createPostHash(post2);
@@ -122,7 +121,7 @@ class FeaturedPostSchedulerTest {
         featuredPostScheduler.updateWeeklyPopularPosts();
 
         // Then
-        verify(postRepository).clearFeaturedType(PostCacheFlag.WEEKLY);
+        verify(postRepository).clearWeeklyFlag();
         verify(redisPostHashAdapter, times(2)).createPostHash(any(PostSimpleDetail.class));
         verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(Set.class), any(Duration.class));
 
@@ -136,7 +135,7 @@ class FeaturedPostSchedulerTest {
     }
 
     @Test
-    @DisplayName("전설의 게시글 업데이트 - 성공 (featuredType 업데이트 + 글 단위 Hash 생성 + SET 인덱스 교체)")
+    @DisplayName("전설의 게시글 업데이트 - 성공 (플래그 업데이트 + 글 단위 Hash 생성 + SET 인덱스 교체)")
     void shouldUpdateLegendaryPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
@@ -148,8 +147,8 @@ class FeaturedPostSchedulerTest {
         featuredPostScheduler.updateLegendaryPosts();
 
         // Then
-        verify(postRepository).clearFeaturedType(PostCacheFlag.LEGEND);
-        verify(postRepository).setFeaturedTypeOverriding(List.of(1L), PostCacheFlag.LEGEND, PostCacheFlag.WEEKLY);
+        verify(postRepository).clearLegendFlag();
+        verify(postRepository).setLegendFlag(List.of(1L));
         verify(redisPostHashAdapter).createPostHash(legendPost);
         verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_LEGEND_IDS_KEY), any(Set.class), eq(RedisKey.DEFAULT_CACHE_TTL));
 
@@ -176,8 +175,8 @@ class FeaturedPostSchedulerTest {
         // Then
         verify(postQueryRepository).findLegendaryPosts();
 
-        // 게시글이 없으면 featuredType 업데이트, 캐시, 이벤트 발행 안함
-        verify(postRepository, never()).clearFeaturedType(any());
+        // 게시글이 없으면 플래그 업데이트, 캐시, 이벤트 발행 안함
+        verify(postRepository, never()).clearLegendFlag();
         verify(redisPostHashAdapter, never()).createPostHash(any());
         verify(redisPostIndexAdapter, never()).replaceIndex(any(), any(), any());
         verify(eventPublisher, never()).publishEvent(any());
@@ -212,7 +211,7 @@ class FeaturedPostSchedulerTest {
         PostSimpleDetail notice2 = createPostSimpleDetail(2L, "공지2", 2L);
         List<PostSimpleDetail> posts = List.of(notice1, notice2);
 
-        given(postQueryRepository.findPostsByFeaturedType(PostCacheFlag.NOTICE)).willReturn(posts);
+        given(postQueryRepository.findNoticePostsForScheduler()).willReturn(posts);
 
         // When
         featuredPostScheduler.refreshNoticePosts();
@@ -222,8 +221,9 @@ class FeaturedPostSchedulerTest {
         verify(redisPostHashAdapter).createPostHash(notice2);
         verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_NOTICE_IDS_KEY), any(Set.class), eq(RedisKey.DEFAULT_CACHE_TTL));
 
-        // 공지사항은 featuredType 업데이트나 이벤트 발행 없음
-        verify(postRepository, never()).clearFeaturedType(any());
+        // 공지사항은 플래그 업데이트나 이벤트 발행 없음
+        verify(postRepository, never()).clearWeeklyFlag();
+        verify(postRepository, never()).clearLegendFlag();
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -231,7 +231,7 @@ class FeaturedPostSchedulerTest {
     @DisplayName("공지사항 캐시 갱신 - 공지 없으면 스킵")
     void shouldSkipNoticeRefresh_WhenNoNoticePosts() {
         // Given
-        given(postQueryRepository.findPostsByFeaturedType(PostCacheFlag.NOTICE)).willReturn(Collections.emptyList());
+        given(postQueryRepository.findNoticePostsForScheduler()).willReturn(Collections.emptyList());
 
         // When
         featuredPostScheduler.refreshNoticePosts();

@@ -1,9 +1,10 @@
 import { Badge } from "@/components";
 import { Megaphone, Crown, Flame, Trophy } from "lucide-react";
-import type { FeaturedType } from "@/types/domains/post";
+
+type FeaturedKey = "NOTICE" | "WEEKLY" | "LEGEND" | "REALTIME";
 
 interface FeaturedBadgeProps {
-  featuredType: FeaturedType;
+  type: FeaturedKey;
 }
 
 const FEATURED_CONFIG = {
@@ -13,13 +14,36 @@ const FEATURED_CONFIG = {
   REALTIME: { label: "실시간", variant: "pink" as const, icon: Trophy },
 } as const;
 
-export const FeaturedBadge = ({ featuredType }: FeaturedBadgeProps) => {
-  const config = FEATURED_CONFIG[featuredType];
+export const FeaturedBadge = ({ type }: FeaturedBadgeProps) => {
+  const config = FEATURED_CONFIG[type];
   if (!config) return null;
 
   return (
     <Badge variant={config.variant} icon={config.icon} className="inline-flex">
       {config.label}
     </Badge>
+  );
+};
+
+interface FeaturedBadgesProps {
+  weekly?: boolean;
+  legend?: boolean;
+  notice?: boolean;
+}
+
+export const FeaturedBadges = ({ weekly, legend, notice }: FeaturedBadgesProps) => {
+  const badges: FeaturedKey[] = [];
+  if (notice) badges.push("NOTICE");
+  if (legend) badges.push("LEGEND");
+  if (weekly) badges.push("WEEKLY");
+
+  if (badges.length === 0) return null;
+
+  return (
+    <>
+      {badges.map((type) => (
+        <FeaturedBadge key={type} type={type} />
+      ))}
+    </>
   );
 };

@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +38,9 @@ public class RedisPostHashAdapter {
     public static final String FIELD_MEMBER_ID = "memberId";
     public static final String FIELD_MEMBER_NAME = "memberName";
     public static final String FIELD_CREATED_AT = "createdAt";
-    public static final String FIELD_FEATURED_TYPE = "featuredType";
+    public static final String FIELD_IS_WEEKLY = "isWeekly";
+    public static final String FIELD_IS_LEGEND = "isLegend";
+    public static final String FIELD_IS_NOTICE = "isNotice";
 
     /**
      * <h3>글 단위 Hash 생성 (HMSET)</h3>
@@ -172,7 +173,9 @@ public class RedisPostHashAdapter {
         map.put(FIELD_MEMBER_ID, post.getMemberId() != null ? post.getMemberId().toString() : "");
         map.put(FIELD_MEMBER_NAME, post.getMemberName() != null ? post.getMemberName() : "");
         map.put(FIELD_CREATED_AT, post.getCreatedAt() != null ? post.getCreatedAt().toString() : "");
-        map.put(FIELD_FEATURED_TYPE, post.getFeaturedType() != null ? post.getFeaturedType().name() : "");
+        map.put(FIELD_IS_WEEKLY, String.valueOf(post.isWeekly()));
+        map.put(FIELD_IS_LEGEND, String.valueOf(post.isLegend()));
+        map.put(FIELD_IS_NOTICE, String.valueOf(post.isNotice()));
         return map;
     }
 
@@ -186,7 +189,9 @@ public class RedisPostHashAdapter {
                 .memberId(parseLongOrNull(map.get(FIELD_MEMBER_ID)))
                 .memberName(parseString(map.get(FIELD_MEMBER_NAME)))
                 .createdAt(parseInstant(map.get(FIELD_CREATED_AT)))
-                .featuredType(parseFeaturedType(map.get(FIELD_FEATURED_TYPE)))
+                .isWeekly(parseBoolean(map.get(FIELD_IS_WEEKLY)))
+                .isLegend(parseBoolean(map.get(FIELD_IS_LEGEND)))
+                .isNotice(parseBoolean(map.get(FIELD_IS_NOTICE)))
                 .build();
     }
 
@@ -220,14 +225,8 @@ public class RedisPostHashAdapter {
         return s.isEmpty() ? null : Instant.parse(s);
     }
 
-    private static PostCacheFlag parseFeaturedType(Object value) {
-        if (value == null) return null;
-        String s = value.toString();
-        if (s.isEmpty()) return null;
-        try {
-            return PostCacheFlag.valueOf(s);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    private static boolean parseBoolean(Object value) {
+        if (value == null) return false;
+        return Boolean.parseBoolean(value.toString());
     }
 }

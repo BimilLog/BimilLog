@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
  * <h2>게시글 엔티티</h2>
  * <p>커뮤니티 게시판의 게시글 정보를 저장하는 엔티티입니다.</p>
  * <p>제목, 내용, 작성자, 조회수를 관리합니다.</p>
- * <p>공지/주간인기/레전드 상태는 featuredType 필드로 직접 관리합니다.</p>
+ * <p>공지/주간인기/레전드 상태는 독립 boolean 플래그(isWeekly, isLegend, isNotice)로 관리합니다.</p>
  * <p>MySQL 전문검색 인덱스를 지원합니다.</p>
  *
  * @author Jaeik
@@ -61,18 +61,25 @@ public class Post extends BaseEntity {
 
     private Integer password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "featured_type", length = 20)
-    private PostCacheFlag featuredType;
+    @Column(name = "is_weekly", nullable = false)
+    private boolean isWeekly;
 
-    /**
-     * <h3>특집 타입 변경</h3>
-     * <p>공지/주간인기/레전드 상태를 변경합니다.</p>
-     *
-     * @param featuredType 변경할 특집 타입 (null이면 해제)
-     */
-    public void updateFeaturedType(PostCacheFlag featuredType) {
-        this.featuredType = featuredType;
+    @Column(name = "is_legend", nullable = false)
+    private boolean isLegend;
+
+    @Column(name = "is_notice", nullable = false)
+    private boolean isNotice;
+
+    public void updateWeekly(boolean isWeekly) {
+        this.isWeekly = isWeekly;
+    }
+
+    public void updateLegend(boolean isLegend) {
+        this.isLegend = isLegend;
+    }
+
+    public void updateNotice(boolean isNotice) {
+        this.isNotice = isNotice;
     }
 
     /**

@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
@@ -24,7 +23,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -39,7 +37,7 @@ import static org.mockito.Mockito.*;
  * <h2>FeaturedPostCacheService 테스트</h2>
  * <p>주간/레전드/공지 인기글 캐시 조회 로직을 검증합니다.</p>
  * <p>SET 인덱스 → 글 단위 Hash pipeline 조회, 캐시 미스 시 빈 페이지 반환, 예외 시 DB 폴백 경로를 검증합니다.</p>
- * <p>DB 폴백은 Post.featuredType 기반 쿼리를 사용합니다.</p>
+ * <p>DB 폴백은 독립 boolean 플래그 기반 쿼리를 사용합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("FeaturedPostCacheService 테스트")
@@ -147,17 +145,18 @@ class FeaturedPostCacheServiceTest {
     @ParameterizedTest(name = "{0} - SET 인덱스 비어있음 → 빈 페이지 반환")
     @MethodSource("provideCacheEmptyScenarios")
     @DisplayName("SET 인덱스 비어있음 - 빈 페이지 반환")
-    void shouldReturnEmptyPage_WhenIndexEmpty(String indexKey, PostCacheFlag flag) {
+    void shouldReturnEmptyPage_WhenIndexEmpty(String indexKey, String label) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
 
         given(redisPostIndexAdapter.getIndexMembers(indexKey)).willReturn(Set.of());
 
         // When
-        Page<PostSimpleDetail> result = switch (flag) {
-            case WEEKLY -> featuredPostCacheService.getWeeklyPosts(pageable);
-            case LEGEND -> featuredPostCacheService.getPopularPostLegend(pageable);
-            case NOTICE -> featuredPostCacheService.getNoticePosts(pageable);
+        Page<PostSimpleDetail> result = switch (label) {
+            case "WEEKLY" -> featuredPostCacheService.getWeeklyPosts(pageable);
+            case "LEGEND" -> featuredPostCacheService.getPopularPostLegend(pageable);
+            case "NOTICE" -> featuredPostCacheService.getNoticePosts(pageable);
+            default -> throw new IllegalArgumentException("Unknown label: " + label);
         };
 
         // Then: 빈 페이지 즉시 반환
@@ -165,10 +164,10 @@ class FeaturedPostCacheServiceTest {
         assertThat(result.getTotalElements()).isZero();
     }
 
-    @ParameterizedTest(name = "{1} - Redis 장애 시 DB fallback (featuredType 기반)")
+    @ParameterizedTest(name = "{1} - Redis 장애 시 DB fallback (boolean 플래그 기반)")
     @MethodSource("provideRedisFallbackScenarios")
-    @DisplayName("Redis 장애 시 DB fallback (featuredType 기반)")
-    void shouldFallbackToDb_WhenRedisFails(String indexKey, PostCacheFlag cacheFlag, String expectedTitle) {
+    @DisplayName("Redis 장애 시 DB fallback (boolean 플래그 기반)")
+    void shouldFallbackToDb_WhenRedisFails(String indexKey, String label, String expectedTitle) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, expectedTitle);
@@ -176,35 +175,42 @@ class FeaturedPostCacheServiceTest {
         given(redisPostIndexAdapter.getIndexMembers(indexKey))
                 .willThrow(new RuntimeException("Redis connection failed"));
 
-        given(postQueryRepository.findPostsByFeaturedType(eq(cacheFlag), any(Pageable.class)))
-                .willReturn(new PageImpl<>(List.of(post), pageable, 1));
+        // 각 폴백 메서드 mock
+        switch (label) {
+            case "WEEKLY" -> given(postQueryRepository.findWeeklyPostsFallback(any(Pageable.class)))
+                    .willReturn(new PageImpl<>(List.of(post), pageable, 1));
+            case "LEGEND" -> given(postQueryRepository.findLegendPostsFallback(any(Pageable.class)))
+                    .willReturn(new PageImpl<>(List.of(post), pageable, 1));
+            case "NOTICE" -> given(postQueryRepository.findNoticePostsFallback(any(Pageable.class)))
+                    .willReturn(new PageImpl<>(List.of(post), pageable, 1));
+        }
 
         // When
-        Page<PostSimpleDetail> result = switch (cacheFlag) {
-            case WEEKLY -> featuredPostCacheService.getWeeklyPosts(pageable);
-            case LEGEND -> featuredPostCacheService.getPopularPostLegend(pageable);
-            case NOTICE -> featuredPostCacheService.getNoticePosts(pageable);
+        Page<PostSimpleDetail> result = switch (label) {
+            case "WEEKLY" -> featuredPostCacheService.getWeeklyPosts(pageable);
+            case "LEGEND" -> featuredPostCacheService.getPopularPostLegend(pageable);
+            case "NOTICE" -> featuredPostCacheService.getNoticePosts(pageable);
+            default -> throw new IllegalArgumentException("Unknown label: " + label);
         };
 
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo(expectedTitle);
-        verify(postQueryRepository).findPostsByFeaturedType(eq(cacheFlag), any(Pageable.class));
     }
 
     static Stream<Arguments> provideCacheEmptyScenarios() {
         return Stream.of(
-                Arguments.of(RedisKey.POST_WEEKLY_IDS_KEY, PostCacheFlag.WEEKLY),
-                Arguments.of(RedisKey.POST_LEGEND_IDS_KEY, PostCacheFlag.LEGEND),
-                Arguments.of(RedisKey.POST_NOTICE_IDS_KEY, PostCacheFlag.NOTICE)
+                Arguments.of(RedisKey.POST_WEEKLY_IDS_KEY, "WEEKLY"),
+                Arguments.of(RedisKey.POST_LEGEND_IDS_KEY, "LEGEND"),
+                Arguments.of(RedisKey.POST_NOTICE_IDS_KEY, "NOTICE")
         );
     }
 
     static Stream<Arguments> provideRedisFallbackScenarios() {
         return Stream.of(
-                Arguments.of(RedisKey.POST_WEEKLY_IDS_KEY, PostCacheFlag.WEEKLY, "주간 인기글"),
-                Arguments.of(RedisKey.POST_LEGEND_IDS_KEY, PostCacheFlag.LEGEND, "레전드 게시글"),
-                Arguments.of(RedisKey.POST_NOTICE_IDS_KEY, PostCacheFlag.NOTICE, "공지사항")
+                Arguments.of(RedisKey.POST_WEEKLY_IDS_KEY, "WEEKLY", "주간 인기글"),
+                Arguments.of(RedisKey.POST_LEGEND_IDS_KEY, "LEGEND", "레전드 게시글"),
+                Arguments.of(RedisKey.POST_NOTICE_IDS_KEY, "NOTICE", "공지사항")
         );
     }
 
