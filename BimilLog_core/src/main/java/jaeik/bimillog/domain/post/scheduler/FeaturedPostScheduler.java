@@ -74,7 +74,7 @@ public class FeaturedPostScheduler {
         // 글 단위 Hash 생성 + SET 인덱스 교체
         posts.forEach(redisPostHashAdapter::createPostHash);
         Set<Long> idSet = posts.stream().map(PostSimpleDetail::getId).collect(Collectors.toCollection(LinkedHashSet::new));
-        redisPostIndexAdapter.replaceIndex(RedisKey.POST_WEEKLY_IDS_KEY, idSet, RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND);
+        redisPostIndexAdapter.replaceIndex(RedisKey.POST_WEEKLY_IDS_KEY, idSet, RedisKey.DEFAULT_CACHE_TTL);
         log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
 
         // 이벤트 발행 (재시도 범위 제외)
@@ -116,7 +116,7 @@ public class FeaturedPostScheduler {
         // 글 단위 Hash 생성 + SET 인덱스 교체
         posts.forEach(redisPostHashAdapter::createPostHash);
         Set<Long> idSet = posts.stream().map(PostSimpleDetail::getId).collect(Collectors.toCollection(LinkedHashSet::new));
-        redisPostIndexAdapter.replaceIndex(RedisKey.POST_LEGEND_IDS_KEY, idSet, RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND);
+        redisPostIndexAdapter.replaceIndex(RedisKey.POST_LEGEND_IDS_KEY, idSet, RedisKey.DEFAULT_CACHE_TTL);
         log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
 
         // 이벤트 발행 (재시도 범위 제외)
@@ -127,6 +127,33 @@ public class FeaturedPostScheduler {
         } catch (Exception e) {
             log.error("LEGEND 이벤트 발행 실패: {}", e.getMessage());
         }
+    }
+
+    /**
+     * <h3>공지사항 캐시 스케줄링 갱신</h3>
+     * <p>1일마다 DB에서 featuredType=NOTICE인 게시글을 조회하여 캐시를 갱신합니다.</p>
+     * <p>오류 데이터가 영구 저장되는 것을 방지하기 위해 TTL을 설정합니다.</p>
+     * <p>실패 시 전체를 재시도합니다. (2s→8s→32s→128s→512s, 최대 5회 재시도)</p>
+     */
+    @Scheduled(fixedRate = 60000 * 1440)
+    @Retryable(
+            retryFor = Exception.class,
+            maxAttempts = 6,
+            backoff = @Backoff(delay = 2000, multiplier = 4)
+    )
+    public void refreshNoticePosts() {
+        List<PostSimpleDetail> posts = postQueryRepository.findPostsByFeaturedType(PostCacheFlag.NOTICE);
+
+        if (posts.isEmpty()) {
+            log.info("NOTICE 게시글이 없어 캐시 업데이트를 건너뜁니다.");
+            return;
+        }
+
+        // 글 단위 Hash 생성 + SET 인덱스 교체 (TTL 24시간 30분)
+        posts.forEach(redisPostHashAdapter::createPostHash);
+        Set<Long> idSet = posts.stream().map(PostSimpleDetail::getId).collect(Collectors.toCollection(LinkedHashSet::new));
+        redisPostIndexAdapter.replaceIndex(RedisKey.POST_NOTICE_IDS_KEY, idSet, RedisKey.DEFAULT_CACHE_TTL);
+        log.info("NOTICE 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
     }
 
     /**

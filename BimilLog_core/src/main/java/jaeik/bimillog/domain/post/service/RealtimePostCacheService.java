@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <h2>RealtimePostCacheService</h2>
@@ -53,26 +54,26 @@ public class RealtimePostCacheService {
      */
     @CircuitBreaker(name = REALTIME_REDIS_CIRCUIT, fallbackMethod = "getRealtimePostsFallback")
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
-        List<Long> postIds = redisRealTimePostAdapter.getRangePostId();
+        List<Long> orderedIds = redisRealTimePostAdapter.getRangePostId();
 
-        if (postIds.isEmpty()) {
+        if (orderedIds.isEmpty()) {
             CacheMetricsLogger.miss(log, "realtime", "zset", "empty");
             return new PageImpl<>(List.of(), pageable, 0);
         }
 
-        List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(postIds);
+        List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
 
         // 누락된 글이 있으면 DB에서 조회하여 Hash 생성
-        if (cachedPosts.size() < postIds.size()) {
+        if (cachedPosts.size() < orderedIds.size()) {
             List<Long> cachedIds = cachedPosts.stream().map(PostSimpleDetail::getId).toList();
-            List<Long> missingIds = postIds.stream()
+            List<Long> missingIds = orderedIds.stream()
                     .filter(id -> !cachedIds.contains(id))
                     .toList();
 
             if (!missingIds.isEmpty()) {
                 List<PostSimpleDetail> dbPosts = missingIds.stream()
                         .map(id -> postQueryRepository.findPostDetail(id, null).orElse(null))
-                        .filter(detail -> detail != null)
+                        .filter(Objects::nonNull)
                         .map(PostDetail::toSimpleDetail)
                         .toList();
 
@@ -91,11 +92,10 @@ public class RealtimePostCacheService {
         CacheMetricsLogger.hit(log, "realtime", "simple", cachedPosts.size());
 
         // ZSET 순서(점수 내림차순)대로 정렬
-        List<Long> orderedIds = postIds;
         List<PostSimpleDetail> finalPosts = cachedPosts;
         List<PostSimpleDetail> orderedPosts = orderedIds.stream()
                 .map(id -> finalPosts.stream().filter(p -> p.getId().equals(id)).findFirst().orElse(null))
-                .filter(p -> p != null)
+                .filter(Objects::nonNull)
                 .toList();
 
         return postUtil.paginate(orderedPosts, pageable);

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.scheduler;
 
 import jaeik.bimillog.domain.post.service.PostInteractionService;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,7 +20,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class PostViewCountFlushScheduler {
-    private final RedisPostViewAdapter redisPostViewAdapter;
+    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final PostInteractionService postInteractionService;
 
     /**
@@ -36,7 +36,7 @@ public class PostViewCountFlushScheduler {
 
     private void flushViewCounts() {
         try {
-            Map<Long, Long> counts = redisPostViewAdapter.getAndClearViewCounts();
+            Map<Long, Long> counts = redisPostUpdateAdapter.getAndClearViewCounts();
             if (counts.isEmpty()) return;
 
             postInteractionService.bulkIncrementViewCounts(counts);
@@ -48,7 +48,7 @@ public class PostViewCountFlushScheduler {
 
     private void flushLikeCounts() {
         try {
-            Map<Long, Long> counts = redisPostViewAdapter.getAndClearLikeCounts();
+            Map<Long, Long> counts = redisPostUpdateAdapter.getAndClearLikeCounts();
             if (counts.isEmpty()) return;
 
             postInteractionService.bulkIncrementLikeCounts(counts);
@@ -60,7 +60,7 @@ public class PostViewCountFlushScheduler {
 
     private void flushCommentCounts() {
         try {
-            Map<Long, Long> counts = redisPostViewAdapter.getAndClearCommentCounts();
+            Map<Long, Long> counts = redisPostUpdateAdapter.getAndClearCommentCounts();
             if (counts.isEmpty()) return;
 
             postInteractionService.bulkIncrementCommentCounts(counts);

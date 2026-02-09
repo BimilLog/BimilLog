@@ -17,7 +17,7 @@ import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,7 +50,7 @@ public class CommentCommandService {
     private final CommentDeleteRepository commentDeleteRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentClosureRepository commentClosureRepository;
-    private final RedisPostViewAdapter redisPostViewAdapter;
+    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final RedisPostHashAdapter redisPostHashAdapter;
 
     /**
@@ -252,8 +252,6 @@ public class CommentCommandService {
      * @param memberId    사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param password  댓글 비밀번호 (익명 댓글인 경우)
      * @return Comment 유효성 검사를 통과한 댓글 엔티티
-     * @author Jaeik
-     * @since 2.0.0
      */
     private Comment validateComment(Long commentId, Long memberId, Integer password) {
         Comment comment = commentRepository.findById(commentId)
@@ -277,8 +275,6 @@ public class CommentCommandService {
      * @param content  댓글 내용
      * @param password 댓글 비밀번호 (선택 사항)
      * @param parentId 부모 댓글 ID (대댓글인 경우)
-     * @author Jaeik
-     * @since 2.0.0
      */
     /**
      * <h3>댓글수 Redis 버퍼 증감 + 캐시 즉시 반영</h3>
@@ -286,7 +282,7 @@ public class CommentCommandService {
      */
     private void incrementCommentCountWithFallback(Long postId, long delta) {
         try {
-            redisPostViewAdapter.incrementCommentBuffer(postId, delta);
+            redisPostUpdateAdapter.incrementCommentBuffer(postId, delta);
             redisPostHashAdapter.incrementCount(postId, RedisPostHashAdapter.FIELD_COMMENT_COUNT, delta);
         } catch (Exception e) {
             log.warn("[COMMENT_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());

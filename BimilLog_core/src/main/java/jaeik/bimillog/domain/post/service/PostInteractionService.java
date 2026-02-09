@@ -12,7 +12,7 @@ import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,7 +39,7 @@ public class PostInteractionService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RealtimePostSync realtimePostSync;
-    private final RedisPostViewAdapter redisPostViewAdapter;
+    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final RedisPostHashAdapter redisPostHashAdapter;
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
@@ -148,7 +148,7 @@ public class PostInteractionService {
      */
     private void incrementLikeWithFallback(Long postId, long delta) {
         try {
-            redisPostViewAdapter.incrementLikeBuffer(postId, delta);
+            redisPostUpdateAdapter.incrementLikeBuffer(postId, delta);
             redisPostHashAdapter.incrementCount(postId, RedisPostHashAdapter.FIELD_LIKE_COUNT, delta);
         } catch (Exception e) {
             log.warn("[LIKE_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());

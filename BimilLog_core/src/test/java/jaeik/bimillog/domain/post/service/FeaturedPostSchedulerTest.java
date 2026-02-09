@@ -94,7 +94,7 @@ class FeaturedPostSchedulerTest {
         verify(redisPostHashAdapter).createPostHash(post1);
         verify(redisPostHashAdapter).createPostHash(post2);
         // SET 인덱스 교체
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(Set.class), eq(RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND));
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(Set.class), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -151,7 +151,7 @@ class FeaturedPostSchedulerTest {
         verify(postRepository).clearFeaturedType(PostCacheFlag.LEGEND);
         verify(postRepository).setFeaturedTypeOverriding(List.of(1L), PostCacheFlag.LEGEND, PostCacheFlag.WEEKLY);
         verify(redisPostHashAdapter).createPostHash(legendPost);
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_LEGEND_IDS_KEY), any(Set.class), eq(RedisKey.POST_CACHE_TTL_WEEKLY_LEGEND));
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_LEGEND_IDS_KEY), any(Set.class), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -200,6 +200,45 @@ class FeaturedPostSchedulerTest {
 
         // 100개 게시글 중 memberId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));
+    }
+
+    // ==================== 공지사항 ====================
+
+    @Test
+    @DisplayName("공지사항 캐시 갱신 - 성공 (DB 조회 → 글 단위 Hash 생성 → SET 인덱스 교체 with TTL)")
+    void shouldRefreshNoticePosts_WhenPostsExist() {
+        // Given
+        PostSimpleDetail notice1 = createPostSimpleDetail(1L, "공지1", 1L);
+        PostSimpleDetail notice2 = createPostSimpleDetail(2L, "공지2", 2L);
+        List<PostSimpleDetail> posts = List.of(notice1, notice2);
+
+        given(postQueryRepository.findPostsByFeaturedType(PostCacheFlag.NOTICE)).willReturn(posts);
+
+        // When
+        featuredPostScheduler.refreshNoticePosts();
+
+        // Then
+        verify(redisPostHashAdapter).createPostHash(notice1);
+        verify(redisPostHashAdapter).createPostHash(notice2);
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_NOTICE_IDS_KEY), any(Set.class), eq(RedisKey.DEFAULT_CACHE_TTL));
+
+        // 공지사항은 featuredType 업데이트나 이벤트 발행 없음
+        verify(postRepository, never()).clearFeaturedType(any());
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("공지사항 캐시 갱신 - 공지 없으면 스킵")
+    void shouldSkipNoticeRefresh_WhenNoNoticePosts() {
+        // Given
+        given(postQueryRepository.findPostsByFeaturedType(PostCacheFlag.NOTICE)).willReturn(Collections.emptyList());
+
+        // When
+        featuredPostScheduler.refreshNoticePosts();
+
+        // Then
+        verify(redisPostHashAdapter, never()).createPostHash(any());
+        verify(redisPostIndexAdapter, never()).replaceIndex(any(), any(), any());
     }
 
     // 테스트 유틸리티 메서드들

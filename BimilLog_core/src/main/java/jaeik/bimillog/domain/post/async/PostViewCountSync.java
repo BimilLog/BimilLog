@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PostViewCountSync {
-    private final RedisPostViewAdapter redisPostViewAdapter;
+    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final RedisPostHashAdapter redisPostHashAdapter;
 
     /**
@@ -39,7 +39,7 @@ public class PostViewCountSync {
     @Transactional
     public void handlePostViewed(Long postId, String viewerKey) {
         try {
-            boolean incremented = redisPostViewAdapter.markViewedAndIncrement(postId, viewerKey);
+            boolean incremented = redisPostUpdateAdapter.markViewedAndIncrement(postId, viewerKey);
             if (incremented) {
                 redisPostHashAdapter.incrementCount(postId, RedisPostHashAdapter.FIELD_VIEW_COUNT, 1);
             }

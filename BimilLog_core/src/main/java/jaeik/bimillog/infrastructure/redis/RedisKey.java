@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.redis;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Redis 키 & TTL 중앙 관리
@@ -14,28 +13,26 @@ public final class RedisKey {
     private RedisKey() {
     }
 
+    // ==================== 공통 TTL ====================
+
+    public static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(24).plusMinutes(30);
+
     // ==================== 글 첫 페이지 (List) ====================
 
     public static final String FIRST_PAGE_LIST_KEY = "post:board:first-page";
     public static final String FIRST_PAGE_REFRESH_LOCK_KEY = "post:board:refresh:lock";
-    public static final Duration FIRST_PAGE_CACHE_TTL = Duration.ofHours(24);
     public static final Duration FIRST_PAGE_REFRESH_LOCK_TTL = Duration.ofMinutes(5);
     public static final int FIRST_PAGE_SIZE = 20;
 
     // ==================== 글 단위 Hash (per-post) ====================
 
     public static final String POST_SIMPLE_PREFIX = "post:simple:";               // Hash: 글 단위 캐시
-    public static final Duration POST_SIMPLE_TTL = Duration.ofHours(25);          // 글 단위 Hash TTL
 
     // ==================== 인덱스 (SET) ====================
 
-    public static final String POST_WEEKLY_IDS_KEY = "post:weekly:ids";           // SET (TTL 24시간 30분)
-    public static final String POST_LEGEND_IDS_KEY = "post:legend:ids";           // SET (TTL 24시간 30분)
-    public static final String POST_NOTICE_IDS_KEY = "post:notice:ids";           // SET (TTL 없음)
-    public static final Duration POST_CACHE_TTL_WEEKLY_LEGEND = Duration.ofHours(24).plusMinutes(30);
-
-    public static final String SCHEDULER_LOCK_KEY = "post:cache:scheduler:lock";
-    public static final Duration SCHEDULER_LOCK_TTL = Duration.ofSeconds(90);
+    public static final String POST_WEEKLY_IDS_KEY = "post:weekly:ids";
+    public static final String POST_LEGEND_IDS_KEY = "post:legend:ids";
+    public static final String POST_NOTICE_IDS_KEY = "post:notice:ids";
 
     // ==================== 글 : 실시간 (ZSet) ====================
 
@@ -48,7 +45,7 @@ public final class RedisKey {
     public static final String VIEW_COUNTS_KEY = "post:view:counts";
     public static final String LIKE_COUNTS_KEY = "post:like:counts";
     public static final String COMMENT_COUNTS_KEY = "post:comment:counts";
-    public static final long VIEW_TTL_SECONDS = TimeUnit.HOURS.toSeconds(24);
+    public static final long VIEW_TTL_SECONDS = DEFAULT_CACHE_TTL.toSeconds();
 
     // ==================== 롤링페이퍼 : 실시간 (ZSet) ====================
     // key: paper:realtime:score

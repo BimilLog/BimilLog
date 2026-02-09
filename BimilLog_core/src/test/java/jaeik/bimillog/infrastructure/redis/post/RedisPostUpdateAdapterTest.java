@@ -25,13 +25,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>RedisPostViewAdapter 단위 테스트</h2>
+ * <h2>RedisPostUpdateAdapter 단위 테스트</h2>
  * <p>Redis 기반 조회수 중복 방지 및 버퍼링 로직을 검증합니다.</p>
  */
 @Tag("unit")
-@DisplayName("RedisPostViewAdapter 단위 테스트")
+@DisplayName("RedisPostUpdateAdapter 단위 테스트")
 @ExtendWith(MockitoExtension.class)
-class RedisPostViewAdapterTest {
+class RedisPostUpdateAdapterTest {
 
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
@@ -43,7 +43,7 @@ class RedisPostViewAdapterTest {
     private HashOperations<String, Object, Object> hashOperations;
 
     @InjectMocks
-    private RedisPostViewAdapter adapter;
+    private RedisPostUpdateAdapter adapter;
 
     @BeforeEach
     void setUp() {

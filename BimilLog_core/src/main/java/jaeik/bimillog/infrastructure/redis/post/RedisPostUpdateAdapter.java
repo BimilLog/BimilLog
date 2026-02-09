@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisPostViewAdapter {
+public class RedisPostUpdateAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String VIEW_PREFIX = RedisKey.VIEW_PREFIX;
@@ -182,7 +182,7 @@ public class RedisPostViewAdapter {
         DefaultRedisScript<List> script = new DefaultRedisScript<>(GET_AND_CLEAR_VIEW_COUNTS_SCRIPT, List.class);
         List<Object> result = redisTemplate.execute(script, List.of(countsKey));
 
-        if (result.isEmpty()) {
+        if (result == null || result.isEmpty()) {
             return Collections.emptyMap();
         }
 

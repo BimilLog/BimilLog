@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.scheduler;
 
 import jaeik.bimillog.domain.post.service.PostInteractionService;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 class PostViewCountFlushSchedulerTest {
 
     @Mock
-    private RedisPostViewAdapter redisPostViewAdapter;
+    private RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     @Mock
     private PostInteractionService postInteractionService;
@@ -40,9 +40,9 @@ class PostViewCountFlushSchedulerTest {
     @DisplayName("조회수 버퍼가 비어있으면 DB 업데이트 건너뜀")
     void shouldSkipViewCountDbUpdate_whenBufferEmpty() {
         // Given
-        given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
-        given(redisPostViewAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
-        given(redisPostViewAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
 
         // When
         scheduler.flushAllCounts();
@@ -58,9 +58,9 @@ class PostViewCountFlushSchedulerTest {
     void shouldFlushViewCountsToDB_whenBufferHasData() {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L, 2L, 3L);
-        given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(viewCounts);
-        given(redisPostViewAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
-        given(redisPostViewAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
+        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
 
         // When
         scheduler.flushAllCounts();
@@ -74,10 +74,10 @@ class PostViewCountFlushSchedulerTest {
     void shouldCatchViewCountException_whenDbUpdateFails() {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L);
-        given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(viewCounts);
+        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
         doThrow(new RuntimeException("DB 오류")).when(postInteractionService).bulkIncrementViewCounts(any());
-        given(redisPostViewAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
-        given(redisPostViewAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
 
         // When - 예외가 전파되지 않아야 함
         scheduler.flushAllCounts();
@@ -93,9 +93,9 @@ class PostViewCountFlushSchedulerTest {
     void shouldFlushLikeCountsToDB_whenBufferHasData() {
         // Given
         Map<Long, Long> likeCounts = Map.of(1L, 3L, 2L, -1L);
-        given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
-        given(redisPostViewAdapter.getAndClearLikeCounts()).willReturn(likeCounts);
-        given(redisPostViewAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(likeCounts);
+        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
 
         // When
         scheduler.flushAllCounts();
@@ -111,9 +111,9 @@ class PostViewCountFlushSchedulerTest {
     void shouldFlushCommentCountsToDB_whenBufferHasData() {
         // Given
         Map<Long, Long> commentCounts = Map.of(1L, 2L, 3L, 1L);
-        given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
-        given(redisPostViewAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
-        given(redisPostViewAdapter.getAndClearCommentCounts()).willReturn(commentCounts);
+        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
+        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(commentCounts);
 
         // When
         scheduler.flushAllCounts();
@@ -131,9 +131,9 @@ class PostViewCountFlushSchedulerTest {
         Map<Long, Long> viewCounts = Map.of(1L, 10L);
         Map<Long, Long> likeCounts = Map.of(2L, 5L);
         Map<Long, Long> commentCounts = Map.of(3L, 3L);
-        given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(viewCounts);
-        given(redisPostViewAdapter.getAndClearLikeCounts()).willReturn(likeCounts);
-        given(redisPostViewAdapter.getAndClearCommentCounts()).willReturn(commentCounts);
+        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
+        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(likeCounts);
+        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(commentCounts);
 
         // When
         scheduler.flushAllCounts();

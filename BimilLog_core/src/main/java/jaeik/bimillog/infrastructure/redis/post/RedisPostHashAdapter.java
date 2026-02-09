@@ -55,7 +55,7 @@ public class RedisPostHashAdapter {
         String key = PREFIX + post.getId();
         Map<String, String> hash = toStringMap(post);
         stringRedisTemplate.opsForHash().putAll(key, hash);
-        stringRedisTemplate.expire(key, RedisKey.POST_SIMPLE_TTL);
+        stringRedisTemplate.expire(key, RedisKey.DEFAULT_CACHE_TTL);
 
         log.debug("[POST_HASH] 생성: postId={}", post.getId());
     }
@@ -157,7 +157,7 @@ public class RedisPostHashAdapter {
      */
     public boolean existsPostHash(Long postId) {
         String key = PREFIX + postId;
-        return Boolean.TRUE.equals(stringRedisTemplate.hasKey(key));
+        return stringRedisTemplate.hasKey(key);
     }
 
     // ==================== 변환 메서드 ====================

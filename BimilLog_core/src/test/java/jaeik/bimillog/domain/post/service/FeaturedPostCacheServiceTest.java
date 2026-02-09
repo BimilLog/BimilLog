@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
@@ -25,13 +26,14 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * <h2>FeaturedPostCacheService 테스트</h2>
@@ -204,5 +206,57 @@ class FeaturedPostCacheServiceTest {
                 Arguments.of(RedisKey.POST_LEGEND_IDS_KEY, PostCacheFlag.LEGEND, "레전드 게시글"),
                 Arguments.of(RedisKey.POST_NOTICE_IDS_KEY, PostCacheFlag.NOTICE, "공지사항")
         );
+    }
+
+    // ==================== Hash 캐시 미스 복구 ====================
+
+    @Test
+    @DisplayName("일부 Hash 미스 시 DB 조회 후 Hash 생성하여 복구")
+    void shouldRecoverFromPartialCacheMiss() {
+        // Given: SET 인덱스에 3개 ID가 있지만 Hash는 2개만 존재
+        Pageable pageable = PageRequest.of(0, 10);
+        PostSimpleDetail cachedPost1 = PostTestDataBuilder.createPostSearchResult(1L, "캐시된 글 1");
+        PostSimpleDetail cachedPost2 = PostTestDataBuilder.createPostSearchResult(2L, "캐시된 글 2");
+        PostSimpleDetail dbPost = PostTestDataBuilder.createPostSearchResult(3L, "DB 복구 글");
+
+        PostDetail dbDetail = mock(PostDetail.class);
+        given(dbDetail.toSimpleDetail()).willReturn(dbPost);
+
+        given(redisPostIndexAdapter.getIndexMembers(RedisKey.POST_WEEKLY_IDS_KEY))
+                .willReturn(Set.of(1L, 2L, 3L));
+        given(redisPostHashAdapter.getPostHashes(anyCollection()))
+                .willReturn(List.of(cachedPost1, cachedPost2)); // 3L 누락
+        given(postQueryRepository.findPostDetail(eq(3L), isNull()))
+                .willReturn(Optional.of(dbDetail));
+        given(postUtil.paginate(anyList(), eq(pageable)))
+                .willReturn(new PageImpl<>(List.of(dbPost, cachedPost2, cachedPost1), pageable, 3));
+
+        // When
+        Page<PostSimpleDetail> result = featuredPostCacheService.getWeeklyPosts(pageable);
+
+        // Then: DB에서 조회한 글의 Hash가 생성됨
+        assertThat(result.getContent()).hasSize(3);
+        verify(redisPostHashAdapter).createPostHash(dbPost);
+    }
+
+    @Test
+    @DisplayName("전체 Hash 미스 + DB에서도 없음 → 빈 페이지 반환")
+    void shouldReturnEmptyPage_WhenAllHashMissAndNoDbResult() {
+        // Given: SET 인덱스에 ID가 있지만 Hash도 DB도 없음
+        Pageable pageable = PageRequest.of(0, 10);
+
+        given(redisPostIndexAdapter.getIndexMembers(RedisKey.POST_WEEKLY_IDS_KEY))
+                .willReturn(Set.of(1L, 2L));
+        given(redisPostHashAdapter.getPostHashes(anyCollection()))
+                .willReturn(List.of()); // 전부 미스
+        given(postQueryRepository.findPostDetail(anyLong(), isNull()))
+                .willReturn(Optional.empty()); // DB에도 없음
+
+        // When
+        Page<PostSimpleDetail> result = featuredPostCacheService.getWeeklyPosts(pageable);
+
+        // Then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
     }
 }

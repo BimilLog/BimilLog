@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
@@ -17,8 +18,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -83,6 +86,27 @@ public class FeaturedPostCacheService {
             }
 
             List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(postIds);
+
+            // 누락된 글이 있으면 DB에서 조회하여 Hash 생성
+            if (cachedPosts.size() < postIds.size()) {
+                List<Long> cachedIds = cachedPosts.stream().map(PostSimpleDetail::getId).toList();
+                List<Long> missingIds = postIds.stream()
+                        .filter(id -> !cachedIds.contains(id))
+                        .toList();
+
+                if (!missingIds.isEmpty()) {
+                    List<PostSimpleDetail> dbPosts = missingIds.stream()
+                            .map(id -> postQueryRepository.findPostDetail(id, null).orElse(null))
+                            .filter(Objects::nonNull)
+                            .map(PostDetail::toSimpleDetail)
+                            .toList();
+
+                    dbPosts.forEach(redisPostHashAdapter::createPostHash);
+
+                    cachedPosts = new ArrayList<>(cachedPosts);
+                    cachedPosts.addAll(dbPosts);
+                }
+            }
 
             if (cachedPosts.isEmpty()) {
                 CacheMetricsLogger.miss(log, indexKey, "simple", "empty");

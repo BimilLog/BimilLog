@@ -184,7 +184,7 @@ public class RedisFirstPagePostAdapter {
         // DEL → RPUSH → EXPIRE
         redisTemplate.delete(FIRST_PAGE_LIST_KEY);
         redisTemplate.opsForList().rightPushAll(FIRST_PAGE_LIST_KEY, posts.toArray());
-        redisTemplate.expire(FIRST_PAGE_LIST_KEY, RedisKey.FIRST_PAGE_CACHE_TTL.toSeconds(), TimeUnit.SECONDS);
+        redisTemplate.expire(FIRST_PAGE_LIST_KEY, RedisKey.DEFAULT_CACHE_TTL.toSeconds(), TimeUnit.SECONDS);
 
         log.info("[FIRST_PAGE_CACHE] 캐시 갱신 완료: {}개", posts.size());
     }
