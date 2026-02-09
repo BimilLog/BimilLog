@@ -111,6 +111,7 @@ public class PostCommandService {
                 .memberId(post.getMember() != null ? post.getMember().getId() : null)
                 .memberName(post.getMemberName())
                 .commentCount(post.getCommentCount())
+                .featuredType(post.getFeaturedType())
                 .build();
         cacheRefreshExecutor.asyncUpdatePost(postId, updatedDetail);
     }

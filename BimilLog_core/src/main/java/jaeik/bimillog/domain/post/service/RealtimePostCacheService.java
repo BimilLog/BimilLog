@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
@@ -42,6 +43,7 @@ public class RealtimePostCacheService {
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RealtimePostSync realtimePostSync;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
+    private final PostUtil postUtil;
 
     private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
     private static final int REALTIME_FALLBACK_LIMIT = 5;
@@ -59,7 +61,7 @@ public class RealtimePostCacheService {
         if (!cachedPosts.isEmpty()) {
             CacheMetricsLogger.hit(log, "realtime", "simple", cachedPosts.size());
             compareAndTriggerRefreshIfNeeded(cachedPosts);
-            return paginate(cachedPosts, pageable);
+            return postUtil.paginate(cachedPosts, pageable);
         }
 
         CacheMetricsLogger.miss(log, "realtime", "simple", "empty");
@@ -128,18 +130,4 @@ public class RealtimePostCacheService {
             log.debug("[COMPARE_SKIP] HASH-ZSET 비교 실패, 무시: {}", e.getMessage());
         }
     }
-
-    // ========== 유틸리티 메서드 ==========
-
-    private Page<PostSimpleDetail> paginate(List<PostSimpleDetail> posts, Pageable pageable) {
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), posts.size());
-
-        if (start >= posts.size()) {
-            return new PageImpl<>(List.of(), pageable, posts.size());
-        }
-
-        return new PageImpl<>(posts.subList(start, end), pageable, posts.size());
-    }
-
 }

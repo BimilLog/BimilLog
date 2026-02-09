@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,13 +27,15 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
  * <h2>FeaturedPostCacheService 테스트</h2>
  * <p>주간/레전드/공지 인기글 캐시 조회 로직을 검증합니다.</p>
- * <p>Hash 캐시 조회, 캐시 미스 시 빈 페이지 반환, 예외 시 DB 서킷 경로를 검증합니다.</p>
+ * <p>Hash 캐시 조회, 캐시 미스 시 빈 페이지 반환, 예외 시 DB 폴백 경로를 검증합니다.</p>
+ * <p>DB 폴백은 Post.featuredType 기반 쿼리를 사용합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("FeaturedPostCacheService 테스트")
@@ -44,10 +46,10 @@ class FeaturedPostCacheServiceTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private FeaturedPostRepository featuredPostRepository;
+    private RedisSimplePostAdapter redisSimplePostAdapter;
 
     @Mock
-    private RedisSimplePostAdapter redisSimplePostAdapter;
+    private PostUtil postUtil;
 
     private FeaturedPostCacheService featuredPostCacheService;
 
@@ -55,8 +57,8 @@ class FeaturedPostCacheServiceTest {
     void setUp() {
         featuredPostCacheService = new FeaturedPostCacheService(
                 postQueryRepository,
-                featuredPostRepository,
-                redisSimplePostAdapter
+                redisSimplePostAdapter,
+                postUtil
         );
     }
 
@@ -67,9 +69,12 @@ class FeaturedPostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail weeklyPost1 = PostTestDataBuilder.createPostSearchResult(1L, "주간 인기글 1");
         PostSimpleDetail weeklyPost2 = PostTestDataBuilder.createPostSearchResult(2L, "주간 인기글 2");
+        List<PostSimpleDetail> cachedPosts = List.of(weeklyPost2, weeklyPost1);
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.WEEKLY))
-                .willReturn(List.of(weeklyPost2, weeklyPost1));
+                .willReturn(cachedPosts);
+        given(postUtil.paginate(cachedPosts, pageable))
+                .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = featuredPostCacheService.getWeeklyPosts(pageable);
@@ -87,9 +92,12 @@ class FeaturedPostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail legendPost1 = PostTestDataBuilder.createPostSearchResult(1L, "레전드 게시글 1");
         PostSimpleDetail legendPost2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
+        List<PostSimpleDetail> cachedPosts = List.of(legendPost2, legendPost1);
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.LEGEND))
-                .willReturn(List.of(legendPost2, legendPost1));
+                .willReturn(cachedPosts);
+        given(postUtil.paginate(cachedPosts, pageable))
+                .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = featuredPostCacheService.getPopularPostLegend(pageable);
@@ -105,9 +113,12 @@ class FeaturedPostCacheServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
+        List<PostSimpleDetail> cachedPosts = List.of(noticePost);
 
         given(redisSimplePostAdapter.getAllCachedPostsList(PostCacheFlag.NOTICE))
-                .willReturn(List.of(noticePost));
+                .willReturn(cachedPosts);
+        given(postUtil.paginate(cachedPosts, pageable))
+                .willReturn(new PageImpl<>(cachedPosts, pageable, 1));
 
         // When
         Page<PostSimpleDetail> result = featuredPostCacheService.getNoticePosts(pageable);
@@ -140,9 +151,9 @@ class FeaturedPostCacheServiceTest {
         assertThat(result.getTotalElements()).isZero();
     }
 
-    @ParameterizedTest(name = "{0} - Redis 장애 시 DB fallback")
+    @ParameterizedTest(name = "{0} - Redis 장애 시 DB fallback (featuredType 기반)")
     @MethodSource("provideRedisFallbackScenarios")
-    @DisplayName("Redis 장애 시 DB fallback")
+    @DisplayName("Redis 장애 시 DB fallback (featuredType 기반)")
     void shouldFallbackToDb_WhenRedisFails(PostCacheFlag cacheFlag, String expectedTitle) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
@@ -151,8 +162,7 @@ class FeaturedPostCacheServiceTest {
         given(redisSimplePostAdapter.getAllCachedPostsList(cacheFlag))
                 .willThrow(new RuntimeException("Redis connection failed"));
 
-        given(featuredPostRepository.findPostIdsByType(cacheFlag)).willReturn(List.of(1L));
-        given(postQueryRepository.findPostSimpleDetailsByIds(any(), any(Pageable.class)))
+        given(postQueryRepository.findPostsByFeaturedType(eq(cacheFlag), any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(post), pageable, 1));
 
         // When
@@ -166,7 +176,7 @@ class FeaturedPostCacheServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo(expectedTitle);
-        verify(featuredPostRepository).findPostIdsByType(cacheFlag);
+        verify(postQueryRepository).findPostsByFeaturedType(eq(cacheFlag), any(Pageable.class));
     }
 
     static Stream<Arguments> provideRedisFallbackScenarios() {

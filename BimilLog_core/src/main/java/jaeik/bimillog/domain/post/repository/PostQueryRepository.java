@@ -67,7 +67,8 @@ public class PostQueryRepository {
                         post.createdAt,
                         post.member.id,
                         post.memberName,
-                        post.commentCount))
+                        post.commentCount,
+                        post.featuredType))
                 .from(post)
                 .where(cursorCondition)
                 .orderBy(post.id.desc())  // ID 내림차순 (최신순)
@@ -112,7 +113,8 @@ public class PostQueryRepository {
                         post.createdAt,
                         post.member.id,
                         post.memberName,
-                        post.commentCount
+                        post.commentCount,
+                        post.featuredType
                 ))
                 .from(post)
                 .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
@@ -219,7 +221,8 @@ public class PostQueryRepository {
                         new CaseBuilder()
                                 .when(userPostLike.id.isNotNull())
                                 .then(true)
-                                .otherwise(false)
+                                .otherwise(false),
+                        post.featuredType
                 ))
                 .from(post)
                 .leftJoin(userPostLike).on(
@@ -234,8 +237,7 @@ public class PostQueryRepository {
 
     /**
      * <h3>공지사항 목록 조회 (스케줄러용)</h3>
-     * <p>FeaturedPost(type=NOTICE)에 등록된 공지사항 게시글 목록을 최신순으로 조회합니다.</p>
-     * <p>Note: 실제 조회는 FeaturedPostCacheService에서 처리</p>
+     * <p>Post.featuredType=NOTICE인 게시글 목록을 최신순으로 조회합니다.</p>
      *
      * @return 공지사항 게시글 목록 (최대 100개, PostSimpleDetail)
      */
@@ -246,17 +248,62 @@ public class PostQueryRepository {
 
     /**
      * <h3>공지사항 목록 조회 (페이징)</h3>
-     * <p>FeaturedPost(type=NOTICE)에 등록된 공지사항 게시글 목록을 페이징으로 조회합니다.</p>
-     * <p>Note: 실제 조회는 FeaturedPostCacheService에서 처리</p>
+     * <p>Post.featuredType=NOTICE인 게시글 목록을 페이징으로 조회합니다.</p>
      *
      * @param pageable 페이지 정보
-     * @return 공지사항 페이지 (빈 페이지 반환 - 실제 조회는 FeaturedPostCacheService에서)
+     * @return 공지사항 페이지
      */
     @Transactional(readOnly = true)
     public Page<PostSimpleDetail> findNoticePosts(Pageable pageable) {
-        // isNotice 필드 제거로 인해 이 메서드는 더 이상 사용하지 않음
-        // 공지사항 조회는 FeaturedPostCacheService를 통해 FeaturedPost 테이블에서 처리
-        return new PageImpl<>(List.of(), pageable, 0);
+        Consumer<JPAQuery<?>> contentCustomizer = query -> query
+                .where(post.featuredType.eq(jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag.NOTICE))
+                .orderBy(post.id.desc());
+
+        Consumer<JPAQuery<?>> countCustomizer = query -> query
+                .where(post.featuredType.eq(jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag.NOTICE));
+
+        return findPostsWithQuery(contentCustomizer, countCustomizer, pageable);
+    }
+
+    /**
+     * <h3>featuredType 기반 게시글 조회 (캐시 갱신/DB 폴백용)</h3>
+     * <p>Post 테이블에서 featuredType이 일치하는 게시글을 단일 쿼리로 조회합니다.</p>
+     *
+     * @param type featuredType (WEEKLY, LEGEND, NOTICE)
+     * @return 해당 타입의 게시글 목록
+     */
+    @Transactional(readOnly = true)
+    public List<PostSimpleDetail> findPostsByFeaturedType(jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag type) {
+        return jpaQueryFactory
+                .select(new QPostSimpleDetail(
+                        post.id,
+                        post.title,
+                        post.views,
+                        post.likeCount,
+                        post.createdAt,
+                        post.member.id,
+                        post.memberName,
+                        post.commentCount,
+                        post.featuredType))
+                .from(post)
+                .where(post.featuredType.eq(type))
+                .orderBy(post.id.desc())
+                .fetch();
+    }
+
+    /**
+     * <h3>featuredType 기반 게시글 페이징 조회 (DB 폴백용)</h3>
+     */
+    @Transactional(readOnly = true)
+    public Page<PostSimpleDetail> findPostsByFeaturedType(jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag type, Pageable pageable) {
+        Consumer<JPAQuery<?>> customizer = query -> query
+                .where(post.featuredType.eq(type))
+                .orderBy(post.id.desc());
+
+        Consumer<JPAQuery<?>> countCustomizer = query -> query
+                .where(post.featuredType.eq(type));
+
+        return findPostsWithQuery(customizer, countCustomizer, pageable);
     }
 
     /**
@@ -293,7 +340,8 @@ public class PostQueryRepository {
                         post.createdAt,
                         post.member.id,
                         post.memberName,
-                        post.commentCount
+                        post.commentCount,
+                        post.featuredType
                 ))
                 .from(post)
                 .where(recentCondition)
@@ -350,7 +398,8 @@ public class PostQueryRepository {
                         post.createdAt,
                         post.member.id,
                         post.memberName,
-                        post.commentCount))
+                        post.commentCount,
+                        post.featuredType))
                 .from(post)
                 .where(post.id.in(postIds))
                 .orderBy(post.id.desc())
@@ -383,7 +432,8 @@ public class PostQueryRepository {
                         post.createdAt,
                         post.member.id,
                         post.memberName,
-                        post.commentCount))
+                        post.commentCount,
+                        post.featuredType))
                 .from(post)
                 .where(post.id.eq(postId))
                 .fetchOne();
@@ -413,7 +463,8 @@ public class PostQueryRepository {
                         post.createdAt,
                         post.member.id,
                         post.memberName,
-                        post.commentCount))
+                        post.commentCount,
+                        post.featuredType))
                 .from(post);
 
         // 커스터마이징 적용 (JOIN, WHERE 등)

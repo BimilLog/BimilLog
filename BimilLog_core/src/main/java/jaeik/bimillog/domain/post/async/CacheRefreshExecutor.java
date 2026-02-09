@@ -58,11 +58,23 @@ public class CacheRefreshExecutor {
     /**
      * <h3>비동기 게시글 수정 반영</h3>
      * <p>인기글 Hash 캐시 무효화 + 첫 페이지 LSET 교체를 비동기로 처리합니다.</p>
+     * <p>공지/주간/레전드 글이면 해당 타입 Hash에 HSET으로 업데이트합니다.</p>
      * <p>첫 페이지에 없는 글이면 첫 페이지 캐시는 무시됩니다.</p>
      */
     @Async("cacheRefreshPool")
     public void asyncUpdatePost(Long postId, PostSimpleDetail updatedPost) {
-        redisSimplePostAdapter.removePostFromCache(postId);
+        // featuredType이 있으면 해당 캐시에 HSET으로 업데이트, 나머지 캐시에서는 삭제
+        if (updatedPost.getFeaturedType() != null) {
+            redisSimplePostAdapter.putPostToCache(updatedPost.getFeaturedType(), updatedPost);
+            // 다른 타입의 캐시에서는 삭제 (이전에 다른 타입이었을 수 있으므로)
+            for (var type : jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag.values()) {
+                if (type != updatedPost.getFeaturedType() && type != jaeik.bimillog.domain.post.entity.jpa.PostCacheFlag.REALTIME) {
+                    redisSimplePostAdapter.removePostFromCache(type, postId);
+                }
+            }
+        } else {
+            redisSimplePostAdapter.removePostFromCache(postId);
+        }
         redisFirstPagePostAdapter.updatePost(postId, updatedPost);
     }
 

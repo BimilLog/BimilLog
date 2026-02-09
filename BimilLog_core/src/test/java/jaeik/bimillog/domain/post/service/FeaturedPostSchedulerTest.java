@@ -36,10 +36,10 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>FeaturedPostScheduler 테스트</h2>
  * <p>게시글 캐시 동기화 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>주간/레전드는 Hash 캐시에 TTL 1일로 직접 저장합니다.</p>
+ * <p>주간/레전드는 Post.featuredType 업데이트 후 Hash 캐시에 TTL 1일로 직접 저장합니다.</p>
  *
  * @author Jaeik
- * @version 2.6.0
+ * @version 2.9.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("FeaturedPostScheduler 테스트")
@@ -112,7 +112,7 @@ class FeaturedPostSchedulerTest {
     }
 
     @Test
-    @DisplayName("주간 인기 게시글 업데이트 - 성공 (TTL 1일로 Hash 캐시에 직접 저장)")
+    @DisplayName("주간 인기 게시글 업데이트 - 성공 (featuredType 업데이트 + Hash 캐시에 직접 저장)")
     void shouldUpdateWeeklyPopularPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail post1 = createPostSimpleDetail(1L, "주간인기글1", 1L);
@@ -125,8 +125,8 @@ class FeaturedPostSchedulerTest {
         featuredPostScheduler.updateWeeklyPopularPosts();
 
         // Then
-        // DB에 특집 게시글 저장
-        verify(featuredPostScheduleExecutor).saveFeaturedPosts(any(), eq(PostCacheFlag.WEEKLY));
+        // Post.featuredType 업데이트
+        verify(featuredPostScheduleExecutor).updateWeeklyFeaturedType(any());
         // Hash 캐시에 TTL 1일로 직접 저장
         verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.WEEKLY), any(), eq(POST_CACHE_TTL_WEEKLY_LEGEND));
 
@@ -156,7 +156,7 @@ class FeaturedPostSchedulerTest {
         featuredPostScheduler.updateWeeklyPopularPosts();
 
         // Then
-        verify(featuredPostScheduleExecutor).saveFeaturedPosts(any(), eq(PostCacheFlag.WEEKLY));
+        verify(featuredPostScheduleExecutor).updateWeeklyFeaturedType(any());
         verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.WEEKLY), any(), any(Duration.class));
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
@@ -169,7 +169,7 @@ class FeaturedPostSchedulerTest {
     }
 
     @Test
-    @DisplayName("전설의 게시글 업데이트 - 성공 (TTL 1일로 Hash 캐시에 직접 저장)")
+    @DisplayName("전설의 게시글 업데이트 - 성공 (featuredType 업데이트 + Hash 캐시에 직접 저장)")
     void shouldUpdateLegendaryPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
@@ -181,8 +181,8 @@ class FeaturedPostSchedulerTest {
         featuredPostScheduler.updateLegendaryPosts();
 
         // Then
-        // DB에 특집 게시글 저장
-        verify(featuredPostScheduleExecutor).saveFeaturedPosts(any(), eq(PostCacheFlag.LEGEND));
+        // Post.featuredType 업데이트
+        verify(featuredPostScheduleExecutor).updateLegendFeaturedType(any());
         // Hash 캐시에 TTL 1일로 직접 저장
         verify(redisSimplePostAdapter).cachePostsWithTtl(eq(PostCacheFlag.LEGEND), any(), eq(POST_CACHE_TTL_WEEKLY_LEGEND));
 
@@ -209,8 +209,8 @@ class FeaturedPostSchedulerTest {
         // Then
         verify(featuredPostScheduleExecutor).fetchLegendaryPosts();
 
-        // 게시글이 없으면 저장, 캐시, 이벤트 발행 안함
-        verify(featuredPostScheduleExecutor, never()).saveFeaturedPosts(any(), any());
+        // 게시글이 없으면 featuredType 업데이트, 캐시, 이벤트 발행 안함
+        verify(featuredPostScheduleExecutor, never()).updateLegendFeaturedType(any());
         verify(redisSimplePostAdapter, never()).cachePostsWithTtl(any(), any(), any());
         verify(eventPublisher, never()).publishEvent(any());
     }
