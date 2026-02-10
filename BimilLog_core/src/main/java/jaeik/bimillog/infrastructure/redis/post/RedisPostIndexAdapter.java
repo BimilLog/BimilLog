@@ -104,4 +104,34 @@ public class RedisPostIndexAdapter {
     public void removeFromIndex(String key, Long postId) {
         stringRedisTemplate.opsForList().remove(key, 1, postId.toString());
     }
+
+    /**
+     * LPUSH + LTRIM (맨 앞 추가 후 maxSize 유지)
+     */
+    public void addToIndexWithTrim(String key, Long postId, int maxSize) {
+        stringRedisTemplate.opsForList().leftPush(key, postId.toString());
+        stringRedisTemplate.opsForList().trim(key, 0, maxSize - 1);
+    }
+
+    /**
+     * LREM 후 마지막 요소 반환 (삭제 보충용)
+     */
+    public Long removeFromIndexAndGetLast(String key, Long postId) {
+        Long removed = stringRedisTemplate.opsForList().remove(key, 1, postId.toString());
+        if (removed == null || removed == 0) {
+            return null;
+        }
+        String last = stringRedisTemplate.opsForList().index(key, -1);
+        return last != null ? Long.parseLong(last) : null;
+    }
+
+    /**
+     * RPUSH (maxSize 미만일 때만 뒤에 추가)
+     */
+    public void appendToIndex(String key, Long postId, int maxSize) {
+        Long currentSize = stringRedisTemplate.opsForList().size(key);
+        if (currentSize != null && currentSize < maxSize) {
+            stringRedisTemplate.opsForList().rightPush(key, postId.toString());
+        }
+    }
 }

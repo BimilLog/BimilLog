@@ -11,8 +11,6 @@ import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -43,15 +41,9 @@ public class PostQueryService {
     private final PostRepository postRepository;
     private final PostUtil postUtil;
     private final ApplicationEventPublisher eventPublisher;
-    private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
-    private final RedisPostHashAdapter redisPostHashAdapter;
+    private final FeaturedPostCacheService featuredPostCacheService;
     private final PostViewCountSync postViewCountSync;
     private final RealtimePostSync realtimePostSync;
-
-    /**
-     * 첫 페이지 캐시 크기 (20개)
-     */
-    public static final int FIRST_PAGE_SIZE = 20;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -70,7 +62,7 @@ public class PostQueryService {
 
         // 첫 페이지라면 캐시 조회 아니라면 DB 조회
         if (cursor == null) {
-            posts = getFirstPage();
+            posts = featuredPostCacheService.getFirstPagePosts();
         } else {
             posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
         }
@@ -90,29 +82,6 @@ public class PostQueryService {
         }
 
         return CursorPageResponse.of(posts, posts.getLast().getId(), hasNext, size);
-    }
-
-    /**
-     * <h3>첫 페이지 조회</h3>
-     * <p>ID List 조회 → Hash 파이프라인 조회 → 순서 보장 + Hash 미스 복구</p>
-     * <p>캐시 미스 또는 장애 시 DB 폴백</p>
-     *
-     * @return 게시글 목록
-     */
-    private List<PostSimpleDetail> getFirstPage() {
-        try {
-            List<Long> ids = redisFirstPagePostAdapter.getFirstPageIds();
-            if (ids.isEmpty()) {
-                throw new CustomException(ErrorCode.POST_FIRST_PAGE_ERROR);
-            }
-
-            List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(ids);
-            cachedPosts = postUtil.recoverMissingHashes(ids, cachedPosts);
-            return postUtil.orderByIds(ids, cachedPosts);
-        } catch (Exception e) {
-            log.error("게시판 첫 페이지 캐시 장애 - DB 폴백", e);
-            return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
-        }
     }
 
     /**

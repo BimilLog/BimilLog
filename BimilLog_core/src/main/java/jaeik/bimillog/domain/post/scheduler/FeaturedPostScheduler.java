@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +39,6 @@ import java.util.List;
 public class FeaturedPostScheduler {
     private final RedisPostHashAdapter redisPostHashAdapter;
     private final RedisPostIndexAdapter redisPostIndexAdapter;
-    private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
     private final PostQueryRepository postQueryRepository;
     private final PostRepository postRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -178,7 +176,7 @@ public class FeaturedPostScheduler {
 
         posts.forEach(redisPostHashAdapter::createPostHash);
         List<Long> idList = posts.stream().map(PostSimpleDetail::getId).toList();
-        redisFirstPagePostAdapter.refreshCache(idList);
+        redisPostIndexAdapter.replaceIndex(RedisKey.FIRST_PAGE_LIST_KEY, idList, RedisKey.DEFAULT_CACHE_TTL);
         log.info("FIRST_PAGE 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
     }
 

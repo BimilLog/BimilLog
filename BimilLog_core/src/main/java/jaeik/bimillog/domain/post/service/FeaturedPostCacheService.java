@@ -21,13 +21,13 @@ import java.util.function.Function;
 
 /**
  * <h2>FeaturedPostCacheService</h2>
- * <p>주간/레전드/공지 인기글 목록 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
- * <p>SET 인덱스에서 postId를 조회하고, 글 단위 Hash(post:simple:{postId})에서 데이터를 가져옵니다.</p>
+ * <p>주간/레전드/공지 인기글 및 첫 페이지 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
+ * <p>SET/List 인덱스에서 postId를 조회하고, 글 단위 Hash(post:simple:{postId})에서 데이터를 가져옵니다.</p>
  * <p>캐시 갱신은 {@link FeaturedPostScheduler}(주간/레전드)와 관리자 토글/글 수정(공지)이 담당합니다.</p>
  * <p>Redis 장애 시 Post 테이블에서 boolean 플래그 기반으로 DB 폴백합니다.</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 3.1.0
  */
 @Log(logResult = false, logExecutionTime = true)
 @Service
@@ -61,9 +61,33 @@ public class FeaturedPostCacheService {
     }
 
     /**
+     * <h3>첫 페이지 캐시 조회</h3>
+     * <p>List 인덱스에서 postId를 조회하고, 공통 파이프라인으로 Hash 데이터를 가져옵니다.</p>
+     * <p>캐시 미스 또는 장애 시 DB 폴백합니다.</p>
+     *
+     * @return 게시글 목록 (캐시 미스/장애 시 DB 폴백)
+     */
+    public List<PostSimpleDetail> getFirstPagePosts() {
+        try {
+            List<Long> ids = redisPostIndexAdapter.getIndexList(RedisKey.FIRST_PAGE_LIST_KEY);
+            if (ids.isEmpty()) {
+                return postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
+            }
+
+            List<PostSimpleDetail> posts = resolvePostsByIds(ids);
+            if (posts.isEmpty()) {
+                return postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
+            }
+            return posts;
+        } catch (Exception e) {
+            log.error("게시판 첫 페이지 캐시 장애 - DB 폴백", e);
+            return postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
+        }
+    }
+
+    /**
      * <h3>주간/레전드/공지 캐시 조회</h3>
-     * <p>SET 인덱스에서 postId를 조회하고, 글 단위 Hash에서 pipeline으로 데이터를 가져옵니다.</p>
-     * <p>ID 역순 정렬 후 반환합니다.</p>
+     * <p>SET 인덱스에서 postId를 조회하고, 공통 파이프라인으로 Hash 데이터를 가져옵니다.</p>
      * <p>Redis 장애 시 Post 테이블에서 boolean 플래그 기반으로 DB 폴백합니다.</p>
      *
      * @param indexKey         Redis SET 인덱스 키
@@ -79,18 +103,32 @@ public class FeaturedPostCacheService {
                 return new PageImpl<>(List.of(), pageable, 0);
             }
 
-            List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
-            cachedPosts = postUtil.recoverMissingHashes(orderedIds, cachedPosts);
+            List<PostSimpleDetail> orderedPosts = resolvePostsByIds(orderedIds);
 
-            if (cachedPosts.isEmpty()) {
+            if (orderedPosts.isEmpty()) {
                 return new PageImpl<>(List.of(), pageable, 0);
             }
 
-            List<PostSimpleDetail> orderedPosts = postUtil.orderByIds(orderedIds, cachedPosts);
             return postUtil.paginate(orderedPosts, pageable);
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", indexKey, e.getMessage());
             return dbFallback.apply(pageable);
         }
+    }
+
+    /**
+     * <h3>공통 Hash 파이프라인 조회</h3>
+     * <p>ID 목록으로 Hash 조회 → 미스 복구 → 순서 보장</p>
+     *
+     * @param orderedIds 순서가 보장된 게시글 ID 목록
+     * @return 순서가 보장된 게시글 목록
+     */
+    private List<PostSimpleDetail> resolvePostsByIds(List<Long> orderedIds) {
+        List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
+        cachedPosts = postUtil.recoverMissingHashes(orderedIds, cachedPosts);
+        if (cachedPosts.isEmpty()) {
+            return List.of();
+        }
+        return postUtil.orderByIds(orderedIds, cachedPosts);
     }
 }

@@ -53,9 +53,7 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService, never()).bulkIncrementViewCounts(any());
-        verify(postInteractionService, never()).bulkIncrementLikeCounts(any());
-        verify(postInteractionService, never()).bulkIncrementCommentCounts(any());
+        verify(postInteractionService, never()).bulkIncrementCounts(any(), any());
         verify(redisPostHashAdapter, never()).batchIncrementCounts(any(), any());
     }
 
@@ -72,7 +70,7 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementViewCounts(viewCounts);
+        verify(postInteractionService).bulkIncrementCounts(viewCounts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
         verify(redisPostHashAdapter).batchIncrementCounts(viewCounts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
     }
 
@@ -82,7 +80,7 @@ class PostViewCountFlushSchedulerTest {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L);
         given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
-        doThrow(new RuntimeException("DB 오류")).when(postInteractionService).bulkIncrementViewCounts(any());
+        doThrow(new RuntimeException("DB 오류")).when(postInteractionService).bulkIncrementCounts(any(), any());
         given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
         given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
 
@@ -90,7 +88,7 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementViewCounts(viewCounts);
+        verify(postInteractionService).bulkIncrementCounts(viewCounts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
     }
 
     // ==================== 좋아요 ====================
@@ -108,7 +106,7 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementLikeCounts(likeCounts);
+        verify(postInteractionService).bulkIncrementCounts(likeCounts, RedisPostHashAdapter.FIELD_LIKE_COUNT);
         verify(redisPostHashAdapter).batchIncrementCounts(likeCounts, RedisPostHashAdapter.FIELD_LIKE_COUNT);
     }
 
@@ -127,7 +125,7 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementCommentCounts(commentCounts);
+        verify(postInteractionService).bulkIncrementCounts(commentCounts, RedisPostHashAdapter.FIELD_COMMENT_COUNT);
         verify(redisPostHashAdapter).batchIncrementCounts(commentCounts, RedisPostHashAdapter.FIELD_COMMENT_COUNT);
     }
 
@@ -148,9 +146,9 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementViewCounts(viewCounts);
-        verify(postInteractionService).bulkIncrementLikeCounts(likeCounts);
-        verify(postInteractionService).bulkIncrementCommentCounts(commentCounts);
+        verify(postInteractionService).bulkIncrementCounts(viewCounts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
+        verify(postInteractionService).bulkIncrementCounts(likeCounts, RedisPostHashAdapter.FIELD_LIKE_COUNT);
+        verify(postInteractionService).bulkIncrementCounts(commentCounts, RedisPostHashAdapter.FIELD_COMMENT_COUNT);
         verify(redisPostHashAdapter).batchIncrementCounts(viewCounts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
         verify(redisPostHashAdapter).batchIncrementCounts(likeCounts, RedisPostHashAdapter.FIELD_LIKE_COUNT);
         verify(redisPostHashAdapter).batchIncrementCounts(commentCounts, RedisPostHashAdapter.FIELD_COMMENT_COUNT);

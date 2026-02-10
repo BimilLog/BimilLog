@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.post.async;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
@@ -27,7 +26,6 @@ import java.util.List;
 @Slf4j
 public class CacheUpdateSync {
     private final PostQueryRepository postQueryRepository;
-    private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
     private final RedisPostHashAdapter redisPostHashAdapter;
     private final RedisPostIndexAdapter redisPostIndexAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
@@ -39,7 +37,7 @@ public class CacheUpdateSync {
     @Async("cacheRefreshPool")
     public void asyncAddNewPost(PostSimpleDetail post) {
         redisPostHashAdapter.createPostHash(post);
-        redisFirstPagePostAdapter.addNewPostId(post.getId());
+        redisPostIndexAdapter.addToIndexWithTrim(RedisKey.FIRST_PAGE_LIST_KEY, post.getId(), RedisKey.FIRST_PAGE_SIZE);
     }
 
     /**
@@ -66,13 +64,13 @@ public class CacheUpdateSync {
         redisPostIndexAdapter.removeFromIndex(RedisKey.POST_LEGEND_IDS_KEY, postId);
         redisPostIndexAdapter.removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
 
-        Long lastPostId = redisFirstPagePostAdapter.deletePost(postId);
+        Long lastPostId = redisPostIndexAdapter.removeFromIndexAndGetLast(RedisKey.FIRST_PAGE_LIST_KEY, postId);
         if (lastPostId != null) {
             List<PostSimpleDetail> nextPosts = postQueryRepository.findBoardPostsByCursor(lastPostId, 1);
             if (!nextPosts.isEmpty()) {
                 PostSimpleDetail nextPost = nextPosts.getFirst();
                 redisPostHashAdapter.createPostHash(nextPost);
-                redisFirstPagePostAdapter.appendPostId(nextPost.getId());
+                redisPostIndexAdapter.appendToIndex(RedisKey.FIRST_PAGE_LIST_KEY, nextPost.getId(), RedisKey.FIRST_PAGE_SIZE);
             }
         }
     }

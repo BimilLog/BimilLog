@@ -56,16 +56,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("UPDATE Post p SET p.views = p.views + 1 WHERE p.id = :postId")
     void incrementViewsByPostId(Long postId);
 
-    /**
-     * <h3>조회수 일괄 증가</h3>
-     * <p>지정된 양만큼 조회수를 증가시킵니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param amount 증가량
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.views = p.views + :amount WHERE p.id = :postId")
-    void incrementViewsByAmount(Long postId, Long amount);
 
     /**
      * <h3>좋아요 수 원자적 증가</h3>
@@ -123,20 +113,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("UPDATE Post p SET p.isLegend = true WHERE p.id IN :ids")
     void setLegendFlag(@Param("ids") List<Long> ids);
 
-    /**
-     * <h3>좋아요 수 일괄 증감</h3>
-     * <p>카운트 버퍼에서 누적된 증감량을 DB에 반영합니다.</p>
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.likeCount = p.likeCount + :amount WHERE p.id = :postId")
-    void incrementLikeCountByAmount(@Param("postId") Long postId, @Param("amount") Long amount);
-
-    /**
-     * <h3>댓글 수 일괄 증감</h3>
-     * <p>카운트 버퍼에서 누적된 증감량을 DB에 반영합니다.</p>
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.commentCount = p.commentCount + :amount WHERE p.id = :postId")
-    void incrementCommentCountByAmount(@Param("postId") Long postId, @Param("amount") Long amount);
 }
 

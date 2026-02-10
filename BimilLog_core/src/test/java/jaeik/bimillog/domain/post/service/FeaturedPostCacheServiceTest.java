@@ -1,15 +1,16 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +26,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,6 +54,9 @@ class FeaturedPostCacheServiceTest {
     private RedisPostIndexAdapter redisPostIndexAdapter;
 
     @Mock
+    private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
+
+    @Mock
     private PostUtil postUtil;
 
     private FeaturedPostCacheService featuredPostCacheService;
@@ -64,6 +67,7 @@ class FeaturedPostCacheServiceTest {
                 postQueryRepository,
                 redisPostHashAdapter,
                 redisPostIndexAdapter,
+                redisFirstPagePostAdapter,
                 postUtil
         );
     }
@@ -75,12 +79,15 @@ class FeaturedPostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail weeklyPost1 = PostTestDataBuilder.createPostSearchResult(1L, "주간 인기글 1");
         PostSimpleDetail weeklyPost2 = PostTestDataBuilder.createPostSearchResult(2L, "주간 인기글 2");
+        List<Long> ids = List.of(1L, 2L);
         List<PostSimpleDetail> cachedPosts = List.of(weeklyPost1, weeklyPost2);
 
         given(redisPostIndexAdapter.getIndexList(RedisKey.POST_WEEKLY_IDS_KEY))
-                .willReturn(List.of(1L, 2L));
+                .willReturn(ids);
         given(redisPostHashAdapter.getPostHashes(anyCollection()))
                 .willReturn(cachedPosts);
+        given(postUtil.recoverMissingHashes(ids, cachedPosts)).willReturn(cachedPosts);
+        given(postUtil.orderByIds(ids, cachedPosts)).willReturn(cachedPosts);
         given(postUtil.paginate(anyList(), eq(pageable)))
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
@@ -101,12 +108,15 @@ class FeaturedPostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail legendPost1 = PostTestDataBuilder.createPostSearchResult(1L, "레전드 게시글 1");
         PostSimpleDetail legendPost2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
+        List<Long> ids = List.of(1L, 2L);
         List<PostSimpleDetail> cachedPosts = List.of(legendPost1, legendPost2);
 
         given(redisPostIndexAdapter.getIndexList(RedisKey.POST_LEGEND_IDS_KEY))
-                .willReturn(List.of(1L, 2L));
+                .willReturn(ids);
         given(redisPostHashAdapter.getPostHashes(anyCollection()))
                 .willReturn(cachedPosts);
+        given(postUtil.recoverMissingHashes(ids, cachedPosts)).willReturn(cachedPosts);
+        given(postUtil.orderByIds(ids, cachedPosts)).willReturn(cachedPosts);
         given(postUtil.paginate(anyList(), eq(pageable)))
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
@@ -124,12 +134,15 @@ class FeaturedPostCacheServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
+        List<Long> ids = List.of(1L);
         List<PostSimpleDetail> cachedPosts = List.of(noticePost);
 
         given(redisPostIndexAdapter.getIndexList(RedisKey.POST_NOTICE_IDS_KEY))
-                .willReturn(List.of(1L));
+                .willReturn(ids);
         given(redisPostHashAdapter.getPostHashes(anyCollection()))
                 .willReturn(cachedPosts);
+        given(postUtil.recoverMissingHashes(ids, cachedPosts)).willReturn(cachedPosts);
+        given(postUtil.orderByIds(ids, cachedPosts)).willReturn(cachedPosts);
         given(postUtil.paginate(anyList(), eq(pageable)))
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 1));
 
@@ -224,25 +237,25 @@ class FeaturedPostCacheServiceTest {
         PostSimpleDetail cachedPost1 = PostTestDataBuilder.createPostSearchResult(1L, "캐시된 글 1");
         PostSimpleDetail cachedPost2 = PostTestDataBuilder.createPostSearchResult(2L, "캐시된 글 2");
         PostSimpleDetail dbPost = PostTestDataBuilder.createPostSearchResult(3L, "DB 복구 글");
-
-        PostDetail dbDetail = mock(PostDetail.class);
-        given(dbDetail.toSimpleDetail()).willReturn(dbPost);
+        List<Long> ids = List.of(1L, 2L, 3L);
+        List<PostSimpleDetail> partialPosts = List.of(cachedPost1, cachedPost2);
+        List<PostSimpleDetail> recoveredPosts = List.of(cachedPost1, cachedPost2, dbPost);
 
         given(redisPostIndexAdapter.getIndexList(RedisKey.POST_WEEKLY_IDS_KEY))
-                .willReturn(List.of(1L, 2L, 3L));
+                .willReturn(ids);
         given(redisPostHashAdapter.getPostHashes(anyCollection()))
-                .willReturn(List.of(cachedPost1, cachedPost2)); // 3L 누락
-        given(postQueryRepository.findPostDetail(eq(3L), isNull()))
-                .willReturn(Optional.of(dbDetail));
+                .willReturn(partialPosts);
+        given(postUtil.recoverMissingHashes(ids, partialPosts)).willReturn(recoveredPosts);
+        given(postUtil.orderByIds(ids, recoveredPosts)).willReturn(recoveredPosts);
         given(postUtil.paginate(anyList(), eq(pageable)))
-                .willReturn(new PageImpl<>(List.of(cachedPost1, cachedPost2, dbPost), pageable, 3));
+                .willReturn(new PageImpl<>(recoveredPosts, pageable, 3));
 
         // When
         Page<PostSimpleDetail> result = featuredPostCacheService.getWeeklyPosts(pageable);
 
-        // Then: DB에서 조회한 글의 Hash가 생성됨
+        // Then: postUtil.recoverMissingHashes가 복구 수행
         assertThat(result.getContent()).hasSize(3);
-        verify(redisPostHashAdapter).createPostHash(dbPost);
+        verify(postUtil).recoverMissingHashes(ids, partialPosts);
     }
 
     @Test
@@ -250,13 +263,14 @@ class FeaturedPostCacheServiceTest {
     void shouldReturnEmptyPage_WhenAllHashMissAndNoDbResult() {
         // Given: List 인덱스에 ID가 있지만 Hash도 DB도 없음
         Pageable pageable = PageRequest.of(0, 10);
+        List<Long> ids = List.of(1L, 2L);
 
         given(redisPostIndexAdapter.getIndexList(RedisKey.POST_WEEKLY_IDS_KEY))
-                .willReturn(List.of(1L, 2L));
+                .willReturn(ids);
         given(redisPostHashAdapter.getPostHashes(anyCollection()))
                 .willReturn(List.of()); // 전부 미스
-        given(postQueryRepository.findPostDetail(anyLong(), isNull()))
-                .willReturn(Optional.empty()); // DB에도 없음
+        given(postUtil.recoverMissingHashes(eq(ids), anyList()))
+                .willReturn(List.of()); // 복구 후에도 빈 리스트
 
         // When
         Page<PostSimpleDetail> result = featuredPostCacheService.getWeeklyPosts(pageable);
@@ -264,5 +278,77 @@ class FeaturedPostCacheServiceTest {
         // Then
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isZero();
+    }
+
+    // ==================== 첫 페이지 캐시 조회 ====================
+
+    @Nested
+    @DisplayName("첫 페이지 캐시 조회")
+    class FirstPageTests {
+
+        @Test
+        @DisplayName("첫 페이지 캐시 히트 - List + Hash 파이프라인")
+        void shouldGetFirstPagePosts_CacheHit() {
+            // Given
+            List<Long> ids = List.of(3L, 2L, 1L);
+            PostSimpleDetail post1 = PostTestDataBuilder.createPostSearchResult(3L, "최신글");
+            PostSimpleDetail post2 = PostTestDataBuilder.createPostSearchResult(2L, "두번째글");
+            PostSimpleDetail post3 = PostTestDataBuilder.createPostSearchResult(1L, "세번째글");
+            List<PostSimpleDetail> cachedPosts = List.of(post1, post2, post3);
+
+            given(redisFirstPagePostAdapter.getFirstPageIds()).willReturn(ids);
+            given(redisPostHashAdapter.getPostHashes(ids)).willReturn(cachedPosts);
+            given(postUtil.recoverMissingHashes(ids, cachedPosts)).willReturn(cachedPosts);
+            given(postUtil.orderByIds(ids, cachedPosts)).willReturn(cachedPosts);
+
+            // When
+            List<PostSimpleDetail> result = featuredPostCacheService.getFirstPagePosts();
+
+            // Then
+            assertThat(result).hasSize(3);
+            assertThat(result.get(0).getTitle()).isEqualTo("최신글");
+            verify(redisFirstPagePostAdapter).getFirstPageIds();
+            verify(redisPostHashAdapter).getPostHashes(ids);
+            verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
+        }
+
+        @Test
+        @DisplayName("첫 페이지 캐시 미스 (빈 ID 목록) - DB 폴백")
+        void shouldGetFirstPagePosts_CacheMiss_DbFallback() {
+            // Given
+            PostSimpleDetail dbPost = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
+            List<PostSimpleDetail> dbPosts = List.of(dbPost);
+
+            given(redisFirstPagePostAdapter.getFirstPageIds()).willReturn(Collections.emptyList());
+            given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
+
+            // When
+            List<PostSimpleDetail> result = featuredPostCacheService.getFirstPagePosts();
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getTitle()).isEqualTo("DB 폴백 글");
+            verify(postQueryRepository).findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
+        }
+
+        @Test
+        @DisplayName("첫 페이지 Redis 장애 - DB 폴백")
+        void shouldGetFirstPagePosts_RedisFailure_DbFallback() {
+            // Given
+            PostSimpleDetail dbPost = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
+            List<PostSimpleDetail> dbPosts = List.of(dbPost);
+
+            given(redisFirstPagePostAdapter.getFirstPageIds())
+                    .willThrow(new RuntimeException("Redis connection failed"));
+            given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
+
+            // When
+            List<PostSimpleDetail> result = featuredPostCacheService.getFirstPagePosts();
+
+            // Then
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getTitle()).isEqualTo("DB 폴백 글");
+            verify(postQueryRepository).findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
+        }
     }
 }

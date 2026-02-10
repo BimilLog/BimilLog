@@ -6,12 +6,16 @@ import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
+import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
+import com.querydsl.core.types.dsl.NumberPath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -34,11 +38,18 @@ import java.util.Objects;
 @Slf4j
 public class PostInteractionService {
     private final PostRepository postRepository;
+    private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RealtimePostSync realtimePostSync;
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
+
+    private static final Map<String, NumberPath<Integer>> COUNT_FIELDS = Map.of(
+            RedisPostHashAdapter.FIELD_VIEW_COUNT, QPost.post.views,
+            RedisPostHashAdapter.FIELD_LIKE_COUNT, QPost.post.likeCount,
+            RedisPostHashAdapter.FIELD_COMMENT_COUNT, QPost.post.commentCount
+    );
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
      * <p>사용자별 좋아요 상태 토글 규칙을 적용합니다.</p>
@@ -91,42 +102,18 @@ public class PostInteractionService {
     }
 
     /**
-     * <h3>조회수 일괄 증가</h3>
-     * <p>Redis에서 누적된 조회수를 DB에 벌크 반영합니다.</p>
-     *
-     * @param counts postId → 증가량 맵
-     */
-    @Transactional
-    public void bulkIncrementViewCounts(Map<Long, Long> counts) {
-        for (Map.Entry<Long, Long> entry : counts.entrySet()) {
-            postRepository.incrementViewsByAmount(entry.getKey(), entry.getValue());
-        }
-    }
-
-    /**
-     * <h3>좋아요 수 일괄 증감</h3>
-     * <p>Redis에서 누적된 좋아요 증감량을 DB에 벌크 반영합니다.</p>
+     * Redis에서 누적된 카운트를 DB에 벌크 반영
      *
      * @param counts postId → 증감량 맵
+     * @param field  RedisPostHashAdapter.FIELD_VIEW_COUNT / FIELD_LIKE_COUNT / FIELD_COMMENT_COUNT
      */
     @Transactional
-    public void bulkIncrementLikeCounts(Map<Long, Long> counts) {
-        for (Map.Entry<Long, Long> entry : counts.entrySet()) {
-            postRepository.incrementLikeCountByAmount(entry.getKey(), entry.getValue());
+    public void bulkIncrementCounts(Map<Long, Long> counts, String field) {
+        NumberPath<Integer> path = COUNT_FIELDS.get(field);
+        if (path == null) {
+            throw new IllegalArgumentException("Unknown count field: " + field);
         }
-    }
-
-    /**
-     * <h3>댓글 수 일괄 증감</h3>
-     * <p>Redis에서 누적된 댓글수 증감량을 DB에 벌크 반영합니다.</p>
-     *
-     * @param counts postId → 증감량 맵
-     */
-    @Transactional
-    public void bulkIncrementCommentCounts(Map<Long, Long> counts) {
-        for (Map.Entry<Long, Long> entry : counts.entrySet()) {
-            postRepository.incrementCommentCountByAmount(entry.getKey(), entry.getValue());
-        }
+        postQueryRepository.bulkIncrementCount(counts, path);
     }
 
     /**

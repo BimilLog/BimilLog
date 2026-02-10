@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.repository;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.post.entity.*;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -520,5 +522,18 @@ public class PostQueryRepository {
         countQueryCustomizer.accept(countQuery);
         Long total = countQuery.fetchOne();
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * 카운트 필드 동적 벌크 증감
+     */
+    public void bulkIncrementCount(Map<Long, Long> counts, NumberPath<Integer> field) {
+        QPost post = QPost.post;
+        for (Map.Entry<Long, Long> entry : counts.entrySet()) {
+            jpaQueryFactory.update(post)
+                    .set(field, field.add(entry.getValue().intValue()))
+                    .where(post.id.eq(entry.getKey()))
+                    .execute();
+        }
     }
 }

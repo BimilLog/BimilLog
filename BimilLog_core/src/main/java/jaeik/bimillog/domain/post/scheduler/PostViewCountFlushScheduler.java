@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * <h2>카운트 플러시 스케줄러</h2>
@@ -31,47 +32,21 @@ public class PostViewCountFlushScheduler {
      */
     @Scheduled(fixedRate = 60000) // 1분
     public void flushAllCounts() {
-        flushViewCounts();
-        flushLikeCounts();
-        flushCommentCounts();
+        flushCounts(RedisPostHashAdapter.FIELD_VIEW_COUNT, redisPostUpdateAdapter::getAndClearViewCounts);
+        flushCounts(RedisPostHashAdapter.FIELD_LIKE_COUNT, redisPostUpdateAdapter::getAndClearLikeCounts);
+        flushCounts(RedisPostHashAdapter.FIELD_COMMENT_COUNT, redisPostUpdateAdapter::getAndClearCommentCounts);
     }
 
-    private void flushViewCounts() {
+    private void flushCounts(String field, Supplier<Map<Long, Long>> countsSupplier) {
         try {
-            Map<Long, Long> counts = redisPostUpdateAdapter.getAndClearViewCounts();
+            Map<Long, Long> counts = countsSupplier.get();
             if (counts.isEmpty()) return;
 
-            postInteractionService.bulkIncrementViewCounts(counts);
-            redisPostHashAdapter.batchIncrementCounts(counts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
-            log.info("조회수 플러시 완료: {}개 게시글 반영", counts.size());
+            postInteractionService.bulkIncrementCounts(counts, field);
+            redisPostHashAdapter.batchIncrementCounts(counts, field);
+            log.info("{} 플러시 완료: {}개 게시글 반영", field, counts.size());
         } catch (Exception e) {
-            log.error("조회수 플러시 실패", e);
-        }
-    }
-
-    private void flushLikeCounts() {
-        try {
-            Map<Long, Long> counts = redisPostUpdateAdapter.getAndClearLikeCounts();
-            if (counts.isEmpty()) return;
-
-            postInteractionService.bulkIncrementLikeCounts(counts);
-            redisPostHashAdapter.batchIncrementCounts(counts, RedisPostHashAdapter.FIELD_LIKE_COUNT);
-            log.info("좋아요 플러시 완료: {}개 게시글 반영", counts.size());
-        } catch (Exception e) {
-            log.error("좋아요 플러시 실패", e);
-        }
-    }
-
-    private void flushCommentCounts() {
-        try {
-            Map<Long, Long> counts = redisPostUpdateAdapter.getAndClearCommentCounts();
-            if (counts.isEmpty()) return;
-
-            postInteractionService.bulkIncrementCommentCounts(counts);
-            redisPostHashAdapter.batchIncrementCounts(counts, RedisPostHashAdapter.FIELD_COMMENT_COUNT);
-            log.info("댓글수 플러시 완료: {}개 게시글 반영", counts.size());
-        } catch (Exception e) {
-            log.error("댓글수 플러시 실패", e);
+            log.error("{} 플러시 실패", field, e);
         }
     }
 }
