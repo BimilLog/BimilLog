@@ -41,7 +41,7 @@ public class PostQueryService {
     private final PostRepository postRepository;
     private final PostUtil postUtil;
     private final ApplicationEventPublisher eventPublisher;
-    private final FeaturedPostCacheService featuredPostCacheService;
+    private final PostCacheService postCacheService;
     private final PostViewCountSync postViewCountSync;
     private final RealtimePostSync realtimePostSync;
 
@@ -62,7 +62,7 @@ public class PostQueryService {
 
         // 첫 페이지라면 캐시 조회 아니라면 DB 조회
         if (cursor == null) {
-            posts = featuredPostCacheService.getFirstPagePosts();
+            posts = postCacheService.getFirstPagePosts();
         } else {
             posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
         }

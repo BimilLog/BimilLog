@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.service.FeaturedPostCacheService;
+import jaeik.bimillog.domain.post.service.PostCacheService;
 import jaeik.bimillog.domain.post.service.RealtimePostCacheService;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/post")
 public class PostCacheController {
     private final RealtimePostCacheService realtimePostCacheService;
-    private final FeaturedPostCacheService featuredPostCacheService;
+    private final PostCacheService postCacheService;
 
     /**
      * <h3>실시간 인기글 조회 API</h3>
@@ -53,7 +53,7 @@ public class PostCacheController {
      */
     @GetMapping("/weekly")
     public ResponseEntity<Page<PostSimpleDetail>> getWeeklyPopularPosts(Pageable pageable) {
-        Page<PostSimpleDetail> weeklyPosts = featuredPostCacheService.getWeeklyPosts(pageable);
+        Page<PostSimpleDetail> weeklyPosts = postCacheService.getWeeklyPosts(pageable);
         return ResponseEntity.ok(weeklyPosts);
     }
 
@@ -66,7 +66,7 @@ public class PostCacheController {
      */
     @GetMapping("/legend")
     public ResponseEntity<Page<PostSimpleDetail>> getLegendBoard(Pageable pageable) {
-        Page<PostSimpleDetail> legendPopularPosts = featuredPostCacheService.getPopularPostLegend(pageable);
+        Page<PostSimpleDetail> legendPopularPosts = postCacheService.getPopularPostLegend(pageable);
         return ResponseEntity.ok(legendPopularPosts);
     }
 
@@ -79,7 +79,7 @@ public class PostCacheController {
      */
     @GetMapping("/notice")
     public ResponseEntity<Page<PostSimpleDetail>> getNoticeBoard(Pageable pageable) {
-        Page<PostSimpleDetail> noticePosts = featuredPostCacheService.getNoticePosts(pageable);
+        Page<PostSimpleDetail> noticePosts = postCacheService.getNoticePosts(pageable);
         return ResponseEntity.ok(noticePosts);
     }
 }

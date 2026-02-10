@@ -23,7 +23,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,7 +61,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private FeaturedPostCacheService featuredPostCacheService;
+    private PostCacheService postCacheService;
 
     @Mock
     private PostViewCountSync postViewCountSync;
@@ -82,7 +81,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         List<PostSimpleDetail> posts = List.of(postResult);
 
-        given(featuredPostCacheService.getFirstPagePosts()).willReturn(posts);
+        given(postCacheService.getFirstPagePosts()).willReturn(posts);
         given(postUtil.removePostsWithBlacklist(null, posts)).willReturn(posts);
 
         // When
@@ -93,7 +92,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
         assertThat(result.hasNext()).isFalse();
 
-        verify(featuredPostCacheService).getFirstPagePosts();
+        verify(postCacheService).getFirstPagePosts();
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
@@ -111,7 +110,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 PostTestDataBuilder.createPostSearchResult(1L, "제목1")
         );
 
-        given(featuredPostCacheService.getFirstPagePosts()).willReturn(cachedPosts);
+        given(postCacheService.getFirstPagePosts()).willReturn(cachedPosts);
         given(postUtil.removePostsWithBlacklist(eq(null), anyList())).willReturn(cachedPosts);
 
         // When
@@ -124,7 +123,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.hasNext()).isTrue();
         assertThat(result.nextCursor()).isEqualTo(4L);
 
-        verify(featuredPostCacheService).getFirstPagePosts();
+        verify(postCacheService).getFirstPagePosts();
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
@@ -137,7 +136,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
         List<PostSimpleDetail> dbPosts = List.of(postResult);
 
-        given(featuredPostCacheService.getFirstPagePosts()).willReturn(dbPosts);
+        given(postCacheService.getFirstPagePosts()).willReturn(dbPosts);
         given(postUtil.removePostsWithBlacklist(null, dbPosts)).willReturn(dbPosts);
 
         // When
@@ -147,7 +146,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("DB 폴백 글");
 
-        verify(featuredPostCacheService).getFirstPagePosts();
+        verify(postCacheService).getFirstPagePosts();
     }
 
     @Test
@@ -169,7 +168,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
 
-        verify(featuredPostCacheService, never()).getFirstPagePosts();
+        verify(postCacheService, never()).getFirstPagePosts();
         verify(postQueryRepository).findBoardPostsByCursor(cursor, size);
     }
 
@@ -191,7 +190,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
         );
 
-        given(featuredPostCacheService.getFirstPagePosts()).willReturn(cachedPosts);
+        given(postCacheService.getFirstPagePosts()).willReturn(cachedPosts);
         given(postUtil.removePostsWithBlacklist(eq(memberId), anyList())).willReturn(filteredPosts);
 
         // When
@@ -202,7 +201,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).extracting(PostSimpleDetail::getId).containsExactly(1L, 3L);
         assertThat(result.hasNext()).isFalse();
 
-        verify(featuredPostCacheService).getFirstPagePosts();
+        verify(postCacheService).getFirstPagePosts();
     }
 
     @Test

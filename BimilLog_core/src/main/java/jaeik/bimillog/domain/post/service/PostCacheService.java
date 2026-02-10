@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.scheduler.FeaturedPostScheduler;
 import jaeik.bimillog.domain.post.util.PostUtil;
-import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
@@ -13,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * <h2>FeaturedPostCacheService</h2>
+ * <h2>PostCacheService</h2>
  * <p>주간/레전드/공지 인기글 및 첫 페이지 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
  * <p>SET/List 인덱스에서 postId를 조회하고, 글 단위 Hash(post:simple:{postId})에서 데이터를 가져옵니다.</p>
  * <p>캐시 갱신은 {@link FeaturedPostScheduler}(주간/레전드)와 관리자 토글/글 수정(공지)이 담당합니다.</p>
@@ -33,7 +33,7 @@ import java.util.function.Function;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class FeaturedPostCacheService {
+public class PostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final RedisPostHashAdapter redisPostHashAdapter;
     private final RedisPostIndexAdapter redisPostIndexAdapter;
@@ -61,52 +61,31 @@ public class FeaturedPostCacheService {
     }
 
     /**
-     * <h3>첫 페이지 캐시 조회</h3>
-     * <p>List 인덱스에서 postId를 조회하고, 공통 파이프라인으로 Hash 데이터를 가져옵니다.</p>
-     * <p>캐시 미스 또는 장애 시 DB 폴백합니다.</p>
-     *
-     * @return 게시글 목록 (캐시 미스/장애 시 DB 폴백)
+     * 첫 페이지 캐시 조회 (캐시 미스/장애 시 DB 폴백)
      */
     public List<PostSimpleDetail> getFirstPagePosts() {
-        try {
-            List<Long> ids = redisPostIndexAdapter.getIndexList(RedisKey.FIRST_PAGE_LIST_KEY);
-            if (ids.isEmpty()) {
-                return postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
-            }
-
-            List<PostSimpleDetail> posts = resolvePostsByIds(ids);
-            if (posts.isEmpty()) {
-                return postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
-            }
-            return posts;
-        } catch (Exception e) {
-            log.error("게시판 첫 페이지 캐시 장애 - DB 폴백", e);
-            return postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
-        }
+        return getFeaturedCachedPosts(
+                RedisKey.FIRST_PAGE_LIST_KEY,
+                p -> new PageImpl<>(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)),
+                PageRequest.of(0, RedisKey.FIRST_PAGE_SIZE)
+        ).getContent();
     }
 
     /**
-     * <h3>주간/레전드/공지 캐시 조회</h3>
-     * <p>SET 인덱스에서 postId를 조회하고, 공통 파이프라인으로 Hash 데이터를 가져옵니다.</p>
-     * <p>Redis 장애 시 Post 테이블에서 boolean 플래그 기반으로 DB 폴백합니다.</p>
-     *
-     * @param indexKey         Redis SET 인덱스 키
-     * @param dbFallback       DB 폴백 함수
-     * @param pageable         페이징 정보
-     * @return 페이징된 게시글 목록
+     * List 인덱스 → Hash 조회 → DB 폴백 공통 파이프라인 (주간/레전드/공지/첫 페이지)
      */
     private Page<PostSimpleDetail> getFeaturedCachedPosts(String indexKey, Function<Pageable, Page<PostSimpleDetail>> dbFallback, Pageable pageable) {
         try {
             List<Long> orderedIds = redisPostIndexAdapter.getIndexList(indexKey);
 
             if (orderedIds.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, 0);
+                return dbFallback.apply(pageable);
             }
 
             List<PostSimpleDetail> orderedPosts = resolvePostsByIds(orderedIds);
 
             if (orderedPosts.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, 0);
+                return dbFallback.apply(pageable);
             }
 
             return postUtil.paginate(orderedPosts, pageable);

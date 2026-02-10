@@ -34,15 +34,15 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>FeaturedPostCacheService 테스트</h2>
+ * <h2>PostCacheService 테스트</h2>
  * <p>주간/레전드/공지 인기글 캐시 조회 로직을 검증합니다.</p>
  * <p>List 인덱스 → 글 단위 Hash pipeline 조회, 캐시 미스 시 빈 페이지 반환, 예외 시 DB 폴백 경로를 검증합니다.</p>
  * <p>DB 폴백은 독립 boolean 플래그 기반 쿼리를 사용합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("FeaturedPostCacheService 테스트")
+@DisplayName("PostCacheService 테스트")
 @Tag("unit")
-class FeaturedPostCacheServiceTest {
+class PostCacheServiceTest {
 
     @Mock
     private PostQueryRepository postQueryRepository;
@@ -59,11 +59,11 @@ class FeaturedPostCacheServiceTest {
     @Mock
     private PostUtil postUtil;
 
-    private FeaturedPostCacheService featuredPostCacheService;
+    private PostCacheService postCacheService;
 
     @BeforeEach
     void setUp() {
-        featuredPostCacheService = new FeaturedPostCacheService(
+        postCacheService = new PostCacheService(
                 postQueryRepository,
                 redisPostHashAdapter,
                 redisPostIndexAdapter,
@@ -92,7 +92,7 @@ class FeaturedPostCacheServiceTest {
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
         // When
-        Page<PostSimpleDetail> result = featuredPostCacheService.getWeeklyPosts(pageable);
+        Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(2);
@@ -121,7 +121,7 @@ class FeaturedPostCacheServiceTest {
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
         // When
-        Page<PostSimpleDetail> result = featuredPostCacheService.getPopularPostLegend(pageable);
+        Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(2);
@@ -147,7 +147,7 @@ class FeaturedPostCacheServiceTest {
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 1));
 
         // When
-        Page<PostSimpleDetail> result = featuredPostCacheService.getNoticePosts(pageable);
+        Page<PostSimpleDetail> result = postCacheService.getNoticePosts(pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
@@ -166,9 +166,9 @@ class FeaturedPostCacheServiceTest {
 
         // When
         Page<PostSimpleDetail> result = switch (label) {
-            case "WEEKLY" -> featuredPostCacheService.getWeeklyPosts(pageable);
-            case "LEGEND" -> featuredPostCacheService.getPopularPostLegend(pageable);
-            case "NOTICE" -> featuredPostCacheService.getNoticePosts(pageable);
+            case "WEEKLY" -> postCacheService.getWeeklyPosts(pageable);
+            case "LEGEND" -> postCacheService.getPopularPostLegend(pageable);
+            case "NOTICE" -> postCacheService.getNoticePosts(pageable);
             default -> throw new IllegalArgumentException("Unknown label: " + label);
         };
 
@@ -200,9 +200,9 @@ class FeaturedPostCacheServiceTest {
 
         // When
         Page<PostSimpleDetail> result = switch (label) {
-            case "WEEKLY" -> featuredPostCacheService.getWeeklyPosts(pageable);
-            case "LEGEND" -> featuredPostCacheService.getPopularPostLegend(pageable);
-            case "NOTICE" -> featuredPostCacheService.getNoticePosts(pageable);
+            case "WEEKLY" -> postCacheService.getWeeklyPosts(pageable);
+            case "LEGEND" -> postCacheService.getPopularPostLegend(pageable);
+            case "NOTICE" -> postCacheService.getNoticePosts(pageable);
             default -> throw new IllegalArgumentException("Unknown label: " + label);
         };
 
@@ -251,7 +251,7 @@ class FeaturedPostCacheServiceTest {
                 .willReturn(new PageImpl<>(recoveredPosts, pageable, 3));
 
         // When
-        Page<PostSimpleDetail> result = featuredPostCacheService.getWeeklyPosts(pageable);
+        Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
 
         // Then: postUtil.recoverMissingHashes가 복구 수행
         assertThat(result.getContent()).hasSize(3);
@@ -273,7 +273,7 @@ class FeaturedPostCacheServiceTest {
                 .willReturn(List.of()); // 복구 후에도 빈 리스트
 
         // When
-        Page<PostSimpleDetail> result = featuredPostCacheService.getWeeklyPosts(pageable);
+        Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -302,7 +302,7 @@ class FeaturedPostCacheServiceTest {
             given(postUtil.orderByIds(ids, cachedPosts)).willReturn(cachedPosts);
 
             // When
-            List<PostSimpleDetail> result = featuredPostCacheService.getFirstPagePosts();
+            List<PostSimpleDetail> result = postCacheService.getFirstPagePosts();
 
             // Then
             assertThat(result).hasSize(3);
@@ -323,7 +323,7 @@ class FeaturedPostCacheServiceTest {
             given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
 
             // When
-            List<PostSimpleDetail> result = featuredPostCacheService.getFirstPagePosts();
+            List<PostSimpleDetail> result = postCacheService.getFirstPagePosts();
 
             // Then
             assertThat(result).hasSize(1);
@@ -343,7 +343,7 @@ class FeaturedPostCacheServiceTest {
             given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
 
             // When
-            List<PostSimpleDetail> result = featuredPostCacheService.getFirstPagePosts();
+            List<PostSimpleDetail> result = postCacheService.getFirstPagePosts();
 
             // Then
             assertThat(result).hasSize(1);
