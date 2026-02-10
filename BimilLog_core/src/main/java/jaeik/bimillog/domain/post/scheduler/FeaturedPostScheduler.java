@@ -111,7 +111,6 @@ public class FeaturedPostScheduler {
         postRepository.clearLegendFlag();
         List<Long> ids = posts.stream().map(PostSimpleDetail::getId).toList();
         postRepository.setLegendFlag(ids);
-        log.info("LEGEND 플래그 업데이트 완료: {}개", ids.size());
 
         // 글 단위 Hash 생성 + List 인덱스 교체 (DB 인기순 유지)
         posts.forEach(redisPostHashAdapter::createPostHash);
@@ -175,11 +174,6 @@ public class FeaturedPostScheduler {
         List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
         if (posts.size() > RedisKey.FIRST_PAGE_SIZE) {
             posts = posts.subList(0, RedisKey.FIRST_PAGE_SIZE);
-        }
-
-        if (posts.isEmpty()) {
-            log.info("FIRST_PAGE 게시글이 없어 캐시 업데이트를 건너뜁니다.");
-            return;
         }
 
         posts.forEach(redisPostHashAdapter::createPostHash);

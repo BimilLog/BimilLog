@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * <h2>PostInteractionService</h2>
  * <p>게시글 상호작용 서비스</p>
- * <p>좋아요 토글과 조회수 증가 등</p>
+ * <p>좋아요 토글 등</p>
  *
  * @author Jaeik
  * @version 3.0.0
@@ -88,17 +88,6 @@ public class PostInteractionService {
                 }
             }
         }
-    }
-
-    /**
-     * <h3>게시글 조회수 증가 비즈니스 로직 실행</h3>
-     * <p>PostQueryController에서 게시글 상세 조회 완료 후 호출됩니다.</p>
-     *
-     * @param postId 조회수를 증가시킬 게시글 ID
-     */
-    @Transactional
-    public void incrementViewCount(Long postId) {
-        postRepository.incrementViewsByPostId(postId);
     }
 
     /**

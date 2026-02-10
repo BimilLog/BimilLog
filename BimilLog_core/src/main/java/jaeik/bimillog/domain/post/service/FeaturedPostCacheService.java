@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.scheduler.FeaturedPostScheduler;
@@ -17,12 +16,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * <h2>FeaturedPostCacheService</h2>
@@ -81,47 +76,17 @@ public class FeaturedPostCacheService {
             List<Long> orderedIds = redisPostIndexAdapter.getIndexList(indexKey);
 
             if (orderedIds.isEmpty()) {
-                CacheMetricsLogger.miss(log, indexKey, "index", "empty");
                 return new PageImpl<>(List.of(), pageable, 0);
             }
 
             List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
-
-            // 누락된 글이 있으면 DB에서 조회하여 Hash 생성
-            if (cachedPosts.size() < orderedIds.size()) {
-                List<Long> cachedIds = cachedPosts.stream().map(PostSimpleDetail::getId).toList();
-                List<Long> missingIds = orderedIds.stream()
-                        .filter(id -> !cachedIds.contains(id))
-                        .toList();
-
-                if (!missingIds.isEmpty()) {
-                    List<PostSimpleDetail> dbPosts = missingIds.stream()
-                            .map(id -> postQueryRepository.findPostDetail(id, null).orElse(null))
-                            .filter(Objects::nonNull)
-                            .map(PostDetail::toSimpleDetail)
-                            .toList();
-
-                    dbPosts.forEach(redisPostHashAdapter::createPostHash);
-
-                    cachedPosts = new ArrayList<>(cachedPosts);
-                    cachedPosts.addAll(dbPosts);
-                }
-            }
+            cachedPosts = postUtil.recoverMissingHashes(orderedIds, cachedPosts);
 
             if (cachedPosts.isEmpty()) {
-                CacheMetricsLogger.miss(log, indexKey, "simple", "empty");
                 return new PageImpl<>(List.of(), pageable, 0);
             }
 
-            // List 인덱스 순서(주간/레전드: 인기순, 공지: 최신순)대로 정렬
-            Map<Long, PostSimpleDetail> postMap = cachedPosts.stream()
-                    .collect(Collectors.toMap(PostSimpleDetail::getId, p -> p, (a, b) -> a));
-            List<PostSimpleDetail> orderedPosts = orderedIds.stream()
-                    .map(postMap::get)
-                    .filter(Objects::nonNull)
-                    .toList();
-
-            CacheMetricsLogger.hit(log, indexKey, "simple", orderedPosts.size());
+            List<PostSimpleDetail> orderedPosts = postUtil.orderByIds(orderedIds, cachedPosts);
             return postUtil.paginate(orderedPosts, pageable);
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", indexKey, e.getMessage());

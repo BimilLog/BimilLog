@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>PostInteractionService 테스트</h2>
  * <p>게시글 상호작용 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>추천/추천취소, 조회수 증가 등의 다양한 시나리오를 테스트합니다.</p>
+ * <p>추천/추천취소 등의 다양한 시나리오를 테스트합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -113,19 +113,6 @@ class PostInteractionServiceTest extends BaseUnitTest {
         verify(postRepository).findById(postId);
         verify(postLikeRepository, never()).save(any(PostLike.class));
         verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
-    }
-
-    @Test
-    @DisplayName("조회수 증가 - Post 테이블만 업데이트")
-    void shouldIncrementViewCount_WhenValidPost() {
-        // Given
-        Long postId = 123L;
-
-        // When
-        postInteractionService.incrementViewCount(postId);
-
-        // Then
-        verify(postRepository).incrementViewsByPostId(postId);
     }
 
 }

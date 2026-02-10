@@ -103,52 +103,16 @@ public class PostQueryService {
         try {
             List<Long> ids = redisFirstPagePostAdapter.getFirstPageIds();
             if (ids.isEmpty()) {
-                log.warn("게시판 첫 페이지 캐시 미스 - DB 폴백");
-                return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
+                throw new CustomException(ErrorCode.POST_FIRST_PAGE_ERROR);
             }
 
             List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(ids);
-            return resolveAndOrder(ids, cachedPosts);
+            cachedPosts = postUtil.recoverMissingHashes(ids, cachedPosts);
+            return postUtil.orderByIds(ids, cachedPosts);
         } catch (Exception e) {
             log.error("게시판 첫 페이지 캐시 장애 - DB 폴백", e);
             return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
         }
-    }
-
-    /**
-     * <h3>순서 보장 + Hash 미스 복구</h3>
-     * <p>ID 순서대로 결과를 정렬하고, Hash 미스된 글은 DB에서 복구합니다.</p>
-     */
-    private List<PostSimpleDetail> resolveAndOrder(List<Long> orderedIds, List<PostSimpleDetail> cachedPosts) {
-        Map<Long, PostSimpleDetail> postMap = new HashMap<>();
-        for (PostSimpleDetail post : cachedPosts) {
-            postMap.put(post.getId(), post);
-        }
-
-        List<PostSimpleDetail> result = new ArrayList<>();
-        for (Long id : orderedIds) {
-            PostSimpleDetail post = postMap.get(id);
-            if (post == null) {
-                post = recoverPostHash(id);
-            }
-            if (post != null) {
-                result.add(post);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * <h3>Hash 미스 복구</h3>
-     * <p>DB에서 조회하여 Hash를 생성하고 반환합니다.</p>
-     */
-    private PostSimpleDetail recoverPostHash(Long postId) {
-        return postQueryRepository.findPostDetail(postId, null)
-                .map(detail -> {
-                    PostSimpleDetail simple = detail.toSimpleDetail();
-                    redisPostHashAdapter.createPostHash(simple);
-                    return simple;
-                }).orElse(null);
     }
 
     /**
