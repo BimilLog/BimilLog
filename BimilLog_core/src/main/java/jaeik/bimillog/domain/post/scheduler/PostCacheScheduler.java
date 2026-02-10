@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * <h2>PostCacheScheduler</h2>
@@ -43,141 +45,42 @@ public class PostCacheScheduler {
     private final PostRepository postRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    /**
-     * <h3>주간 인기 게시글 스케줄링 갱신</h3>
-     * <p>1일마다 DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체</p>
-     * <p>실패 시 전체를 재시도합니다. (2s→8s→32s→128s→512s, 최대 5회 재시도)</p>
-     */
     @Scheduled(fixedRate = 60000 * 1440)
-    @Retryable(
-            retryFor = Exception.class,
-            maxAttempts = 6,
-            backoff = @Backoff(delay = 2000, multiplier = 4)
-    )
+    @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     @Transactional
     public void updateWeeklyPopularPosts() {
-        List<PostSimpleDetail> posts = postQueryRepository.findWeeklyPopularPosts();
-
-        if (posts.isEmpty()) {
-            log.info("WEEKLY에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
-            return;
-        }
-
-        // isWeekly 플래그 업데이트 (기존 초기화 후 새로 설정)
-        postRepository.clearWeeklyFlag();
-        List<Long> ids = posts.stream().map(PostSimpleDetail::getId).toList();
-        postRepository.setWeeklyFlag(ids);
-        log.info("WEEKLY 플래그 업데이트 완료: {}개", ids.size());
-
-        // 글 단위 Hash 생성 + List 인덱스 교체 (DB 인기순 유지)
-        posts.forEach(redisPostHashAdapter::createPostHash);
-        List<Long> idList = posts.stream().map(PostSimpleDetail::getId).toList();
-        redisPostIndexAdapter.replaceIndex(RedisKey.POST_WEEKLY_IDS_KEY, idList, RedisKey.DEFAULT_CACHE_TTL);
-        log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
-
-        // 이벤트 발행 (재시도 범위 제외)
-        try {
-            publishFeaturedEventFromSimpleDetails(posts,
-                    "주간 인기 게시글로 선정되었어요!",
-                    NotificationType.POST_FEATURED_WEEKLY);
-        } catch (Exception e) {
-            log.error("WEEKLY 이벤트 발행 실패: {}", e.getMessage());
-        }
+        refreshCache("WEEKLY", postQueryRepository::findWeeklyPopularPosts, RedisKey.POST_WEEKLY_IDS_KEY,
+                postRepository::clearWeeklyFlag, postRepository::setWeeklyFlag,
+                "주간 인기 게시글로 선정되었어요!", NotificationType.POST_FEATURED_WEEKLY);
     }
 
-    /**
-     * <h3>전설 게시글 스케줄링 갱신</h3>
-     * <p>1일마다 DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체</p>
-     * <p>실패 시 전체를 재시도합니다. (2s→8s→32s→128s→512s, 최대 5회 재시도)</p>
-     */
     @Scheduled(fixedRate = 60000 * 1440)
-    @Retryable(
-            retryFor = Exception.class,
-            maxAttempts = 6,
-            backoff = @Backoff(delay = 2000, multiplier = 4)
-    )
+    @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     @Transactional
     public void updateLegendaryPosts() {
-        List<PostSimpleDetail> posts = postQueryRepository.findLegendaryPosts();
-
-        if (posts.isEmpty()) {
-            log.info("LEGEND에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
-            return;
-        }
-
-        // isLegend 플래그 업데이트 (기존 초기화 후 새로 설정)
-        postRepository.clearLegendFlag();
-        List<Long> ids = posts.stream().map(PostSimpleDetail::getId).toList();
-        postRepository.setLegendFlag(ids);
-
-        // 글 단위 Hash 생성 + List 인덱스 교체 (DB 인기순 유지)
-        posts.forEach(redisPostHashAdapter::createPostHash);
-        List<Long> idList = posts.stream().map(PostSimpleDetail::getId).toList();
-        redisPostIndexAdapter.replaceIndex(RedisKey.POST_LEGEND_IDS_KEY, idList, RedisKey.DEFAULT_CACHE_TTL);
-        log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
-
-        // 이벤트 발행 (재시도 범위 제외)
-        try {
-            publishFeaturedEventFromSimpleDetails(posts,
-                    "명예의 전당에 등극했어요!",
-                    NotificationType.POST_FEATURED_LEGEND);
-        } catch (Exception e) {
-            log.error("LEGEND 이벤트 발행 실패: {}", e.getMessage());
-        }
+        refreshCache("LEGEND", postQueryRepository::findLegendaryPosts, RedisKey.POST_LEGEND_IDS_KEY,
+                postRepository::clearLegendFlag, postRepository::setLegendFlag,
+                "명예의 전당에 등극했어요!", NotificationType.POST_FEATURED_LEGEND);
     }
 
-    /**
-     * <h3>공지사항 캐시 스케줄링 갱신</h3>
-     * <p>1일마다 DB에서 featuredType=NOTICE인 게시글을 조회하여 캐시를 갱신합니다.</p>
-     * <p>오류 데이터가 영구 저장되는 것을 방지하기 위해 TTL을 설정합니다.</p>
-     * <p>실패 시 전체를 재시도합니다. (2s→8s→32s→128s→512s, 최대 5회 재시도)</p>
-     */
     @Scheduled(fixedRate = 60000 * 1440)
-    @Retryable(
-            retryFor = Exception.class,
-            maxAttempts = 6,
-            backoff = @Backoff(delay = 2000, multiplier = 4)
-    )
+    @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshNoticePosts() {
-        List<PostSimpleDetail> posts = postQueryRepository.findNoticePostsForScheduler();
-
-        if (posts.isEmpty()) {
-            log.info("NOTICE 게시글이 없어 캐시 업데이트를 건너뜁니다.");
-            return;
-        }
-
-        // 글 단위 Hash 생성 + List 인덱스 교체 (최신순: ID 내림차순)
-        List<PostSimpleDetail> sortedPosts = posts.stream()
-                .sorted(Comparator.comparingLong(PostSimpleDetail::getId).reversed())
-                .toList();
-        sortedPosts.forEach(redisPostHashAdapter::createPostHash);
-        List<Long> idList = sortedPosts.stream().map(PostSimpleDetail::getId).toList();
-        redisPostIndexAdapter.replaceIndex(RedisKey.POST_NOTICE_IDS_KEY, idList, RedisKey.DEFAULT_CACHE_TTL);
-        log.info("NOTICE 캐시 업데이트 완료. {}개의 게시글이 처리됨", sortedPosts.size());
+        refreshCache("NOTICE",
+                () -> postQueryRepository.findNoticePostsForScheduler().stream()
+                        .sorted(Comparator.comparingLong(PostSimpleDetail::getId).reversed()).toList(),
+                RedisKey.POST_NOTICE_IDS_KEY, null, null, null, null);
     }
 
-    /**
-     * <h3>첫 페이지 캐시 스케줄링 갱신</h3>
-     * <p>1일마다 DB에서 최신 글 20개를 조회하여 첫 페이지 캐시를 초기화 후 재생성합니다.</p>
-     * <p>오염 데이터 방지를 위해 기존 캐시를 삭제하고 새로 생성합니다. (TTL 24시간 30분)</p>
-     * <p>실패 시 전체를 재시도합니다. (2s→8s→32s→128s→512s, 최대 5회 재시도)</p>
-     */
     @Scheduled(fixedRate = 60000 * 1440)
-    @Retryable(
-            retryFor = Exception.class,
-            maxAttempts = 6,
-            backoff = @Backoff(delay = 2000, multiplier = 4)
-    )
+    @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshFirstPageCache() {
-        List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
-        if (posts.size() > RedisKey.FIRST_PAGE_SIZE) {
-            posts = posts.subList(0, RedisKey.FIRST_PAGE_SIZE);
-        }
-
-        posts.forEach(redisPostHashAdapter::createPostHash);
-        List<Long> idList = posts.stream().map(PostSimpleDetail::getId).toList();
-        redisPostIndexAdapter.replaceIndex(RedisKey.FIRST_PAGE_LIST_KEY, idList, RedisKey.DEFAULT_CACHE_TTL);
-        log.info("FIRST_PAGE 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
+        refreshCache("FIRST_PAGE",
+                () -> {
+                    List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
+                    return posts.size() > RedisKey.FIRST_PAGE_SIZE ? posts.subList(0, RedisKey.FIRST_PAGE_SIZE) : posts;
+                },
+                RedisKey.FIRST_PAGE_LIST_KEY, null, null, null, null);
     }
 
     /**
@@ -187,6 +90,38 @@ public class PostCacheScheduler {
     @Recover
     public void recoverFeaturedUpdate(Exception e) {
         log.error("[FEATURED_SCHEDULE] 갱신 최종 실패 (5회 재시도): {}", e.getMessage(), e);
+    }
+
+    /**
+     * DB 조회 → (선택) 플래그 업데이트 → Hash 생성 + Index 교체 → (선택) 이벤트 발행
+     */
+    private void refreshCache(String type, Supplier<List<PostSimpleDetail>> queryFn, String redisKey,
+                              Runnable clearFlag, Consumer<List<Long>> setFlag,
+                              String eventMessage, NotificationType notificationType) {
+        List<PostSimpleDetail> posts = queryFn.get();
+        if (posts.isEmpty()) {
+            log.info("{}에 대한 게시글이 없어 캐시 업데이트를 건너뜁니다.", type);
+            return;
+        }
+
+        List<Long> ids = posts.stream().map(PostSimpleDetail::getId).toList();
+
+        if (clearFlag != null) {
+            clearFlag.run();
+            setFlag.accept(ids);
+        }
+
+        posts.forEach(redisPostHashAdapter::createPostHash);
+        redisPostIndexAdapter.replaceIndex(redisKey, ids, RedisKey.DEFAULT_CACHE_TTL);
+        log.info("{} 캐시 업데이트 완료. {}개의 게시글이 처리됨", type, posts.size());
+
+        if (eventMessage != null) {
+            try {
+                publishFeaturedEventFromSimpleDetails(posts, eventMessage, notificationType);
+            } catch (Exception e) {
+                log.error("{} 이벤트 발행 실패: {}", type, e.getMessage());
+            }
+        }
     }
 
     private void publishFeaturedEventFromSimpleDetails(List<PostSimpleDetail> posts, String sseMessage,
