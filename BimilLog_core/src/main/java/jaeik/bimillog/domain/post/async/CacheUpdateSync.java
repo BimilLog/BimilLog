@@ -62,7 +62,6 @@ public class CacheUpdateSync {
         redisPostIndexAdapter.removeFromIndex(RedisKey.POST_WEEKLY_IDS_KEY, postId);
         redisPostIndexAdapter.removeFromIndex(RedisKey.POST_LEGEND_IDS_KEY, postId);
         redisPostIndexAdapter.removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
-        redisPostHashAdapter.deletePostHash(postId);
 
         Long lastPostId = redisPostIndexAdapter.removeFromIndexAndGetLast(RedisKey.FIRST_PAGE_LIST_KEY, postId);
         if (lastPostId != null) {
@@ -73,5 +72,7 @@ public class CacheUpdateSync {
                 redisPostIndexAdapter.appendToIndex(RedisKey.FIRST_PAGE_LIST_KEY, nextPost.getId(), RedisKey.FIRST_PAGE_SIZE);
             }
         }
+
+        redisPostHashAdapter.deletePostHash(postId);
     }
 }

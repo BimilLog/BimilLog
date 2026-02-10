@@ -66,9 +66,7 @@ public class PostQueryService {
 
         // 첫 페이지라면 캐시 조회 아니라면 DB 조회
         if (cursor == null) {
-            List<Long> orderedIds = redisPostIndexAdapter.getIndexList(RedisKey.FIRST_PAGE_LIST_KEY);
-            List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
-            posts = postUtil.orderByIds(orderedIds, cachedPosts);
+            posts = postCacheService.getFirstPagePosts();
         } else {
             posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
         }

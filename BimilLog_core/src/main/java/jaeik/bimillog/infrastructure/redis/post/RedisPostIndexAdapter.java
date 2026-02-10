@@ -75,11 +75,11 @@ public class RedisPostIndexAdapter {
      * @return 게시글 ID List (순서 보존)
      */
     public List<Long> getIndexList(String key) {
-        List<String> members = stringRedisTemplate.opsForList().range(key, 0, -1);
-        if (members == null || members.isEmpty()) {
+        List<String> index = stringRedisTemplate.opsForList().range(key, 0, -1);
+        if (index == null || index.isEmpty()) {
             return Collections.emptyList();
         }
-        return members.stream()
+        return index.stream()
                 .map(Long::parseLong)
                 .collect(Collectors.toList());
     }

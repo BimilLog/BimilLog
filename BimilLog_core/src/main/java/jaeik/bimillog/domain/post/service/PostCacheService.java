@@ -94,9 +94,9 @@ public class PostCacheService {
         }
 
         List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
-        if (cachedPosts.size() < orderedIds.size()) {
-            cachedPosts = postUtil.recoverMissingHashes(orderedIds, cachedPosts);
-        }
+//        if (cachedPosts.size() < orderedIds.size()) {
+//            cachedPosts = postUtil.recoverMissingHashes(orderedIds, cachedPosts);
+//        }
         return postUtil.orderByIds(orderedIds, cachedPosts);
     }
 }

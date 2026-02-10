@@ -59,6 +59,7 @@ dependencies {
     implementation 'com.github.ben-manes.caffeine:caffeine' // Caffeine 로컬 캐시
     implementation 'org.flywaydb:flyway-core' // DB 마이그레이션 관리
     implementation 'org.flywaydb:flyway-mysql' // MySQL 전용 Flyway 지원
+    implementation 'org.apache.commons:commons-pool2'
 
     // ==== JWT (토큰 인증) 관련 ====
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5' // JWT API
