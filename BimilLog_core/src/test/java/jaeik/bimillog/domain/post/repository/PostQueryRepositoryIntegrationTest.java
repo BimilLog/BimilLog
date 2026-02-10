@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
 import org.junit.jupiter.api.*;
@@ -66,6 +67,9 @@ class PostQueryRepositoryIntegrationTest {
 
     @MockitoBean
     private PostToMemberAdapter postToMemberAdapter;
+
+    @MockitoBean
+    private RedisPostHashAdapter redisPostHashAdapter;
 
     private Member testMember;
     private Post testPost1, testPost2, testPost3;

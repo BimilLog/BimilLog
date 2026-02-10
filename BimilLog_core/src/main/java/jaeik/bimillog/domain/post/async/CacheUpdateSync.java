@@ -31,7 +31,7 @@ public class CacheUpdateSync {
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     /**
-     * <h3>비동기 게시글 추가</h3>
+     * <h3>새 글 작성 캐시 반영</h3>
      * <p>Hash를 먼저 생성하고, 첫 페이지 List에 ID를 추가합니다.</p>
      */
     @Async("cacheRefreshPool")
@@ -41,7 +41,7 @@ public class CacheUpdateSync {
     }
 
     /**
-     * <h3>비동기 게시글 수정 반영</h3>
+     * <h3>글 수정 캐시 반영</h3>
      * <p>글 단위 Hash의 제목만 업데이트합니다.</p>
      * <p>List에는 ID만 저장하므로 List 갱신은 불필요합니다.</p>
      */
@@ -51,18 +51,18 @@ public class CacheUpdateSync {
     }
 
     /**
-     * <h3>비동기 게시글 삭제 반영</h3>
+     * <h3>글 삭제 삭제 반영</h3>
      * <p>실시간 ZSET + 글 단위 Hash + List 인덱스(weekly/legend/notice) + 첫 페이지 캐시를 정리합니다.</p>
      */
     @Async("cacheRefreshPool")
     public void asyncDeletePost(Long postId) {
         redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
-        redisPostHashAdapter.deletePostHash(postId);
 
         // 모든 List 인덱스에서 제거
         redisPostIndexAdapter.removeFromIndex(RedisKey.POST_WEEKLY_IDS_KEY, postId);
         redisPostIndexAdapter.removeFromIndex(RedisKey.POST_LEGEND_IDS_KEY, postId);
         redisPostIndexAdapter.removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
+        redisPostHashAdapter.deletePostHash(postId);
 
         Long lastPostId = redisPostIndexAdapter.removeFromIndexAndGetLast(RedisKey.FIRST_PAGE_LIST_KEY, postId);
         if (lastPostId != null) {

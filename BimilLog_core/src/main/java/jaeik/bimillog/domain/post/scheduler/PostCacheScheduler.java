@@ -75,7 +75,7 @@ public class PostCacheScheduler {
     @Scheduled(fixedRate = 60000 * 1440)
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshFirstPageCache() {
-        refreshCache("FIRST_PAGE",
+        refreshCache("첫 페이지",
                 () -> {
                     List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
                     return posts.size() > RedisKey.FIRST_PAGE_SIZE ? posts.subList(0, RedisKey.FIRST_PAGE_SIZE) : posts;

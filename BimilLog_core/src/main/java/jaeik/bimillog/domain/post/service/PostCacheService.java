@@ -11,13 +11,10 @@ import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * <h2>PostCacheService</h2>
@@ -43,70 +40,62 @@ public class PostCacheService {
      * 주간 인기글 목록 조회
      */
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
-        return getFeaturedCachedPosts(RedisKey.POST_WEEKLY_IDS_KEY, postQueryRepository::findWeeklyPostsFallback, pageable);
+        try {
+            return postUtil.paginate(getCachedPosts(RedisKey.POST_WEEKLY_IDS_KEY), pageable);
+        } catch (Exception e) {
+            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.POST_WEEKLY_IDS_KEY, e.getMessage());
+            return postQueryRepository.findWeeklyPostsFallback(pageable);
+        }
     }
 
     /**
      * 전설 인기글 목록 조회
      */
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
-        return getFeaturedCachedPosts(RedisKey.POST_LEGEND_IDS_KEY, postQueryRepository::findLegendPostsFallback, pageable);
+        try {
+            return postUtil.paginate(getCachedPosts(RedisKey.POST_LEGEND_IDS_KEY), pageable);
+        } catch (Exception e) {
+            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.POST_LEGEND_IDS_KEY, e.getMessage());
+            return postQueryRepository.findLegendPostsFallback(pageable);
+        }
     }
 
     /**
      * 공지사항 목록 조회
      */
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
-        return getFeaturedCachedPosts(RedisKey.POST_NOTICE_IDS_KEY, postQueryRepository::findNoticePostsFallback, pageable);
+        try {
+            return postUtil.paginate(getCachedPosts(RedisKey.POST_NOTICE_IDS_KEY), pageable);
+        } catch (Exception e) {
+            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.POST_NOTICE_IDS_KEY, e.getMessage());
+            return postQueryRepository.findNoticePostsFallback(pageable);
+        }
     }
 
     /**
      * 첫 페이지 캐시 조회 (캐시 미스/장애 시 DB 폴백)
      */
     public List<PostSimpleDetail> getFirstPagePosts() {
-        return getFeaturedCachedPosts(
-                RedisKey.FIRST_PAGE_LIST_KEY,
-                p -> new PageImpl<>(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)),
-                PageRequest.of(0, RedisKey.FIRST_PAGE_SIZE)
-        ).getContent();
-    }
-
-    /**
-     * List 인덱스 → Hash 조회 → DB 폴백 공통 파이프라인 (주간/레전드/공지/첫 페이지)
-     */
-    private Page<PostSimpleDetail> getFeaturedCachedPosts(String indexKey, Function<Pageable, Page<PostSimpleDetail>> dbFallback, Pageable pageable) {
         try {
-            List<Long> orderedIds = redisPostIndexAdapter.getIndexList(indexKey);
-
-            if (orderedIds.isEmpty()) {
-                return dbFallback.apply(pageable);
-            }
-
-            List<PostSimpleDetail> orderedPosts = resolvePostsByIds(orderedIds);
-
-            if (orderedPosts.isEmpty()) {
-                return dbFallback.apply(pageable);
-            }
-
-            return postUtil.paginate(orderedPosts, pageable);
+            return getCachedPosts(RedisKey.FIRST_PAGE_LIST_KEY);
         } catch (Exception e) {
-            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", indexKey, e.getMessage());
-            return dbFallback.apply(pageable);
+            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.FIRST_PAGE_LIST_KEY, e.getMessage());
+            return postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
         }
     }
 
     /**
-     * <h3>공통 Hash 파이프라인 조회</h3>
-     * <p>ID 목록으로 Hash 조회 → 미스 복구 → 순서 보장</p>
-     *
-     * @param orderedIds 순서가 보장된 게시글 ID 목록
-     * @return 순서가 보장된 게시글 목록
+     * List 인덱스 → Hash 조회 → 미스 복구 → 순서 보장 공통 파이프라인
      */
-    private List<PostSimpleDetail> resolvePostsByIds(List<Long> orderedIds) {
-        List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
-        cachedPosts = postUtil.recoverMissingHashes(orderedIds, cachedPosts);
-        if (cachedPosts.isEmpty()) {
+    private List<PostSimpleDetail> getCachedPosts(String indexKey) {
+        List<Long> orderedIds = redisPostIndexAdapter.getIndexList(indexKey);
+        if (orderedIds.isEmpty()) {
             return List.of();
+        }
+
+        List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
+        if (cachedPosts.size() < orderedIds.size()) {
+            cachedPosts = postUtil.recoverMissingHashes(orderedIds, cachedPosts);
         }
         return postUtil.orderByIds(orderedIds, cachedPosts);
     }

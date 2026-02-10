@@ -50,10 +50,6 @@ public class RedisPostHashAdapter {
      * @param post 저장할 게시글
      */
     public void createPostHash(PostSimpleDetail post) {
-        if (post == null || post.getId() == null) {
-            return;
-        }
-
         String key = PREFIX + post.getId();
         Map<String, String> hash = toStringMap(post);
         stringRedisTemplate.opsForHash().putAll(key, hash);
@@ -71,9 +67,6 @@ public class RedisPostHashAdapter {
      * @return PostSimpleDetail 리스트 (순서 보장 안 됨)
      */
     public List<PostSimpleDetail> getPostHashes(Collection<Long> postIds) {
-        if (postIds == null || postIds.isEmpty()) {
-            return Collections.emptyList();
-        }
 
         List<Object> results = stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             for (Long postId : postIds) {

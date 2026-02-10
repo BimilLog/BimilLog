@@ -11,6 +11,9 @@ import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -44,6 +47,8 @@ public class PostQueryService {
     private final PostCacheService postCacheService;
     private final PostViewCountSync postViewCountSync;
     private final RealtimePostSync realtimePostSync;
+    private final RedisPostIndexAdapter redisPostIndexAdapter;
+    private final RedisPostHashAdapter redisPostHashAdapter;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -56,19 +61,22 @@ public class PostQueryService {
      * @param memberId 회원 ID (null이면 비회원)
      * @return CursorPageResponse 커서 기반 페이지 응답
      */
-    @Transactional(readOnly = true)
     public CursorPageResponse<PostSimpleDetail> getBoardByCursor(Long cursor, int size, Long memberId) {
         List<PostSimpleDetail> posts;
 
         // 첫 페이지라면 캐시 조회 아니라면 DB 조회
         if (cursor == null) {
-            posts = postCacheService.getFirstPagePosts();
+            List<Long> orderedIds = redisPostIndexAdapter.getIndexList(RedisKey.FIRST_PAGE_LIST_KEY);
+            List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
+            posts = postUtil.orderByIds(orderedIds, cachedPosts);
         } else {
             posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
         }
 
-        // 블랙리스트 필터링 비회원이거나 빈 페이지면 무시됨
-        posts = postUtil.removePostsWithBlacklist(memberId, posts);
+        // 블랙리스트 필터링
+        if (memberId != null && !posts.isEmpty()) {
+            posts = postUtil.removePostsWithBlacklist(memberId, posts);
+        }
 
         // 빈 페이지라면 즉시 반환 블랙리스트 필터링으로 인해 빈 페이지가 되어도 반환됨
         if (posts.isEmpty()) {

@@ -187,10 +187,13 @@ public class RedisPostUpdateAdapter {
         }
 
         Map<Long, Long> counts = new HashMap<>();
-        for (int i = 0; i < result.size(); i += 2) {
-            String key = result.get(i).toString();
-            String value = result.get(i + 1).toString();
-            counts.put(Long.parseLong(key), Long.parseLong(value));
+        for (int i = 0; i + 1 < result.size(); i += 2) {
+            Object keyObj = result.get(i);
+            Object valueObj = result.get(i + 1);
+            if (keyObj == null || valueObj == null) {
+                continue;
+            }
+            counts.put(Long.parseLong(keyObj.toString()), Long.parseLong(valueObj.toString()));
         }
         return counts;
     }

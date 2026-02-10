@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.service.PostSearchService;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,6 +72,9 @@ class PostFulltextSearchIntegrationTest {
 
     @MockitoBean
     private PostToMemberAdapter postToMemberAdapter;
+
+    @MockitoBean
+    private RedisPostHashAdapter redisPostHashAdapter;
 
     // PostLikeQueryRepository는 삭제되었으므로 Mock 제거
     // 추천수는 이제 서브쿼리로 직접 조회됨

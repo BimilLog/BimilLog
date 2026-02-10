@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,11 +25,8 @@ public class PostUtil {
     /**
      * <h3>게시글에서 블랙리스트 제거</h3>
      */
+    @Transactional(readOnly = true)
     public List<PostSimpleDetail> removePostsWithBlacklist(Long memberId, List<PostSimpleDetail> posts) {
-        if (memberId == null || posts.isEmpty()) {
-            return posts;
-        }
-
         List<Long> blacklistIds = postToMemberAdapter.getInterActionBlacklist(memberId);
         Set<Long> blacklistSet = new HashSet<>(blacklistIds);
         return posts.stream().filter(post -> !blacklistSet.contains(post.getMemberId())).collect(Collectors.toList());
@@ -38,10 +36,8 @@ public class PostUtil {
     /**
      * 스케줄러 갱신과 비동기 삭제 간 경합으로 누락된 Hash를 DB에서 복구
      */
+    @Transactional(readOnly = true)
     public List<PostSimpleDetail> recoverMissingHashes(List<Long> orderedIds, List<PostSimpleDetail> cachedPosts) {
-        if (cachedPosts.size() >= orderedIds.size()) {
-            return cachedPosts;
-        }
 
         Set<Long> cachedIds = cachedPosts.stream()
                 .map(PostSimpleDetail::getId)

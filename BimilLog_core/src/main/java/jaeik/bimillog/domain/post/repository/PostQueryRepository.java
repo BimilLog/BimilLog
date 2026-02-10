@@ -56,6 +56,7 @@ public class PostQueryRepository {
      * @param size   조회할 개수
      * @return 게시글 목록 (size + 1개까지 조회됨)
      */
+    @Transactional(readOnly = true)
     public List<PostSimpleDetail> findBoardPostsByCursor(Long cursor, int size) {
         // 커서 조건: cursor가 있으면 해당 ID보다 작은 게시글만 조회
         BooleanExpression cursorCondition = cursor != null ? post.id.lt(cursor) : null;
@@ -211,6 +212,7 @@ public class PostQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Transactional(readOnly = true)
     public Optional<PostDetail> findPostDetail(Long postId, Long memberId) {
         QPostLike userPostLike = new QPostLike("userPostLike");
 
