@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PostViewCountFlushScheduler {
+public class PostUpdateScheduler {
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final PostInteractionService postInteractionService;
     private final RedisPostHashAdapter redisPostHashAdapter;

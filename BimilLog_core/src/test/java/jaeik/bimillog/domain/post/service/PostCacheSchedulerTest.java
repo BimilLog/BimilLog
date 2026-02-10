@@ -5,9 +5,8 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
-import jaeik.bimillog.domain.post.scheduler.FeaturedPostScheduler;
+import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +31,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>FeaturedPostScheduler 테스트</h2>
+ * <h2>PostCacheScheduler 테스트</h2>
  * <p>게시글 캐시 동기화 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → List 인덱스 교체 → 이벤트 발행 흐름을 검증합니다.</p>
  *
@@ -40,18 +39,15 @@ import static org.mockito.Mockito.*;
  * @version 3.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("FeaturedPostScheduler 테스트")
+@DisplayName("PostCacheScheduler 테스트")
 @Tag("unit")
-class FeaturedPostSchedulerTest {
+class PostCacheSchedulerTest {
 
     @Mock
     private RedisPostHashAdapter redisPostHashAdapter;
 
     @Mock
     private RedisPostIndexAdapter redisPostIndexAdapter;
-
-    @Mock
-    private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
 
     @Mock
     private PostQueryRepository postQueryRepository;
@@ -62,14 +58,13 @@ class FeaturedPostSchedulerTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    private FeaturedPostScheduler featuredPostScheduler;
+    private PostCacheScheduler postCacheScheduler;
 
     @BeforeEach
     void setUp() {
-        featuredPostScheduler = new FeaturedPostScheduler(
+        postCacheScheduler = new PostCacheScheduler(
                 redisPostHashAdapter,
                 redisPostIndexAdapter,
-                redisFirstPagePostAdapter,
                 postQueryRepository,
                 postRepository,
                 eventPublisher
@@ -87,7 +82,7 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
 
         // When
-        featuredPostScheduler.updateWeeklyPopularPosts();
+        postCacheScheduler.updateWeeklyPopularPosts();
 
         // Then
         // 플래그 업데이트
@@ -122,7 +117,7 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
 
         // When
-        featuredPostScheduler.updateWeeklyPopularPosts();
+        postCacheScheduler.updateWeeklyPopularPosts();
 
         // Then
         verify(postRepository).clearWeeklyFlag();
@@ -148,7 +143,7 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findLegendaryPosts()).willReturn(posts);
 
         // When
-        featuredPostScheduler.updateLegendaryPosts();
+        postCacheScheduler.updateLegendaryPosts();
 
         // Then
         verify(postRepository).clearLegendFlag();
@@ -174,7 +169,7 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When
-        featuredPostScheduler.updateLegendaryPosts();
+        postCacheScheduler.updateLegendaryPosts();
 
         // Then
         verify(postQueryRepository).findLegendaryPosts();
@@ -195,7 +190,7 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findWeeklyPopularPosts()).willReturn(largePosts);
 
         // When
-        featuredPostScheduler.updateWeeklyPopularPosts();
+        postCacheScheduler.updateWeeklyPopularPosts();
 
         // Then
         verify(redisPostHashAdapter, times(100)).createPostHash(any(PostSimpleDetail.class));
@@ -218,7 +213,7 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findNoticePostsForScheduler()).willReturn(posts);
 
         // When
-        featuredPostScheduler.refreshNoticePosts();
+        postCacheScheduler.refreshNoticePosts();
 
         // Then
         verify(redisPostHashAdapter).createPostHash(notice1);
@@ -238,7 +233,7 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findNoticePostsForScheduler()).willReturn(Collections.emptyList());
 
         // When
-        featuredPostScheduler.refreshNoticePosts();
+        postCacheScheduler.refreshNoticePosts();
 
         // Then
         verify(redisPostHashAdapter, never()).createPostHash(any());

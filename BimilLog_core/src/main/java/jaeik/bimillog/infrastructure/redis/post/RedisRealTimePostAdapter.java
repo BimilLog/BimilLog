@@ -5,12 +5,13 @@ import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <h2>레디스 실시간 인기글 저장소 어댑터</h2>
@@ -25,7 +26,7 @@ import java.util.*;
 public class RedisRealTimePostAdapter {
     private static final String REALTIME_SCORE_KEY = RedisKey.REALTIME_POST_SCORE_KEY;
 
-    private final RedisTemplate<String, Long> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
     private final RealtimeScoreFallbackStore fallbackStore;
 
     public static final double REALTIME_POST_SCORE_DECAY_RATE = 0.97;
@@ -38,13 +39,14 @@ public class RedisRealTimePostAdapter {
      * <p>실시간 인기글 에서 점수가 높은 게시글 ID순서대로 조회합니다.</p>
      * <p>서킷브레이커는 {@link jaeik.bimillog.domain.post.service.RealtimePostCacheService}에서 관리합니다.</p>
      *
-     * @param start 시작 위치
-     * @param end 조회 개수
      * @return List<Long> 게시글 ID 목록 (점수 내림차순)
      */
     public List<Long> getRangePostId() {
-        Set<Long> set = redisTemplate.opsForZSet().reverseRange(REALTIME_SCORE_KEY, 0, 4);
-        return new ArrayList<>(Optional.ofNullable(set).orElseGet(Collections::emptySet));
+        Set<String> set = stringRedisTemplate.opsForZSet().reverseRange(REALTIME_SCORE_KEY, 0, 4);
+        if (set == null || set.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return set.stream().map(Long::parseLong).collect(Collectors.toList());
     }
 
     /**
@@ -58,7 +60,7 @@ public class RedisRealTimePostAdapter {
      */
     @CircuitBreaker(name = "realtimeRedis", fallbackMethod = "incrementScoreFallback")
     public void incrementRealtimePopularScore(Long postId, double score) {
-        redisTemplate.opsForZSet().incrementScore(REALTIME_SCORE_KEY, postId, score);
+        stringRedisTemplate.opsForZSet().incrementScore(REALTIME_SCORE_KEY, String.valueOf(postId), score);
     }
 
     /**
@@ -101,18 +103,18 @@ public class RedisRealTimePostAdapter {
     /**
      * <h3>점수 감쇠 (스케쥴러)</h3>
      * <p>Redis Sorted Set의 모든 게시글 점수에 0.9를 곱하고, 임계값(1점) 이하의 게시글을 제거합니다.</p>
-     * <p>FeaturedPostScheduler 스케줄러에서 5분마다 호출됩니다.</p>
+     * <p>PostCacheScheduler 스케줄러에서 5분마다 호출됩니다.</p>
      */
     public void applyRealtimePopularScoreDecay() {
         // 1. 모든 항목의 점수에 0.9 곱하기 (Lua 스크립트 사용)
-        redisTemplate.execute(
+        stringRedisTemplate.execute(
                 SCORE_DECAY_SCRIPT,
                 List.of(REALTIME_SCORE_KEY),
-                REALTIME_POST_SCORE_DECAY_RATE
+                String.valueOf(REALTIME_POST_SCORE_DECAY_RATE)
         );
 
         // 2. 임계값(1점) 이하의 게시글 제거
-        redisTemplate.opsForZSet().removeRangeByScore(REALTIME_SCORE_KEY, 0, REALTIME_POST_SCORE_THRESHOLD);
+        stringRedisTemplate.opsForZSet().removeRangeByScore(REALTIME_SCORE_KEY, 0, REALTIME_POST_SCORE_THRESHOLD);
     }
 
     /**
@@ -123,7 +125,7 @@ public class RedisRealTimePostAdapter {
      * @param postId 제거할 게시글 ID
      */
     public void removePostIdFromRealtimeScore(Long postId) {
-        redisTemplate.opsForZSet().remove(REALTIME_SCORE_KEY, postId);
+        stringRedisTemplate.opsForZSet().remove(REALTIME_SCORE_KEY, String.valueOf(postId));
     }
 
 }

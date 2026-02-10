@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -54,9 +53,6 @@ class PostCacheServiceTest {
     private RedisPostIndexAdapter redisPostIndexAdapter;
 
     @Mock
-    private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
-
-    @Mock
     private PostUtil postUtil;
 
     private PostCacheService postCacheService;
@@ -67,7 +63,6 @@ class PostCacheServiceTest {
                 postQueryRepository,
                 redisPostHashAdapter,
                 redisPostIndexAdapter,
-                redisFirstPagePostAdapter,
                 postUtil
         );
     }
@@ -163,6 +158,16 @@ class PostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         given(redisPostIndexAdapter.getIndexList(indexKey)).willReturn(Collections.emptyList());
+
+        // 인덱스 비어있으면 DB 폴백 호출
+        switch (label) {
+            case "WEEKLY" -> given(postQueryRepository.findWeeklyPostsFallback(any(Pageable.class)))
+                    .willReturn(Page.empty());
+            case "LEGEND" -> given(postQueryRepository.findLegendPostsFallback(any(Pageable.class)))
+                    .willReturn(Page.empty());
+            case "NOTICE" -> given(postQueryRepository.findNoticePostsFallback(any(Pageable.class)))
+                    .willReturn(Page.empty());
+        }
 
         // When
         Page<PostSimpleDetail> result = switch (label) {
@@ -272,6 +277,10 @@ class PostCacheServiceTest {
         given(postUtil.recoverMissingHashes(eq(ids), anyList()))
                 .willReturn(List.of()); // 복구 후에도 빈 리스트
 
+        // resolvePostsByIds가 빈 리스트 반환 → DB 폴백 호출
+        given(postQueryRepository.findWeeklyPostsFallback(any(Pageable.class)))
+                .willReturn(Page.empty());
+
         // When
         Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
 
@@ -296,10 +305,11 @@ class PostCacheServiceTest {
             PostSimpleDetail post3 = PostTestDataBuilder.createPostSearchResult(1L, "세번째글");
             List<PostSimpleDetail> cachedPosts = List.of(post1, post2, post3);
 
-            given(redisFirstPagePostAdapter.getFirstPageIds()).willReturn(ids);
+            given(redisPostIndexAdapter.getIndexList(RedisKey.FIRST_PAGE_LIST_KEY)).willReturn(ids);
             given(redisPostHashAdapter.getPostHashes(ids)).willReturn(cachedPosts);
             given(postUtil.recoverMissingHashes(ids, cachedPosts)).willReturn(cachedPosts);
             given(postUtil.orderByIds(ids, cachedPosts)).willReturn(cachedPosts);
+            given(postUtil.paginate(anyList(), any())).willReturn(new PageImpl<>(cachedPosts));
 
             // When
             List<PostSimpleDetail> result = postCacheService.getFirstPagePosts();
@@ -307,7 +317,7 @@ class PostCacheServiceTest {
             // Then
             assertThat(result).hasSize(3);
             assertThat(result.get(0).getTitle()).isEqualTo("최신글");
-            verify(redisFirstPagePostAdapter).getFirstPageIds();
+            verify(redisPostIndexAdapter).getIndexList(RedisKey.FIRST_PAGE_LIST_KEY);
             verify(redisPostHashAdapter).getPostHashes(ids);
             verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
         }
@@ -319,7 +329,7 @@ class PostCacheServiceTest {
             PostSimpleDetail dbPost = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
             List<PostSimpleDetail> dbPosts = List.of(dbPost);
 
-            given(redisFirstPagePostAdapter.getFirstPageIds()).willReturn(Collections.emptyList());
+            given(redisPostIndexAdapter.getIndexList(RedisKey.FIRST_PAGE_LIST_KEY)).willReturn(Collections.emptyList());
             given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
 
             // When
@@ -338,7 +348,7 @@ class PostCacheServiceTest {
             PostSimpleDetail dbPost = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
             List<PostSimpleDetail> dbPosts = List.of(dbPost);
 
-            given(redisFirstPagePostAdapter.getFirstPageIds())
+            given(redisPostIndexAdapter.getIndexList(RedisKey.FIRST_PAGE_LIST_KEY))
                     .willThrow(new RuntimeException("Redis connection failed"));
             given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
 

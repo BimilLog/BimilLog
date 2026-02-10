@@ -23,7 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * <h2>FeaturedPostScheduler</h2>
+ * <h2>PostCacheScheduler</h2>
  * <p>게시글 인기도 기반 캐시 동기화를 담당하는 스케줄링 서비스</p>
  * <p>DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → List 인덱스 교체를 통째로 재시도합니다.</p>
  * <p>첫 페이지 캐시도 1일마다 초기화 후 재생성하여 오염 데이터를 방지합니다.</p>
@@ -36,7 +36,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class FeaturedPostScheduler {
+public class PostCacheScheduler {
     private final RedisPostHashAdapter redisPostHashAdapter;
     private final RedisPostIndexAdapter redisPostIndexAdapter;
     private final PostQueryRepository postQueryRepository;

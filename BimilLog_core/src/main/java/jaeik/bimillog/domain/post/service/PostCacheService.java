@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
-import jaeik.bimillog.domain.post.scheduler.FeaturedPostScheduler;
+import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
@@ -23,7 +23,7 @@ import java.util.function.Function;
  * <h2>PostCacheService</h2>
  * <p>주간/레전드/공지 인기글 및 첫 페이지 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
  * <p>SET/List 인덱스에서 postId를 조회하고, 글 단위 Hash(post:simple:{postId})에서 데이터를 가져옵니다.</p>
- * <p>캐시 갱신은 {@link FeaturedPostScheduler}(주간/레전드)와 관리자 토글/글 수정(공지)이 담당합니다.</p>
+ * <p>캐시 갱신은 {@link PostCacheScheduler}(주간/레전드)와 관리자 토글/글 수정(공지)이 담당합니다.</p>
  * <p>Redis 장애 시 Post 테이블에서 boolean 플래그 기반으로 DB 폴백합니다.</p>
  *
  * @author Jaeik
