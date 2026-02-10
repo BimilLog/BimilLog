@@ -64,7 +64,6 @@ public class PostQueryService {
      * @param memberId 회원 ID (null이면 비회원)
      * @return CursorPageResponse 커서 기반 페이지 응답
      */
-    @Transactional(readOnly = true)
     public CursorPageResponse<PostSimpleDetail> getBoardByCursor(Long cursor, int size, Long memberId) {
         List<PostSimpleDetail> posts;
 
@@ -76,7 +75,9 @@ public class PostQueryService {
         }
 
         // 블랙리스트 필터링 비회원이거나 빈 페이지면 무시됨
-        posts = postUtil.removePostsWithBlacklist(memberId, posts);
+        if (memberId != null && !posts.isEmpty()) {
+            posts = postUtil.removePostsWithBlacklist(memberId, posts);
+        }
 
         // 빈 페이지라면 즉시 반환 블랙리스트 필터링으로 인해 빈 페이지가 되어도 반환됨
         if (posts.isEmpty()) {

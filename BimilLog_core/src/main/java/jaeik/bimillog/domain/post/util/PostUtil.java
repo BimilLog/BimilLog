@@ -20,9 +20,6 @@ public class PostUtil {
      * <h3>게시글에서 블랙리스트 제거</h3>
      */
     public List<PostSimpleDetail> removePostsWithBlacklist(Long memberId, List<PostSimpleDetail> posts) {
-        if (memberId == null || posts.isEmpty()) {
-            return posts;
-        }
 
         List<Long> blacklistIds = postToMemberAdapter.getInterActionBlacklist(memberId);
         Set<Long> blacklistSet = new HashSet<>(blacklistIds);
