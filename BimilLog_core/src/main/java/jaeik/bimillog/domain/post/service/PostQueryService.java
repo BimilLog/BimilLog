@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.service;
 
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
-import jaeik.bimillog.domain.post.async.CacheRefreshExecutor;
 import jaeik.bimillog.domain.post.async.PostViewCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
@@ -13,6 +12,7 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,7 +31,7 @@ import java.util.*;
  * <p>게시판 목록 조회, 게시글 상세 조회, 검색 기능, 인기글 조회</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 3.1.0
  */
 @Service
 @RequiredArgsConstructor
@@ -44,7 +44,7 @@ public class PostQueryService {
     private final PostUtil postUtil;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
-    private final CacheRefreshExecutor cacheRefreshExecutor;
+    private final RedisPostHashAdapter redisPostHashAdapter;
     private final PostViewCountSync postViewCountSync;
     private final RealtimePostSync realtimePostSync;
 
@@ -94,23 +94,61 @@ public class PostQueryService {
 
     /**
      * <h3>첫 페이지 조회</h3>
-     * <p>캐시 조회, 캐시 미스 또는 장애 시 빈 리스트 반환 + 비동기 캐시 갱신</p>
+     * <p>ID List 조회 → Hash 파이프라인 조회 → 순서 보장 + Hash 미스 복구</p>
+     * <p>캐시 미스 또는 장애 시 DB 폴백</p>
      *
-     * @return 게시글 목록 (캐시 미스 시 빈 리스트)
+     * @return 게시글 목록
      */
     private List<PostSimpleDetail> getFirstPage() {
         try {
-            List<PostSimpleDetail> posts = redisFirstPagePostAdapter.getFirstPage();
-            if (posts.isEmpty()) {
-                log.warn("게시판 첫 페이지 캐시 미스 - 비동기 갱신 트리거");
-                cacheRefreshExecutor.asyncRefreshWithLock();
+            List<Long> ids = redisFirstPagePostAdapter.getFirstPageIds();
+            if (ids.isEmpty()) {
+                log.warn("게시판 첫 페이지 캐시 미스 - DB 폴백");
+                return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
             }
-            return posts;
+
+            List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(ids);
+            return resolveAndOrder(ids, cachedPosts);
         } catch (Exception e) {
-            log.error("게시판 첫 페이지 캐시 장애 - 비동기 갱신 트리거", e);
-            cacheRefreshExecutor.asyncRefreshWithLock();
-            return Collections.emptyList();
+            log.error("게시판 첫 페이지 캐시 장애 - DB 폴백", e);
+            return postQueryRepository.findBoardPostsByCursor(null, FIRST_PAGE_SIZE);
         }
+    }
+
+    /**
+     * <h3>순서 보장 + Hash 미스 복구</h3>
+     * <p>ID 순서대로 결과를 정렬하고, Hash 미스된 글은 DB에서 복구합니다.</p>
+     */
+    private List<PostSimpleDetail> resolveAndOrder(List<Long> orderedIds, List<PostSimpleDetail> cachedPosts) {
+        Map<Long, PostSimpleDetail> postMap = new HashMap<>();
+        for (PostSimpleDetail post : cachedPosts) {
+            postMap.put(post.getId(), post);
+        }
+
+        List<PostSimpleDetail> result = new ArrayList<>();
+        for (Long id : orderedIds) {
+            PostSimpleDetail post = postMap.get(id);
+            if (post == null) {
+                post = recoverPostHash(id);
+            }
+            if (post != null) {
+                result.add(post);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * <h3>Hash 미스 복구</h3>
+     * <p>DB에서 조회하여 Hash를 생성하고 반환합니다.</p>
+     */
+    private PostSimpleDetail recoverPostHash(Long postId) {
+        return postQueryRepository.findPostDetail(postId, null)
+                .map(detail -> {
+                    PostSimpleDetail simple = detail.toSimpleDetail();
+                    redisPostHashAdapter.createPostHash(simple);
+                    return simple;
+                }).orElse(null);
     }
 
     /**

@@ -11,7 +11,6 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +39,6 @@ public class PostInteractionService {
     private final ApplicationEventPublisher eventPublisher;
     private final RealtimePostSync realtimePostSync;
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
-    private final RedisPostHashAdapter redisPostHashAdapter;
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
      * <p>사용자별 좋아요 상태 토글 규칙을 적용합니다.</p>
@@ -143,13 +141,13 @@ public class PostInteractionService {
     }
 
     /**
-     * <h3>좋아요 수 Redis 버퍼 증감 + 캐시 즉시 반영</h3>
+     * <h3>좋아요 수 Redis 버퍼 증감</h3>
+     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
      * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
      */
     private void incrementLikeWithFallback(Long postId, long delta) {
         try {
             redisPostUpdateAdapter.incrementLikeBuffer(postId, delta);
-            redisPostHashAdapter.incrementCount(postId, RedisPostHashAdapter.FIELD_LIKE_COUNT, delta);
         } catch (Exception e) {
             log.warn("[LIKE_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
             if (delta > 0) {

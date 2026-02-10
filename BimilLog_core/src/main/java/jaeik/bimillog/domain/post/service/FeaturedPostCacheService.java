@@ -18,11 +18,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * <h2>FeaturedPostCacheService</h2>
@@ -78,19 +78,19 @@ public class FeaturedPostCacheService {
      */
     private Page<PostSimpleDetail> getFeaturedCachedPosts(String indexKey, Function<Pageable, Page<PostSimpleDetail>> dbFallback, Pageable pageable) {
         try {
-            Set<Long> postIds = redisPostIndexAdapter.getIndexMembers(indexKey);
+            List<Long> orderedIds = redisPostIndexAdapter.getIndexList(indexKey);
 
-            if (postIds.isEmpty()) {
+            if (orderedIds.isEmpty()) {
                 CacheMetricsLogger.miss(log, indexKey, "index", "empty");
                 return new PageImpl<>(List.of(), pageable, 0);
             }
 
-            List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(postIds);
+            List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
 
             // 누락된 글이 있으면 DB에서 조회하여 Hash 생성
-            if (cachedPosts.size() < postIds.size()) {
+            if (cachedPosts.size() < orderedIds.size()) {
                 List<Long> cachedIds = cachedPosts.stream().map(PostSimpleDetail::getId).toList();
-                List<Long> missingIds = postIds.stream()
+                List<Long> missingIds = orderedIds.stream()
                         .filter(id -> !cachedIds.contains(id))
                         .toList();
 
@@ -113,13 +113,16 @@ public class FeaturedPostCacheService {
                 return new PageImpl<>(List.of(), pageable, 0);
             }
 
-            // ID 역순 정렬 (최신 글이 먼저)
-            List<PostSimpleDetail> sortedPosts = cachedPosts.stream()
-                    .sorted(Comparator.comparingLong(PostSimpleDetail::getId).reversed())
+            // List 인덱스 순서(주간/레전드: 인기순, 공지: 최신순)대로 정렬
+            Map<Long, PostSimpleDetail> postMap = cachedPosts.stream()
+                    .collect(Collectors.toMap(PostSimpleDetail::getId, p -> p, (a, b) -> a));
+            List<PostSimpleDetail> orderedPosts = orderedIds.stream()
+                    .map(postMap::get)
+                    .filter(Objects::nonNull)
                     .toList();
 
-            CacheMetricsLogger.hit(log, indexKey, "simple", sortedPosts.size());
-            return postUtil.paginate(sortedPosts, pageable);
+            CacheMetricsLogger.hit(log, indexKey, "simple", orderedPosts.size());
+            return postUtil.paginate(orderedPosts, pageable);
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", indexKey, e.getMessage());
             return dbFallback.apply(pageable);

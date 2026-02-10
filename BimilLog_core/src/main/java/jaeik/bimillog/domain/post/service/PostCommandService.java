@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.post.async.CacheRefreshExecutor;
+import jaeik.bimillog.domain.post.async.CacheUpdateSync;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class PostCommandService {
     private final PostRepository postRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final CommentCommandService commentCommandService;
-    private final CacheRefreshExecutor cacheRefreshExecutor;
+    private final CacheUpdateSync cacheUpdateSync;
 
     /**
      * <h3>게시글 작성</h3>
@@ -72,7 +72,7 @@ public class PostCommandService {
 
         // 첫 페이지 캐시 비동기 추가 (실패 시 어댑터 내부에서 캐시 무효화)
         PostSimpleDetail newPostDetail = PostSimpleDetail.createNew(post.getId(), post.getTitle(), post.getCreatedAt(), memberId, memberName);
-        cacheRefreshExecutor.asyncAddNewPost(newPostDetail);
+        cacheUpdateSync.asyncAddNewPost(newPostDetail);
 
         return post.getId();
     }
@@ -115,7 +115,7 @@ public class PostCommandService {
                 .isLegend(post.isLegend())
                 .isNotice(post.isNotice())
                 .build();
-        cacheRefreshExecutor.asyncUpdatePost(postId, updatedDetail);
+        cacheUpdateSync.asyncUpdatePost(postId, updatedDetail);
     }
 
     /**
@@ -140,7 +140,7 @@ public class PostCommandService {
         postRepository.delete(post);
 
         // 모든 캐시 비동기 처리 (실시간 ZSet + 인기글 Hash + 첫 페이지 List)
-        cacheRefreshExecutor.asyncDeletePost(postId);
+        cacheUpdateSync.asyncDeletePost(postId);
     }
 
     /**

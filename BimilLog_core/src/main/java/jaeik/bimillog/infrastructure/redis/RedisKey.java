@@ -19,9 +19,7 @@ public final class RedisKey {
 
     // ==================== 글 첫 페이지 (List) ====================
 
-    public static final String FIRST_PAGE_LIST_KEY = "post:board:first-page";
-    public static final String FIRST_PAGE_REFRESH_LOCK_KEY = "post:board:refresh:lock";
-    public static final Duration FIRST_PAGE_REFRESH_LOCK_TTL = Duration.ofMinutes(5);
+    public static final String FIRST_PAGE_LIST_KEY = "post:firstpage:ids";
     public static final int FIRST_PAGE_SIZE = 20;
 
     // ==================== 글 단위 Hash (per-post) ====================

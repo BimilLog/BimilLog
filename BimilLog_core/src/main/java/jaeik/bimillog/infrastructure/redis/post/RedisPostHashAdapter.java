@@ -14,11 +14,11 @@ import java.util.*;
 /**
  * <h2>글 단위 Redis Hash 어댑터</h2>
  * <p>StringRedisTemplate 기반으로 글 단위 Hash를 관리합니다.</p>
- * <p>HINCRBY로 카운트를 즉시 반영할 수 있도록 모든 값을 plain string으로 저장합니다.</p>
+ * <p>모든 값을 plain string으로 저장하며, 카운트는 1분 플러시 시 batchIncrementCounts로 일괄 반영합니다.</p>
  * <p>키 형식: post:simple:{postId} → HASH {id, title, likeCount, viewCount, ...}</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 3.1.0
  */
 @Component
 @Slf4j
@@ -30,17 +30,18 @@ public class RedisPostHashAdapter {
 
     // ==================== Hash 필드명 상수 ====================
 
-    public static final String FIELD_ID = "id";
-    public static final String FIELD_TITLE = "title";
     public static final String FIELD_VIEW_COUNT = "viewCount";
     public static final String FIELD_LIKE_COUNT = "likeCount";
     public static final String FIELD_COMMENT_COUNT = "commentCount";
-    public static final String FIELD_MEMBER_ID = "memberId";
-    public static final String FIELD_MEMBER_NAME = "memberName";
-    public static final String FIELD_CREATED_AT = "createdAt";
-    public static final String FIELD_IS_WEEKLY = "isWeekly";
-    public static final String FIELD_IS_LEGEND = "isLegend";
-    public static final String FIELD_IS_NOTICE = "isNotice";
+
+    private static final String FIELD_ID = "id";
+    private static final String FIELD_TITLE = "title";
+    private static final String FIELD_MEMBER_ID = "memberId";
+    private static final String FIELD_MEMBER_NAME = "memberName";
+    private static final String FIELD_CREATED_AT = "createdAt";
+    private static final String FIELD_IS_WEEKLY = "isWeekly";
+    private static final String FIELD_IS_LEGEND = "isLegend";
+    private static final String FIELD_IS_NOTICE = "isNotice";
 
     /**
      * <h3>글 단위 Hash 생성 (HMSET)</h3>
@@ -59,21 +60,6 @@ public class RedisPostHashAdapter {
         stringRedisTemplate.expire(key, RedisKey.DEFAULT_CACHE_TTL);
 
         log.debug("[POST_HASH] 생성: postId={}", post.getId());
-    }
-
-    /**
-     * <h3>글 단위 Hash 조회 (HGETALL)</h3>
-     *
-     * @param postId 게시글 ID
-     * @return PostSimpleDetail (없으면 null)
-     */
-    public PostSimpleDetail getPostHash(Long postId) {
-        String key = PREFIX + postId;
-        Map<Object, Object> entries = stringRedisTemplate.opsForHash().entries(key);
-        if (entries.isEmpty()) {
-            return null;
-        }
-        return fromStringMap(entries);
     }
 
     /**
@@ -116,19 +102,6 @@ public class RedisPostHashAdapter {
     }
 
     /**
-     * <h3>카운트 필드 증감 (HINCRBY)</h3>
-     * <p>글 단위 Hash의 특정 카운트 필드를 원자적으로 증감시킵니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param field  증감할 필드명 (viewCount, likeCount, commentCount)
-     * @param delta  증감량 (양수: 증가, 음수: 감소)
-     */
-    public void incrementCount(Long postId, String field, long delta) {
-        String key = PREFIX + postId;
-        stringRedisTemplate.opsForHash().increment(key, field, delta);
-    }
-
-    /**
      * <h3>제목 업데이트 (HSET)</h3>
      *
      * @param postId   게시글 ID
@@ -151,14 +124,51 @@ public class RedisPostHashAdapter {
     }
 
     /**
-     * <h3>글 단위 Hash 존재 여부 확인 (EXISTS)</h3>
+     * <h3>여러 글의 카운트 필드 일괄 증감 (Pipeline EXISTS + HINCRBY)</h3>
+     * <p>존재하는 Hash만 카운트를 증감합니다.</p>
+     * <p>존재하지 않는 키에 HINCRBY하면 불완전한 Hash가 생성되므로 방지합니다.</p>
      *
-     * @param postId 게시글 ID
-     * @return 존재하면 true
+     * @param countsByPostId postId → 증감량 맵
+     * @param field          증감할 필드명 (viewCount, likeCount, commentCount)
      */
-    public boolean existsPostHash(Long postId) {
-        String key = PREFIX + postId;
-        return stringRedisTemplate.hasKey(key);
+    public void batchIncrementCounts(Map<Long, Long> countsByPostId, String field) {
+        if (countsByPostId == null || countsByPostId.isEmpty()) {
+            return;
+        }
+
+        List<Long> postIds = new ArrayList<>(countsByPostId.keySet());
+
+        // 1. Pipeline EXISTS: 어떤 Hash가 존재하는지 확인
+        List<Object> existsResults = stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            for (Long postId : postIds) {
+                String key = PREFIX + postId;
+                connection.keyCommands().exists(key.getBytes());
+            }
+            return null;
+        });
+
+        // 2. 존재하는 Hash만 Pipeline HINCRBY
+        List<Long> existingPostIds = new ArrayList<>();
+        for (int i = 0; i < postIds.size(); i++) {
+            if (i < existsResults.size() && Boolean.TRUE.equals(existsResults.get(i))) {
+                existingPostIds.add(postIds.get(i));
+            }
+        }
+
+        if (existingPostIds.isEmpty()) {
+            return;
+        }
+
+        stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            byte[] fieldBytes = field.getBytes();
+            for (Long postId : existingPostIds) {
+                String key = PREFIX + postId;
+                connection.hashCommands().hIncrBy(key.getBytes(), fieldBytes, countsByPostId.get(postId));
+            }
+            return null;
+        });
+
+        log.debug("[POST_HASH] 일괄 카운트 반영: field={}, count={}", field, existingPostIds.size());
     }
 
     // ==================== 변환 메서드 ====================
@@ -186,7 +196,7 @@ public class RedisPostHashAdapter {
                 .viewCount(parseInteger(map.get(FIELD_VIEW_COUNT)))
                 .likeCount(parseInteger(map.get(FIELD_LIKE_COUNT)))
                 .commentCount(parseInteger(map.get(FIELD_COMMENT_COUNT)))
-                .memberId(parseLongOrNull(map.get(FIELD_MEMBER_ID)))
+                .memberId(parseLong(map.get(FIELD_MEMBER_ID)))
                 .memberName(parseString(map.get(FIELD_MEMBER_NAME)))
                 .createdAt(parseInstant(map.get(FIELD_CREATED_AT)))
                 .isWeekly(parseBoolean(map.get(FIELD_IS_WEEKLY)))
@@ -196,12 +206,6 @@ public class RedisPostHashAdapter {
     }
 
     private static Long parseLong(Object value) {
-        if (value == null) return null;
-        String s = value.toString();
-        return s.isEmpty() ? null : Long.parseLong(s);
-    }
-
-    private static Long parseLongOrNull(Object value) {
         if (value == null) return null;
         String s = value.toString();
         return s.isEmpty() ? null : Long.parseLong(s);
