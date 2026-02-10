@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
@@ -20,9 +19,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -78,8 +75,11 @@ class RealtimePostCacheServiceTest {
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2");
         List<PostSimpleDetail> cachedPosts = List.of(simpleDetail2, simpleDetail1);
 
-        given(redisRealTimePostAdapter.getRangePostId()).willReturn(List.of(2L, 1L));
+        List<Long> ids = List.of(2L, 1L);
+        given(redisRealTimePostAdapter.getRangePostId()).willReturn(ids);
         given(redisPostHashAdapter.getPostHashes(anyCollection())).willReturn(cachedPosts);
+        given(postUtil.recoverMissingHashes(ids, cachedPosts)).willReturn(cachedPosts);
+        given(postUtil.orderByIds(ids, cachedPosts)).willReturn(cachedPosts);
         given(postUtil.paginate(anyList(), eq(pageable)))
                 .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
 
@@ -92,7 +92,6 @@ class RealtimePostCacheServiceTest {
 
         verify(redisRealTimePostAdapter).getRangePostId();
         verify(redisPostHashAdapter).getPostHashes(anyCollection());
-        verify(postQueryRepository, never()).findPostDetail(anyLong(), any());
     }
 
     @Test
@@ -103,21 +102,22 @@ class RealtimePostCacheServiceTest {
         PostSimpleDetail cachedPost = PostTestDataBuilder.createPostSearchResult(1L, "캐시된 글");
         PostSimpleDetail dbPost = PostTestDataBuilder.createPostSearchResult(2L, "DB 조회 글");
 
-        PostDetail dbDetail = org.mockito.Mockito.mock(PostDetail.class);
-        given(dbDetail.toSimpleDetail()).willReturn(dbPost);
+        List<Long> ids = List.of(1L, 2L);
+        List<PostSimpleDetail> recoveredPosts = List.of(cachedPost, dbPost);
 
-        given(redisRealTimePostAdapter.getRangePostId()).willReturn(List.of(1L, 2L));
+        given(redisRealTimePostAdapter.getRangePostId()).willReturn(ids);
         given(redisPostHashAdapter.getPostHashes(anyCollection())).willReturn(List.of(cachedPost));
-        given(postQueryRepository.findPostDetail(eq(2L), isNull())).willReturn(Optional.of(dbDetail));
+        given(postUtil.recoverMissingHashes(ids, List.of(cachedPost))).willReturn(recoveredPosts);
+        given(postUtil.orderByIds(ids, recoveredPosts)).willReturn(recoveredPosts);
         given(postUtil.paginate(anyList(), eq(pageable)))
-                .willReturn(new PageImpl<>(List.of(cachedPost, dbPost), pageable, 2));
+                .willReturn(new PageImpl<>(recoveredPosts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(2);
-        verify(redisPostHashAdapter).createPostHash(dbPost);
+        verify(postUtil).recoverMissingHashes(ids, List.of(cachedPost));
     }
 
     @Test
@@ -141,9 +141,10 @@ class RealtimePostCacheServiceTest {
     void shouldGetRealtimePosts_AllCacheMiss_NoDB_ReturnEmptyPage() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
-        given(redisRealTimePostAdapter.getRangePostId()).willReturn(List.of(1L, 2L));
+        List<Long> ids = List.of(1L, 2L);
+        given(redisRealTimePostAdapter.getRangePostId()).willReturn(ids);
         given(redisPostHashAdapter.getPostHashes(anyCollection())).willReturn(List.of());
-        given(postQueryRepository.findPostDetail(anyLong(), isNull())).willReturn(Optional.empty());
+        given(postUtil.recoverMissingHashes(eq(ids), anyList())).willReturn(List.of());
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);

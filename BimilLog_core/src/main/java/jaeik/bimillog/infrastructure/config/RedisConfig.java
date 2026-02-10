@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -23,24 +22,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  */
 @Configuration
 public class RedisConfig {
-
-    /**
-     * <h3>RedisTemplate을 Bean으로 등록합니다.</h3>
-     * <p>Redis와의 데이터 직렬화 및 역직렬화를 설정합니다.</p>
-     *
-     * @param connectionFactory RedisConnectionFactory
-     * @return template RedisTemplate<String, Object>
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Bean
-    public RedisTemplate<String, Long> longRedisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Long> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
-        return template;
-    }
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {

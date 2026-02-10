@@ -20,7 +20,7 @@ import java.util.Optional;
  * <h2>게시글 관리자 서비스</h2>
  * <p>게시글 도메인의 관리자 전용 기능을 처리하는 서비스입니다.</p>
  * <p>공지사항 토글: Post.isNotice 플래그로 직접 관리</p>
- * <p>공지 변경 시 글 단위 Hash 생성 + SET 인덱스 추가/제거로 캐시를 반영합니다.</p>
+ * <p>공지 변경 시 글 단위 Hash 생성 + List 인덱스 추가/제거로 캐시를 반영합니다.</p>
  *
  * @author Jaeik
  * @version 3.0.0
@@ -37,8 +37,8 @@ public class PostAdminService {
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
      * <p>Post.isNotice 플래그로 공지사항 여부를 직접 관리합니다.</p>
-     * <p>공지 설정: 글 단위 Hash 생성 + SET 인덱스 SADD</p>
-     * <p>공지 해제: SET 인덱스 SREM (글 단위 Hash는 삭제하지 않음 - 다른 목록에서 참조 가능)</p>
+     * <p>공지 설정: 글 단위 Hash 생성 + List 인덱스 LPUSH (최신이 맨 앞)</p>
+     * <p>공지 해제: List 인덱스 LREM (글 단위 Hash는 삭제하지 않음 - 다른 목록에서 참조 가능)</p>
      *
      * @param postId 공지 토글할 게시글 ID
      */
@@ -49,11 +49,11 @@ public class PostAdminService {
 
         try {
             if (post.isNotice()) {
-                // 공지 해제: isNotice false + SET 인덱스에서 제거
+                // 공지 해제: isNotice false + List 인덱스에서 제거
                 post.updateNotice(false);
                 redisPostIndexAdapter.removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
             } else {
-                // 공지 설정: isNotice true + 글 단위 Hash 생성 + SET 인덱스 추가
+                // 공지 설정: isNotice true + 글 단위 Hash 생성 + List 인덱스 LPUSH
                 post.updateNotice(true);
                 Optional<PostSimpleDetail> detail = postQueryRepository.findPostSimpleDetailById(postId);
                 detail.ifPresent(d -> {

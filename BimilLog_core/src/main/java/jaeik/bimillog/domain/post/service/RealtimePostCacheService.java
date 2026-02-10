@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.scheduler.RealTimePostScheduler;
 import jaeik.bimillog.domain.post.util.PostUtil;
@@ -18,9 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * <h2>RealtimePostCacheService</h2>
@@ -62,27 +59,7 @@ public class RealtimePostCacheService {
         }
 
         List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
-
-        // 누락된 글이 있으면 DB에서 조회하여 Hash 생성
-        if (cachedPosts.size() < orderedIds.size()) {
-            List<Long> cachedIds = cachedPosts.stream().map(PostSimpleDetail::getId).toList();
-            List<Long> missingIds = orderedIds.stream()
-                    .filter(id -> !cachedIds.contains(id))
-                    .toList();
-
-            if (!missingIds.isEmpty()) {
-                List<PostSimpleDetail> dbPosts = missingIds.stream()
-                        .map(id -> postQueryRepository.findPostDetail(id, null).orElse(null))
-                        .filter(Objects::nonNull)
-                        .map(PostDetail::toSimpleDetail)
-                        .toList();
-
-                dbPosts.forEach(redisPostHashAdapter::createPostHash);
-
-                cachedPosts = new ArrayList<>(cachedPosts);
-                cachedPosts.addAll(dbPosts);
-            }
-        }
+        cachedPosts = postUtil.recoverMissingHashes(orderedIds, cachedPosts);
 
         if (cachedPosts.isEmpty()) {
             CacheMetricsLogger.miss(log, "realtime", "simple", "empty");
@@ -91,13 +68,7 @@ public class RealtimePostCacheService {
 
         CacheMetricsLogger.hit(log, "realtime", "simple", cachedPosts.size());
 
-        // ZSET 순서(점수 내림차순)대로 정렬
-        List<PostSimpleDetail> finalPosts = cachedPosts;
-        List<PostSimpleDetail> orderedPosts = orderedIds.stream()
-                .map(id -> finalPosts.stream().filter(p -> p.getId().equals(id)).findFirst().orElse(null))
-                .filter(Objects::nonNull)
-                .toList();
-
+        List<PostSimpleDetail> orderedPosts = postUtil.orderByIds(orderedIds, cachedPosts);
         return postUtil.paginate(orderedPosts, pageable);
     }
 

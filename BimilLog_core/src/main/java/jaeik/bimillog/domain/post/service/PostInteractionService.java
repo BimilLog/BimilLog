@@ -6,13 +6,16 @@ import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
+import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
+import com.querydsl.core.types.dsl.NumberPath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,7 +28,7 @@ import java.util.Objects;
 /**
  * <h2>PostInteractionService</h2>
  * <p>게시글 상호작용 서비스</p>
- * <p>좋아요 토글과 조회수 증가 등</p>
+ * <p>좋아요 토글 등</p>
  *
  * @author Jaeik
  * @version 3.0.0
@@ -35,12 +38,18 @@ import java.util.Objects;
 @Slf4j
 public class PostInteractionService {
     private final PostRepository postRepository;
+    private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RealtimePostSync realtimePostSync;
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
-    private final RedisPostHashAdapter redisPostHashAdapter;
+
+    private static final Map<String, NumberPath<Integer>> COUNT_FIELDS = Map.of(
+            RedisPostHashAdapter.FIELD_VIEW_COUNT, QPost.post.views,
+            RedisPostHashAdapter.FIELD_LIKE_COUNT, QPost.post.likeCount,
+            RedisPostHashAdapter.FIELD_COMMENT_COUNT, QPost.post.commentCount
+    );
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
      * <p>사용자별 좋아요 상태 토글 규칙을 적용합니다.</p>
@@ -93,63 +102,28 @@ public class PostInteractionService {
     }
 
     /**
-     * <h3>게시글 조회수 증가 비즈니스 로직 실행</h3>
-     * <p>PostQueryController에서 게시글 상세 조회 완료 후 호출됩니다.</p>
-     *
-     * @param postId 조회수를 증가시킬 게시글 ID
-     */
-    @Transactional
-    public void incrementViewCount(Long postId) {
-        postRepository.incrementViewsByPostId(postId);
-    }
-
-    /**
-     * <h3>조회수 일괄 증가</h3>
-     * <p>Redis에서 누적된 조회수를 DB에 벌크 반영합니다.</p>
-     *
-     * @param counts postId → 증가량 맵
-     */
-    @Transactional
-    public void bulkIncrementViewCounts(Map<Long, Long> counts) {
-        for (Map.Entry<Long, Long> entry : counts.entrySet()) {
-            postRepository.incrementViewsByAmount(entry.getKey(), entry.getValue());
-        }
-    }
-
-    /**
-     * <h3>좋아요 수 일괄 증감</h3>
-     * <p>Redis에서 누적된 좋아요 증감량을 DB에 벌크 반영합니다.</p>
+     * Redis에서 누적된 카운트를 DB에 벌크 반영
      *
      * @param counts postId → 증감량 맵
+     * @param field  RedisPostHashAdapter.FIELD_VIEW_COUNT / FIELD_LIKE_COUNT / FIELD_COMMENT_COUNT
      */
     @Transactional
-    public void bulkIncrementLikeCounts(Map<Long, Long> counts) {
-        for (Map.Entry<Long, Long> entry : counts.entrySet()) {
-            postRepository.incrementLikeCountByAmount(entry.getKey(), entry.getValue());
+    public void bulkIncrementCounts(Map<Long, Long> counts, String field) {
+        NumberPath<Integer> path = COUNT_FIELDS.get(field);
+        if (path == null) {
+            throw new IllegalArgumentException("Unknown count field: " + field);
         }
+        postQueryRepository.bulkIncrementCount(counts, path);
     }
 
     /**
-     * <h3>댓글 수 일괄 증감</h3>
-     * <p>Redis에서 누적된 댓글수 증감량을 DB에 벌크 반영합니다.</p>
-     *
-     * @param counts postId → 증감량 맵
-     */
-    @Transactional
-    public void bulkIncrementCommentCounts(Map<Long, Long> counts) {
-        for (Map.Entry<Long, Long> entry : counts.entrySet()) {
-            postRepository.incrementCommentCountByAmount(entry.getKey(), entry.getValue());
-        }
-    }
-
-    /**
-     * <h3>좋아요 수 Redis 버퍼 증감 + 캐시 즉시 반영</h3>
+     * <h3>좋아요 수 Redis 버퍼 증감</h3>
+     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
      * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
      */
     private void incrementLikeWithFallback(Long postId, long delta) {
         try {
             redisPostUpdateAdapter.incrementLikeBuffer(postId, delta);
-            redisPostHashAdapter.incrementCount(postId, RedisPostHashAdapter.FIELD_LIKE_COUNT, delta);
         } catch (Exception e) {
             log.warn("[LIKE_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
             if (delta > 0) {

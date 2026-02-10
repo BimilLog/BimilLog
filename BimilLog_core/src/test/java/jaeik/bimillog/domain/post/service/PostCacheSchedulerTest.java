@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
-import jaeik.bimillog.domain.post.scheduler.FeaturedPostScheduler;
+import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
@@ -23,7 +23,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,17 +31,17 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>FeaturedPostScheduler 테스트</h2>
+ * <h2>PostCacheScheduler 테스트</h2>
  * <p>게시글 캐시 동기화 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → SET 인덱스 교체 → 이벤트 발행 흐름을 검증합니다.</p>
+ * <p>DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → List 인덱스 교체 → 이벤트 발행 흐름을 검증합니다.</p>
  *
  * @author Jaeik
  * @version 3.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("FeaturedPostScheduler 테스트")
+@DisplayName("PostCacheScheduler 테스트")
 @Tag("unit")
-class FeaturedPostSchedulerTest {
+class PostCacheSchedulerTest {
 
     @Mock
     private RedisPostHashAdapter redisPostHashAdapter;
@@ -59,11 +58,11 @@ class FeaturedPostSchedulerTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    private FeaturedPostScheduler featuredPostScheduler;
+    private PostCacheScheduler postCacheScheduler;
 
     @BeforeEach
     void setUp() {
-        featuredPostScheduler = new FeaturedPostScheduler(
+        postCacheScheduler = new PostCacheScheduler(
                 redisPostHashAdapter,
                 redisPostIndexAdapter,
                 postQueryRepository,
@@ -73,7 +72,7 @@ class FeaturedPostSchedulerTest {
     }
 
     @Test
-    @DisplayName("주간 인기 게시글 업데이트 - 성공 (플래그 업데이트 + 글 단위 Hash 생성 + SET 인덱스 교체 + 이벤트 발행)")
+    @DisplayName("주간 인기 게시글 업데이트 - 성공 (플래그 업데이트 + 글 단위 Hash 생성 + List 인덱스 교체 + 이벤트 발행)")
     void shouldUpdateWeeklyPopularPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail post1 = createPostSimpleDetail(1L, "주간인기글1", 1L);
@@ -83,7 +82,7 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
 
         // When
-        featuredPostScheduler.updateWeeklyPopularPosts();
+        postCacheScheduler.updateWeeklyPopularPosts();
 
         // Then
         // 플래그 업데이트
@@ -92,8 +91,8 @@ class FeaturedPostSchedulerTest {
         // 글 단위 Hash 생성
         verify(redisPostHashAdapter).createPostHash(post1);
         verify(redisPostHashAdapter).createPostHash(post2);
-        // SET 인덱스 교체
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(Set.class), eq(RedisKey.DEFAULT_CACHE_TTL));
+        // List 인덱스 교체
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(List.class), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -118,12 +117,12 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
 
         // When
-        featuredPostScheduler.updateWeeklyPopularPosts();
+        postCacheScheduler.updateWeeklyPopularPosts();
 
         // Then
         verify(postRepository).clearWeeklyFlag();
         verify(redisPostHashAdapter, times(2)).createPostHash(any(PostSimpleDetail.class));
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(Set.class), any(Duration.class));
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(List.class), any(Duration.class));
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -135,7 +134,7 @@ class FeaturedPostSchedulerTest {
     }
 
     @Test
-    @DisplayName("전설의 게시글 업데이트 - 성공 (플래그 업데이트 + 글 단위 Hash 생성 + SET 인덱스 교체)")
+    @DisplayName("전설의 게시글 업데이트 - 성공 (플래그 업데이트 + 글 단위 Hash 생성 + List 인덱스 교체)")
     void shouldUpdateLegendaryPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
@@ -144,13 +143,13 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findLegendaryPosts()).willReturn(posts);
 
         // When
-        featuredPostScheduler.updateLegendaryPosts();
+        postCacheScheduler.updateLegendaryPosts();
 
         // Then
         verify(postRepository).clearLegendFlag();
         verify(postRepository).setLegendFlag(List.of(1L));
         verify(redisPostHashAdapter).createPostHash(legendPost);
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_LEGEND_IDS_KEY), any(Set.class), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_LEGEND_IDS_KEY), any(List.class), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -170,7 +169,7 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When
-        featuredPostScheduler.updateLegendaryPosts();
+        postCacheScheduler.updateLegendaryPosts();
 
         // Then
         verify(postQueryRepository).findLegendaryPosts();
@@ -191,11 +190,11 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findWeeklyPopularPosts()).willReturn(largePosts);
 
         // When
-        featuredPostScheduler.updateWeeklyPopularPosts();
+        postCacheScheduler.updateWeeklyPopularPosts();
 
         // Then
         verify(redisPostHashAdapter, times(100)).createPostHash(any(PostSimpleDetail.class));
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(Set.class), any(Duration.class));
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(List.class), any(Duration.class));
 
         // 100개 게시글 중 memberId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));
@@ -204,7 +203,7 @@ class FeaturedPostSchedulerTest {
     // ==================== 공지사항 ====================
 
     @Test
-    @DisplayName("공지사항 캐시 갱신 - 성공 (DB 조회 → 글 단위 Hash 생성 → SET 인덱스 교체 with TTL)")
+    @DisplayName("공지사항 캐시 갱신 - 성공 (DB 조회 → 글 단위 Hash 생성 → List 인덱스 교체 with TTL)")
     void shouldRefreshNoticePosts_WhenPostsExist() {
         // Given
         PostSimpleDetail notice1 = createPostSimpleDetail(1L, "공지1", 1L);
@@ -214,12 +213,12 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findNoticePostsForScheduler()).willReturn(posts);
 
         // When
-        featuredPostScheduler.refreshNoticePosts();
+        postCacheScheduler.refreshNoticePosts();
 
         // Then
         verify(redisPostHashAdapter).createPostHash(notice1);
         verify(redisPostHashAdapter).createPostHash(notice2);
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_NOTICE_IDS_KEY), any(Set.class), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_NOTICE_IDS_KEY), any(List.class), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 공지사항은 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -234,7 +233,7 @@ class FeaturedPostSchedulerTest {
         given(postQueryRepository.findNoticePostsForScheduler()).willReturn(Collections.emptyList());
 
         // When
-        featuredPostScheduler.refreshNoticePosts();
+        postCacheScheduler.refreshNoticePosts();
 
         // Then
         verify(redisPostHashAdapter, never()).createPostHash(any());

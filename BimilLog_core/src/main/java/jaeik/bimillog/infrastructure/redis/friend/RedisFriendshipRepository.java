@@ -6,11 +6,12 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <h2>친구 관계 Redis 캐시 저장소</h2>
@@ -22,7 +23,7 @@ import java.util.*;
 @Repository
 @RequiredArgsConstructor
 public class RedisFriendshipRepository {
-    private final RedisTemplate<String, Long> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     private static final String FRIEND_SHIP_PREFIX = RedisKey.FRIENDSHIP_PREFIX;
     private static final int PIPELINE_BATCH_SIZE = 500;
@@ -32,7 +33,11 @@ public class RedisFriendshipRepository {
      */
     public Set<Long> getFriendIdRandom(Long memberId, int count) {
         String key = FRIEND_SHIP_PREFIX + memberId;
-        return redisTemplate.opsForSet().distinctRandomMembers(key, count);
+        Set<String> members = stringRedisTemplate.opsForSet().distinctRandomMembers(key, count);
+        if (members == null || members.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return members.stream().map(Long::parseLong).collect(Collectors.toSet());
     }
 
     /**
@@ -44,13 +49,25 @@ public class RedisFriendshipRepository {
      */
     public List<Object> getFriendsBatch(List<Long> memberIdList, int sampleSize) {
         try {
-            return redisTemplate.executePipelined((RedisConnection connection) -> {
+            List<Object> rawResults = stringRedisTemplate.executePipelined((RedisConnection connection) -> {
                 for (Long memberId : memberIdList) {
                     String key = FRIEND_SHIP_PREFIX + memberId;
                     connection.setCommands().sRandMember(key.getBytes(StandardCharsets.UTF_8), sampleSize);
                 }
                 return null;
             });
+
+            // String → Long 변환 (호출자가 List<Long> 캐스팅 사용)
+            return rawResults.stream()
+                    .map(result -> {
+                        if (result instanceof List<?> list) {
+                            return (Object) list.stream()
+                                    .map(item -> Long.parseLong(item.toString()))
+                                    .toList();
+                        }
+                        return result;
+                    })
+                    .toList();
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_QUERY_ERROR, e);
         }
@@ -64,8 +81,8 @@ public class RedisFriendshipRepository {
         String key2 = FRIEND_SHIP_PREFIX + friendId;
 
         try {
-            redisTemplate.opsForSet().add(key1, friendId);
-            redisTemplate.opsForSet().add(key2, memberId);
+            stringRedisTemplate.opsForSet().add(key1, String.valueOf(friendId));
+            stringRedisTemplate.opsForSet().add(key2, String.valueOf(memberId));
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_WRITE_ERROR, e);
         }
@@ -79,8 +96,8 @@ public class RedisFriendshipRepository {
         String key2 = FRIEND_SHIP_PREFIX + friendId;
 
         try {
-            redisTemplate.opsForSet().remove(key1, friendId);
-            redisTemplate.opsForSet().remove(key2, memberId);
+            stringRedisTemplate.opsForSet().remove(key1, String.valueOf(friendId));
+            stringRedisTemplate.opsForSet().remove(key2, String.valueOf(memberId));
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_DELETE_ERROR, e);
         }
@@ -101,7 +118,7 @@ public class RedisFriendshipRepository {
                 for (int i = 0; i < friendIdList.size(); i += PIPELINE_BATCH_SIZE) {
                     int end = Math.min(i + PIPELINE_BATCH_SIZE, friendIdList.size());
                     List<Long> batch = friendIdList.subList(i, end);
-                    redisTemplate.executePipelined((RedisConnection connection) -> {
+                    stringRedisTemplate.executePipelined((RedisConnection connection) -> {
                         for (Long friendId : batch) {
                             String friendKey = FRIEND_SHIP_PREFIX + friendId;
                             connection.setCommands().sRem(friendKey.getBytes(StandardCharsets.UTF_8), withdrawMemberIdBytes);
@@ -112,7 +129,7 @@ public class RedisFriendshipRepository {
             }
 
             String withdrawKey = FRIEND_SHIP_PREFIX + withdrawFriendId;
-            redisTemplate.delete(withdrawKey);
+            stringRedisTemplate.delete(withdrawKey);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_DELETE_ERROR, e);
         }

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.post.async.CacheRefreshExecutor;
+import jaeik.bimillog.domain.post.async.CacheUpdateSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
@@ -51,7 +51,7 @@ class PostCommandServiceTest extends BaseUnitTest {
     private CommentCommandService commentCommandService;
 
     @Mock
-    private CacheRefreshExecutor cacheRefreshExecutor;
+    private CacheUpdateSync cacheUpdateSync;
 
     @InjectMocks
     private PostCommandService postCommandService;
@@ -102,7 +102,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(existingPost, times(1)).isAuthor(memberId, null);
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
         // Cache Invalidation: 비동기 캐시 업데이트
-        verify(cacheRefreshExecutor, times(1)).asyncUpdatePost(eq(postId), any());
+        verify(cacheUpdateSync, times(1)).asyncUpdatePost(eq(postId), any());
     }
 
     @ParameterizedTest(name = "게시글 {0} - 게시글 없음 예외")
@@ -188,7 +188,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
         verify(postRepository, times(1)).delete(postToDelete);
         // 모든 캐시 비동기 삭제 처리
-        verify(cacheRefreshExecutor, times(1)).asyncDeletePost(postId);
+        verify(cacheUpdateSync, times(1)).asyncDeletePost(postId);
     }
 
     @Test
@@ -255,6 +255,6 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         // Then - 게시글 수정 완료 + 비동기 캐시 갱신 트리거
         verify(existingPost, times(1)).updatePost("title", "content");
-        verify(cacheRefreshExecutor, times(1)).asyncUpdatePost(eq(postId), any());
+        verify(cacheUpdateSync, times(1)).asyncUpdatePost(eq(postId), any());
     }
 }

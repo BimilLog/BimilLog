@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.async.CacheRefreshExecutor;
 import jaeik.bimillog.domain.post.async.PostViewCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
@@ -9,7 +8,6 @@ import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -25,7 +23,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +39,7 @@ import static org.mockito.Mockito.*;
  * <p>상세 캐시 제거됨 - 모든 상세 조회는 DB에서 직접 수행</p>
  *
  * @author Jaeik
- * @version 2.6.0
+ * @version 3.1.0
  */
 @DisplayName("PostQueryService 테스트")
 @Tag("unit")
@@ -64,10 +61,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private RedisFirstPagePostAdapter redisFirstPagePostAdapter;
-
-    @Mock
-    private CacheRefreshExecutor cacheRefreshExecutor;
+    private PostCacheService postCacheService;
 
     @Mock
     private PostViewCountSync postViewCountSync;
@@ -87,7 +81,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         List<PostSimpleDetail> posts = List.of(postResult);
 
-        given(redisFirstPagePostAdapter.getFirstPage()).willReturn(posts);
+        given(postCacheService.getFirstPagePosts()).willReturn(posts);
         given(postUtil.removePostsWithBlacklist(null, posts)).willReturn(posts);
 
         // When
@@ -98,7 +92,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
         assertThat(result.hasNext()).isFalse();
 
-        verify(redisFirstPagePostAdapter).getFirstPage();
+        verify(postCacheService).getFirstPagePosts();
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
@@ -116,8 +110,8 @@ class PostQueryServiceTest extends BaseUnitTest {
                 PostTestDataBuilder.createPostSearchResult(1L, "제목1")
         );
 
-        given(redisFirstPagePostAdapter.getFirstPage()).willReturn(cachedPosts);
-        given(postUtil.removePostsWithBlacklist(null, cachedPosts)).willReturn(cachedPosts);
+        given(postCacheService.getFirstPagePosts()).willReturn(cachedPosts);
+        given(postUtil.removePostsWithBlacklist(eq(null), anyList())).willReturn(cachedPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -129,30 +123,30 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.hasNext()).isTrue();
         assertThat(result.nextCursor()).isEqualTo(4L);
 
-        verify(redisFirstPagePostAdapter).getFirstPage();
+        verify(postCacheService).getFirstPagePosts();
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
     @Test
-    @DisplayName("게시판 조회 (커서 기반, 비회원) - 캐시 미스 시 빈 리스트 반환 + 비동기 갱신")
+    @DisplayName("게시판 조회 (커서 기반, 비회원) - 캐시 미스 시 DB 폴백")
     void shouldGetBoardByCursor_ForGuest_CacheMiss() {
         // Given
         Long cursor = null;
         int size = 10;
+        PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
+        List<PostSimpleDetail> dbPosts = List.of(postResult);
 
-        given(redisFirstPagePostAdapter.getFirstPage()).willReturn(Collections.emptyList());
-        given(postUtil.removePostsWithBlacklist(null, Collections.emptyList())).willReturn(Collections.emptyList());
+        given(postCacheService.getFirstPagePosts()).willReturn(dbPosts);
+        given(postUtil.removePostsWithBlacklist(null, dbPosts)).willReturn(dbPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
 
-        // Then: 캐시 미스 시 빈 리스트 반환, DB 폴백 없음
-        assertThat(result.content()).isEmpty();
-        assertThat(result.hasNext()).isFalse();
+        // Then
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().getFirst().getTitle()).isEqualTo("DB 폴백 글");
 
-        verify(redisFirstPagePostAdapter).getFirstPage();
-        verify(cacheRefreshExecutor).asyncRefreshWithLock();
-        verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
+        verify(postCacheService).getFirstPagePosts();
     }
 
     @Test
@@ -174,7 +168,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
 
-        verify(redisFirstPagePostAdapter, never()).getFirstPage();
+        verify(postCacheService, never()).getFirstPagePosts();
         verify(postQueryRepository).findBoardPostsByCursor(cursor, size);
     }
 
@@ -196,8 +190,8 @@ class PostQueryServiceTest extends BaseUnitTest {
                 PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
         );
 
-        given(redisFirstPagePostAdapter.getFirstPage()).willReturn(cachedPosts);
-        given(postUtil.removePostsWithBlacklist(memberId, cachedPosts)).willReturn(filteredPosts);
+        given(postCacheService.getFirstPagePosts()).willReturn(cachedPosts);
+        given(postUtil.removePostsWithBlacklist(eq(memberId), anyList())).willReturn(filteredPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, memberId);
@@ -207,8 +201,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).extracting(PostSimpleDetail::getId).containsExactly(1L, 3L);
         assertThat(result.hasNext()).isFalse();
 
-        verify(redisFirstPagePostAdapter).getFirstPage();
-        verify(postUtil).removePostsWithBlacklist(memberId, cachedPosts);
+        verify(postCacheService).getFirstPagePosts();
     }
 
     @Test

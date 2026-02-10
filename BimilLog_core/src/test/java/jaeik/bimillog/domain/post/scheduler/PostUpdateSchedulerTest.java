@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.scheduler;
 
 import jaeik.bimillog.domain.post.service.PostInteractionService;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -17,13 +18,14 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>PostViewCountFlushScheduler 단위 테스트</h2>
+ * <h2>PostUpdateScheduler 단위 테스트</h2>
  * <p>카운트 플러시 스케줄러(조회수/좋아요/댓글수)의 동작을 검증합니다.</p>
+ * <p>DB + Hash 동시 반영을 검증합니다.</p>
  */
 @Tag("unit")
-@DisplayName("PostViewCountFlushScheduler 단위 테스트")
+@DisplayName("PostUpdateScheduler 단위 테스트")
 @ExtendWith(MockitoExtension.class)
-class PostViewCountFlushSchedulerTest {
+class PostUpdateSchedulerTest {
 
     @Mock
     private RedisPostUpdateAdapter redisPostUpdateAdapter;
@@ -31,8 +33,11 @@ class PostViewCountFlushSchedulerTest {
     @Mock
     private PostInteractionService postInteractionService;
 
+    @Mock
+    private RedisPostHashAdapter redisPostHashAdapter;
+
     @InjectMocks
-    private PostViewCountFlushScheduler scheduler;
+    private PostUpdateScheduler scheduler;
 
     // ==================== 조회수 ====================
 
@@ -48,13 +53,12 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService, never()).bulkIncrementViewCounts(any());
-        verify(postInteractionService, never()).bulkIncrementLikeCounts(any());
-        verify(postInteractionService, never()).bulkIncrementCommentCounts(any());
+        verify(postInteractionService, never()).bulkIncrementCounts(any(), any());
+        verify(redisPostHashAdapter, never()).batchIncrementCounts(any(), any());
     }
 
     @Test
-    @DisplayName("조회수 버퍼에 데이터가 있으면 DB에 벌크 업데이트")
+    @DisplayName("조회수 버퍼에 데이터가 있으면 DB + Hash에 벌크 업데이트")
     void shouldFlushViewCountsToDB_whenBufferHasData() {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L, 2L, 3L);
@@ -66,7 +70,8 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementViewCounts(viewCounts);
+        verify(postInteractionService).bulkIncrementCounts(viewCounts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
+        verify(redisPostHashAdapter).batchIncrementCounts(viewCounts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
     }
 
     @Test
@@ -75,7 +80,7 @@ class PostViewCountFlushSchedulerTest {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L);
         given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
-        doThrow(new RuntimeException("DB 오류")).when(postInteractionService).bulkIncrementViewCounts(any());
+        doThrow(new RuntimeException("DB 오류")).when(postInteractionService).bulkIncrementCounts(any(), any());
         given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
         given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
 
@@ -83,13 +88,13 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementViewCounts(viewCounts);
+        verify(postInteractionService).bulkIncrementCounts(viewCounts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
     }
 
     // ==================== 좋아요 ====================
 
     @Test
-    @DisplayName("좋아요 버퍼에 데이터가 있으면 DB에 벌크 업데이트")
+    @DisplayName("좋아요 버퍼에 데이터가 있으면 DB + Hash에 벌크 업데이트")
     void shouldFlushLikeCountsToDB_whenBufferHasData() {
         // Given
         Map<Long, Long> likeCounts = Map.of(1L, 3L, 2L, -1L);
@@ -101,13 +106,14 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementLikeCounts(likeCounts);
+        verify(postInteractionService).bulkIncrementCounts(likeCounts, RedisPostHashAdapter.FIELD_LIKE_COUNT);
+        verify(redisPostHashAdapter).batchIncrementCounts(likeCounts, RedisPostHashAdapter.FIELD_LIKE_COUNT);
     }
 
     // ==================== 댓글수 ====================
 
     @Test
-    @DisplayName("댓글수 버퍼에 데이터가 있으면 DB에 벌크 업데이트")
+    @DisplayName("댓글수 버퍼에 데이터가 있으면 DB + Hash에 벌크 업데이트")
     void shouldFlushCommentCountsToDB_whenBufferHasData() {
         // Given
         Map<Long, Long> commentCounts = Map.of(1L, 2L, 3L, 1L);
@@ -119,13 +125,14 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementCommentCounts(commentCounts);
+        verify(postInteractionService).bulkIncrementCounts(commentCounts, RedisPostHashAdapter.FIELD_COMMENT_COUNT);
+        verify(redisPostHashAdapter).batchIncrementCounts(commentCounts, RedisPostHashAdapter.FIELD_COMMENT_COUNT);
     }
 
     // ==================== 전체 플러시 ====================
 
     @Test
-    @DisplayName("모든 카운트 버퍼에 데이터가 있으면 전부 DB에 반영")
+    @DisplayName("모든 카운트 버퍼에 데이터가 있으면 전부 DB + Hash에 반영")
     void shouldFlushAllCounts_whenAllBuffersHaveData() {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 10L);
@@ -139,8 +146,11 @@ class PostViewCountFlushSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementViewCounts(viewCounts);
-        verify(postInteractionService).bulkIncrementLikeCounts(likeCounts);
-        verify(postInteractionService).bulkIncrementCommentCounts(commentCounts);
+        verify(postInteractionService).bulkIncrementCounts(viewCounts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
+        verify(postInteractionService).bulkIncrementCounts(likeCounts, RedisPostHashAdapter.FIELD_LIKE_COUNT);
+        verify(postInteractionService).bulkIncrementCounts(commentCounts, RedisPostHashAdapter.FIELD_COMMENT_COUNT);
+        verify(redisPostHashAdapter).batchIncrementCounts(viewCounts, RedisPostHashAdapter.FIELD_VIEW_COUNT);
+        verify(redisPostHashAdapter).batchIncrementCounts(likeCounts, RedisPostHashAdapter.FIELD_LIKE_COUNT);
+        verify(redisPostHashAdapter).batchIncrementCounts(commentCounts, RedisPostHashAdapter.FIELD_COMMENT_COUNT);
     }
 }

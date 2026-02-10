@@ -16,7 +16,6 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +50,6 @@ public class CommentCommandService {
     private final CommentLikeRepository commentLikeRepository;
     private final CommentClosureRepository commentClosureRepository;
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
-    private final RedisPostHashAdapter redisPostHashAdapter;
 
     /**
      * <h3>댓글 작성</h3>
@@ -277,13 +275,13 @@ public class CommentCommandService {
      * @param parentId 부모 댓글 ID (대댓글인 경우)
      */
     /**
-     * <h3>댓글수 Redis 버퍼 증감 + 캐시 즉시 반영</h3>
+     * <h3>댓글수 Redis 버퍼 증감</h3>
+     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
      * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
      */
     private void incrementCommentCountWithFallback(Long postId, long delta) {
         try {
             redisPostUpdateAdapter.incrementCommentBuffer(postId, delta);
-            redisPostHashAdapter.incrementCount(postId, RedisPostHashAdapter.FIELD_COMMENT_COUNT, delta);
         } catch (Exception e) {
             log.warn("[COMMENT_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
             if (delta > 0) {

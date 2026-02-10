@@ -27,8 +27,8 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>PostAdminService 테스트</h2>
  * <p>게시글 공지사항 서비스의 핵심 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>공지 설정: Post.isNotice true + 글 단위 Hash 생성 + SET 인덱스 SADD</p>
- * <p>공지 해제: Post.isNotice false + SET 인덱스 SREM (Hash는 유지)</p>
+ * <p>공지 설정: Post.isNotice true + 글 단위 Hash 생성 + List 인덱스 LPUSH</p>
+ * <p>공지 해제: Post.isNotice false + List 인덱스 LREM (Hash는 유지)</p>
  *
  * @author Jaeik
  * @version 3.0.0
@@ -53,7 +53,7 @@ class PostAdminServiceTest extends BaseUnitTest {
     private PostAdminService postAdminService;
 
     @Test
-    @DisplayName("게시글 공지 토글 - 일반 게시글을 공지로 설정 → Post.isNotice true + Hash 생성 + SET SADD")
+    @DisplayName("게시글 공지 토글 - 일반 게시글을 공지로 설정 → Post.isNotice true + Hash 생성 + List LPUSH")
     void shouldTogglePostNotice_WhenNormalPostToNotice() {
         // Given
         Long postId = 123L;
@@ -85,7 +85,7 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        // 글 단위 Hash 생성 + SET 인덱스 SADD
+        // 글 단위 Hash 생성 + List 인덱스 LPUSH
         verify(redisPostHashAdapter).createPostHash(mockDetail);
         verify(redisPostIndexAdapter).addToIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
     }
@@ -108,7 +108,7 @@ class PostAdminServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제 → Post.isNotice false + SET SREM")
+    @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제 → Post.isNotice false + List LREM")
     void shouldTogglePostNotice_WhenNoticePostToNormal() {
         // Given
         Long postId = 123L;
@@ -128,7 +128,7 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        // SET 인덱스에서 제거 (Hash는 삭제하지 않음 - 다른 목록에서 참조 가능)
+        // List 인덱스에서 제거 (Hash는 삭제하지 않음 - 다른 목록에서 참조 가능)
         verify(redisPostIndexAdapter).removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
     }
 }

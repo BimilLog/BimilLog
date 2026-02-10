@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.service;
 
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
-import jaeik.bimillog.domain.post.async.CacheRefreshExecutor;
 import jaeik.bimillog.domain.post.async.PostViewCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
@@ -12,7 +11,6 @@ import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisFirstPagePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,7 +29,7 @@ import java.util.*;
  * <p>게시판 목록 조회, 게시글 상세 조회, 검색 기능, 인기글 조회</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 3.1.0
  */
 @Service
 @RequiredArgsConstructor
@@ -43,15 +41,9 @@ public class PostQueryService {
     private final PostRepository postRepository;
     private final PostUtil postUtil;
     private final ApplicationEventPublisher eventPublisher;
-    private final RedisFirstPagePostAdapter redisFirstPagePostAdapter;
-    private final CacheRefreshExecutor cacheRefreshExecutor;
+    private final PostCacheService postCacheService;
     private final PostViewCountSync postViewCountSync;
     private final RealtimePostSync realtimePostSync;
-
-    /**
-     * 첫 페이지 캐시 크기 (20개)
-     */
-    public static final int FIRST_PAGE_SIZE = 20;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -70,7 +62,7 @@ public class PostQueryService {
 
         // 첫 페이지라면 캐시 조회 아니라면 DB 조회
         if (cursor == null) {
-            posts = getFirstPage();
+            posts = postCacheService.getFirstPagePosts();
         } else {
             posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
         }
@@ -90,27 +82,6 @@ public class PostQueryService {
         }
 
         return CursorPageResponse.of(posts, posts.getLast().getId(), hasNext, size);
-    }
-
-    /**
-     * <h3>첫 페이지 조회</h3>
-     * <p>캐시 조회, 캐시 미스 또는 장애 시 빈 리스트 반환 + 비동기 캐시 갱신</p>
-     *
-     * @return 게시글 목록 (캐시 미스 시 빈 리스트)
-     */
-    private List<PostSimpleDetail> getFirstPage() {
-        try {
-            List<PostSimpleDetail> posts = redisFirstPagePostAdapter.getFirstPage();
-            if (posts.isEmpty()) {
-                log.warn("게시판 첫 페이지 캐시 미스 - 비동기 갱신 트리거");
-                cacheRefreshExecutor.asyncRefreshWithLock();
-            }
-            return posts;
-        } catch (Exception e) {
-            log.error("게시판 첫 페이지 캐시 장애 - 비동기 갱신 트리거", e);
-            cacheRefreshExecutor.asyncRefreshWithLock();
-            return Collections.emptyList();
-        }
     }
 
     /**
