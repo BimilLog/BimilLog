@@ -74,8 +74,8 @@ public class PostCacheScheduler {
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshFirstPageCache() {
         List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
-        if (posts.size() > RedisKey.FIRST_PAGE_SIZE) {
-            posts = posts.subList(0, RedisKey.FIRST_PAGE_SIZE);
+        if (posts.size() > RedisKey.FIRST_PAGE_SIZE + 1) {
+            posts = posts.subList(0, RedisKey.FIRST_PAGE_SIZE + 1);
         }
         if (posts.isEmpty()) {
             log.info("첫 페이지에 대한 게시글이 없어 캐시 업데이트를 건너뜁니다.");

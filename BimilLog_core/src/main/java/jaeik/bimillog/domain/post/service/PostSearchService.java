@@ -1,10 +1,10 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostSearchRepository;
-import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,9 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,7 +28,7 @@ import java.util.stream.Collectors;
 @Log
 public class PostSearchService {
     private final PostSearchRepository postSearchRepository;
-    private final PostUtil postUtil;
+    private final PostToMemberAdapter postToMemberAdapter;
 
     /**
      * <h3>게시글 검색 전략 선택</h3>
@@ -69,7 +71,9 @@ public class PostSearchService {
             return posts;
         }
 
-        List<PostSimpleDetail> blackListFilterPosts = postUtil.removePostsWithBlacklist(memberId, posts.getContent());
+        Set<Long> blacklistSet = new HashSet<>(postToMemberAdapter.getInterActionBlacklist(memberId));
+        List<PostSimpleDetail> blackListFilterPosts = posts.getContent().stream()
+                .filter(post -> !blacklistSet.contains(post.getMemberId())).collect(Collectors.toList());
 
         return new PageImpl<>(blackListFilterPosts, posts.getPageable(),
                 posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));

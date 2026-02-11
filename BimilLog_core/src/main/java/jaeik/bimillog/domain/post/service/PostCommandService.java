@@ -102,20 +102,7 @@ public class PostCommandService {
         post.updatePost(title, content);
 
         // 모든 캐시 비동기 처리 (인기글 Hash 무효화 + 첫 페이지 LSET)
-        PostSimpleDetail updatedDetail = PostSimpleDetail.builder()
-                .id(postId)
-                .title(title)
-                .viewCount(post.getViews())
-                .likeCount(post.getLikeCount())
-                .createdAt(post.getCreatedAt())
-                .memberId(post.getMember() != null ? post.getMember().getId() : null)
-                .memberName(post.getMemberName())
-                .commentCount(post.getCommentCount())
-                .isWeekly(post.isWeekly())
-                .isLegend(post.isLegend())
-                .isNotice(post.isNotice())
-                .build();
-        cacheUpdateSync.asyncUpdatePost(postId, updatedDetail);
+        cacheUpdateSync.asyncUpdatePost(postId, PostSimpleDetail.from(post));
     }
 
     /**

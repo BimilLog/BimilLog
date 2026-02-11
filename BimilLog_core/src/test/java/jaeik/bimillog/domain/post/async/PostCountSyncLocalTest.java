@@ -48,23 +48,27 @@ class PostCountSyncLocalTest {
         stringRedisTemplate.delete(RedisKey.VIEW_COUNTS_KEY);
         stringRedisTemplate.delete(RedisKey.LIKE_COUNTS_KEY);
         stringRedisTemplate.delete(RedisKey.COMMENT_COUNTS_KEY);
-        stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID);
         stringRedisTemplate.delete(RedisKey.REALTIME_POST_SCORE_KEY);
+        // SET NX EX 방식 조회 마킹 키 정리
+        stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":" + TEST_VIEWER_KEY);
+        stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":ip:1.1.1.1");
+        stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":ip:2.2.2.2");
+        stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":m:100");
     }
 
     // ==================== 조회수 버퍼 ====================
 
     @Test
-    @DisplayName("조회수 - 첫 조회 시 Redis SET 마킹 + 조회수 버퍼 증가")
+    @DisplayName("조회수 - 첫 조회 시 SET NX EX 마킹 + 조회수 버퍼 증가")
     void handlePostViewed_firstView_shouldMarkAndIncrement() {
         // When
         postCountSync.handlePostViewed(TEST_POST_ID, TEST_VIEWER_KEY);
         waitForAsync();
 
-        // Then - SET에 viewer 마킹 확인
-        Boolean isMember = stringRedisTemplate.opsForSet()
-                .isMember(RedisKey.VIEW_PREFIX + TEST_POST_ID, TEST_VIEWER_KEY);
-        assertThat(isMember).isTrue();
+        // Then - String 키로 viewer 마킹 확인
+        String viewKey = RedisKey.VIEW_PREFIX + TEST_POST_ID + ":" + TEST_VIEWER_KEY;
+        Boolean exists = stringRedisTemplate.hasKey(viewKey);
+        assertThat(exists).isTrue();
 
         // Then - Hash 버퍼에 조회수 1 증가 확인
         Map<Long, Long> viewCounts = redisPostUpdateAdapter.getAndClearViewCounts();
@@ -171,9 +175,9 @@ class PostCountSyncLocalTest {
     @Test
     @DisplayName("getAndClear - 조회 후 버퍼가 비워짐")
     void getAndClear_shouldReturnAndDeleteBuffer() {
-        // Given
-        redisPostUpdateAdapter.incrementViewCount(TEST_POST_ID);
-        redisPostUpdateAdapter.incrementViewCount(TEST_POST_ID);
+        // Given - 서로 다른 viewerKey로 2회 조회하여 버퍼에 2 누적
+        redisPostUpdateAdapter.markViewedAndIncrement(TEST_POST_ID, "ip:1.1.1.1");
+        redisPostUpdateAdapter.markViewedAndIncrement(TEST_POST_ID, "ip:2.2.2.2");
 
         // When - 첫 번째 호출
         Map<Long, Long> first = redisPostUpdateAdapter.getAndClearViewCounts();

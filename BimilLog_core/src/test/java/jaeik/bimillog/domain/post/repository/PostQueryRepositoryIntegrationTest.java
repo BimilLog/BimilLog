@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
-import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
@@ -42,12 +41,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest(
         includeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = {PostQueryRepository.class, PostUtil.class}
+                classes = {PostQueryRepository.class}
         )
 )
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({PostSearchRepository.class, PostQueryRepository.class, PostUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
+@Import({PostSearchRepository.class, PostQueryRepository.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
 @Tag("local-integration")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PostQueryRepositoryIntegrationTest {

@@ -2,12 +2,12 @@ package jaeik.bimillog.domain.post.service;
 
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.*;
-import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jaeik.bimillog.domain.post.dto.CursorPageResponse;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <h2>게시글 조회 서비스</h2>
@@ -39,7 +40,7 @@ public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
-    private final PostUtil postUtil;
+    private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final PostCacheService postCacheService;
     private final PostCountSync postCountSync;
@@ -66,20 +67,16 @@ public class PostQueryService {
             posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
         }
 
-        // 블랙리스트 필터링
-        if (memberId != null && !posts.isEmpty()) {
-            posts = postUtil.removePostsWithBlacklist(memberId, posts);
-        }
-
-        // 빈 페이지라면 즉시 반환 블랙리스트 필터링으로 인해 빈 페이지가 되어도 반환됨
-        if (posts.isEmpty()) {
-            return CursorPageResponse.of(posts, null, false, 0);
-        }
-
         // 다음 페이지가 있는지 판단
         boolean hasNext = posts.size() > size;
         if (hasNext) {
             posts = new ArrayList<>(posts.subList(0, size));
+        }
+
+        // 블랙리스트 필터링
+        if (memberId != null && !posts.isEmpty()) {
+            Set<Long> blacklistSet = new HashSet<>(postToMemberAdapter.getInterActionBlacklist(memberId));
+            posts = posts.stream().filter(post -> !blacklistSet.contains(post.getMemberId())).collect(Collectors.toList());
         }
 
         return CursorPageResponse.of(posts, posts.getLast().getId(), hasNext, size);

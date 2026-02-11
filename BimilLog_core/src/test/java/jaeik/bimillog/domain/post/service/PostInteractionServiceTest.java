@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
-import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -51,9 +51,6 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
     @Mock
     private PostRepository postRepository;
-
-    @Mock
-    private PostQueryRepository postQueryRepository;
 
     @Mock
     private PostToMemberAdapter postToMemberAdapter;

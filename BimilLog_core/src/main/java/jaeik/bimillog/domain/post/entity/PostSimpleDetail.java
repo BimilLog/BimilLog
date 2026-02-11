@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.entity;
 
 import com.querydsl.core.annotations.QueryProjection;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -61,5 +62,24 @@ public class PostSimpleDetail implements Serializable {
      */
     public static PostSimpleDetail createNew(Long id, String title, Instant createdAt, Long memberId, String memberName) {
         return new PostSimpleDetail(id, title, 0, 0, createdAt, memberId, memberName, 0, false, false, false);
+    }
+
+    /**
+     * Post 엔티티로부터 PostSimpleDetail 생성
+     */
+    public static PostSimpleDetail from(Post post) {
+        return new PostSimpleDetail(
+                post.getId(),
+                post.getTitle(),
+                post.getViews(),
+                post.getLikeCount(),
+                post.getCreatedAt(),
+                post.getMember() != null ? post.getMember().getId() : null,
+                post.getMemberName(),
+                post.getCommentCount(),
+                post.isWeekly(),
+                post.isLegend(),
+                post.isNotice()
+        );
     }
 }

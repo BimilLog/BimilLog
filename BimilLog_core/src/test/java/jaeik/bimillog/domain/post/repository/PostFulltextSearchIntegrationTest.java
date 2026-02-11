@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.service.PostSearchService;
-import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
@@ -48,12 +47,12 @@ import static org.mockito.BDDMockito.given;
 @DataJpaTest(
         includeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = {PostQueryRepository.class, PostUtil.class}
+                classes = {PostQueryRepository.class}
         )
 )
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({PostSearchRepository.class, PostSearchService.class, PostUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
+@Import({PostSearchRepository.class, PostSearchService.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
 @Tag("local-integration")
 class PostFulltextSearchIntegrationTest {
 

@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.*;
-import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 
@@ -55,7 +55,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostRepository postRepository;
 
     @Mock
-    private PostUtil postUtil;
+    private PostToMemberAdapter postToMemberAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -92,7 +92,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.hasNext()).isFalse();
 
         verify(postCacheService).getFirstPagePosts();
-        verify(postUtil, never()).removePostsWithBlacklist(any(), anyList());
+        verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
@@ -123,7 +123,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.nextCursor()).isEqualTo(4L);
 
         verify(postCacheService).getFirstPagePosts();
-        verify(postUtil, never()).removePostsWithBlacklist(any(), anyList());
+        verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
@@ -146,7 +146,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("DB 폴백 글");
 
         verify(postCacheService).getFirstPagePosts();
-        verify(postUtil, never()).removePostsWithBlacklist(any(), anyList());
+        verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
     }
 
     @Test
@@ -168,7 +168,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
 
         verify(postCacheService, never()).getFirstPagePosts();
-        verify(postUtil, never()).removePostsWithBlacklist(any(), anyList());
+        verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository).findBoardPostsByCursor(cursor, size);
     }
 
@@ -191,7 +191,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         );
 
         given(postCacheService.getFirstPagePosts()).willReturn(cachedPosts);
-        given(postUtil.removePostsWithBlacklist(eq(memberId), anyList())).willReturn(filteredPosts);
+        given(postToMemberAdapter.getInterActionBlacklist(memberId)).willReturn(List.of(2L));
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, memberId);
