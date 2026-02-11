@@ -8,13 +8,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.script.RedisScript;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static jaeik.bimillog.infrastructure.redis.RedisKey.VIEW_COUNTS_KEY;
 import static jaeik.bimillog.infrastructure.redis.RedisKey.VIEW_TTL_SECONDS;
@@ -36,7 +36,7 @@ class RedisPostUpdateAdapterTest {
     private StringRedisTemplate stringRedisTemplate;
 
     @Mock
-    private SetOperations<String, String> setOperations;
+    private ValueOperations<String, String> valueOperations;
 
     @Mock
     private HashOperations<String, Object, Object> hashOperations;
@@ -45,81 +45,29 @@ class RedisPostUpdateAdapterTest {
     private RedisPostUpdateAdapter adapter;
 
     @Test
-    @DisplayName("조회 이력이 없는 경우 false 반환")
-    void hasViewed_shouldReturnFalse_whenNotViewed() {
-        // Given
-        given(stringRedisTemplate.opsForSet()).willReturn(setOperations);
-        given(setOperations.isMember("post:view:1", "m:100")).willReturn(false);
-
-        // When
-        boolean result = adapter.hasViewed(1L, "m:100");
-
-        // Then
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    @DisplayName("조회 이력이 있는 경우 true 반환")
-    void hasViewed_shouldReturnTrue_whenAlreadyViewed() {
-        // Given
-        given(stringRedisTemplate.opsForSet()).willReturn(setOperations);
-        given(setOperations.isMember("post:view:1", "m:100")).willReturn(true);
-
-        // When
-        boolean result = adapter.hasViewed(1L, "m:100");
-
-        // Then
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    @DisplayName("조회 마킹 시 SET에 추가하고 TTL 설정")
-    void markViewed_shouldAddToSetAndSetTtl() {
-        // Given
-        given(stringRedisTemplate.opsForSet()).willReturn(setOperations);
-        given(stringRedisTemplate.expire(anyString(), anyLong(), any(TimeUnit.class))).willReturn(true);
-
-        // When
-        adapter.markViewed(1L, "m:100");
-
-        // Then
-        verify(setOperations).add("post:view:1", "m:100");
-        verify(stringRedisTemplate).expire("post:view:1", VIEW_TTL_SECONDS, TimeUnit.SECONDS);
-    }
-
-    @Test
-    @DisplayName("조회수 증가 시 Hash에 HINCRBY 실행")
-    void incrementViewCount_shouldIncrementHash() {
-        // Given
-        given(stringRedisTemplate.opsForHash()).willReturn(hashOperations);
-
-        // When
-        adapter.incrementViewCount(1L);
-
-        // Then
-        verify(hashOperations).increment(VIEW_COUNTS_KEY, "1", 1L);
-    }
-
-    @Test
-    @DisplayName("원자적 조회 마킹 + 조회수 증가 - 새로운 조회 시 1 반환")
+    @DisplayName("새로운 조회 시 SET NX EX 성공 + 조회수 버퍼 증가")
     void markViewedAndIncrement_shouldReturnTrue_whenNewView() {
         // Given
-        given(stringRedisTemplate.execute(any(RedisScript.class), anyList(), any(), any(), any()))
-                .willReturn(1L);
+        given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.setIfAbsent("post:view:1:m:100", "1", Duration.ofSeconds(VIEW_TTL_SECONDS)))
+                .willReturn(true);
+        given(stringRedisTemplate.opsForHash()).willReturn(hashOperations);
 
         // When
         boolean result = adapter.markViewedAndIncrement(1L, "m:100");
 
         // Then
         assertThat(result).isTrue();
+        verify(hashOperations).increment(VIEW_COUNTS_KEY, "1", 1L);
     }
 
     @Test
-    @DisplayName("원자적 조회 마킹 + 조회수 증가 - 이미 조회한 경우 0 반환")
+    @DisplayName("이미 조회한 경우 SET NX EX 실패 + 조회수 증가하지 않음")
     void markViewedAndIncrement_shouldReturnFalse_whenAlreadyViewed() {
         // Given
-        given(stringRedisTemplate.execute(any(RedisScript.class), anyList(), any(), any(), any()))
-                .willReturn(0L);
+        given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.setIfAbsent("post:view:1:m:100", "1", Duration.ofSeconds(VIEW_TTL_SECONDS)))
+                .willReturn(false);
 
         // When
         boolean result = adapter.markViewedAndIncrement(1L, "m:100");

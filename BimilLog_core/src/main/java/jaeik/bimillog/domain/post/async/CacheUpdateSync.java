@@ -41,7 +41,7 @@ public class CacheUpdateSync {
      */
     @Async("cacheRefreshPool")
     public void asyncAddNewPost(PostSimpleDetail post) {
-        redisPostJsonListAdapter.addNewPost(RedisKey.FIRST_PAGE_JSON_KEY, post, RedisKey.FIRST_PAGE_SIZE);
+        redisPostJsonListAdapter.addNewPost(RedisKey.FIRST_PAGE_JSON_KEY, post, RedisKey.FIRST_PAGE_SIZE + 1);
     }
 
     /**
@@ -64,18 +64,18 @@ public class CacheUpdateSync {
     public void asyncDeletePost(Long postId) {
         redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
 
-        // 주간/레전드/공지/실시간 JSON LIST에서 삭제 (보충 불필요)
+        // 주간/레전드/공지/실시간 JSON LIST에서 삭제
         redisPostJsonListAdapter.removePost(RedisKey.POST_WEEKLY_JSON_KEY, postId);
         redisPostJsonListAdapter.removePost(RedisKey.POST_LEGEND_JSON_KEY, postId);
         redisPostJsonListAdapter.removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
         redisPostJsonListAdapter.removePost(RedisKey.POST_REALTIME_JSON_KEY, postId);
 
-        // 첫 페이지 JSON LIST에서 삭제 + 보충
+        // 첫 페이지 JSON LIST에서 삭제
         Long lastPostId = redisPostJsonListAdapter.removePost(RedisKey.FIRST_PAGE_JSON_KEY, postId);
         if (lastPostId != null) {
             List<PostSimpleDetail> nextPosts = postQueryRepository.findBoardPostsByCursor(lastPostId, 1);
             if (!nextPosts.isEmpty()) {
-                redisPostJsonListAdapter.appendPost(RedisKey.FIRST_PAGE_JSON_KEY, nextPosts.getFirst(), RedisKey.FIRST_PAGE_SIZE);
+                redisPostJsonListAdapter.appendPost(RedisKey.FIRST_PAGE_JSON_KEY, nextPosts.getFirst(), RedisKey.FIRST_PAGE_SIZE + 1);
             }
         }
     }

@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.repository;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -527,15 +528,35 @@ public class PostQueryRepository {
     }
 
     /**
-     * 카운트 필드 동적 벌크 증감
+     * <h3>카운트 필드 세트 기반 벌크 증감</h3>
+     * <p>CASE WHEN을 사용하여 단일 UPDATE SQL로 여러 게시글의 카운트를 일괄 증감합니다.</p>
+     * <pre>
+     * UPDATE post
+     * SET views = views + CASE id WHEN 1 THEN 3 WHEN 2 THEN 5 ELSE 0 END
+     * WHERE id IN (1, 2)
+     * </pre>
      */
     public void bulkIncrementCount(Map<Long, Long> counts, NumberPath<Integer> field) {
+        if (counts.isEmpty()) return;
+
         QPost post = QPost.post;
+
+        CaseBuilder.Cases<Integer, NumberExpression<Integer>> caseExpression = null;
         for (Map.Entry<Long, Long> entry : counts.entrySet()) {
-            jpaQueryFactory.update(post)
-                    .set(field, field.add(entry.getValue().intValue()))
-                    .where(post.id.eq(entry.getKey()))
-                    .execute();
+            if (caseExpression == null) {
+                caseExpression = new CaseBuilder()
+                        .when(post.id.eq(entry.getKey())).then(entry.getValue().intValue());
+            } else {
+                caseExpression = caseExpression
+                        .when(post.id.eq(entry.getKey())).then(entry.getValue().intValue());
+            }
         }
+
+        NumberExpression<Integer> delta = caseExpression.otherwise(0);
+
+        jpaQueryFactory.update(post)
+                .set(field, field.add(delta))
+                .where(post.id.in(counts.keySet()))
+                .execute();
     }
 }

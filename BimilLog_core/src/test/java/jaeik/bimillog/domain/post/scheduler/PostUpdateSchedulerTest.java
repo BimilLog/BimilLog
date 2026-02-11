@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.scheduler;
 
-import jaeik.bimillog.domain.post.service.PostInteractionService;
+import com.querydsl.core.types.dsl.NumberPath;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
@@ -34,7 +35,7 @@ class PostUpdateSchedulerTest {
     private RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     @Mock
-    private PostInteractionService postInteractionService;
+    private PostQueryRepository postQueryRepository;
 
     @Mock
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
@@ -56,7 +57,7 @@ class PostUpdateSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService, never()).bulkIncrementCounts(any(), any());
+        verify(postQueryRepository, never()).bulkIncrementCount(any(), any());
         verify(redisPostJsonListAdapter, never()).batchIncrementCounts(any(), any(), any());
     }
 
@@ -73,7 +74,7 @@ class PostUpdateSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementCounts(viewCounts, RedisKey.FIELD_VIEW_COUNT);
+        verify(postQueryRepository).bulkIncrementCount(eq(viewCounts), any(NumberPath.class));
         // 5개 JSON LIST에 모두 반영
         verify(redisPostJsonListAdapter).batchIncrementCounts(eq(RedisKey.FIRST_PAGE_JSON_KEY), eq(viewCounts), eq(RedisKey.FIELD_VIEW_COUNT));
         verify(redisPostJsonListAdapter).batchIncrementCounts(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(viewCounts), eq(RedisKey.FIELD_VIEW_COUNT));
@@ -88,7 +89,7 @@ class PostUpdateSchedulerTest {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L);
         given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
-        doThrow(new RuntimeException("DB 오류")).when(postInteractionService).bulkIncrementCounts(any(), any());
+        doThrow(new RuntimeException("DB 오류")).when(postQueryRepository).bulkIncrementCount(any(), any());
         given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
         given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
 
@@ -96,7 +97,7 @@ class PostUpdateSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementCounts(viewCounts, RedisKey.FIELD_VIEW_COUNT);
+        verify(postQueryRepository).bulkIncrementCount(eq(viewCounts), any(NumberPath.class));
     }
 
     // ==================== 좋아요 ====================
@@ -114,7 +115,7 @@ class PostUpdateSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementCounts(likeCounts, RedisKey.FIELD_LIKE_COUNT);
+        verify(postQueryRepository).bulkIncrementCount(eq(likeCounts), any(NumberPath.class));
         verify(redisPostJsonListAdapter, times(5)).batchIncrementCounts(any(), eq(likeCounts), eq(RedisKey.FIELD_LIKE_COUNT));
     }
 
@@ -133,7 +134,7 @@ class PostUpdateSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then
-        verify(postInteractionService).bulkIncrementCounts(commentCounts, RedisKey.FIELD_COMMENT_COUNT);
+        verify(postQueryRepository).bulkIncrementCount(eq(commentCounts), any(NumberPath.class));
         verify(redisPostJsonListAdapter, times(5)).batchIncrementCounts(any(), eq(commentCounts), eq(RedisKey.FIELD_COMMENT_COUNT));
     }
 
@@ -154,9 +155,9 @@ class PostUpdateSchedulerTest {
         scheduler.flushAllCounts();
 
         // Then - DB 반영
-        verify(postInteractionService).bulkIncrementCounts(viewCounts, RedisKey.FIELD_VIEW_COUNT);
-        verify(postInteractionService).bulkIncrementCounts(likeCounts, RedisKey.FIELD_LIKE_COUNT);
-        verify(postInteractionService).bulkIncrementCounts(commentCounts, RedisKey.FIELD_COMMENT_COUNT);
+        verify(postQueryRepository).bulkIncrementCount(eq(viewCounts), any(NumberPath.class));
+        verify(postQueryRepository).bulkIncrementCount(eq(likeCounts), any(NumberPath.class));
+        verify(postQueryRepository).bulkIncrementCount(eq(commentCounts), any(NumberPath.class));
         // JSON LIST 반영 (각 카운트 × 5개 키 = 15회)
         verify(redisPostJsonListAdapter, times(15)).batchIncrementCounts(any(), any(), any());
     }
