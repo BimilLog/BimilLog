@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,6 +19,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.PageRequest;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -26,12 +29,12 @@ import java.util.function.Supplier;
 /**
  * <h2>PostCacheScheduler</h2>
  * <p>게시글 캐시 동기화를 담당하는 스케줄링 서비스</p>
- * <p>주간/레전드/공지/첫 페이지 JSON LIST 캐시를 24시간마다 재구축합니다.</p>
+ * <p>주간/레전드/공지/첫 페이지/실시간 인기글 JSON LIST 캐시를 24시간마다 재구축합니다.</p>
  * <p>DB 조회 → 플래그 업데이트 → JSON LIST 전체 교체를 통째로 재시도합니다.</p>
  * <p>이벤트 발행은 재시도 범위에서 제외됩니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.8.0
  */
 @Log(logResult = false, logExecutionTime = true, message = "스케줄 캐시 갱신")
 @Service
@@ -39,9 +42,12 @@ import java.util.function.Supplier;
 @Slf4j
 public class PostCacheScheduler {
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final PostQueryRepository postQueryRepository;
     private final PostRepository postRepository;
     private final ApplicationEventPublisher eventPublisher;
+
+    private static final int REALTIME_TOP_N = 5;
 
     @Scheduled(fixedRate = 60000 * 1440)
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
@@ -84,6 +90,25 @@ public class PostCacheScheduler {
 
         redisPostJsonListAdapter.replaceAll(RedisKey.FIRST_PAGE_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
         log.info("첫 페이지 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
+    }
+
+    @Scheduled(fixedRate = 60000 * 1440)
+    @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
+    public void refreshRealtimePopularPosts() {
+        List<Long> topIds = redisRealTimePostAdapter.getRangePostId();
+        if (topIds.isEmpty()) {
+            log.info("실시간 인기글에 대한 게시글이 없어 캐시 업데이트를 건너뜁니다.");
+            return;
+        }
+
+        List<PostSimpleDetail> posts = postQueryRepository
+                .findPostSimpleDetailsByIds(topIds, PageRequest.of(0, REALTIME_TOP_N))
+                .getContent();
+
+        if (!posts.isEmpty()) {
+            redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
+            log.info("실시간 인기글 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
+        }
     }
 
     /**
