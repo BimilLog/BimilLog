@@ -98,10 +98,9 @@ public class GlobalExceptionHandler {
                 userMessage);
 
         // 실제 에러 정보는 로그에만 기록 (보안상 사용자에게 노출하지 않음)
-        log.error("Exception occurred: 타입={}, 메시지={}, 스택트레이스 상위 3개={}", 
-                e.getClass().getSimpleName(), 
+        log.error("Exception occurred: 타입={}, 메시지={}",
+                e.getClass().getSimpleName(),
                 e.getMessage(),
-                getTopStackTrace(e),
                 e);
         
         return ResponseEntity.status(status).body(response);
@@ -145,25 +144,6 @@ public class GlobalExceptionHandler {
                exceptionName.contains("SocketException") ||
                exceptionName.contains("TimeoutException") ||
                exceptionName.contains("UnknownHostException");
-    }
-
-    /**
-     * <h3>스택 트레이스 상위 3개 항목만 추출</h3>
-     * <p>로그 가독성을 위해 스택 트레이스를 제한적으로 기록</p>
-     */
-    private String getTopStackTrace(Exception e) {
-        StackTraceElement[] elements = e.getStackTrace();
-        if (elements == null || elements.length == 0) {
-            return "스택트레이스 없음";
-        }
-        
-        StringBuilder sb = new StringBuilder();
-        int limit = Math.min(3, elements.length);
-        for (int i = 0; i < limit; i++) {
-            if (i > 0) sb.append(" -> ");
-            sb.append(elements[i].toString());
-        }
-        return sb.toString();
     }
 
     /**
