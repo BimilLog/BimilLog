@@ -106,7 +106,7 @@ public class RedisRealTimePostAdapter {
      * <p>PostCacheScheduler 스케줄러에서 5분마다 호출됩니다.</p>
      */
     public void applyRealtimePopularScoreDecay() {
-        // 1. 모든 항목의 점수에 0.9 곱하기 (Lua 스크립트 사용)
+        // 1. 모든 항목의 점수에 0.97 곱하기
         stringRedisTemplate.execute(
                 SCORE_DECAY_SCRIPT,
                 List.of(REALTIME_SCORE_KEY),

@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -17,6 +18,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -45,6 +48,9 @@ class PostCacheSchedulerTest {
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @Mock
+    private RedisRealTimePostAdapter redisRealTimePostAdapter;
+
+    @Mock
     private PostQueryRepository postQueryRepository;
 
     @Mock
@@ -59,6 +65,7 @@ class PostCacheSchedulerTest {
     void setUp() {
         postCacheScheduler = new PostCacheScheduler(
                 redisPostJsonListAdapter,
+                redisRealTimePostAdapter,
                 postQueryRepository,
                 postRepository,
                 eventPublisher
@@ -260,6 +267,43 @@ class PostCacheSchedulerTest {
 
         // Then
         verify(redisPostJsonListAdapter, never()).replaceAll(any(), any(), any());
+    }
+
+    // ==================== 실시간 인기글 ====================
+
+    @Test
+    @DisplayName("실시간 인기글 캐시 갱신 - 성공 (ZSet top ID → DB → JSON LIST 교체)")
+    void shouldRefreshRealtimePopularPosts_WhenZSetHasData() {
+        // Given
+        List<Long> topIds = List.of(3L, 1L, 5L);
+        PostSimpleDetail post1 = createPostSimpleDetail(3L, "실시간인기글1", 1L);
+        PostSimpleDetail post2 = createPostSimpleDetail(1L, "실시간인기글2", 2L);
+        PostSimpleDetail post3 = createPostSimpleDetail(5L, "실시간인기글3", 3L);
+        List<PostSimpleDetail> posts = List.of(post1, post2, post3);
+
+        given(redisRealTimePostAdapter.getRangePostId()).willReturn(topIds);
+        given(postQueryRepository.findPostSimpleDetailsByIds(eq(topIds), any(Pageable.class)))
+                .willReturn(new PageImpl<>(posts));
+
+        // When
+        postCacheScheduler.refreshRealtimePopularPosts();
+
+        // Then
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_REALTIME_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
+    }
+
+    @Test
+    @DisplayName("실시간 인기글 캐시 갱신 - ZSet 비어있으면 스킵")
+    void shouldSkipRealtimeRefresh_WhenZSetIsEmpty() {
+        // Given
+        given(redisRealTimePostAdapter.getRangePostId()).willReturn(List.of());
+
+        // When
+        postCacheScheduler.refreshRealtimePopularPosts();
+
+        // Then
+        verify(redisPostJsonListAdapter, never()).replaceAll(
+                eq(RedisKey.POST_REALTIME_JSON_KEY), any(), any());
     }
 
     // 테스트 유틸리티 메서드들
