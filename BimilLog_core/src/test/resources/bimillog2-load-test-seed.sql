@@ -73,9 +73,10 @@ SELECT NOW() AS '완료 시각', CONCAT('회원 생성 완료: ', @member_end - 
 -- is_notice 컬럼 제거됨 (V2.14)
 -- =====================================================
 
--- 1차 (0 ~ 9,999)
-INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
+-- 1차 (1 ~ 10,000) - 명시적 post_id로 연속 ID 보장
+INSERT INTO post (post_id, member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
+    n + 1,
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', n),
     CONCAT('<p>부하테스트 게시글 #', n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
@@ -89,9 +90,10 @@ FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 10,000개 완료' AS progress;
 
--- 2차 (10,000 ~ 19,999)
-INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
+-- 2차 (10,001 ~ 20,000)
+INSERT INTO post (post_id, member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
+    10000 + n + 1,
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 10000 + n),
     CONCAT('<p>부하테스트 게시글 #', 10000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
@@ -105,9 +107,10 @@ FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 20,000개 완료' AS progress;
 
--- 3차 (20,000 ~ 29,999)
-INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
+-- 3차 (20,001 ~ 30,000)
+INSERT INTO post (post_id, member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
+    20000 + n + 1,
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 20000 + n),
     CONCAT('<p>부하테스트 게시글 #', 20000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
@@ -121,9 +124,10 @@ FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 30,000개 완료' AS progress;
 
--- 4차 (30,000 ~ 39,999)
-INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
+-- 4차 (30,001 ~ 40,000)
+INSERT INTO post (post_id, member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
+    30000 + n + 1,
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 30000 + n),
     CONCAT('<p>부하테스트 게시글 #', 30000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
@@ -137,9 +141,10 @@ FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 40,000개 완료' AS progress;
 
--- 5차 (40,000 ~ 49,999)
-INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
+-- 5차 (40,001 ~ 50,000)
+INSERT INTO post (post_id, member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
+    40000 + n + 1,
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 40000 + n),
     CONCAT('<p>부하테스트 게시글 #', 40000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
@@ -153,9 +158,10 @@ FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 50,000개 완료' AS progress;
 
--- 6차 (50,000 ~ 59,999)
-INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
+-- 6차 (50,001 ~ 60,000)
+INSERT INTO post (post_id, member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
+    50000 + n + 1,
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 50000 + n),
     CONCAT('<p>부하테스트 게시글 #', 50000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
@@ -169,9 +175,10 @@ FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 60,000개 완료' AS progress;
 
--- 7차 (60,000 ~ 69,999)
-INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
+-- 7차 (60,001 ~ 70,000)
+INSERT INTO post (post_id, member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
+    60000 + n + 1,
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 60000 + n),
     CONCAT('<p>부하테스트 게시글 #', 60000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
@@ -185,9 +192,10 @@ FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 70,000개 완료' AS progress;
 
--- 8차 (70,000 ~ 79,999)
-INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
+-- 8차 (70,001 ~ 80,000)
+INSERT INTO post (post_id, member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
+    70000 + n + 1,
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 70000 + n),
     CONCAT('<p>부하테스트 게시글 #', 70000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
@@ -201,9 +209,10 @@ FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 80,000개 완료' AS progress;
 
--- 9차 (80,000 ~ 89,999)
-INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
+-- 9차 (80,001 ~ 90,000)
+INSERT INTO post (post_id, member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
+    80000 + n + 1,
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 80000 + n),
     CONCAT('<p>부하테스트 게시글 #', 80000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
@@ -217,9 +226,10 @@ FROM _numbers WHERE n < 10000;
 COMMIT;
 SELECT NOW() AS '시각', '게시글 90,000개 완료' AS progress;
 
--- 10차 (90,000 ~ 99,999)
-INSERT INTO post (member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
+-- 10차 (90,001 ~ 100,000)
+INSERT INTO post (post_id, member_id, title, content, views, password, like_count, comment_count, member_name, created_at)
 SELECT
+    90000 + n + 1,
     CASE WHEN n % 5 = 0 THEN NULL ELSE @member_start + (n % 1000) END,
     CONCAT('테스트 글 ', 90000 + n),
     CONCAT('<p>부하테스트 게시글 #', 90000 + n, ' - 자동 생성됨. Lorem ipsum dolor sit amet.</p>'),
