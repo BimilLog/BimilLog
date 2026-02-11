@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.redis.post;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RequiredArgsConstructor
 public class RedisPostUpdateAdapter {
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     private static final String VIEW_PREFIX = RedisKey.VIEW_PREFIX;
     private static final long VIEW_TTL_SECONDS = RedisKey.VIEW_TTL_SECONDS;
@@ -70,7 +70,7 @@ public class RedisPostUpdateAdapter {
      */
     public boolean hasViewed(Long postId, String viewerKey) {
         String key = VIEW_PREFIX + postId;
-        Boolean isMember = redisTemplate.opsForSet().isMember(key, viewerKey);
+        Boolean isMember = stringRedisTemplate.opsForSet().isMember(key, viewerKey);
         return Boolean.TRUE.equals(isMember);
     }
 
@@ -83,8 +83,8 @@ public class RedisPostUpdateAdapter {
      */
     public void markViewed(Long postId, String viewerKey) {
         String key = VIEW_PREFIX + postId;
-        redisTemplate.opsForSet().add(key, viewerKey);
-        redisTemplate.expire(key, VIEW_TTL_SECONDS, TimeUnit.SECONDS);
+        stringRedisTemplate.opsForSet().add(key, viewerKey);
+        stringRedisTemplate.expire(key, VIEW_TTL_SECONDS, TimeUnit.SECONDS);
     }
 
     /**
@@ -94,7 +94,7 @@ public class RedisPostUpdateAdapter {
      * @param postId 게시글 ID
      */
     public void incrementViewCount(Long postId) {
-        redisTemplate.opsForHash().increment(VIEW_COUNTS_KEY, postId.toString(), 1L);
+        stringRedisTemplate.opsForHash().increment(VIEW_COUNTS_KEY, postId.toString(), 1L);
     }
 
     /**
@@ -110,7 +110,7 @@ public class RedisPostUpdateAdapter {
         String viewSetKey = VIEW_PREFIX + postId;
 
         DefaultRedisScript<Long> script = new DefaultRedisScript<>(MARK_VIEWED_AND_INCREMENT_SCRIPT, Long.class);
-        Long result = redisTemplate.execute(
+        Long result = stringRedisTemplate.execute(
                 script,
                 List.of(viewSetKey, VIEW_COUNTS_KEY),
                 viewerKey, postId.toString(), String.valueOf(VIEW_TTL_SECONDS)
@@ -141,7 +141,7 @@ public class RedisPostUpdateAdapter {
      * @param delta  증감량 (양수: 좋아요, 음수: 취소)
      */
     public void incrementLikeBuffer(Long postId, long delta) {
-        redisTemplate.opsForHash().increment(LIKE_COUNTS_KEY, postId.toString(), delta);
+        stringRedisTemplate.opsForHash().increment(LIKE_COUNTS_KEY, postId.toString(), delta);
     }
 
     /**
@@ -163,7 +163,7 @@ public class RedisPostUpdateAdapter {
      * @param delta  증감량 (양수: 작성, 음수: 삭제)
      */
     public void incrementCommentBuffer(Long postId, long delta) {
-        redisTemplate.opsForHash().increment(COMMENT_COUNTS_KEY, postId.toString(), delta);
+        stringRedisTemplate.opsForHash().increment(COMMENT_COUNTS_KEY, postId.toString(), delta);
     }
 
     /**
@@ -180,7 +180,7 @@ public class RedisPostUpdateAdapter {
     @SuppressWarnings("unchecked")
     private Map<Long, Long> getAndClearCounts(String countsKey) {
         DefaultRedisScript<List> script = new DefaultRedisScript<>(GET_AND_CLEAR_VIEW_COUNTS_SCRIPT, List.class);
-        List<Object> result = redisTemplate.execute(script, List.of(countsKey));
+        List<Object> result = stringRedisTemplate.execute(script, List.of(countsKey));
 
         if (result == null || result.isEmpty()) {
             return Collections.emptyMap();
