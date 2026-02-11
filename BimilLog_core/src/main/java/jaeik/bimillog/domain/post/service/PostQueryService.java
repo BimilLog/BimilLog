@@ -110,7 +110,7 @@ public class PostQueryService {
         postCountSync.handlePostViewed(postId, viewerKey);
 
         // 3. 비동기로 실시간 인기글 점수 증가
-        realtimePostSync.handlePostViewed(postId);
+        realtimePostSync.updateRealtimeScore(postId, 2.0);
 
         // 4. 비회원이면 바로 반환
         if (memberId == null) {

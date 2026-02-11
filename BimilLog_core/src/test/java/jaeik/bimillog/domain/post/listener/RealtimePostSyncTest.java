@@ -53,20 +53,20 @@ class RealtimePostSyncTest {
     }
 
     @Test
-    @DisplayName("게시글 추천 이벤트 - 점수 4점 증가")
-    void handlePostLiked_shouldIncrementScoreByFour() {
+    @DisplayName("실시간 점수 증가 - 양수 점수")
+    void updateRealtimeScore_shouldIncrementScore() {
         // When
-        listener.handlePostLiked(1L);
+        listener.updateRealtimeScore(1L, 4.0);
 
         // Then
         verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, 4.0);
     }
 
     @Test
-    @DisplayName("게시글 추천 취소 이벤트 - 점수 4점 감소")
-    void handlePostUnliked_shouldDecrementScoreByFour() {
+    @DisplayName("실시간 점수 감소 - 음수 점수")
+    void updateRealtimeScore_shouldDecrementScore() {
         // When
-        listener.handlePostUnliked(1L);
+        listener.updateRealtimeScore(1L, -4.0);
 
         // Then
         verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, -4.0);

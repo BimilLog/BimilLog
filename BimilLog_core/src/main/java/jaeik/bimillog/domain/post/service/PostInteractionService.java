@@ -81,7 +81,7 @@ public class PostInteractionService {
             postCountSync.incrementLikeWithFallback(postId, -1);
 
             // 비동기로 실시간 인기글 점수 감소
-            realtimePostSync.handlePostUnliked(postId);
+            realtimePostSync.updateRealtimeScore(postId, -4.0);
         } else {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeRepository.save(postLike);
@@ -90,7 +90,7 @@ public class PostInteractionService {
             postCountSync.incrementLikeWithFallback(postId, 1);
 
             // 비동기로 실시간 인기글 점수 증가
-            realtimePostSync.handlePostLiked(postId);
+            realtimePostSync.updateRealtimeScore(postId, 4.0);
 
             // 상호작용 점수 증가 이벤트 발행
             if (post.getMember() != null) {
