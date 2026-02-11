@@ -2,22 +2,30 @@ package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import java.util.List;
 
 /**
  * <h2>실시간 인기글 점수 업데이트</h2>
  * <p>게시글 조회, 댓글 작성, 추천 이벤트를 수신하여 실시간 인기글 점수를 업데이트합니다.</p>
  * <p>조회: +2점, 댓글: +3점/-3점, 추천: +4점/-4점</p>
  * <p>비동기 처리를 통해 이벤트 발행자와 독립적으로 실행됩니다.</p>
+ * <p>ZSet과 JSON LIST 불일치 시 비동기 캐시 갱신을 담당합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.8.0
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "실시간 인기글 점수")
 @Component
@@ -25,8 +33,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class RealtimePostSync {
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final PostQueryRepository postQueryRepository;
 
     private static final double COMMENT_SCORE = 3.0;
+    private static final int REALTIME_TOP_N = 5;
 
     /**
      * <h3>실시간 인기글 점수 업데이트</h3>
@@ -62,5 +73,27 @@ public class RealtimePostSync {
     @Async("realtimeEventExecutor")
     public void handleCommentDeleted(CommentDeletedEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);
+    }
+
+    /**
+     * <h3>실시간 인기글 JSON LIST 비동기 갱신</h3>
+     * <p>ZSet과 LIST의 ID 순서가 불일치할 때 호출됩니다.</p>
+     * <p>ZSet top ID로 DB 조회 후 JSON LIST를 교체합니다.</p>
+     *
+     * @param zsetTopIds ZSet에서 조회한 인기글 ID 목록 (점수 내림차순)
+     */
+    @Async("cacheRefreshExecutor")
+    public void asyncRebuildRealtimeCache(List<Long> zsetTopIds) {
+        try {
+            List<PostSimpleDetail> dbPosts = postQueryRepository
+                    .findPostSimpleDetailsByIds(zsetTopIds, PageRequest.of(0, REALTIME_TOP_N))
+                    .getContent();
+            if (!dbPosts.isEmpty()) {
+                redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, dbPosts, RedisKey.DEFAULT_CACHE_TTL);
+            }
+            log.debug("[REALTIME] 비동기 캐시 갱신 완료: {}개", dbPosts.size());
+        } catch (Exception e) {
+            log.warn("[REALTIME] 비동기 캐시 갱신 실패: {}", e.getMessage());
+        }
     }
 }
