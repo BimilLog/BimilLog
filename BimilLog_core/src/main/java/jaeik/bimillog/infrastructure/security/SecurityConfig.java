@@ -79,11 +79,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
-//                .csrf(csrf -> csrf
-//                        .ignoringRequestMatchers(new AntPathRequestMatcher("/**", "GET")) // GET요청 CSRF 제외
-//                        .csrfTokenRepository(createCsrfTokenRepository())
-//                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+//                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/**", "GET")) // GET요청 CSRF 제외
+                        .csrfTokenRepository(createCsrfTokenRepository())
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -96,8 +96,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/member/search", "/api/member/all").permitAll()
                         .requestMatchers("/api/auth/login", "/api/global/health", "/api/member/signup", "/api/global/client-error").permitAll()
                         .requestMatchers("/api/mypage").authenticated()
-//                        .requestMatchers("/api/comment/like").authenticated()
-                        .requestMatchers("/api/comment/like").permitAll()
+                        .requestMatchers("/api/comment/like").authenticated()
                         .requestMatchers("/api/comment/**").permitAll()
                         .requestMatchers("/api/post/{postId}/notice").hasRole("ADMIN")
                         .requestMatchers("/api/post/{postId}/like").permitAll()
