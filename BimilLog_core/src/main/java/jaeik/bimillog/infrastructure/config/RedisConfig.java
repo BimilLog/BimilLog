@@ -41,20 +41,27 @@ public class RedisConfig {
 
         // 커넥션 풀 설정
         GenericObjectPoolConfig<?> poolConfig = new GenericObjectPoolConfig<>();
-        RedisProperties.Pool pool = redisProperties.getLettuce().getPool();
-        poolConfig.setMaxTotal(pool.getMaxActive());
-        poolConfig.setMaxIdle(pool.getMaxIdle());
-        poolConfig.setMinIdle(pool.getMinIdle());
-        poolConfig.setMaxWait(pool.getMaxWait());
+        RedisProperties.Lettuce lettuce = redisProperties.getLettuce();
+        if (lettuce != null && lettuce.getPool() != null) {
+            RedisProperties.Pool pool = lettuce.getPool();
+            poolConfig.setMaxTotal(pool.getMaxActive());
+            poolConfig.setMaxIdle(pool.getMaxIdle());
+            poolConfig.setMinIdle(pool.getMinIdle());
+            if (pool.getMaxWait() != null) {
+                poolConfig.setMaxWait(pool.getMaxWait());
+            }
+        }
 
         // IDLE 커넥션 eviction 설정
         poolConfig.setMinEvictableIdleDuration(Duration.ofSeconds(30));
         poolConfig.setTimeBetweenEvictionRuns(Duration.ofSeconds(30));
 
-        LettucePoolingClientConfiguration clientConfig = LettucePoolingClientConfiguration.builder()
-                .poolConfig(poolConfig)
-                .commandTimeout(redisProperties.getTimeout())
-                .build();
+        LettucePoolingClientConfiguration.LettucePoolingClientConfigurationBuilder builder =
+                LettucePoolingClientConfiguration.builder().poolConfig(poolConfig);
+        if (redisProperties.getTimeout() != null) {
+            builder.commandTimeout(redisProperties.getTimeout());
+        }
+        LettucePoolingClientConfiguration clientConfig = builder.build();
 
         return new LettuceConnectionFactory(serverConfig, clientConfig);
     }
