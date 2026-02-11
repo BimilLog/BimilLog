@@ -17,7 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * <p>비동기 처리를 통해 이벤트 발행자와 독립적으로 실행됩니다.</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "실시간 인기글 점수")
 @Component

@@ -35,7 +35,7 @@ import java.util.Objects;
  * <p>이벤트 발행을 통한 알림 시스템 연동</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 @Service
 @RequiredArgsConstructor

@@ -14,7 +14,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import com.querydsl.core.types.dsl.NumberPath;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import java.util.Objects;
  * <p>좋아요 토글 등</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 @Service
 @RequiredArgsConstructor
@@ -47,9 +47,9 @@ public class PostInteractionService {
     private final PostCountSync postCountSync;
 
     private static final Map<String, NumberPath<Integer>> COUNT_FIELDS = Map.of(
-            RedisPostHashAdapter.FIELD_VIEW_COUNT, QPost.post.views,
-            RedisPostHashAdapter.FIELD_LIKE_COUNT, QPost.post.likeCount,
-            RedisPostHashAdapter.FIELD_COMMENT_COUNT, QPost.post.commentCount
+            RedisKey.FIELD_VIEW_COUNT, QPost.post.views,
+            RedisKey.FIELD_LIKE_COUNT, QPost.post.likeCount,
+            RedisKey.FIELD_COMMENT_COUNT, QPost.post.commentCount
     );
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
@@ -106,7 +106,7 @@ public class PostInteractionService {
      * Redis에서 누적된 카운트를 DB에 벌크 반영
      *
      * @param counts postId → 증감량 맵
-     * @param field  RedisPostHashAdapter.FIELD_VIEW_COUNT / FIELD_LIKE_COUNT / FIELD_COMMENT_COUNT
+     * @param field  RedisKey.FIELD_VIEW_COUNT / FIELD_LIKE_COUNT / FIELD_COMMENT_COUNT
      */
     @Transactional
     public void bulkIncrementCounts(Map<Long, Long> counts, String field) {

@@ -7,8 +7,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,10 +19,10 @@ import java.util.Optional;
  * <h2>게시글 관리자 서비스</h2>
  * <p>게시글 도메인의 관리자 전용 기능을 처리하는 서비스입니다.</p>
  * <p>공지사항 토글: Post.isNotice 플래그로 직접 관리</p>
- * <p>공지 변경 시 글 단위 Hash 생성 + List 인덱스 추가/제거로 캐시를 반영합니다.</p>
+ * <p>공지 변경 시 JSON LIST에 추가/제거로 캐시를 반영합니다.</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 @Service
 @RequiredArgsConstructor
@@ -31,14 +30,15 @@ import java.util.Optional;
 public class PostAdminService {
     private final PostRepository postRepository;
     private final PostQueryRepository postQueryRepository;
-    private final RedisPostHashAdapter redisPostHashAdapter;
-    private final RedisPostIndexAdapter redisPostIndexAdapter;
+    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+
+    private static final int NOTICE_MAX_SIZE = 100;
 
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
      * <p>Post.isNotice 플래그로 공지사항 여부를 직접 관리합니다.</p>
-     * <p>공지 설정: 글 단위 Hash 생성 + List 인덱스 LPUSH (최신이 맨 앞)</p>
-     * <p>공지 해제: List 인덱스 LREM (글 단위 Hash는 삭제하지 않음 - 다른 목록에서 참조 가능)</p>
+     * <p>공지 설정: JSON LIST에 LPUSH (최신이 맨 앞)</p>
+     * <p>공지 해제: JSON LIST에서 LREM</p>
      *
      * @param postId 공지 토글할 게시글 ID
      */
@@ -49,17 +49,16 @@ public class PostAdminService {
 
         try {
             if (post.isNotice()) {
-                // 공지 해제: isNotice false + List 인덱스에서 제거
+                // 공지 해제: isNotice false + JSON LIST에서 제거
                 post.updateNotice(false);
-                redisPostIndexAdapter.removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
+                redisPostJsonListAdapter.removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
             } else {
-                // 공지 설정: isNotice true + 글 단위 Hash 생성 + List 인덱스 LPUSH
+                // 공지 설정: isNotice true + JSON LIST에 LPUSH
                 post.updateNotice(true);
                 Optional<PostSimpleDetail> detail = postQueryRepository.findPostSimpleDetailById(postId);
-                detail.ifPresent(d -> {
-                    redisPostHashAdapter.createPostHash(d);
-                    redisPostIndexAdapter.addToIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
-                });
+                detail.ifPresent(d ->
+                        redisPostJsonListAdapter.addNewPost(RedisKey.POST_NOTICE_JSON_KEY, d, NOTICE_MAX_SIZE)
+                );
             }
         } catch (Exception e) {
             log.error("공지 설정/해제 중 오류 발생: postId={}", postId, e);

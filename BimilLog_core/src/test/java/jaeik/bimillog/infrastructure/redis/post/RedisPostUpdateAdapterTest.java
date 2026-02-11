@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -9,8 +8,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
 import java.util.List;
@@ -34,10 +33,10 @@ import static org.mockito.Mockito.verify;
 class RedisPostUpdateAdapterTest {
 
     @Mock
-    private RedisTemplate<String, Object> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Mock
-    private SetOperations<String, Object> setOperations;
+    private SetOperations<String, String> setOperations;
 
     @Mock
     private HashOperations<String, Object, Object> hashOperations;
@@ -45,15 +44,11 @@ class RedisPostUpdateAdapterTest {
     @InjectMocks
     private RedisPostUpdateAdapter adapter;
 
-    @BeforeEach
-    void setUp() {
-    }
-
     @Test
     @DisplayName("조회 이력이 없는 경우 false 반환")
     void hasViewed_shouldReturnFalse_whenNotViewed() {
         // Given
-        given(redisTemplate.opsForSet()).willReturn(setOperations);
+        given(stringRedisTemplate.opsForSet()).willReturn(setOperations);
         given(setOperations.isMember("post:view:1", "m:100")).willReturn(false);
 
         // When
@@ -67,7 +62,7 @@ class RedisPostUpdateAdapterTest {
     @DisplayName("조회 이력이 있는 경우 true 반환")
     void hasViewed_shouldReturnTrue_whenAlreadyViewed() {
         // Given
-        given(redisTemplate.opsForSet()).willReturn(setOperations);
+        given(stringRedisTemplate.opsForSet()).willReturn(setOperations);
         given(setOperations.isMember("post:view:1", "m:100")).willReturn(true);
 
         // When
@@ -81,22 +76,22 @@ class RedisPostUpdateAdapterTest {
     @DisplayName("조회 마킹 시 SET에 추가하고 TTL 설정")
     void markViewed_shouldAddToSetAndSetTtl() {
         // Given
-        given(redisTemplate.opsForSet()).willReturn(setOperations);
-        given(redisTemplate.expire(anyString(), anyLong(), any(TimeUnit.class))).willReturn(true);
+        given(stringRedisTemplate.opsForSet()).willReturn(setOperations);
+        given(stringRedisTemplate.expire(anyString(), anyLong(), any(TimeUnit.class))).willReturn(true);
 
         // When
         adapter.markViewed(1L, "m:100");
 
         // Then
         verify(setOperations).add("post:view:1", "m:100");
-        verify(redisTemplate).expire("post:view:1", VIEW_TTL_SECONDS, TimeUnit.SECONDS);
+        verify(stringRedisTemplate).expire("post:view:1", VIEW_TTL_SECONDS, TimeUnit.SECONDS);
     }
 
     @Test
     @DisplayName("조회수 증가 시 Hash에 HINCRBY 실행")
     void incrementViewCount_shouldIncrementHash() {
         // Given
-        given(redisTemplate.opsForHash()).willReturn(hashOperations);
+        given(stringRedisTemplate.opsForHash()).willReturn(hashOperations);
 
         // When
         adapter.incrementViewCount(1L);
@@ -109,7 +104,7 @@ class RedisPostUpdateAdapterTest {
     @DisplayName("원자적 조회 마킹 + 조회수 증가 - 새로운 조회 시 1 반환")
     void markViewedAndIncrement_shouldReturnTrue_whenNewView() {
         // Given
-        given(redisTemplate.execute(any(RedisScript.class), anyList(), any(), any(), any()))
+        given(stringRedisTemplate.execute(any(RedisScript.class), anyList(), any(), any(), any()))
                 .willReturn(1L);
 
         // When
@@ -123,7 +118,7 @@ class RedisPostUpdateAdapterTest {
     @DisplayName("원자적 조회 마킹 + 조회수 증가 - 이미 조회한 경우 0 반환")
     void markViewedAndIncrement_shouldReturnFalse_whenAlreadyViewed() {
         // Given
-        given(redisTemplate.execute(any(RedisScript.class), anyList(), any(), any(), any()))
+        given(stringRedisTemplate.execute(any(RedisScript.class), anyList(), any(), any(), any()))
                 .willReturn(0L);
 
         // When
@@ -137,7 +132,7 @@ class RedisPostUpdateAdapterTest {
     @DisplayName("조회수 버퍼 조회 및 초기화 - Lua 스크립트로 원자적 처리 후 데이터 반환")
     void getAndClearViewCounts_shouldReturnMapAndClear() {
         // Given: Lua 스크립트가 HGETALL 결과를 flat list로 반환
-        given(redisTemplate.execute(any(RedisScript.class), anyList()))
+        given(stringRedisTemplate.execute(any(RedisScript.class), anyList()))
                 .willReturn(List.of("1", "5", "2", "3"));
 
         // When
@@ -153,7 +148,7 @@ class RedisPostUpdateAdapterTest {
     @DisplayName("조회수 버퍼 조회 및 초기화 - 키가 존재하지 않으면 빈 맵 반환")
     void getAndClearViewCounts_shouldReturnEmptyMap_whenKeyNotExists() {
         // Given: Lua 스크립트가 nil 반환 → Java에서 null
-        given(redisTemplate.execute(any(RedisScript.class), anyList()))
+        given(stringRedisTemplate.execute(any(RedisScript.class), anyList()))
                 .willReturn(null);
 
         // When

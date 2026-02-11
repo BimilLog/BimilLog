@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * </ul>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 @Component
 @Slf4j

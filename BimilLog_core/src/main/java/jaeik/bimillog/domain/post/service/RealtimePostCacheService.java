@@ -2,18 +2,19 @@ package jaeik.bimillog.domain.post.service;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.scheduler.RealTimePostScheduler;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
-import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -22,12 +23,11 @@ import java.util.List;
 /**
  * <h2>RealtimePostCacheService</h2>
  * <p>실시간 인기글 목록 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
- * <p>ZSET에서 top 5 ID를 조회하고, 글 단위 Hash(post:simple:{postId})에서 데이터를 가져옵니다.</p>
- * <p>캐시 미스된 글은 DB에서 조회하여 Hash를 생성합니다.</p>
+ * <p>JSON LIST에서 직접 조회하며, 캐시 미스 시 ZSet → DB → replaceAll로 재구축합니다.</p>
  * <p>realtimeRedis 서킷브레이커가 적용되어 Redis 장애 시 Caffeine → DB 폴백 경로로 전환합니다.</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 @Log(logResult = false, logExecutionTime = true)
 @Service
@@ -36,7 +36,7 @@ import java.util.List;
 public class RealtimePostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
-    private final RedisPostHashAdapter redisPostHashAdapter;
+    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
     private final PostUtil postUtil;
 
@@ -45,31 +45,35 @@ public class RealtimePostCacheService {
 
     /**
      * 실시간 인기글 목록 조회
-     * <p>ZSET에서 top 5 ID를 조회하고, 글 단위 Hash에서 pipeline으로 데이터를 가져옵니다.</p>
-     * <p>누락된 글은 DB에서 조회하여 Hash를 생성합니다.</p>
+     * <p>JSON LIST에서 직접 조회합니다.</p>
+     * <p>캐시 미스 시 ZSet에서 top ID → DB 조회 → JSON LIST 재구축 후 반환합니다.</p>
      * <p>Redis 장애 시 서킷브레이커가 {@link #getRealtimePostsFallback}을 호출합니다.</p>
      */
     @CircuitBreaker(name = REALTIME_REDIS_CIRCUIT, fallbackMethod = "getRealtimePostsFallback")
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
+        List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY);
+
+        if (!posts.isEmpty()) {
+            CacheMetricsLogger.hit(log, "realtime", "json-list", posts.size());
+            return postUtil.paginate(posts, pageable);
+        }
+
+        // 캐시 미스: ZSet에서 top ID → DB 조회 → JSON LIST 재구축
+        CacheMetricsLogger.miss(log, "realtime", "json-list", "empty");
         List<Long> orderedIds = redisRealTimePostAdapter.getRangePostId();
-
         if (orderedIds.isEmpty()) {
-            CacheMetricsLogger.miss(log, "realtime", "zset", "empty");
             return new PageImpl<>(List.of(), pageable, 0);
         }
 
-        List<PostSimpleDetail> cachedPosts = redisPostHashAdapter.getPostHashes(orderedIds);
-        cachedPosts = postUtil.recoverMissingHashes(orderedIds, cachedPosts);
+        List<PostSimpleDetail> dbPosts = postQueryRepository
+                .findPostSimpleDetailsByIds(orderedIds, PageRequest.of(0, REALTIME_FALLBACK_LIMIT))
+                .getContent();
 
-        if (cachedPosts.isEmpty()) {
-            CacheMetricsLogger.miss(log, "realtime", "simple", "empty");
-            return new PageImpl<>(List.of(), pageable, 0);
+        if (!dbPosts.isEmpty()) {
+            redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, dbPosts, RedisKey.DEFAULT_CACHE_TTL);
         }
 
-        CacheMetricsLogger.hit(log, "realtime", "simple", cachedPosts.size());
-
-        List<PostSimpleDetail> orderedPosts = postUtil.orderByIds(orderedIds, cachedPosts);
-        return postUtil.paginate(orderedPosts, pageable);
+        return postUtil.paginate(dbPosts, pageable);
     }
 
     /**

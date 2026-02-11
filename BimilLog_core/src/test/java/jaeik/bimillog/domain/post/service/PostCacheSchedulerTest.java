@@ -7,8 +7,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -19,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -33,10 +31,10 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>PostCacheScheduler 테스트</h2>
  * <p>게시글 캐시 동기화 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>DB 조회 → 플래그 업데이트 → 글 단위 Hash 생성 → List 인덱스 교체 → 이벤트 발행 흐름을 검증합니다.</p>
+ * <p>DB 조회 → 플래그 업데이트 → JSON LIST 전체 교체 → 이벤트 발행 흐름을 검증합니다.</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostCacheScheduler 테스트")
@@ -44,10 +42,7 @@ import static org.mockito.Mockito.*;
 class PostCacheSchedulerTest {
 
     @Mock
-    private RedisPostHashAdapter redisPostHashAdapter;
-
-    @Mock
-    private RedisPostIndexAdapter redisPostIndexAdapter;
+    private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @Mock
     private PostQueryRepository postQueryRepository;
@@ -63,8 +58,7 @@ class PostCacheSchedulerTest {
     @BeforeEach
     void setUp() {
         postCacheScheduler = new PostCacheScheduler(
-                redisPostHashAdapter,
-                redisPostIndexAdapter,
+                redisPostJsonListAdapter,
                 postQueryRepository,
                 postRepository,
                 eventPublisher
@@ -72,7 +66,7 @@ class PostCacheSchedulerTest {
     }
 
     @Test
-    @DisplayName("주간 인기 게시글 업데이트 - 성공 (플래그 업데이트 + 글 단위 Hash 생성 + List 인덱스 교체 + 이벤트 발행)")
+    @DisplayName("주간 인기 게시글 업데이트 - 성공 (플래그 업데이트 + JSON LIST 교체 + 이벤트 발행)")
     void shouldUpdateWeeklyPopularPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail post1 = createPostSimpleDetail(1L, "주간인기글1", 1L);
@@ -88,11 +82,8 @@ class PostCacheSchedulerTest {
         // 플래그 업데이트
         verify(postRepository).clearWeeklyFlag();
         verify(postRepository).setWeeklyFlag(List.of(1L, 2L));
-        // 글 단위 Hash 생성
-        verify(redisPostHashAdapter).createPostHash(post1);
-        verify(redisPostHashAdapter).createPostHash(post2);
-        // List 인덱스 교체
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(List.class), eq(RedisKey.DEFAULT_CACHE_TTL));
+        // JSON LIST 전체 교체
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -121,8 +112,7 @@ class PostCacheSchedulerTest {
 
         // Then
         verify(postRepository).clearWeeklyFlag();
-        verify(redisPostHashAdapter, times(2)).createPostHash(any(PostSimpleDetail.class));
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(List.class), any(Duration.class));
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(posts), any());
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -134,7 +124,7 @@ class PostCacheSchedulerTest {
     }
 
     @Test
-    @DisplayName("전설의 게시글 업데이트 - 성공 (플래그 업데이트 + 글 단위 Hash 생성 + List 인덱스 교체)")
+    @DisplayName("전설의 게시글 업데이트 - 성공 (플래그 업데이트 + JSON LIST 교체)")
     void shouldUpdateLegendaryPosts_WhenPostsExist() {
         // Given
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
@@ -148,8 +138,7 @@ class PostCacheSchedulerTest {
         // Then
         verify(postRepository).clearLegendFlag();
         verify(postRepository).setLegendFlag(List.of(1L));
-        verify(redisPostHashAdapter).createPostHash(legendPost);
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_LEGEND_IDS_KEY), any(List.class), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_LEGEND_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -176,8 +165,7 @@ class PostCacheSchedulerTest {
 
         // 게시글이 없으면 플래그 업데이트, 캐시, 이벤트 발행 안함
         verify(postRepository, never()).clearLegendFlag();
-        verify(redisPostHashAdapter, never()).createPostHash(any());
-        verify(redisPostIndexAdapter, never()).replaceIndex(any(), any(), any());
+        verify(redisPostJsonListAdapter, never()).replaceAll(any(), any(), any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -193,8 +181,7 @@ class PostCacheSchedulerTest {
         postCacheScheduler.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostHashAdapter, times(100)).createPostHash(any(PostSimpleDetail.class));
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_WEEKLY_IDS_KEY), any(List.class), any(Duration.class));
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(largePosts), any());
 
         // 100개 게시글 중 memberId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));
@@ -203,7 +190,7 @@ class PostCacheSchedulerTest {
     // ==================== 공지사항 ====================
 
     @Test
-    @DisplayName("공지사항 캐시 갱신 - 성공 (DB 조회 → 글 단위 Hash 생성 → List 인덱스 교체 with TTL)")
+    @DisplayName("공지사항 캐시 갱신 - 성공 (DB 조회 → JSON LIST 전체 교체 with TTL)")
     void shouldRefreshNoticePosts_WhenPostsExist() {
         // Given
         PostSimpleDetail notice1 = createPostSimpleDetail(1L, "공지1", 1L);
@@ -216,9 +203,7 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshNoticePosts();
 
         // Then
-        verify(redisPostHashAdapter).createPostHash(notice1);
-        verify(redisPostHashAdapter).createPostHash(notice2);
-        verify(redisPostIndexAdapter).replaceIndex(eq(RedisKey.POST_NOTICE_IDS_KEY), any(List.class), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_NOTICE_JSON_KEY), any(), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 공지사항은 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -236,8 +221,45 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshNoticePosts();
 
         // Then
-        verify(redisPostHashAdapter, never()).createPostHash(any());
-        verify(redisPostIndexAdapter, never()).replaceIndex(any(), any(), any());
+        verify(redisPostJsonListAdapter, never()).replaceAll(any(), any(), any());
+    }
+
+    // ==================== 첫 페이지 ====================
+
+    @Test
+    @DisplayName("첫 페이지 캐시 갱신 - 성공 (DB 조회 → JSON LIST 전체 교체)")
+    void shouldRefreshFirstPageCache_WhenPostsExist() {
+        // Given
+        PostSimpleDetail post1 = createPostSimpleDetail(1L, "첫페이지글1", 1L);
+        PostSimpleDetail post2 = createPostSimpleDetail(2L, "첫페이지글2", 2L);
+        List<PostSimpleDetail> posts = List.of(post1, post2);
+
+        given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(posts);
+
+        // When
+        postCacheScheduler.refreshFirstPageCache();
+
+        // Then
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.FIRST_PAGE_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
+
+        // 첫 페이지는 플래그 업데이트나 이벤트 발행 없음
+        verify(postRepository, never()).clearWeeklyFlag();
+        verify(postRepository, never()).clearLegendFlag();
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("첫 페이지 캐시 갱신 - 게시글 없으면 스킵")
+    void shouldSkipFirstPageRefresh_WhenNoPostsExist() {
+        // Given
+        given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE))
+                .willReturn(Collections.emptyList());
+
+        // When
+        postCacheScheduler.refreshFirstPageCache();
+
+        // Then
+        verify(redisPostJsonListAdapter, never()).replaceAll(any(), any(), any());
     }
 
     // 테스트 유틸리티 메서드들

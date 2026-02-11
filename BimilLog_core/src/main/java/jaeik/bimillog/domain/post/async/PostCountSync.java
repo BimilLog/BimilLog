@@ -18,7 +18,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * <p>글 단위 Hash 캐시는 1분 플러시 스케줄러에서 일괄 반영합니다.</p>
  *
  * @author Jaeik
- * @version 3.1.0
+ * @version 2.7.0
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "조회수 증가")
 @Component

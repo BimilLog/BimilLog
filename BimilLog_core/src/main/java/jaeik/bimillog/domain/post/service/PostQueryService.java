@@ -11,8 +11,6 @@ import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,7 +29,7 @@ import java.util.*;
  * <p>게시판 목록 조회, 게시글 상세 조회, 검색 기능, 인기글 조회</p>
  *
  * @author Jaeik
- * @version 3.1.0
+ * @version 2.7.0
  */
 @Service
 @RequiredArgsConstructor
@@ -46,8 +44,6 @@ public class PostQueryService {
     private final PostCacheService postCacheService;
     private final PostCountSync postCountSync;
     private final RealtimePostSync realtimePostSync;
-    private final RedisPostIndexAdapter redisPostIndexAdapter;
-    private final RedisPostHashAdapter redisPostHashAdapter;
 
     /**
      * <h3>게시판 목록 조회</h3>

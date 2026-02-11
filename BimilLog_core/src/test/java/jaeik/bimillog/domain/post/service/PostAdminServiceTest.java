@@ -7,8 +7,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -20,6 +19,8 @@ import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,11 +28,11 @@ import static org.mockito.Mockito.verify;
 /**
  * <h2>PostAdminService 테스트</h2>
  * <p>게시글 공지사항 서비스의 핵심 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>공지 설정: Post.isNotice true + 글 단위 Hash 생성 + List 인덱스 LPUSH</p>
- * <p>공지 해제: Post.isNotice false + List 인덱스 LREM (Hash는 유지)</p>
+ * <p>공지 설정: Post.isNotice true + JSON LIST에 LPUSH</p>
+ * <p>공지 해제: Post.isNotice false + JSON LIST에서 LREM</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 4.0.0
  */
 @DisplayName("PostAdminService 테스트")
 @Tag("unit")
@@ -44,16 +45,13 @@ class PostAdminServiceTest extends BaseUnitTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private RedisPostHashAdapter redisPostHashAdapter;
-
-    @Mock
-    private RedisPostIndexAdapter redisPostIndexAdapter;
+    private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @InjectMocks
     private PostAdminService postAdminService;
 
     @Test
-    @DisplayName("게시글 공지 토글 - 일반 게시글을 공지로 설정 → Post.isNotice true + Hash 생성 + List LPUSH")
+    @DisplayName("게시글 공지 토글 - 일반 게시글을 공지로 설정 → Post.isNotice true + JSON LIST LPUSH")
     void shouldTogglePostNotice_WhenNormalPostToNotice() {
         // Given
         Long postId = 123L;
@@ -85,9 +83,8 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        // 글 단위 Hash 생성 + List 인덱스 LPUSH
-        verify(redisPostHashAdapter).createPostHash(mockDetail);
-        verify(redisPostIndexAdapter).addToIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
+        // JSON LIST에 LPUSH
+        verify(redisPostJsonListAdapter).addNewPost(eq(RedisKey.POST_NOTICE_JSON_KEY), eq(mockDetail), anyInt());
     }
 
     @Test
@@ -104,11 +101,11 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postRepository).findById(postId);
-        verify(redisPostIndexAdapter, never()).removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
+        verify(redisPostJsonListAdapter, never()).removePost(eq(RedisKey.POST_NOTICE_JSON_KEY), eq(postId));
     }
 
     @Test
-    @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제 → Post.isNotice false + List LREM")
+    @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제 → Post.isNotice false + JSON LIST LREM")
     void shouldTogglePostNotice_WhenNoticePostToNormal() {
         // Given
         Long postId = 123L;
@@ -128,7 +125,7 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        // List 인덱스에서 제거 (Hash는 삭제하지 않음 - 다른 목록에서 참조 가능)
-        verify(redisPostIndexAdapter).removeFromIndex(RedisKey.POST_NOTICE_IDS_KEY, postId);
+        // JSON LIST에서 제거
+        verify(redisPostJsonListAdapter).removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
     }
 }

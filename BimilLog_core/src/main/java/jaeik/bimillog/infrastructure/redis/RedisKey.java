@@ -6,7 +6,7 @@ import java.time.Duration;
  * Redis 키 & TTL 중앙 관리
  *
  * @author jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 public final class RedisKey {
 
@@ -17,20 +17,20 @@ public final class RedisKey {
 
     public static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(24).plusMinutes(30);
 
-    // ==================== 글 첫 페이지 (List) ====================
+    // ==================== 글 JSON LIST 캐시 ====================
 
-    public static final String FIRST_PAGE_LIST_KEY = "post:firstpage:ids";
+    public static final String FIRST_PAGE_JSON_KEY = "post:firstpage:json";
+    public static final String POST_WEEKLY_JSON_KEY = "post:weekly:json";
+    public static final String POST_LEGEND_JSON_KEY = "post:legend:json";
+    public static final String POST_NOTICE_JSON_KEY = "post:notice:json";
+    public static final String POST_REALTIME_JSON_KEY = "post:realtime:json";
     public static final int FIRST_PAGE_SIZE = 20;
 
-    // ==================== 글 단위 Hash (per-post) ====================
+    // ==================== 글 카운트 필드명 ====================
 
-    public static final String POST_SIMPLE_PREFIX = "post:simple:";               // Hash: 글 단위 캐시
-
-    // ==================== 인덱스 (SET) ====================
-
-    public static final String POST_WEEKLY_IDS_KEY = "post:weekly:ids";
-    public static final String POST_LEGEND_IDS_KEY = "post:legend:ids";
-    public static final String POST_NOTICE_IDS_KEY = "post:notice:ids";
+    public static final String FIELD_VIEW_COUNT = "viewCount";
+    public static final String FIELD_LIKE_COUNT = "likeCount";
+    public static final String FIELD_COMMENT_COUNT = "commentCount";
 
     // ==================== 글 : 실시간 (ZSet) ====================
 
