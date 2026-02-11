@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
@@ -43,7 +44,7 @@ public class PostInteractionService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RealtimePostSync realtimePostSync;
-    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
+    private final PostCountSync postCountSync;
 
     private static final Map<String, NumberPath<Integer>> COUNT_FIELDS = Map.of(
             RedisPostHashAdapter.FIELD_VIEW_COUNT, QPost.post.views,
@@ -77,7 +78,7 @@ public class PostInteractionService {
             postLikeRepository.deleteByMemberAndPost(member, post);
 
             // Redis 버퍼 + 캐시 즉시 반영 (DB는 스케줄러가 배치 처리)
-            incrementLikeWithFallback(postId, -1);
+            postCountSync.incrementLikeWithFallback(postId, -1);
 
             // 비동기로 실시간 인기글 점수 감소
             realtimePostSync.handlePostUnliked(postId);
@@ -86,7 +87,7 @@ public class PostInteractionService {
             postLikeRepository.save(postLike);
 
             // Redis 버퍼 + 캐시 즉시 반영 (DB는 스케줄러가 배치 처리)
-            incrementLikeWithFallback(postId, 1);
+            postCountSync.incrementLikeWithFallback(postId, 1);
 
             // 비동기로 실시간 인기글 점수 증가
             realtimePostSync.handlePostLiked(postId);
@@ -116,21 +117,5 @@ public class PostInteractionService {
         postQueryRepository.bulkIncrementCount(counts, path);
     }
 
-    /**
-     * <h3>좋아요 수 Redis 버퍼 증감</h3>
-     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
-     * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
-     */
-    private void incrementLikeWithFallback(Long postId, long delta) {
-        try {
-            redisPostUpdateAdapter.incrementLikeBuffer(postId, delta);
-        } catch (Exception e) {
-            log.warn("[LIKE_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
-            if (delta > 0) {
-                postRepository.incrementLikeCount(postId);
-            } else {
-                postRepository.decrementLikeCount(postId);
-            }
-        }
-    }
+
 }

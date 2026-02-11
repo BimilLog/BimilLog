@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
-import jaeik.bimillog.domain.post.async.PostViewCountSync;
+import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
@@ -11,7 +11,6 @@ import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +44,7 @@ public class PostQueryService {
     private final PostUtil postUtil;
     private final ApplicationEventPublisher eventPublisher;
     private final PostCacheService postCacheService;
-    private final PostViewCountSync postViewCountSync;
+    private final PostCountSync postCountSync;
     private final RealtimePostSync realtimePostSync;
     private final RedisPostIndexAdapter redisPostIndexAdapter;
     private final RedisPostHashAdapter redisPostHashAdapter;
@@ -108,7 +107,7 @@ public class PostQueryService {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // 2. 비동기로 조회수 증가 (중복 체크 후 Redis 버퍼링)
-        postViewCountSync.handlePostViewed(postId, viewerKey);
+        postCountSync.handlePostViewed(postId, viewerKey);
 
         // 3. 비동기로 실시간 인기글 점수 증가
         realtimePostSync.handlePostViewed(postId);

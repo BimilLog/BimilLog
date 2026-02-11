@@ -124,6 +124,22 @@ public class AsyncConfig {
     }
 
     /**
+     * 조회수 추천수 댓글수 관련 레디스 전송
+     */
+    @Bean(name = "cacheCountUpdateExecutor")
+    public Executor cacheCountUpdateExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(10);
+        executor.setThreadNamePrefix("realtime-event-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.initialize();
+        return executor;
+    }
+
+    /**
      * 캐시 갱신 전용 스레드 풀
      * <p>조회 시 HASH-ZSET 불일치 감지 후 비동기 HASH 갱신에 사용됩니다.</p>
      */

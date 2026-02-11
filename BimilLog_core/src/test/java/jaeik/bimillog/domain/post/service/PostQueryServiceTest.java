@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.async.PostViewCountSync;
+import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
@@ -64,7 +64,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostCacheService postCacheService;
 
     @Mock
-    private PostViewCountSync postViewCountSync;
+    private PostCountSync postCountSync;
 
     @Mock
     private RealtimePostSync realtimePostSync;

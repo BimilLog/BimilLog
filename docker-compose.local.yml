@@ -213,7 +213,7 @@ services:
     depends_on:
       - backend
     command: >
-      -n -t /tests/board-load-test.jmx -JBACKEND_HOST=backend -l /results/board-load.jtl -e -o /results/html-report
+      -n -t /tests/mixed-load-test.jmx -JBACKEND_HOST=backend -l /results/mixed-load.jtl -e -o /results/html-report
 
 networks:
   bimillog-local:
