@@ -47,7 +47,7 @@ public class AsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2); // 기본 스레드 수 (FCM은 외부 API 호출이므로 적게)
         executor.setMaxPoolSize(8); // 최대 스레드 수
-        executor.setQueueCapacity(100); // 대기열 크기 (FCM은 지연되어도 괜찮으므로 크게)
+        executor.setQueueCapacity(50);
         executor.setThreadNamePrefix("fcm-notification-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(60); // FCM은 시간이 오래 걸릴 수 있으므로 길게
@@ -113,9 +113,25 @@ public class AsyncConfig {
     @Bean(name = "realtimeEventExecutor")
     public Executor realtimeEventExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(20);
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(30);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("realtime-event-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.initialize();
+        return executor;
+    }
+
+    /**
+     * 조회수 추천수 댓글수 관련 레디스 전송
+     */
+    @Bean(name = "cacheCountUpdateExecutor")
+    public Executor cacheCountUpdateExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(30);
+        executor.setQueueCapacity(50);
         executor.setThreadNamePrefix("realtime-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
@@ -130,9 +146,9 @@ public class AsyncConfig {
     @Bean(name = "cacheRefreshPool")
     public Executor cacheRefreshPool() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(15);
-        executor.setMaxPoolSize(60);
-        executor.setQueueCapacity(100);
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(30);
+        executor.setQueueCapacity(50);
         executor.setThreadNamePrefix("cache-refresh-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);

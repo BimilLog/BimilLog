@@ -3,7 +3,9 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
+import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -51,10 +53,16 @@ class PostInteractionServiceTest extends BaseUnitTest {
     private PostRepository postRepository;
 
     @Mock
+    private PostQueryRepository postQueryRepository;
+
+    @Mock
     private PostToMemberAdapter postToMemberAdapter;
 
     @Mock
     private RealtimePostSync realtimePostSync;
+
+    @Mock
+    private PostCountSync postCountSync;
 
     @InjectMocks
     private PostInteractionService postInteractionService;
@@ -83,11 +91,11 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         if (alreadyLiked) {
             verify(postLikeRepository).deleteByMemberAndPost(member, post);
-            verify(postRepository).decrementLikeCount(postId);
+            verify(postCountSync).incrementLikeWithFallback(postId, -1);
             verify(postLikeRepository, never()).save(any(PostLike.class));
         } else {
             verify(postLikeRepository).save(any(PostLike.class));
-            verify(postRepository).incrementLikeCount(postId);
+            verify(postCountSync).incrementLikeWithFallback(postId, 1);
             verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
         }
     }

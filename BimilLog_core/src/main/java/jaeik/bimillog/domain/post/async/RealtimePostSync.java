@@ -17,7 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * <p>비동기 처리를 통해 이벤트 발행자와 독립적으로 실행됩니다.</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "실시간 인기글 점수")
 @Component
@@ -26,41 +26,18 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class RealtimePostSync {
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
-    private static final double VIEW_SCORE = 2.0;
     private static final double COMMENT_SCORE = 3.0;
-    private static final double LIKE_SCORE = 4.0;
 
     /**
-     * <h3>게시글 조회 이벤트 처리</h3>
-     * <p>게시글 조회 시 해당 게시글의 실시간 인기글 점수를 2점 증가시킵니다.</p>
+     * <h3>실시간 인기글 점수 업데이트</h3>
+     * <p>게시글의 실시간 인기글 점수를 주어진 값만큼 증감시킵니다.</p>
      *
-     * @param postId 조회된 게시글 ID
+     * @param postId 게시글 ID
+     * @param score 증감할 점수 (양수: 증가, 음수: 감소)
      */
     @Async("realtimeEventExecutor")
-    public void handlePostViewed(Long postId) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
-    }
-
-    /**
-     * <h3>게시글 추천 이벤트 처리</h3>
-     * <p>게시글 추천 시 실시간 인기글 점수를 4점 증가시킵니다.</p>
-     *
-     * @param postId 추천된 게시글 ID
-     */
-    @Async("realtimeEventExecutor")
-    public void handlePostLiked(Long postId) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, LIKE_SCORE);
-    }
-
-    /**
-     * <h3>게시글 추천 취소 이벤트 처리</h3>
-     * <p>게시글 추천 취소 시 실시간 인기글 점수를 4점 감소시킵니다.</p>
-     *
-     * @param postId 추천 취소된 게시글 ID
-     */
-    @Async("realtimeEventExecutor")
-    public void handlePostUnliked(Long postId) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, -LIKE_SCORE);
+    public void updateRealtimeScore(Long postId, double score) {
+        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, score);
     }
 
     /**

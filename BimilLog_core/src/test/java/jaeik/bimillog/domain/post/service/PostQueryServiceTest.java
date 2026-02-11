@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.async.PostViewCountSync;
+import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
@@ -64,7 +64,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostCacheService postCacheService;
 
     @Mock
-    private PostViewCountSync postViewCountSync;
+    private PostCountSync postCountSync;
 
     @Mock
     private RealtimePostSync realtimePostSync;
@@ -82,7 +82,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         List<PostSimpleDetail> posts = List.of(postResult);
 
         given(postCacheService.getFirstPagePosts()).willReturn(posts);
-        given(postUtil.removePostsWithBlacklist(null, posts)).willReturn(posts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -93,6 +92,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.hasNext()).isFalse();
 
         verify(postCacheService).getFirstPagePosts();
+        verify(postUtil, never()).removePostsWithBlacklist(any(), anyList());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
@@ -111,7 +111,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         );
 
         given(postCacheService.getFirstPagePosts()).willReturn(cachedPosts);
-        given(postUtil.removePostsWithBlacklist(eq(null), anyList())).willReturn(cachedPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -124,6 +123,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.nextCursor()).isEqualTo(4L);
 
         verify(postCacheService).getFirstPagePosts();
+        verify(postUtil, never()).removePostsWithBlacklist(any(), anyList());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
 
@@ -137,7 +137,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         List<PostSimpleDetail> dbPosts = List.of(postResult);
 
         given(postCacheService.getFirstPagePosts()).willReturn(dbPosts);
-        given(postUtil.removePostsWithBlacklist(null, dbPosts)).willReturn(dbPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -147,6 +146,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("DB 폴백 글");
 
         verify(postCacheService).getFirstPagePosts();
+        verify(postUtil, never()).removePostsWithBlacklist(any(), anyList());
     }
 
     @Test
@@ -159,7 +159,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         List<PostSimpleDetail> posts = List.of(postResult);
 
         given(postQueryRepository.findBoardPostsByCursor(cursor, size)).willReturn(posts);
-        given(postUtil.removePostsWithBlacklist(null, posts)).willReturn(posts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -169,6 +168,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
 
         verify(postCacheService, never()).getFirstPagePosts();
+        verify(postUtil, never()).removePostsWithBlacklist(any(), anyList());
         verify(postQueryRepository).findBoardPostsByCursor(cursor, size);
     }
 

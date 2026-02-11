@@ -65,6 +65,10 @@ public class PostSearchService {
             posts = postSearchRepository.findByPartialMatch(type, query, pageable, memberId);
         }
 
+        if (memberId == null) {
+            return posts;
+        }
+
         List<PostSimpleDetail> blackListFilterPosts = postUtil.removePostsWithBlacklist(memberId, posts.getContent());
 
         return new PageImpl<>(blackListFilterPosts, posts.getPageable(),

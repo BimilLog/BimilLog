@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
-import jaeik.bimillog.domain.post.async.PostViewCountSync;
+import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
@@ -29,7 +29,7 @@ import java.util.*;
  * <p>게시판 목록 조회, 게시글 상세 조회, 검색 기능, 인기글 조회</p>
  *
  * @author Jaeik
- * @version 3.1.0
+ * @version 2.7.0
  */
 @Service
 @RequiredArgsConstructor
@@ -42,7 +42,7 @@ public class PostQueryService {
     private final PostUtil postUtil;
     private final ApplicationEventPublisher eventPublisher;
     private final PostCacheService postCacheService;
-    private final PostViewCountSync postViewCountSync;
+    private final PostCountSync postCountSync;
     private final RealtimePostSync realtimePostSync;
 
     /**
@@ -56,7 +56,6 @@ public class PostQueryService {
      * @param memberId 회원 ID (null이면 비회원)
      * @return CursorPageResponse 커서 기반 페이지 응답
      */
-    @Transactional(readOnly = true)
     public CursorPageResponse<PostSimpleDetail> getBoardByCursor(Long cursor, int size, Long memberId) {
         List<PostSimpleDetail> posts;
 
@@ -67,8 +66,10 @@ public class PostQueryService {
             posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
         }
 
-        // 블랙리스트 필터링 비회원이거나 빈 페이지면 무시됨
-        posts = postUtil.removePostsWithBlacklist(memberId, posts);
+        // 블랙리스트 필터링
+        if (memberId != null && !posts.isEmpty()) {
+            posts = postUtil.removePostsWithBlacklist(memberId, posts);
+        }
 
         // 빈 페이지라면 즉시 반환 블랙리스트 필터링으로 인해 빈 페이지가 되어도 반환됨
         if (posts.isEmpty()) {
@@ -102,10 +103,10 @@ public class PostQueryService {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // 2. 비동기로 조회수 증가 (중복 체크 후 Redis 버퍼링)
-        postViewCountSync.handlePostViewed(postId, viewerKey);
+        postCountSync.handlePostViewed(postId, viewerKey);
 
         // 3. 비동기로 실시간 인기글 점수 증가
-        realtimePostSync.handlePostViewed(postId);
+        realtimePostSync.updateRealtimeScore(postId, 2.0);
 
         // 4. 비회원이면 바로 반환
         if (memberId == null) {

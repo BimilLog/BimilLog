@@ -526,8 +526,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         assertThat(capturedComment.isDeleted()).isFalse();
 
         verify(commentClosureRepository).saveAll(any());
-        // 익명 댓글(memberId == null)인 경우 이벤트가 발행되지 않음
-        verify(eventPublisher, never()).publishEvent(any(CommentCreatedEvent.class));
+        // 익명 댓글도 CommentCreatedEvent 발행 (댓글수 증가, 실시간 점수 반영)
+        verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
 
     @Test

@@ -46,6 +46,10 @@ public class NotificationSaveListener {
             backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
+        // 익명 게시글 또는 자기 글 댓글이면 알림 불필요
+        if (event.getPostUserId() == null || event.getPostUserId().equals(event.getCommenterId())) {
+            return;
+        }
         notificationCommandService.saveCommentNotification(
                 event.getPostUserId(),
                 event.getCommenterName(),

@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
@@ -13,7 +14,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostHashAdapter;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import com.querydsl.core.types.dsl.NumberPath;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ import java.util.Objects;
  * <p>좋아요 토글 등</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 @Service
 @RequiredArgsConstructor
@@ -43,12 +44,12 @@ public class PostInteractionService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RealtimePostSync realtimePostSync;
-    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
+    private final PostCountSync postCountSync;
 
     private static final Map<String, NumberPath<Integer>> COUNT_FIELDS = Map.of(
-            RedisPostHashAdapter.FIELD_VIEW_COUNT, QPost.post.views,
-            RedisPostHashAdapter.FIELD_LIKE_COUNT, QPost.post.likeCount,
-            RedisPostHashAdapter.FIELD_COMMENT_COUNT, QPost.post.commentCount
+            RedisKey.FIELD_VIEW_COUNT, QPost.post.views,
+            RedisKey.FIELD_LIKE_COUNT, QPost.post.likeCount,
+            RedisKey.FIELD_COMMENT_COUNT, QPost.post.commentCount
     );
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
@@ -77,19 +78,19 @@ public class PostInteractionService {
             postLikeRepository.deleteByMemberAndPost(member, post);
 
             // Redis 버퍼 + 캐시 즉시 반영 (DB는 스케줄러가 배치 처리)
-            incrementLikeWithFallback(postId, -1);
+            postCountSync.incrementLikeWithFallback(postId, -1);
 
             // 비동기로 실시간 인기글 점수 감소
-            realtimePostSync.handlePostUnliked(postId);
+            realtimePostSync.updateRealtimeScore(postId, -4.0);
         } else {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeRepository.save(postLike);
 
             // Redis 버퍼 + 캐시 즉시 반영 (DB는 스케줄러가 배치 처리)
-            incrementLikeWithFallback(postId, 1);
+            postCountSync.incrementLikeWithFallback(postId, 1);
 
             // 비동기로 실시간 인기글 점수 증가
-            realtimePostSync.handlePostLiked(postId);
+            realtimePostSync.updateRealtimeScore(postId, 4.0);
 
             // 상호작용 점수 증가 이벤트 발행
             if (post.getMember() != null) {
@@ -105,7 +106,7 @@ public class PostInteractionService {
      * Redis에서 누적된 카운트를 DB에 벌크 반영
      *
      * @param counts postId → 증감량 맵
-     * @param field  RedisPostHashAdapter.FIELD_VIEW_COUNT / FIELD_LIKE_COUNT / FIELD_COMMENT_COUNT
+     * @param field  RedisKey.FIELD_VIEW_COUNT / FIELD_LIKE_COUNT / FIELD_COMMENT_COUNT
      */
     @Transactional
     public void bulkIncrementCounts(Map<Long, Long> counts, String field) {
@@ -116,21 +117,5 @@ public class PostInteractionService {
         postQueryRepository.bulkIncrementCount(counts, path);
     }
 
-    /**
-     * <h3>좋아요 수 Redis 버퍼 증감</h3>
-     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
-     * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
-     */
-    private void incrementLikeWithFallback(Long postId, long delta) {
-        try {
-            redisPostUpdateAdapter.incrementLikeBuffer(postId, delta);
-        } catch (Exception e) {
-            log.warn("[LIKE_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
-            if (delta > 0) {
-                postRepository.incrementLikeCount(postId);
-            } else {
-                postRepository.decrementLikeCount(postId);
-            }
-        }
-    }
+
 }

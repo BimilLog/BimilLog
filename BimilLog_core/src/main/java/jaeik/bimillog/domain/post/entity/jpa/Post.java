@@ -17,7 +17,7 @@ import lombok.experimental.SuperBuilder;
  * <p>MySQL 전문검색 인덱스를 지원합니다.</p>
  *
  * @author Jaeik
- * @version 2.10.0
+ * @version 2.7.0
  */
 @Entity
 @Getter

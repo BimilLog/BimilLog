@@ -6,12 +6,19 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.time.Duration;
 
 /**
  * <h2>Redis 설정 클래스</h2>
@@ -22,6 +29,42 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  */
 @Configuration
 public class RedisConfig {
+
+    @Bean
+    public LettuceConnectionFactory redisConnectionFactory(RedisProperties redisProperties) {
+        RedisStandaloneConfiguration serverConfig = new RedisStandaloneConfiguration();
+        serverConfig.setHostName(redisProperties.getHost());
+        serverConfig.setPort(redisProperties.getPort());
+        if (redisProperties.getPassword() != null) {
+            serverConfig.setPassword(redisProperties.getPassword());
+        }
+
+        // 커넥션 풀 설정
+        GenericObjectPoolConfig<?> poolConfig = new GenericObjectPoolConfig<>();
+        RedisProperties.Lettuce lettuce = redisProperties.getLettuce();
+        if (lettuce != null && lettuce.getPool() != null) {
+            RedisProperties.Pool pool = lettuce.getPool();
+            poolConfig.setMaxTotal(pool.getMaxActive());
+            poolConfig.setMaxIdle(pool.getMaxIdle());
+            poolConfig.setMinIdle(pool.getMinIdle());
+            if (pool.getMaxWait() != null) {
+                poolConfig.setMaxWait(pool.getMaxWait());
+            }
+        }
+
+        // IDLE 커넥션 eviction 설정
+        poolConfig.setMinEvictableIdleDuration(Duration.ofSeconds(30));
+        poolConfig.setTimeBetweenEvictionRuns(Duration.ofSeconds(30));
+
+        LettucePoolingClientConfiguration.LettucePoolingClientConfigurationBuilder builder =
+                LettucePoolingClientConfiguration.builder().poolConfig(poolConfig);
+        if (redisProperties.getTimeout() != null) {
+            builder.commandTimeout(redisProperties.getTimeout());
+        }
+        LettucePoolingClientConfiguration clientConfig = builder.build();
+
+        return new LettuceConnectionFactory(serverConfig, clientConfig);
+    }
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
