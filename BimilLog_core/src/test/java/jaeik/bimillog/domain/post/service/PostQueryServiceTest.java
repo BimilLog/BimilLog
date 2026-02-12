@@ -89,7 +89,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
-        assertThat(result.hasNext()).isFalse();
+        assertThat(result.nextCursor()).isNull();
 
         verify(postCacheService).getFirstPagePosts();
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
@@ -119,7 +119,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(2);
         assertThat(result.content().get(0).getTitle()).isEqualTo("제목5");
         assertThat(result.content().get(1).getTitle()).isEqualTo("제목4");
-        assertThat(result.hasNext()).isTrue();
         assertThat(result.nextCursor()).isEqualTo(4L);
 
         verify(postCacheService).getFirstPagePosts();
@@ -199,7 +198,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result.content()).hasSize(2);
         assertThat(result.content()).extracting(PostSimpleDetail::getId).containsExactly(1L, 3L);
-        assertThat(result.hasNext()).isFalse();
+        assertThat(result.nextCursor()).isNull();
 
         verify(postCacheService).getFirstPagePosts();
     }

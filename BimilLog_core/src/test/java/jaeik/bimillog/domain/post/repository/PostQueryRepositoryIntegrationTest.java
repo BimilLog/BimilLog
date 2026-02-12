@@ -129,7 +129,7 @@ class PostQueryRepositoryIntegrationTest {
         // When: 커서 기반 게시글 조회
         List<PostSimpleDetail> result = postQueryRepository.findBoardPostsByCursor(cursor, size);
 
-        // Then: size + 1개까지 조회됨 (hasNext 판단용)
+        // Then: size + 1개까지 조회됨 (nextCursor 판단용)
         assertThat(result).isNotNull();
         assertThat(result).hasSize(3); // 3개 게시글 중 size+1=3개 조회
 

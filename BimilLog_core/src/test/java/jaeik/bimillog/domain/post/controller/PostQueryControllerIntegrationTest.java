@@ -104,9 +104,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(3))))
-                .andExpect(jsonPath("$.content[0].title", notNullValue()))
-                .andExpect(jsonPath("$.size", is(10)))
-                .andExpect(jsonPath("$.hasNext", notNullValue()));
+                .andExpect(jsonPath("$.content[0].title", notNullValue()));
     }
 
     @Test
@@ -117,8 +115,6 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(lessThanOrEqualTo(2))))
-                .andExpect(jsonPath("$.size", is(2)))
-                .andExpect(jsonPath("$.hasNext", is(true)))
                 .andExpect(jsonPath("$.nextCursor", notNullValue()));
     }
 
@@ -257,7 +253,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
-                .andExpect(jsonPath("$.hasNext", is(false)));
+                .andExpect(jsonPath("$.nextCursor").doesNotExist());
     }
 
     @Test
@@ -317,8 +313,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                         .param("size", "2"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", notNullValue()))
-                .andExpect(jsonPath("$.size", is(2)));
+                .andExpect(jsonPath("$.content", notNullValue()));
     }
 
     @Test

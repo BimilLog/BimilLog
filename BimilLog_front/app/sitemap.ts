@@ -59,21 +59,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let allPosts: SimplePost[] = [];
   let cursor: number | null = null;
-  let hasNext = true;
 
   try {
     // 커서 기반 페이지네이션으로 모든 게시글 조회
-    while (hasNext) {
+    do {
       const response = await postQuery.getAll(cursor, 100);
       if (response.success && response.data) {
         allPosts = allPosts.concat(response.data.content);
-        hasNext = response.data.hasNext;
         cursor = response.data.nextCursor;
       } else {
         logger.warn(`Failed to fetch posts with cursor ${cursor}`);
         break;
       }
-    }
+    } while (cursor != null);
   } catch (error) {
     logger.error("Failed to fetch posts for sitemap:", error);
     return staticRoutes;
@@ -99,22 +97,20 @@ export async function sitemapPosts(): Promise<MetadataRoute.Sitemap> {
 
   let allPosts: SimplePost[] = [];
   let cursor: number | null = null;
-  let hasNext = true;
   let pageCount = 0;
 
   try {
     // 커서 기반 페이지네이션 (최대 50페이지)
-    while (hasNext && pageCount < 50) {
+    do {
       const response = await postQuery.getAll(cursor, 100);
       if (response.success && response.data) {
         allPosts = allPosts.concat(response.data.content);
-        hasNext = response.data.hasNext;
         cursor = response.data.nextCursor;
         pageCount++;
       } else {
         break;
       }
-    }
+    } while (cursor != null && pageCount < 50);
   } catch (error) {
     logger.error("Failed to fetch posts for posts sitemap:", error);
     return [];
