@@ -79,7 +79,8 @@ public class PostQueryService {
             posts = posts.stream().filter(post -> !blacklistSet.contains(post.getMemberId())).collect(Collectors.toList());
         }
 
-        return CursorPageResponse.of(posts, posts.getLast().getId(), hasNext, size);
+        Long nextCursor = hasNext && !posts.isEmpty() ? posts.getLast().getId() : null;
+        return CursorPageResponse.of(posts, nextCursor);
     }
 
     /**

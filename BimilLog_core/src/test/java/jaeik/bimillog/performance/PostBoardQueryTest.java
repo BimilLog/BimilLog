@@ -70,8 +70,8 @@ class PostBoardQueryTest {
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
-        log.info("게시판 목록 조회 (첫 페이지, 회원 ID={}): {} ms, size: {}, hasNext: {}",
-                TARGET_MEMBER_ID, elapsedMs, result.content().size(), result.hasNext());
+        log.info("게시판 목록 조회 (첫 페이지, 회원 ID={}): {} ms, size: {}, nextCursor: {}",
+                TARGET_MEMBER_ID, elapsedMs, result.content().size(), result.nextCursor());
 
         Assertions.assertThat(elapsedMs)
                 .as("게시판 목록 조회가 %d ms 이내로 끝나야 합니다", THRESHOLD_MS)
@@ -87,8 +87,8 @@ class PostBoardQueryTest {
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
-        log.info("게시판 목록 조회 (중간 페이지 cursor={}, 회원 ID={}): {} ms, size: {}, hasNext: {}",
-                middleCursor, TARGET_MEMBER_ID, elapsedMs, result.content().size(), result.hasNext());
+        log.info("게시판 목록 조회 (중간 페이지 cursor={}, 회원 ID={}): {} ms, size: {}, nextCursor: {}",
+                middleCursor, TARGET_MEMBER_ID, elapsedMs, result.content().size(), result.nextCursor());
 
         Assertions.assertThat(elapsedMs)
                 .as("게시판 목록 중간 페이지 조회가 %d ms 이내로 끝나야 합니다", THRESHOLD_MS)
@@ -104,8 +104,8 @@ class PostBoardQueryTest {
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
-        log.info("게시판 목록 조회 (마지막 페이지 cursor={}, 회원 ID={}): {} ms, size: {}, hasNext: {}",
-                lastCursor, TARGET_MEMBER_ID, elapsedMs, result.content().size(), result.hasNext());
+        log.info("게시판 목록 조회 (마지막 페이지 cursor={}, 회원 ID={}): {} ms, size: {}, nextCursor: {}",
+                lastCursor, TARGET_MEMBER_ID, elapsedMs, result.content().size(), result.nextCursor());
 
         Assertions.assertThat(elapsedMs)
                 .as("게시판 목록 마지막 페이지 조회가 %d ms 이내로 끝나야 합니다", THRESHOLD_MS)

@@ -46,12 +46,7 @@ export function useInfinitePostList(options: UseInfinitePostListOptions = {}) {
       return await postQuery.getAll(pageParam, pageSize);
     },
     initialPageParam: null as number | null,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.data?.hasNext) {
-        return lastPage.data.nextCursor;
-      }
-      return undefined;
-    },
+    getNextPageParam: (lastPage) => lastPage.data?.nextCursor ?? undefined,
     // SSR 초기 데이터 사용
     initialData: initialData ? {
       pages: [{ success: true, data: initialData }],
