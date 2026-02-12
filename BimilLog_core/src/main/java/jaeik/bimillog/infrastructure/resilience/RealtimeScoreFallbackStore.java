@@ -20,7 +20,7 @@ import java.util.*;
 @Slf4j
 public class RealtimeScoreFallbackStore {
     private static final int MAX_SIZE = 10_000;
-    private static final double DECAY_RATE = 0.9;
+    private static final double DECAY_RATE = 0.97;
     private static final double SCORE_THRESHOLD = 1.0;
 
     private final Cache<Long, Double> scoreCache = Caffeine.newBuilder()
