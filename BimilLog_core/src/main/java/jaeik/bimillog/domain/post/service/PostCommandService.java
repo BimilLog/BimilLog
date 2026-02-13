@@ -70,7 +70,7 @@ public class PostCommandService {
         Post post = Post.createPost(member, title, content, password, memberName);
         post = postRepository.save(post);
 
-        // 첫 페이지 캐시 비동기 추가 (실패 시 어댑터 내부에서 캐시 무효화)
+        // 첫 페이지 캐시 비동기 추가
         PostSimpleDetail newPostDetail = PostSimpleDetail.createNew(post.getId(), post.getTitle(), post.getCreatedAt(), memberId, memberName);
         cacheUpdateSync.asyncAddNewPost(newPostDetail);
 
