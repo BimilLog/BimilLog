@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
@@ -47,6 +48,9 @@ class RealtimePostCacheServiceTest {
 
     @Mock
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
+
+    @Mock
+    private RedisPostCounterAdapter redisPostCounterAdapter;
 
     @Mock
     private RealtimeScoreFallbackStore realtimeScoreFallbackStore;

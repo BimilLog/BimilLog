@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ import java.util.List;
 public class PostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisPostCounterAdapter redisPostCounterAdapter;
     private final PostUtil postUtil;
 
     /**
@@ -39,6 +41,7 @@ public class PostCacheService {
         try {
             List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(RedisKey.POST_WEEKLY_JSON_KEY);
             if (!posts.isEmpty()) {
+                redisPostCounterAdapter.mergeCounters(posts);
                 return postUtil.paginate(posts, pageable);
             }
         } catch (Exception e) {
@@ -54,6 +57,7 @@ public class PostCacheService {
         try {
             List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(RedisKey.POST_LEGEND_JSON_KEY);
             if (!posts.isEmpty()) {
+                redisPostCounterAdapter.mergeCounters(posts);
                 return postUtil.paginate(posts, pageable);
             }
         } catch (Exception e) {
@@ -69,6 +73,7 @@ public class PostCacheService {
         try {
             List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(RedisKey.POST_NOTICE_JSON_KEY);
             if (!posts.isEmpty()) {
+                redisPostCounterAdapter.mergeCounters(posts);
                 return postUtil.paginate(posts, pageable);
             }
         } catch (Exception e) {
@@ -84,6 +89,7 @@ public class PostCacheService {
         try {
             List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY);
             if (!posts.isEmpty()) {
+                redisPostCounterAdapter.mergeCounters(posts);
                 return posts;
             }
         } catch (Exception e) {

@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class PostAdminService {
     private final PostRepository postRepository;
     private final PostQueryRepository postQueryRepository;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisPostCounterAdapter redisPostCounterAdapter;
 
     private static final int NOTICE_MAX_SIZE = 100;
 
@@ -56,9 +58,10 @@ public class PostAdminService {
                 // 공지 설정: isNotice true + JSON LIST에 LPUSH
                 post.updateNotice(true);
                 Optional<PostSimpleDetail> detail = postQueryRepository.findPostSimpleDetailById(postId);
-                detail.ifPresent(d ->
-                        redisPostJsonListAdapter.addNewPost(RedisKey.POST_NOTICE_JSON_KEY, d, NOTICE_MAX_SIZE)
-                );
+                detail.ifPresent(d -> {
+                    redisPostJsonListAdapter.addNewPost(RedisKey.POST_NOTICE_JSON_KEY, d, NOTICE_MAX_SIZE);
+                    redisPostCounterAdapter.addCachedPostId(postId);
+                });
             }
         } catch (Exception e) {
             log.error("공지 설정/해제 중 오류 발생: postId={}", postId, e);

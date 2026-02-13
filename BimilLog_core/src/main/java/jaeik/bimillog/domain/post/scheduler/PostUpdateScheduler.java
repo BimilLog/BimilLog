@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.scheduler;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <h2>카운트 플러시 스케줄러</h2>
@@ -28,6 +30,7 @@ public class PostUpdateScheduler {
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final PostQueryRepository postQueryRepository;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisPostCounterAdapter redisPostCounterAdapter;
 
     private static final List<String> ALL_JSON_KEYS = List.of(
             RedisKey.FIRST_PAGE_JSON_KEY,
@@ -56,6 +59,10 @@ public class PostUpdateScheduler {
             for (String key : ALL_JSON_KEYS) {
                 redisPostJsonListAdapter.batchIncrementCounts(key, counts, RedisKey.FIELD_VIEW_COUNT);
             }
+            Map<Long, Long> cachedCounts = counts.entrySet().stream()
+                    .filter(e -> redisPostCounterAdapter.isCachedPost(e.getKey()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            redisPostCounterAdapter.batchIncrementCounter(cachedCounts, RedisKey.COUNTER_SUFFIX_VIEW);
             log.info("{} 플러시 완료: {}개 게시글 반영", RedisKey.FIELD_VIEW_COUNT, counts.size());
         } catch (Exception e) {
             log.error("{} 플러시 실패", RedisKey.FIELD_VIEW_COUNT, e);

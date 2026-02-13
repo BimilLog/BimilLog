@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.scheduler;
 import com.querydsl.core.types.dsl.NumberPath;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import org.junit.jupiter.api.DisplayName;
@@ -40,6 +41,9 @@ class PostUpdateSchedulerTest {
     @Mock
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
+    @Mock
+    private RedisPostCounterAdapter redisPostCounterAdapter;
+
     @InjectMocks
     private PostUpdateScheduler scheduler;
 
@@ -65,18 +69,23 @@ class PostUpdateSchedulerTest {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L, 2L, 3L);
         given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
+        // postId 1만 캐시글, 2는 비캐시글
+        given(redisPostCounterAdapter.isCachedPost(1L)).willReturn(true);
+        given(redisPostCounterAdapter.isCachedPost(2L)).willReturn(false);
 
         // When
         scheduler.flushAllCounts();
 
         // Then
         verify(postQueryRepository).bulkIncrementCount(eq(viewCounts), any(NumberPath.class));
-        // 5개 JSON LIST에 모두 반영
+        // 5개 JSON LIST에 모두 반영 (전체 counts)
         verify(redisPostJsonListAdapter).batchIncrementCounts(eq(RedisKey.FIRST_PAGE_JSON_KEY), eq(viewCounts), eq(RedisKey.FIELD_VIEW_COUNT));
         verify(redisPostJsonListAdapter).batchIncrementCounts(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(viewCounts), eq(RedisKey.FIELD_VIEW_COUNT));
         verify(redisPostJsonListAdapter).batchIncrementCounts(eq(RedisKey.POST_LEGEND_JSON_KEY), eq(viewCounts), eq(RedisKey.FIELD_VIEW_COUNT));
         verify(redisPostJsonListAdapter).batchIncrementCounts(eq(RedisKey.POST_NOTICE_JSON_KEY), eq(viewCounts), eq(RedisKey.FIELD_VIEW_COUNT));
         verify(redisPostJsonListAdapter).batchIncrementCounts(eq(RedisKey.POST_REALTIME_JSON_KEY), eq(viewCounts), eq(RedisKey.FIELD_VIEW_COUNT));
+        // 카운터 캐시에는 캐시글만 필터링되어 반영 (postId 1만)
+        verify(redisPostCounterAdapter).batchIncrementCounter(eq(Map.of(1L, 5L)), eq(RedisKey.COUNTER_SUFFIX_VIEW));
     }
 
     @Test

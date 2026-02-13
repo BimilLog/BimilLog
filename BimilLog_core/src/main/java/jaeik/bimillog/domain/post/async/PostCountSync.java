@@ -1,6 +1,8 @@
 package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PostCountSync {
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
+    private final RedisPostCounterAdapter redisPostCounterAdapter;
 
     /**
      * <h3>게시글 조회 이벤트 처리 (원자적)</h3>
@@ -38,6 +41,44 @@ public class PostCountSync {
             redisPostUpdateAdapter.markViewedAndIncrement(postId, viewerKey);
         } catch (Exception e) {
             log.warn("조회수 처리 실패: postId={}, error={}", postId, e.getMessage());
+        }
+    }
+
+    /**
+     * <h3>좋아요 카운터 캐시 증감</h3>
+     * <p>캐시글인 경우에만 post:counters Hash의 {postId}:like 필드를 HINCRBY로 증감합니다.</p>
+     * <p>SISMEMBER(SET) → ZSCORE(실시간 ZSet) 순서로 캐시글 여부를 확인합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @param delta  증감값 (1: 좋아요 추가, -1: 좋아요 취소)
+     */
+    @Async("cacheCountUpdateExecutor")
+    public void incrementLikeCounter(Long postId, long delta) {
+        try {
+            if (redisPostCounterAdapter.isCachedPost(postId)) {
+                redisPostCounterAdapter.incrementCounter(postId, RedisKey.COUNTER_SUFFIX_LIKE, delta);
+            }
+        } catch (Exception e) {
+            log.warn("좋아요 카운터 캐시 증감 실패: postId={}, delta={}, error={}", postId, delta, e.getMessage());
+        }
+    }
+
+    /**
+     * <h3>댓글 카운터 캐시 증감</h3>
+     * <p>캐시글인 경우에만 post:counters Hash의 {postId}:comment 필드를 HINCRBY로 증감합니다.</p>
+     * <p>SISMEMBER(SET) → ZSCORE(실시간 ZSet) 순서로 캐시글 여부를 확인합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @param delta  증감값 (1: 댓글 작성, -1: 댓글 삭제)
+     */
+    @Async("cacheCountUpdateExecutor")
+    public void incrementCommentCounter(Long postId, long delta) {
+        try {
+            if (redisPostCounterAdapter.isCachedPost(postId)) {
+                redisPostCounterAdapter.incrementCounter(postId, RedisKey.COUNTER_SUFFIX_COMMENT, delta);
+            }
+        } catch (Exception e) {
+            log.warn("댓글 카운터 캐시 증감 실패: postId={}, delta={}, error={}", postId, delta, e.getMessage());
         }
     }
 }

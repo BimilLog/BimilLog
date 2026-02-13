@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -47,6 +48,9 @@ class PostAdminServiceTest extends BaseUnitTest {
     @Mock
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
+    @Mock
+    private RedisPostCounterAdapter redisPostCounterAdapter;
+
     @InjectMocks
     private PostAdminService postAdminService;
 
@@ -85,6 +89,8 @@ class PostAdminServiceTest extends BaseUnitTest {
         verify(postRepository).findById(postId);
         // JSON LIST에 LPUSH
         verify(redisPostJsonListAdapter).addNewPost(eq(RedisKey.POST_NOTICE_JSON_KEY), eq(mockDetail), anyInt());
+        // 캐시글 ID SET에 추가
+        verify(redisPostCounterAdapter).addCachedPostId(postId);
     }
 
     @Test

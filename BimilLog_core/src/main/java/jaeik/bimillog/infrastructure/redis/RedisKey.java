@@ -37,13 +37,24 @@ public final class RedisKey {
     public static final String REALTIME_POST_SCORE_KEY = "post:realtime:score";
 
     // ==================== 글 : 카운트 버퍼 (Hash) ====================
-    // key: post:view:counts, post:like:counts, post:comment:counts
+    // key: post:view:counts
 
     public static final String VIEW_PREFIX = "post:view:";
     public static final String VIEW_COUNTS_KEY = "post:view:counts";
-    public static final String LIKE_COUNTS_KEY = "post:like:counts";
-    public static final String COMMENT_COUNTS_KEY = "post:comment:counts";
     public static final long VIEW_TTL_SECONDS = DEFAULT_CACHE_TTL.toSeconds();
+
+    // ==================== 글 : 캐시글 ID (Set) ====================
+    // key: post:cached:ids — 주간/레전드/공지/첫페이지 캐시글 ID 합집합
+
+    public static final String CACHED_POST_IDS_KEY = "post:cached:ids";
+
+    // ==================== 글 : 카운터 캐시 (Hash) ====================
+    // key: post:counters, field: {postId}:view / {postId}:like / {postId}:comment
+
+    public static final String POST_COUNTERS_KEY = "post:counters";
+    public static final String COUNTER_SUFFIX_VIEW = ":view";
+    public static final String COUNTER_SUFFIX_LIKE = ":like";
+    public static final String COUNTER_SUFFIX_COMMENT = ":comment";
 
     // ==================== 롤링페이퍼 : 실시간 (ZSet) ====================
     // key: paper:realtime:score

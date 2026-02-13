@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,9 @@ class PostCacheServiceTest {
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @Mock
+    private RedisPostCounterAdapter redisPostCounterAdapter;
+
+    @Mock
     private PostUtil postUtil;
 
     private PostCacheService postCacheService;
@@ -58,6 +62,7 @@ class PostCacheServiceTest {
         postCacheService = new PostCacheService(
                 postQueryRepository,
                 redisPostJsonListAdapter,
+                redisPostCounterAdapter,
                 postUtil
         );
     }

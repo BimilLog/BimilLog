@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
@@ -37,6 +38,7 @@ public class RealtimePostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisPostCounterAdapter redisPostCounterAdapter;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
     private final RealtimePostSync realtimePostSync;
     private final PostUtil postUtil;
@@ -64,6 +66,9 @@ public class RealtimePostCacheService {
         if (!zsetTopIds.equals(listIds)) {
             realtimePostSync.asyncRebuildRealtimeCache(zsetTopIds);
         }
+
+        // 3. 카운터 Hash에서 최신 카운트 병합
+        redisPostCounterAdapter.mergeCounters(listPosts);
 
         return postUtil.paginate(listPosts, pageable);
     }

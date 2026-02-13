@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import org.junit.jupiter.api.*;
@@ -34,6 +35,9 @@ class PostCountSyncLocalTest {
     private RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     @Autowired
+    private RedisPostCounterAdapter redisPostCounterAdapter;
+
+    @Autowired
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Autowired
@@ -46,6 +50,7 @@ class PostCountSyncLocalTest {
     void cleanRedis() {
         // 테스트 관련 키만 정리
         stringRedisTemplate.delete(RedisKey.VIEW_COUNTS_KEY);
+        stringRedisTemplate.delete(RedisKey.POST_COUNTERS_KEY);
         stringRedisTemplate.delete(RedisKey.REALTIME_POST_SCORE_KEY);
         // SET NX EX 방식 조회 마킹 키 정리
         stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":" + TEST_VIEWER_KEY);
@@ -120,6 +125,59 @@ class PostCountSyncLocalTest {
         // Then
         assertThat(first).containsEntry(TEST_POST_ID, 2L);
         assertThat(second).isEmpty();
+    }
+
+    // ==================== 카운터 캐시 (post:counters) ====================
+
+    @Test
+    @DisplayName("좋아요 카운터 캐시 - 캐시글이면 비동기 증감 반영")
+    void incrementLikeCounter_shouldIncrementHashField() {
+        // Given - SET에 캐시글로 등록
+        stringRedisTemplate.opsForSet().add(RedisKey.CACHED_POST_IDS_KEY, TEST_POST_ID.toString());
+
+        // When
+        postCountSync.incrementLikeCounter(TEST_POST_ID, 1);
+        waitForAsync();
+
+        // Then
+        Object value = stringRedisTemplate.opsForHash()
+                .get(RedisKey.POST_COUNTERS_KEY, TEST_POST_ID + RedisKey.COUNTER_SUFFIX_LIKE);
+        assertThat(value).isNotNull();
+        assertThat(Long.parseLong(value.toString())).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("좋아요 카운터 캐시 - 비캐시글이면 증감하지 않음")
+    void incrementLikeCounter_shouldSkip_whenNotCachedPost() {
+        // Given - SET에 등록하지 않음 (비캐시글)
+
+        // When
+        postCountSync.incrementLikeCounter(TEST_POST_ID, 1);
+        waitForAsync();
+
+        // Then
+        Object value = stringRedisTemplate.opsForHash()
+                .get(RedisKey.POST_COUNTERS_KEY, TEST_POST_ID + RedisKey.COUNTER_SUFFIX_LIKE);
+        assertThat(value).isNull();
+    }
+
+    @Test
+    @DisplayName("댓글 카운터 캐시 - 캐시글이면 비동기 증감 반영")
+    void incrementCommentCounter_shouldIncrementHashField() {
+        // Given - SET에 캐시글로 등록
+        stringRedisTemplate.opsForSet().add(RedisKey.CACHED_POST_IDS_KEY, TEST_POST_ID.toString());
+
+        // When
+        postCountSync.incrementCommentCounter(TEST_POST_ID, 1);
+        postCountSync.incrementCommentCounter(TEST_POST_ID, 1);
+        postCountSync.incrementCommentCounter(TEST_POST_ID, -1);
+        waitForAsync();
+
+        // Then
+        Object value = stringRedisTemplate.opsForHash()
+                .get(RedisKey.POST_COUNTERS_KEY, TEST_POST_ID + RedisKey.COUNTER_SUFFIX_COMMENT);
+        assertThat(value).isNotNull();
+        assertThat(Long.parseLong(value.toString())).isEqualTo(1L);
     }
 
     // ==================== 실시간 인기글 점수 ====================

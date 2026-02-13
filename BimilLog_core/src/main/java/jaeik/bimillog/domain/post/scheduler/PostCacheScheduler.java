@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.PageRequest;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * <h2>PostCacheScheduler</h2>
@@ -42,6 +43,7 @@ import java.util.function.Supplier;
 @Slf4j
 public class PostCacheScheduler {
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisPostCounterAdapter redisPostCounterAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final PostQueryRepository postQueryRepository;
     private final PostRepository postRepository;
@@ -89,6 +91,8 @@ public class PostCacheScheduler {
         }
 
         redisPostJsonListAdapter.replaceAll(RedisKey.FIRST_PAGE_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
+        redisPostCounterAdapter.batchSetCounters(posts);
+        redisPostCounterAdapter.addCachedPostIds(posts.stream().map(PostSimpleDetail::getId).toList());
         log.info("첫 페이지 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
     }
 
@@ -107,7 +111,30 @@ public class PostCacheScheduler {
 
         if (!posts.isEmpty()) {
             redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
+            redisPostCounterAdapter.batchSetCounters(posts);
             log.info("실시간 인기글 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
+        }
+    }
+
+    /**
+     * <h3>캐시글 ID SET 재구축</h3>
+     * <p>4개 JSON LIST(첫페이지/주간/레전드/공지)의 모든 게시글 ID를 읽어 SET을 원자적으로 재구축합니다.</p>
+     * <p>실시간 인기글은 기존 ZSet으로 판단하므로 SET에 포함하지 않습니다.</p>
+     */
+    @Scheduled(fixedRate = 60000 * 1440)
+    public void rebuildCachedPostIdSet() {
+        try {
+            Set<Long> allIds = new HashSet<>();
+            for (String key : List.of(RedisKey.FIRST_PAGE_JSON_KEY, RedisKey.POST_WEEKLY_JSON_KEY,
+                    RedisKey.POST_LEGEND_JSON_KEY, RedisKey.POST_NOTICE_JSON_KEY)) {
+                redisPostJsonListAdapter.getAll(key).stream()
+                        .map(PostSimpleDetail::getId)
+                        .forEach(allIds::add);
+            }
+            redisPostCounterAdapter.rebuildCachedPostIds(allIds);
+            log.info("캐시글 ID SET 재구축 완료: {}개", allIds.size());
+        } catch (Exception e) {
+            log.error("캐시글 ID SET 재구축 실패: {}", e.getMessage());
         }
     }
 
@@ -140,6 +167,8 @@ public class PostCacheScheduler {
         }
 
         redisPostJsonListAdapter.replaceAll(redisKey, posts, RedisKey.DEFAULT_CACHE_TTL);
+        redisPostCounterAdapter.batchSetCounters(posts);
+        redisPostCounterAdapter.addCachedPostIds(ids);
         log.info("{} 캐시 업데이트 완료. {}개의 게시글이 처리됨", type, posts.size());
 
         if (eventMessage != null) {
