@@ -10,6 +10,7 @@ import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.comment.adapter.CommentToMemberAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -62,6 +63,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @Mock private CommentLikeRepository commentLikeRepository;
     @Mock private CommentToMemberAdapter commentToMemberAdapter;
     @Mock private PostRepository postRepository;
+    @Mock private PostCountSync postCountSync;
     @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks

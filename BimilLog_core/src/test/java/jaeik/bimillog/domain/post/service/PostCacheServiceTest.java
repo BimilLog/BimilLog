@@ -1,9 +1,11 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +36,7 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>PostCacheService 테스트</h2>
  * <p>주간/레전드/공지 인기글 캐시 조회 로직을 검증합니다.</p>
- * <p>JSON LIST 단일 구조로 통일된 캐시에서 getAll(key) → 바로 반환 경로를 검증합니다.</p>
+ * <p>JSON LIST(PostCacheEntry) + 카운터 Hash(HMGET) → PostSimpleDetail 결합 경로를 검증합니다.</p>
  * <p>DB 폴백은 독립 boolean 플래그 기반 쿼리를 사용합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
@@ -49,6 +51,9 @@ class PostCacheServiceTest {
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @Mock
+    private RedisPostCounterAdapter redisPostCounterAdapter;
+
+    @Mock
     private PostUtil postUtil;
 
     private PostCacheService postCacheService;
@@ -58,6 +63,7 @@ class PostCacheServiceTest {
         postCacheService = new PostCacheService(
                 postQueryRepository,
                 redisPostJsonListAdapter,
+                redisPostCounterAdapter,
                 postUtil
         );
     }
@@ -67,14 +73,18 @@ class PostCacheServiceTest {
     void shouldGetWeeklyPosts_CacheHit() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        PostSimpleDetail weeklyPost1 = PostTestDataBuilder.createPostSearchResult(1L, "주간 인기글 1");
-        PostSimpleDetail weeklyPost2 = PostTestDataBuilder.createPostSearchResult(2L, "주간 인기글 2");
-        List<PostSimpleDetail> cachedPosts = List.of(weeklyPost1, weeklyPost2);
+        PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(1L, "주간 인기글 1");
+        PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, "주간 인기글 2");
+        List<PostCacheEntry> entries = List.of(entry1, entry2);
 
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_WEEKLY_JSON_KEY))
-                .willReturn(cachedPosts);
-        given(postUtil.paginate(cachedPosts, pageable))
-                .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
+        PostSimpleDetail post1 = PostTestDataBuilder.createPostSearchResult(1L, "주간 인기글 1");
+        PostSimpleDetail post2 = PostTestDataBuilder.createPostSearchResult(2L, "주간 인기글 2");
+        List<PostSimpleDetail> combinedPosts = List.of(post1, post2);
+
+        given(redisPostJsonListAdapter.getAll(RedisKey.POST_WEEKLY_JSON_KEY)).willReturn(entries);
+        given(redisPostCounterAdapter.combineWithCounters(entries)).willReturn(combinedPosts);
+        given(postUtil.paginate(combinedPosts, pageable))
+                .willReturn(new PageImpl<>(combinedPosts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
@@ -83,6 +93,7 @@ class PostCacheServiceTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
         verify(redisPostJsonListAdapter).getAll(RedisKey.POST_WEEKLY_JSON_KEY);
+        verify(redisPostCounterAdapter).combineWithCounters(entries);
     }
 
     @Test
@@ -90,14 +101,18 @@ class PostCacheServiceTest {
     void shouldGetPopularPostLegend() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        PostSimpleDetail legendPost1 = PostTestDataBuilder.createPostSearchResult(1L, "레전드 게시글 1");
-        PostSimpleDetail legendPost2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
-        List<PostSimpleDetail> cachedPosts = List.of(legendPost1, legendPost2);
+        PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(1L, "레전드 게시글 1");
+        PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, "레전드 게시글 2");
+        List<PostCacheEntry> entries = List.of(entry1, entry2);
 
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_LEGEND_JSON_KEY))
-                .willReturn(cachedPosts);
-        given(postUtil.paginate(cachedPosts, pageable))
-                .willReturn(new PageImpl<>(cachedPosts, pageable, 2));
+        PostSimpleDetail post1 = PostTestDataBuilder.createPostSearchResult(1L, "레전드 게시글 1");
+        PostSimpleDetail post2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
+        List<PostSimpleDetail> combinedPosts = List.of(post1, post2);
+
+        given(redisPostJsonListAdapter.getAll(RedisKey.POST_LEGEND_JSON_KEY)).willReturn(entries);
+        given(redisPostCounterAdapter.combineWithCounters(entries)).willReturn(combinedPosts);
+        given(postUtil.paginate(combinedPosts, pageable))
+                .willReturn(new PageImpl<>(combinedPosts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
@@ -105,6 +120,7 @@ class PostCacheServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(2);
         verify(redisPostJsonListAdapter).getAll(RedisKey.POST_LEGEND_JSON_KEY);
+        verify(redisPostCounterAdapter).combineWithCounters(entries);
     }
 
     @Test
@@ -112,13 +128,16 @@ class PostCacheServiceTest {
     void shouldGetNoticePosts_CacheHit() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
-        List<PostSimpleDetail> cachedPosts = List.of(noticePost);
+        PostCacheEntry entry = PostTestDataBuilder.createCacheEntry(1L, "공지사항");
+        List<PostCacheEntry> entries = List.of(entry);
 
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_NOTICE_JSON_KEY))
-                .willReturn(cachedPosts);
-        given(postUtil.paginate(cachedPosts, pageable))
-                .willReturn(new PageImpl<>(cachedPosts, pageable, 1));
+        PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
+        List<PostSimpleDetail> combinedPosts = List.of(noticePost);
+
+        given(redisPostJsonListAdapter.getAll(RedisKey.POST_NOTICE_JSON_KEY)).willReturn(entries);
+        given(redisPostCounterAdapter.combineWithCounters(entries)).willReturn(combinedPosts);
+        given(postUtil.paginate(combinedPosts, pageable))
+                .willReturn(new PageImpl<>(combinedPosts, pageable, 1));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getNoticePosts(pageable);
@@ -127,6 +146,7 @@ class PostCacheServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("공지사항");
         verify(redisPostJsonListAdapter).getAll(RedisKey.POST_NOTICE_JSON_KEY);
+        verify(redisPostCounterAdapter).combineWithCounters(entries);
     }
 
     @ParameterizedTest(name = "{1} - JSON LIST 비어있음 → DB 폴백")
@@ -216,15 +236,21 @@ class PostCacheServiceTest {
     class FirstPageTests {
 
         @Test
-        @DisplayName("첫 페이지 캐시 히트 - JSON LIST 직접 조회")
+        @DisplayName("첫 페이지 캐시 히트 - JSON LIST + 카운터 결합")
         void shouldGetFirstPagePosts_CacheHit() {
             // Given
+            PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(3L, "최신글");
+            PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, "두번째글");
+            PostCacheEntry entry3 = PostTestDataBuilder.createCacheEntry(1L, "세번째글");
+            List<PostCacheEntry> entries = List.of(entry1, entry2, entry3);
+
             PostSimpleDetail post1 = PostTestDataBuilder.createPostSearchResult(3L, "최신글");
             PostSimpleDetail post2 = PostTestDataBuilder.createPostSearchResult(2L, "두번째글");
             PostSimpleDetail post3 = PostTestDataBuilder.createPostSearchResult(1L, "세번째글");
-            List<PostSimpleDetail> cachedPosts = List.of(post1, post2, post3);
+            List<PostSimpleDetail> combinedPosts = List.of(post1, post2, post3);
 
-            given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cachedPosts);
+            given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(entries);
+            given(redisPostCounterAdapter.combineWithCounters(entries)).willReturn(combinedPosts);
 
             // When
             List<PostSimpleDetail> result = postCacheService.getFirstPagePosts();
@@ -233,6 +259,7 @@ class PostCacheServiceTest {
             assertThat(result).hasSize(3);
             assertThat(result.get(0).getTitle()).isEqualTo("최신글");
             verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
+            verify(redisPostCounterAdapter).combineWithCounters(entries);
             verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
         }
 

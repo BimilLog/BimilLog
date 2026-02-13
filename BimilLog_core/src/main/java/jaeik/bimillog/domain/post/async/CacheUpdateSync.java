@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.post.async;
 
+import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import java.util.List;
 public class CacheUpdateSync {
     private final PostQueryRepository postQueryRepository;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisPostCounterAdapter redisPostCounterAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     private static final List<String> ALL_JSON_KEYS = List.of(
@@ -41,7 +44,9 @@ public class CacheUpdateSync {
      */
     @Async("cacheRefreshPool")
     public void asyncAddNewPost(PostSimpleDetail post) {
-        redisPostJsonListAdapter.addNewPost(RedisKey.FIRST_PAGE_JSON_KEY, post, RedisKey.FIRST_PAGE_SIZE + 1);
+        redisPostJsonListAdapter.addNewPost(RedisKey.FIRST_PAGE_JSON_KEY, PostCacheEntry.from(post), RedisKey.FIRST_PAGE_SIZE + 1);
+        redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, post.getId());
+        redisPostCounterAdapter.batchSetCounters(List.of(post));
     }
 
     /**
@@ -63,6 +68,8 @@ public class CacheUpdateSync {
     @Async("cacheRefreshPool")
     public void asyncDeletePost(Long postId) {
         redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
+        redisPostCounterAdapter.removeFromAllCategorySets(postId);
+        redisPostCounterAdapter.removeCounterFields(postId);
 
         // 주간/레전드/공지/실시간 JSON LIST에서 삭제
         redisPostJsonListAdapter.removePost(RedisKey.POST_WEEKLY_JSON_KEY, postId);
@@ -75,7 +82,10 @@ public class CacheUpdateSync {
         if (lastPostId != null) {
             List<PostSimpleDetail> nextPosts = postQueryRepository.findBoardPostsByCursor(lastPostId, 1);
             if (!nextPosts.isEmpty()) {
-                redisPostJsonListAdapter.appendPost(RedisKey.FIRST_PAGE_JSON_KEY, nextPosts.getFirst(), RedisKey.FIRST_PAGE_SIZE + 1);
+                PostSimpleDetail next = nextPosts.getFirst();
+                redisPostJsonListAdapter.appendPost(RedisKey.FIRST_PAGE_JSON_KEY, PostCacheEntry.from(next), RedisKey.FIRST_PAGE_SIZE + 1);
+                redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, next.getId());
+                redisPostCounterAdapter.batchSetCounters(List.of(next));
             }
         }
     }

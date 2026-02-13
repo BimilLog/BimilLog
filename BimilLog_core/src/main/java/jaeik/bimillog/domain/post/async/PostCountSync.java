@@ -1,15 +1,13 @@
 package jaeik.bimillog.domain.post.async;
 
-import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
-import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * <h2>게시글 조회수 증가 리스너</h2>
@@ -26,7 +24,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class PostCountSync {
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
-    private final PostRepository postRepository;
+    private final RedisPostCounterAdapter redisPostCounterAdapter;
 
     /**
      * <h3>게시글 조회 이벤트 처리 (원자적)</h3>
@@ -47,55 +45,40 @@ public class PostCountSync {
     }
 
     /**
-     * <h3>좋아요 수 Redis 버퍼 증감</h3>
-     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
-     * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
+     * <h3>좋아요 카운터 캐시 증감</h3>
+     * <p>캐시글인 경우에만 post:counters Hash의 {postId}:like 필드를 HINCRBY로 증감합니다.</p>
+     * <p>Lua 스크립트로 5개 카테고리 SET을 한 번에 확인하여 캐시글 여부를 판단합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @param delta  증감값 (1: 좋아요 추가, -1: 좋아요 취소)
      */
     @Async("cacheCountUpdateExecutor")
-    public void incrementLikeWithFallback(Long postId, long delta) {
+    public void incrementLikeCounter(Long postId, long delta) {
         try {
-            redisPostUpdateAdapter.incrementLikeBuffer(postId, delta);
-        } catch (Exception e) {
-            log.warn("[LIKE_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
-            if (delta > 0) {
-                postRepository.incrementLikeCount(postId);
-            } else {
-                postRepository.decrementLikeCount(postId);
+            if (redisPostCounterAdapter.isCachedPost(postId)) {
+                redisPostCounterAdapter.incrementCounter(postId, RedisKey.COUNTER_SUFFIX_LIKE, delta);
             }
+        } catch (Exception e) {
+            log.warn("좋아요 카운터 캐시 증감 실패: postId={}, delta={}, error={}", postId, delta, e.getMessage());
         }
     }
 
     /**
-     * <h3>댓글 작성 시 댓글 수 증가</h3>
-     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
-     * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
+     * <h3>댓글 카운터 캐시 증감</h3>
+     * <p>캐시글인 경우에만 post:counters Hash의 {postId}:comment 필드를 HINCRBY로 증감합니다.</p>
+     * <p>Lua 스크립트로 5개 카테고리 SET을 한 번에 확인하여 캐시글 여부를 판단합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @param delta  증감값 (1: 댓글 작성, -1: 댓글 삭제)
      */
     @Async("cacheCountUpdateExecutor")
-    @TransactionalEventListener
-    public void handleCommentCreated(CommentCreatedEvent event) {
-        Long postId = event.getPostId();
+    public void incrementCommentCounter(Long postId, long delta) {
         try {
-            redisPostUpdateAdapter.incrementCommentBuffer(postId, 1);
+            if (redisPostCounterAdapter.isCachedPost(postId)) {
+                redisPostCounterAdapter.incrementCounter(postId, RedisKey.COUNTER_SUFFIX_COMMENT, delta);
+            }
         } catch (Exception e) {
-            log.warn("[COMMENT_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
-            postRepository.incrementCommentCount(postId);
-        }
-    }
-
-    /**
-     * <h3>댓글 삭제 시 댓글 수 감소</h3>
-     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
-     * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
-     */
-    @Async("cacheCountUpdateExecutor")
-    @TransactionalEventListener
-    public void handleCommentDeleted(CommentDeletedEvent event) {
-        Long postId = event.postId();
-        try {
-            redisPostUpdateAdapter.incrementCommentBuffer(postId, -1);
-        } catch (Exception e) {
-            log.warn("[COMMENT_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
-            postRepository.decrementCommentCount(postId);
+            log.warn("댓글 카운터 캐시 증감 실패: postId={}, delta={}, error={}", postId, delta, e.getMessage());
         }
     }
 }

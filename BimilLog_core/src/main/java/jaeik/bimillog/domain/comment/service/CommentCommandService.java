@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.comment.repository.*;
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
@@ -43,6 +44,7 @@ import java.util.Objects;
 public class CommentCommandService {
     private final ApplicationEventPublisher eventPublisher;
     private final PostRepository postRepository;
+    private final PostCountSync postCountSync;
     private final CommentToMemberAdapter commentToMemberAdapter;
     private final CommentRepository commentRepository;
     private final CommentDeleteRepository commentDeleteRepository;
@@ -89,7 +91,13 @@ public class CommentCommandService {
 
             saveCommentWithClosure(post, member, content, password, parentId);
 
-            // 댓글 작성 이벤트 발행 (댓글 수 증가, 실시간 인기글 점수, 알림, 친구 상호작용)
+            // 댓글 수 DB 직접 반영
+            postRepository.incrementCommentCount(postId);
+
+            // 카운터 캐시 증가
+            postCountSync.incrementCommentCounter(postId, 1);
+
+            // 댓글 작성 이벤트 발행 (실시간 인기글 점수, 알림, 친구 상호작용)
             Long postUserId = post.getMember() != null ? post.getMember().getId() : null;
             eventPublisher.publishEvent(new CommentCreatedEvent(postUserId, memberName, memberId, postId));
         } catch (Exception e) {
@@ -139,7 +147,13 @@ public class CommentCommandService {
             commentDeleteRepository.deleteComment(commentId); // 어댑터 직접 호출로 하드 삭제
         }
 
-        // 댓글 삭제 이벤트 발행 (댓글 수 감소, 실시간 인기글 점수 감소)
+        // 댓글 수 DB 직접 반영
+        postRepository.decrementCommentCount(postId);
+
+        // 카운터 캐시 감소
+        postCountSync.incrementCommentCounter(postId, -1);
+
+        // 댓글 삭제 이벤트 발행 (실시간 인기글 점수 감소)
         eventPublisher.publishEvent(new CommentDeletedEvent(postId));
     }
 

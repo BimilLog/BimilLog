@@ -1,10 +1,12 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
@@ -49,6 +51,9 @@ class RealtimePostCacheServiceTest {
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @Mock
+    private RedisPostCounterAdapter redisPostCounterAdapter;
+
+    @Mock
     private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
 
     @Mock
@@ -78,18 +83,23 @@ class RealtimePostCacheServiceTest {
     }
 
     @Test
-    @DisplayName("ZSet 있음 + LIST ID 순서 일치 → LIST 반환 (비동기 갱신 없음)")
+    @DisplayName("ZSet 있음 + LIST ID 순서 일치 → LIST + 카운터 결합 반환 (비동기 갱신 없음)")
     void shouldReturnListPosts_WhenIdsMatch() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         List<Long> zsetIds = List.of(2L, 1L);
+        PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(2L, "인기글1");
+        PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(1L, "인기글2");
+        List<PostCacheEntry> entries = List.of(entry1, entry2);
+
         PostSimpleDetail post1 = PostTestDataBuilder.createPostSearchResult(2L, "인기글1");
         PostSimpleDetail post2 = PostTestDataBuilder.createPostSearchResult(1L, "인기글2");
-        List<PostSimpleDetail> listPosts = List.of(post1, post2);
+        List<PostSimpleDetail> combinedPosts = List.of(post1, post2);
 
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(listPosts);
-        given(postUtil.paginate(listPosts, pageable)).willReturn(new PageImpl<>(listPosts, pageable, 2));
+        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(entries);
+        given(redisPostCounterAdapter.combineWithCounters(entries)).willReturn(combinedPosts);
+        given(postUtil.paginate(combinedPosts, pageable)).willReturn(new PageImpl<>(combinedPosts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
@@ -100,18 +110,23 @@ class RealtimePostCacheServiceTest {
     }
 
     @Test
-    @DisplayName("ZSet 있음 + LIST ID 순서 불일치 → LIST 반환 + 비동기 갱신 트리거")
+    @DisplayName("ZSet 있음 + LIST ID 순서 불일치 → LIST + 카운터 결합 반환 + 비동기 갱신 트리거")
     void shouldReturnListAndTriggerAsyncRebuild_WhenIdsMismatch() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         List<Long> zsetIds = List.of(3L, 1L);
+        PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(1L, "인기글1");
+        PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, "인기글2");
+        List<PostCacheEntry> entries = List.of(entry1, entry2);
+
         PostSimpleDetail post1 = PostTestDataBuilder.createPostSearchResult(1L, "인기글1");
         PostSimpleDetail post2 = PostTestDataBuilder.createPostSearchResult(2L, "인기글2");
-        List<PostSimpleDetail> listPosts = List.of(post1, post2);
+        List<PostSimpleDetail> combinedPosts = List.of(post1, post2);
 
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(listPosts);
-        given(postUtil.paginate(listPosts, pageable)).willReturn(new PageImpl<>(listPosts, pageable, 2));
+        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(entries);
+        given(redisPostCounterAdapter.combineWithCounters(entries)).willReturn(combinedPosts);
+        given(postUtil.paginate(combinedPosts, pageable)).willReturn(new PageImpl<>(combinedPosts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
@@ -122,16 +137,18 @@ class RealtimePostCacheServiceTest {
     }
 
     @Test
-    @DisplayName("ZSet 있음 + LIST 비어있음 → 빈 페이지 반환 + 비동기 갱신 트리거")
+    @DisplayName("ZSet 있음 + LIST 비어있음 → 빈 카운터 결합 반환 + 비동기 갱신 트리거")
     void shouldReturnEmptyAndTriggerRebuild_WhenListIsEmpty() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         List<Long> zsetIds = List.of(1L, 2L);
-        List<PostSimpleDetail> emptyList = List.of();
+        List<PostCacheEntry> emptyEntries = List.of();
+        List<PostSimpleDetail> emptyPosts = List.of();
 
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(emptyList);
-        given(postUtil.paginate(emptyList, pageable)).willReturn(new PageImpl<>(emptyList, pageable, 0));
+        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(emptyEntries);
+        given(redisPostCounterAdapter.combineWithCounters(emptyEntries)).willReturn(emptyPosts);
+        given(postUtil.paginate(emptyPosts, pageable)).willReturn(new PageImpl<>(emptyPosts, pageable, 0));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);

@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
@@ -7,12 +8,14 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,6 +34,7 @@ public class PostAdminService {
     private final PostRepository postRepository;
     private final PostQueryRepository postQueryRepository;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisPostCounterAdapter redisPostCounterAdapter;
 
     private static final int NOTICE_MAX_SIZE = 100;
 
@@ -49,16 +53,19 @@ public class PostAdminService {
 
         try {
             if (post.isNotice()) {
-                // 공지 해제: isNotice false + JSON LIST에서 제거
+                // 공지 해제: isNotice false + JSON LIST에서 제거 + 공지 SET에서 제거
                 post.updateNotice(false);
                 redisPostJsonListAdapter.removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
+                redisPostCounterAdapter.removeFromCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
             } else {
-                // 공지 설정: isNotice true + JSON LIST에 LPUSH
+                // 공지 설정: isNotice true + JSON LIST에 LPUSH + 공지 SET에 추가 + 카운터 초기화
                 post.updateNotice(true);
                 Optional<PostSimpleDetail> detail = postQueryRepository.findPostSimpleDetailById(postId);
-                detail.ifPresent(d ->
-                        redisPostJsonListAdapter.addNewPost(RedisKey.POST_NOTICE_JSON_KEY, d, NOTICE_MAX_SIZE)
-                );
+                detail.ifPresent(d -> {
+                    redisPostJsonListAdapter.addNewPost(RedisKey.POST_NOTICE_JSON_KEY, PostCacheEntry.from(d), NOTICE_MAX_SIZE);
+                    redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
+                    redisPostCounterAdapter.batchSetCounters(List.of(d));
+                });
             }
         } catch (Exception e) {
             log.error("공지 설정/해제 중 오류 발생: postId={}", postId, e);

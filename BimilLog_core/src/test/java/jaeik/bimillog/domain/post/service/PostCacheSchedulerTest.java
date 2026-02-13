@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +49,9 @@ class PostCacheSchedulerTest {
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @Mock
+    private RedisPostCounterAdapter redisPostCounterAdapter;
+
+    @Mock
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Mock
@@ -65,6 +69,7 @@ class PostCacheSchedulerTest {
     void setUp() {
         postCacheScheduler = new PostCacheScheduler(
                 redisPostJsonListAdapter,
+                redisPostCounterAdapter,
                 redisRealTimePostAdapter,
                 postQueryRepository,
                 postRepository,
@@ -89,8 +94,11 @@ class PostCacheSchedulerTest {
         // 플래그 업데이트
         verify(postRepository).clearWeeklyFlag();
         verify(postRepository).setWeeklyFlag(List.of(1L, 2L));
-        // JSON LIST 전체 교체
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
+        // JSON LIST 전체 교체 (PostCacheEntry로 변환되어 저장)
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
+        // 카운터 캐시 + 캐시글 ID SET 동기화
+        verify(redisPostCounterAdapter).batchSetCounters(posts);
+        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_WEEKLY_IDS_KEY), eq(List.of(1L, 2L)));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -119,7 +127,7 @@ class PostCacheSchedulerTest {
 
         // Then
         verify(postRepository).clearWeeklyFlag();
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(posts), any());
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), any());
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -145,7 +153,9 @@ class PostCacheSchedulerTest {
         // Then
         verify(postRepository).clearLegendFlag();
         verify(postRepository).setLegendFlag(List.of(1L));
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_LEGEND_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_LEGEND_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostCounterAdapter).batchSetCounters(posts);
+        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_LEGEND_IDS_KEY), eq(List.of(1L)));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -188,7 +198,7 @@ class PostCacheSchedulerTest {
         postCacheScheduler.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(largePosts), any());
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), any());
 
         // 100개 게시글 중 memberId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));
@@ -211,6 +221,8 @@ class PostCacheSchedulerTest {
 
         // Then
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_NOTICE_JSON_KEY), any(), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostCounterAdapter).batchSetCounters(any());
+        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_NOTICE_IDS_KEY), any());
 
         // 공지사항은 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -247,7 +259,9 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshFirstPageCache();
 
         // Then
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.FIRST_PAGE_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.FIRST_PAGE_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostCounterAdapter).batchSetCounters(posts);
+        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_FIRSTPAGE_IDS_KEY), eq(List.of(1L, 2L)));
 
         // 첫 페이지는 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -289,7 +303,9 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshRealtimePopularPosts();
 
         // Then
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_REALTIME_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_REALTIME_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostCounterAdapter).batchSetCounters(posts);
+        verify(redisPostCounterAdapter).rebuildCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY, List.of(3L, 1L, 5L));
     }
 
     @Test

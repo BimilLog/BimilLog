@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
@@ -7,6 +8,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -19,8 +21,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -46,6 +47,9 @@ class PostAdminServiceTest extends BaseUnitTest {
 
     @Mock
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
+
+    @Mock
+    private RedisPostCounterAdapter redisPostCounterAdapter;
 
     @InjectMocks
     private PostAdminService postAdminService;
@@ -83,8 +87,11 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        // JSON LIST에 LPUSH
-        verify(redisPostJsonListAdapter).addNewPost(eq(RedisKey.POST_NOTICE_JSON_KEY), eq(mockDetail), anyInt());
+        // JSON LIST에 LPUSH (PostCacheEntry로 변환되어 저장)
+        verify(redisPostJsonListAdapter).addNewPost(eq(RedisKey.POST_NOTICE_JSON_KEY), any(PostCacheEntry.class), anyInt());
+        // 공지 SET에 추가 + 카운터 초기화
+        verify(redisPostCounterAdapter).addToCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
+        verify(redisPostCounterAdapter).batchSetCounters(any());
     }
 
     @Test
@@ -125,7 +132,8 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        // JSON LIST에서 제거
+        // JSON LIST에서 제거 + 공지 SET에서 제거
         verify(redisPostJsonListAdapter).removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
+        verify(redisPostCounterAdapter).removeFromCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
     }
 }
