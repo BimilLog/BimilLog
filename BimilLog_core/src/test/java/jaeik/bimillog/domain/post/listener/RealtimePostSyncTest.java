@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.listener;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +31,9 @@ class RealtimePostSyncTest {
 
     @Mock
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
+
+    @Mock
+    private RedisPostCounterAdapter redisPostCounterAdapter;
 
     @InjectMocks
     private RealtimePostSync listener;

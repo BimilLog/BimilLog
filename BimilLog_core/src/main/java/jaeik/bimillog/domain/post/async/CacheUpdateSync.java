@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.async;
 
+import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
@@ -43,8 +44,9 @@ public class CacheUpdateSync {
      */
     @Async("cacheRefreshPool")
     public void asyncAddNewPost(PostSimpleDetail post) {
-        redisPostJsonListAdapter.addNewPost(RedisKey.FIRST_PAGE_JSON_KEY, post, RedisKey.FIRST_PAGE_SIZE + 1);
-        redisPostCounterAdapter.addCachedPostId(post.getId());
+        redisPostJsonListAdapter.addNewPost(RedisKey.FIRST_PAGE_JSON_KEY, PostCacheEntry.from(post), RedisKey.FIRST_PAGE_SIZE + 1);
+        redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, post.getId());
+        redisPostCounterAdapter.batchSetCounters(List.of(post));
     }
 
     /**
@@ -66,7 +68,8 @@ public class CacheUpdateSync {
     @Async("cacheRefreshPool")
     public void asyncDeletePost(Long postId) {
         redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
-        redisPostCounterAdapter.removeCachedPostId(postId);
+        redisPostCounterAdapter.removeFromAllCategorySets(postId);
+        redisPostCounterAdapter.removeCounterFields(postId);
 
         // 주간/레전드/공지/실시간 JSON LIST에서 삭제
         redisPostJsonListAdapter.removePost(RedisKey.POST_WEEKLY_JSON_KEY, postId);
@@ -79,7 +82,10 @@ public class CacheUpdateSync {
         if (lastPostId != null) {
             List<PostSimpleDetail> nextPosts = postQueryRepository.findBoardPostsByCursor(lastPostId, 1);
             if (!nextPosts.isEmpty()) {
-                redisPostJsonListAdapter.appendPost(RedisKey.FIRST_PAGE_JSON_KEY, nextPosts.getFirst(), RedisKey.FIRST_PAGE_SIZE + 1);
+                PostSimpleDetail next = nextPosts.getFirst();
+                redisPostJsonListAdapter.appendPost(RedisKey.FIRST_PAGE_JSON_KEY, PostCacheEntry.from(next), RedisKey.FIRST_PAGE_SIZE + 1);
+                redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, next.getId());
+                redisPostCounterAdapter.batchSetCounters(List.of(next));
             }
         }
     }

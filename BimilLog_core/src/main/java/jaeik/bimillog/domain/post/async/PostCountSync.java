@@ -47,7 +47,7 @@ public class PostCountSync {
     /**
      * <h3>좋아요 카운터 캐시 증감</h3>
      * <p>캐시글인 경우에만 post:counters Hash의 {postId}:like 필드를 HINCRBY로 증감합니다.</p>
-     * <p>SISMEMBER(SET) → ZSCORE(실시간 ZSet) 순서로 캐시글 여부를 확인합니다.</p>
+     * <p>Lua 스크립트로 5개 카테고리 SET을 한 번에 확인하여 캐시글 여부를 판단합니다.</p>
      *
      * @param postId 게시글 ID
      * @param delta  증감값 (1: 좋아요 추가, -1: 좋아요 취소)
@@ -66,7 +66,7 @@ public class PostCountSync {
     /**
      * <h3>댓글 카운터 캐시 증감</h3>
      * <p>캐시글인 경우에만 post:counters Hash의 {postId}:comment 필드를 HINCRBY로 증감합니다.</p>
-     * <p>SISMEMBER(SET) → ZSCORE(실시간 ZSet) 순서로 캐시글 여부를 확인합니다.</p>
+     * <p>Lua 스크립트로 5개 카테고리 SET을 한 번에 확인하여 캐시글 여부를 판단합니다.</p>
      *
      * @param postId 게시글 ID
      * @param delta  증감값 (1: 댓글 작성, -1: 댓글 삭제)

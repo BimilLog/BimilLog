@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.redis;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * Redis 키 & TTL 중앙 관리
@@ -26,12 +27,6 @@ public final class RedisKey {
     public static final String POST_REALTIME_JSON_KEY = "post:realtime:json";
     public static final int FIRST_PAGE_SIZE = 20;
 
-    // ==================== 글 카운트 필드명 ====================
-
-    public static final String FIELD_VIEW_COUNT = "viewCount";
-    public static final String FIELD_LIKE_COUNT = "likeCount";
-    public static final String FIELD_COMMENT_COUNT = "commentCount";
-
     // ==================== 글 : 실시간 (ZSet) ====================
 
     public static final String REALTIME_POST_SCORE_KEY = "post:realtime:score";
@@ -43,10 +38,21 @@ public final class RedisKey {
     public static final String VIEW_COUNTS_KEY = "post:view:counts";
     public static final long VIEW_TTL_SECONDS = DEFAULT_CACHE_TTL.toSeconds();
 
-    // ==================== 글 : 캐시글 ID (Set) ====================
-    // key: post:cached:ids — 주간/레전드/공지/첫페이지 캐시글 ID 합집합
+    // ==================== 글 : 카테고리별 캐시글 ID (Set) ====================
 
-    public static final String CACHED_POST_IDS_KEY = "post:cached:ids";
+    public static final String CACHED_FIRSTPAGE_IDS_KEY = "post:cached:firstpage:ids";
+    public static final String CACHED_WEEKLY_IDS_KEY = "post:cached:weekly:ids";
+    public static final String CACHED_LEGEND_IDS_KEY = "post:cached:legend:ids";
+    public static final String CACHED_NOTICE_IDS_KEY = "post:cached:notice:ids";
+    public static final String CACHED_REALTIME_IDS_KEY = "post:cached:realtime:ids";
+
+    public static final List<String> ALL_CACHED_CATEGORY_KEYS = List.of(
+            CACHED_FIRSTPAGE_IDS_KEY,
+            CACHED_WEEKLY_IDS_KEY,
+            CACHED_LEGEND_IDS_KEY,
+            CACHED_NOTICE_IDS_KEY,
+            CACHED_REALTIME_IDS_KEY
+    );
 
     // ==================== 글 : 카운터 캐시 (Hash) ====================
     // key: post:counters, field: {postId}:view / {postId}:like / {postId}:comment

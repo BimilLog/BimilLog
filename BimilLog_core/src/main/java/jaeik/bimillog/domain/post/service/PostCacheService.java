@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
@@ -39,9 +40,9 @@ public class PostCacheService {
      */
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
         try {
-            List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(RedisKey.POST_WEEKLY_JSON_KEY);
-            if (!posts.isEmpty()) {
-                redisPostCounterAdapter.mergeCounters(posts);
+            List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(RedisKey.POST_WEEKLY_JSON_KEY);
+            if (!entries.isEmpty()) {
+                List<PostSimpleDetail> posts = redisPostCounterAdapter.combineWithCounters(entries);
                 return postUtil.paginate(posts, pageable);
             }
         } catch (Exception e) {
@@ -55,9 +56,9 @@ public class PostCacheService {
      */
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
         try {
-            List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(RedisKey.POST_LEGEND_JSON_KEY);
-            if (!posts.isEmpty()) {
-                redisPostCounterAdapter.mergeCounters(posts);
+            List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(RedisKey.POST_LEGEND_JSON_KEY);
+            if (!entries.isEmpty()) {
+                List<PostSimpleDetail> posts = redisPostCounterAdapter.combineWithCounters(entries);
                 return postUtil.paginate(posts, pageable);
             }
         } catch (Exception e) {
@@ -71,9 +72,9 @@ public class PostCacheService {
      */
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
         try {
-            List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(RedisKey.POST_NOTICE_JSON_KEY);
-            if (!posts.isEmpty()) {
-                redisPostCounterAdapter.mergeCounters(posts);
+            List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(RedisKey.POST_NOTICE_JSON_KEY);
+            if (!entries.isEmpty()) {
+                List<PostSimpleDetail> posts = redisPostCounterAdapter.combineWithCounters(entries);
                 return postUtil.paginate(posts, pageable);
             }
         } catch (Exception e) {
@@ -87,10 +88,9 @@ public class PostCacheService {
      */
     public List<PostSimpleDetail> getFirstPagePosts() {
         try {
-            List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY);
-            if (!posts.isEmpty()) {
-                redisPostCounterAdapter.mergeCounters(posts);
-                return posts;
+            List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY);
+            if (!entries.isEmpty()) {
+                return redisPostCounterAdapter.combineWithCounters(entries);
             }
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.FIRST_PAGE_JSON_KEY, e.getMessage());

@@ -52,6 +52,9 @@ class PostCountSyncLocalTest {
         stringRedisTemplate.delete(RedisKey.VIEW_COUNTS_KEY);
         stringRedisTemplate.delete(RedisKey.POST_COUNTERS_KEY);
         stringRedisTemplate.delete(RedisKey.REALTIME_POST_SCORE_KEY);
+        for (String key : RedisKey.ALL_CACHED_CATEGORY_KEYS) {
+            stringRedisTemplate.delete(key);
+        }
         // SET NX EX 방식 조회 마킹 키 정리
         stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":" + TEST_VIEWER_KEY);
         stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":ip:1.1.1.1");
@@ -133,7 +136,7 @@ class PostCountSyncLocalTest {
     @DisplayName("좋아요 카운터 캐시 - 캐시글이면 비동기 증감 반영")
     void incrementLikeCounter_shouldIncrementHashField() {
         // Given - SET에 캐시글로 등록
-        stringRedisTemplate.opsForSet().add(RedisKey.CACHED_POST_IDS_KEY, TEST_POST_ID.toString());
+        stringRedisTemplate.opsForSet().add(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, TEST_POST_ID.toString());
 
         // When
         postCountSync.incrementLikeCounter(TEST_POST_ID, 1);
@@ -165,7 +168,7 @@ class PostCountSyncLocalTest {
     @DisplayName("댓글 카운터 캐시 - 캐시글이면 비동기 증감 반영")
     void incrementCommentCounter_shouldIncrementHashField() {
         // Given - SET에 캐시글로 등록
-        stringRedisTemplate.opsForSet().add(RedisKey.CACHED_POST_IDS_KEY, TEST_POST_ID.toString());
+        stringRedisTemplate.opsForSet().add(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, TEST_POST_ID.toString());
 
         // When
         postCountSync.incrementCommentCounter(TEST_POST_ID, 1);

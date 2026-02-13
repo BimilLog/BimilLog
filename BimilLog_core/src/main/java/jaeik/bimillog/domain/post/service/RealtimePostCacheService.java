@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
@@ -61,16 +62,16 @@ public class RealtimePostCacheService {
         }
 
         // 2. LIST 조회 → ZSet ID 순서와 비교
-        List<PostSimpleDetail> listPosts = redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY);
-        List<Long> listIds = listPosts.stream().map(PostSimpleDetail::getId).toList();
+        List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY);
+        List<Long> listIds = entries.stream().map(PostCacheEntry::id).toList();
         if (!zsetTopIds.equals(listIds)) {
             realtimePostSync.asyncRebuildRealtimeCache(zsetTopIds);
         }
 
-        // 3. 카운터 Hash에서 최신 카운트 병합
-        redisPostCounterAdapter.mergeCounters(listPosts);
+        // 3. 카운터 Hash에서 카운트 결합
+        List<PostSimpleDetail> posts = redisPostCounterAdapter.combineWithCounters(entries);
 
-        return postUtil.paginate(listPosts, pageable);
+        return postUtil.paginate(posts, pageable);
     }
 
     /**

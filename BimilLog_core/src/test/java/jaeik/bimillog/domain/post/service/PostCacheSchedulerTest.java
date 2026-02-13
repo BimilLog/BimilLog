@@ -94,11 +94,11 @@ class PostCacheSchedulerTest {
         // 플래그 업데이트
         verify(postRepository).clearWeeklyFlag();
         verify(postRepository).setWeeklyFlag(List.of(1L, 2L));
-        // JSON LIST 전체 교체
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
+        // JSON LIST 전체 교체 (PostCacheEntry로 변환되어 저장)
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
         // 카운터 캐시 + 캐시글 ID SET 동기화
         verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostCounterAdapter).addCachedPostIds(List.of(1L, 2L));
+        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_WEEKLY_IDS_KEY), eq(List.of(1L, 2L)));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -127,7 +127,7 @@ class PostCacheSchedulerTest {
 
         // Then
         verify(postRepository).clearWeeklyFlag();
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(posts), any());
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), any());
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -153,9 +153,9 @@ class PostCacheSchedulerTest {
         // Then
         verify(postRepository).clearLegendFlag();
         verify(postRepository).setLegendFlag(List.of(1L));
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_LEGEND_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_LEGEND_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
         verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostCounterAdapter).addCachedPostIds(List.of(1L));
+        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_LEGEND_IDS_KEY), eq(List.of(1L)));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -198,7 +198,7 @@ class PostCacheSchedulerTest {
         postCacheScheduler.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), eq(largePosts), any());
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), any());
 
         // 100개 게시글 중 memberId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));
@@ -222,7 +222,7 @@ class PostCacheSchedulerTest {
         // Then
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_NOTICE_JSON_KEY), any(), eq(RedisKey.DEFAULT_CACHE_TTL));
         verify(redisPostCounterAdapter).batchSetCounters(any());
-        verify(redisPostCounterAdapter).addCachedPostIds(any());
+        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_NOTICE_IDS_KEY), any());
 
         // 공지사항은 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -259,9 +259,9 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshFirstPageCache();
 
         // Then
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.FIRST_PAGE_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.FIRST_PAGE_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
         verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostCounterAdapter).addCachedPostIds(List.of(1L, 2L));
+        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_FIRSTPAGE_IDS_KEY), eq(List.of(1L, 2L)));
 
         // 첫 페이지는 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -303,8 +303,9 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshRealtimePopularPosts();
 
         // Then
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_REALTIME_JSON_KEY), eq(posts), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_REALTIME_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
         verify(redisPostCounterAdapter).batchSetCounters(posts);
+        verify(redisPostCounterAdapter).rebuildCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY, List.of(3L, 1L, 5L));
     }
 
     @Test
@@ -319,35 +320,6 @@ class PostCacheSchedulerTest {
         // Then
         verify(redisPostJsonListAdapter, never()).replaceAll(
                 eq(RedisKey.POST_REALTIME_JSON_KEY), any(), any());
-    }
-
-    // ==================== 캐시글 ID SET 재구축 ====================
-
-    @Test
-    @DisplayName("캐시글 ID SET 재구축 - 4개 JSON LIST에서 ID 수집 후 원자적 재구축")
-    void shouldRebuildCachedPostIdSet_FromAllJsonLists() {
-        // Given
-        PostSimpleDetail fp1 = createPostSimpleDetail(1L, "첫페이지1", 1L);
-        PostSimpleDetail fp2 = createPostSimpleDetail(2L, "첫페이지2", 2L);
-        PostSimpleDetail wk1 = createPostSimpleDetail(2L, "주간1", 2L); // 중복 ID
-        PostSimpleDetail lg1 = createPostSimpleDetail(3L, "레전드1", 3L);
-        PostSimpleDetail nt1 = createPostSimpleDetail(4L, "공지1", 4L);
-
-        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(List.of(fp1, fp2));
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_WEEKLY_JSON_KEY)).willReturn(List.of(wk1));
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_LEGEND_JSON_KEY)).willReturn(List.of(lg1));
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_NOTICE_JSON_KEY)).willReturn(List.of(nt1));
-
-        // When
-        postCacheScheduler.rebuildCachedPostIdSet();
-
-        // Then - 중복 제거된 4개 ID로 재구축
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<java.util.Set<Long>> captor = ArgumentCaptor.forClass(java.util.Set.class);
-        verify(redisPostCounterAdapter).rebuildCachedPostIds(captor.capture());
-
-        java.util.Set<Long> capturedIds = captor.getValue();
-        assertThat(capturedIds).containsExactlyInAnyOrder(1L, 2L, 3L, 4L);
     }
 
     // 테스트 유틸리티 메서드들
