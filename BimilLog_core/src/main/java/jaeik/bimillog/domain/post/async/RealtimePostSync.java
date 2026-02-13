@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -82,17 +81,14 @@ public class RealtimePostSync {
     }
 
     /**
-     * <h3>실시간 인기글 JSON LIST 비동기 갱신 (diff 기반)</h3>
+     * <h3>실시간 인기글 JSON LIST 비동기 갱신</h3>
      * <p>ZSet과 LIST의 ID 순서가 불일치할 때 호출됩니다.</p>
-     * <p>이전 실시간 SET과 비교하여 빠진 글/새 글을 판별하고,
-     * 실시간 SET·카운터 Hash를 함께 갱신합니다.</p>
+     * <p>oldIds 하나로 새 글 필터링(contains) + 빠진 글 계산(removeAll)을 수행합니다.</p>
      * <ol>
-     *   <li>이전 실시간 ID: SMEMBERS post:cached:realtime:ids</li>
-     *   <li>diff 계산: removed = 이전 - 새로운, added = 새로운 - 이전</li>
-     *   <li>실시간 SET 원자적 재구축</li>
-     *   <li>어떤 카테고리에도 속하지 않는 빠진 ID → HDEL (카운터 Hash 정리)</li>
-     *   <li>DB 조회 → JSON LIST 교체</li>
-     *   <li>새로 들어온 글만 카운터 Hash 초기화</li>
+     *   <li>이전 실시간 ID 조회 → oldIds</li>
+     *   <li>DB 조회 → JSON LIST 교체 + 카테고리 SET 재구축</li>
+     *   <li>새로 들어온 글만 카운터 초기화 (oldIds.contains로 필터링)</li>
+     *   <li>빠진 글 카운터 정리 (oldIds.removeAll로 변환)</li>
      * </ol>
      *
      * @param zsetTopIds ZSet에서 조회한 인기글 ID 목록 (점수 내림차순)
@@ -100,45 +96,36 @@ public class RealtimePostSync {
     @Async("cacheRefreshExecutor")
     public void asyncRebuildRealtimeCache(List<Long> zsetTopIds) {
         try {
-            // 1. 이전 실시간 ID 조회
-            Set<Long> oldIds = redisPostCounterAdapter.getCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY);
-            Set<Long> newIds = new LinkedHashSet<>(zsetTopIds);
+            Set<Long> oldIds = new HashSet<>(redisPostCounterAdapter.getCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY));
 
-            // 2. diff 계산
-            Set<Long> removed = new HashSet<>(oldIds);
-            removed.removeAll(newIds);
-            Set<Long> added = new HashSet<>(newIds);
-            added.removeAll(oldIds);
+            List<PostSimpleDetail> dbPosts = postQueryRepository
+                    .findPostSimpleDetailsByIds(zsetTopIds, PageRequest.of(0, REALTIME_TOP_N))
+                    .getContent();
+            if (dbPosts.isEmpty()) return;
 
-            // 3. 실시간 SET 원자적 재구축
-            redisPostCounterAdapter.rebuildCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY, newIds);
+            // JSON LIST 교체 + 카테고리 SET 재구축
+            List<Long> postIds = dbPosts.stream().map(PostSimpleDetail::getId).toList();
+            List<PostCacheEntry> entries = dbPosts.stream().map(PostCacheEntry::from).toList();
+            redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, entries, RedisKey.DEFAULT_CACHE_TTL);
+            redisPostCounterAdapter.rebuildCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY, postIds);
 
-            // 4. 어떤 카테고리에도 속하지 않는 빠진 ID → 카운터 Hash 정리
-            for (Long id : removed) {
+            // 새로 들어온 글만 카운터 초기화 (기존 글 증분값 보존)
+            List<PostSimpleDetail> addedPosts = dbPosts.stream()
+                    .filter(p -> !oldIds.contains(p.getId()))
+                    .toList();
+            if (!addedPosts.isEmpty()) {
+                redisPostCounterAdapter.batchSetCounters(addedPosts);
+            }
+
+            // 빠진 글 카운터 정리 (다른 카테고리에도 없는 경우만)
+            zsetTopIds.forEach(oldIds::remove);
+            for (Long id : oldIds) {
                 if (!redisPostCounterAdapter.isCachedPost(id)) {
                     redisPostCounterAdapter.removeCounterFields(id);
                 }
             }
 
-            // 5. DB 조회 → JSON LIST 교체
-            List<PostSimpleDetail> dbPosts = postQueryRepository
-                    .findPostSimpleDetailsByIds(zsetTopIds, PageRequest.of(0, REALTIME_TOP_N))
-                    .getContent();
-            if (!dbPosts.isEmpty()) {
-                List<PostCacheEntry> entries = dbPosts.stream().map(PostCacheEntry::from).toList();
-                redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, entries, RedisKey.DEFAULT_CACHE_TTL);
-            }
-
-            // 6. 새로 들어온 글만 카운터 Hash 초기화 (기존 글은 증분값 유지)
-            if (!added.isEmpty()) {
-                List<PostSimpleDetail> addedPosts = dbPosts.stream()
-                        .filter(p -> added.contains(p.getId()))
-                        .toList();
-                redisPostCounterAdapter.batchSetCounters(addedPosts);
-            }
-
-            log.debug("[REALTIME] 비동기 캐시 갱신 완료: {}개 (추가: {}, 제거: {})",
-                    dbPosts.size(), added.size(), removed.size());
+            log.debug("[REALTIME] 비동기 캐시 갱신 완료: {}개", dbPosts.size());
         } catch (Exception e) {
             log.warn("[REALTIME] 비동기 캐시 갱신 실패: {}", e.getMessage());
         }

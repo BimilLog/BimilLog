@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.PostCacheEntry;
+import jaeik.bimillog.domain.post.entity.PostCountCache;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
@@ -68,8 +69,10 @@ public class RealtimePostCacheService {
             realtimePostSync.asyncRebuildRealtimeCache(zsetTopIds);
         }
 
-        // 3. 카운터 Hash에서 카운트 결합
-        List<PostSimpleDetail> posts = redisPostCounterAdapter.combineWithCounters(entries);
+        // 3. 카운터 조회 후 결합
+        List<Long> postIds = entries.stream().map(PostCacheEntry::id).toList();
+        List<PostCountCache> counts = redisPostCounterAdapter.getCounters(postIds);
+        List<PostSimpleDetail> posts = PostCacheEntry.combineAll(entries, counts);
 
         return postUtil.paginate(posts, pageable);
     }

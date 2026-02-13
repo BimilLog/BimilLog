@@ -52,7 +52,7 @@ public class PostCacheScheduler {
 
     private static final int REALTIME_TOP_N = 5;
 
-    @Scheduled(fixedRate = 60000 * 1440)
+    @Scheduled(cron = "0 0 3 * * *")
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     @Transactional
     public void updateWeeklyPopularPosts() {
@@ -62,7 +62,7 @@ public class PostCacheScheduler {
                 "주간 인기 게시글로 선정되었어요!", NotificationType.POST_FEATURED_WEEKLY);
     }
 
-    @Scheduled(fixedRate = 60000 * 1440)
+    @Scheduled(cron = "0 0 3 * * *")
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     @Transactional
     public void updateLegendaryPosts() {
@@ -72,7 +72,7 @@ public class PostCacheScheduler {
                 "명예의 전당에 등극했어요!", NotificationType.POST_FEATURED_LEGEND);
     }
 
-    @Scheduled(fixedRate = 60000 * 1440)
+    @Scheduled(cron = "0 0 3 * * *")
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshNoticePosts() {
         refreshCache("NOTICE",
@@ -82,7 +82,7 @@ public class PostCacheScheduler {
                 null, null, null, null);
     }
 
-    @Scheduled(fixedRate = 60000 * 1440)
+    @Scheduled(cron = "0 0 3 * * *")
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshFirstPageCache() {
         List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
@@ -102,7 +102,7 @@ public class PostCacheScheduler {
         log.info("첫 페이지 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
     }
 
-    @Scheduled(fixedRate = 60000 * 1440)
+    @Scheduled(cron = "0 0 3 * * *")
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshRealtimePopularPosts() {
         List<Long> topIds = redisRealTimePostAdapter.getRangePostId();

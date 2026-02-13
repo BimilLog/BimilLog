@@ -76,15 +76,9 @@ public class PostInteractionService {
         } else {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeRepository.save(postLike);
-
-            // 좋아요 수 DB 직접 반영
-            postRepository.incrementLikeCount(postId);
-
-            // 카운터 캐시 증가
-            postCountSync.incrementLikeCounter(postId, 1);
-
-            // 비동기로 실시간 인기글 점수 증가
-            realtimePostSync.updateRealtimeScore(postId, 4.0);
+            postRepository.incrementLikeCount(postId); // 좋아요 수 DB 직접 반영
+            postCountSync.incrementLikeCounter(postId, 1); // 비동기로 카운터 캐시 증가
+            realtimePostSync.updateRealtimeScore(postId, 4.0); // 비동기로 실시간 인기글 점수 증가
 
             // 상호작용 점수 증가 이벤트 발행
             if (post.getMember() != null) {

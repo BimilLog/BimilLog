@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PostUpdateScheduler {
+public class PostCountScheduler {
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final PostQueryRepository postQueryRepository;
     private final RedisPostCounterAdapter redisPostCounterAdapter;

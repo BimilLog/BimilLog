@@ -159,7 +159,7 @@ public class RedisPostJsonListAdapter {
         String result = stringRedisTemplate.execute(script, List.of(key), postId.toString());
 
         log.debug("[JSON_LIST] 글 삭제 (key={}): postId={}, lastId={}", key, postId, result);
-        return result != null ? Long.parseLong(result) : null;
+        return Long.parseLong(result);
     }
 
     /**

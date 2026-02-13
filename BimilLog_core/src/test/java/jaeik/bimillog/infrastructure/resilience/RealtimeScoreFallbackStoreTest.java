@@ -250,8 +250,8 @@ class RealtimeScoreFallbackStoreTest {
         // Given: 10점짜리 게시글
         fallbackStore.incrementScore(1L, 10.0);
 
-        // When: 감쇠 25회 적용 (10 * 0.9^25 ≈ 0.72 < 1.0)
-        for (int i = 0; i < 25; i++) {
+        // When: 감쇠 76회 적용 (10 * 0.97^76 ≈ 0.98 < 1.0)
+        for (int i = 0; i < 76; i++) {
             fallbackStore.applyDecay();
         }
 
