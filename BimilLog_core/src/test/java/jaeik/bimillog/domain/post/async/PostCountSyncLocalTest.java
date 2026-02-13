@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <h2>PostCountSync + RealtimePostSync 로컬 통합 테스트</h2>
- * <p>MySQL + Redis 환경에서 조회수/추천수/댓글수 캐시 버퍼링과 실시간 점수 업데이트를 검증합니다.</p>
+ * <p>MySQL + Redis 환경에서 조회수 캐시 버퍼링과 실시간 점수 업데이트를 검증합니다.</p>
  * <p>실행 전 MySQL(bimillogTest) + Redis(6380) 필요</p>
  */
 @Tag("local-integration")
@@ -46,8 +46,6 @@ class PostCountSyncLocalTest {
     void cleanRedis() {
         // 테스트 관련 키만 정리
         stringRedisTemplate.delete(RedisKey.VIEW_COUNTS_KEY);
-        stringRedisTemplate.delete(RedisKey.LIKE_COUNTS_KEY);
-        stringRedisTemplate.delete(RedisKey.COMMENT_COUNTS_KEY);
         stringRedisTemplate.delete(RedisKey.REALTIME_POST_SCORE_KEY);
         // SET NX EX 방식 조회 마킹 키 정리
         stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":" + TEST_VIEWER_KEY);
@@ -103,71 +101,6 @@ class PostCountSyncLocalTest {
         // Then - 3명 각각 조회수 증가
         Map<Long, Long> viewCounts = redisPostUpdateAdapter.getAndClearViewCounts();
         assertThat(viewCounts).containsEntry(TEST_POST_ID, 3L);
-    }
-
-    // ==================== 추천수 버퍼 ====================
-
-    @Test
-    @DisplayName("추천수 - 추천 시 Redis Hash 버퍼에 +1 증가")
-    void incrementLike_shouldBufferInRedis() {
-        // When
-        postCountSync.incrementLikeWithFallback(TEST_POST_ID, 1);
-        waitForAsync();
-
-        // Then
-        Map<Long, Long> likeCounts = redisPostUpdateAdapter.getAndClearLikeCounts();
-        assertThat(likeCounts).containsEntry(TEST_POST_ID, 1L);
-    }
-
-    @Test
-    @DisplayName("추천수 - 추천 취소 시 Redis Hash 버퍼에 -1 감소")
-    void decrementLike_shouldBufferNegativeInRedis() {
-        // When
-        postCountSync.incrementLikeWithFallback(TEST_POST_ID, -1);
-        waitForAsync();
-
-        // Then
-        Map<Long, Long> likeCounts = redisPostUpdateAdapter.getAndClearLikeCounts();
-        assertThat(likeCounts).containsEntry(TEST_POST_ID, -1L);
-    }
-
-    @Test
-    @DisplayName("추천수 - 추천/취소 반복 시 버퍼 합산")
-    void likeAndUnlike_shouldAccumulate() {
-        // When - 추천 3회, 취소 1회 = 순증 +2
-        postCountSync.incrementLikeWithFallback(TEST_POST_ID, 1);
-        postCountSync.incrementLikeWithFallback(TEST_POST_ID, 1);
-        postCountSync.incrementLikeWithFallback(TEST_POST_ID, 1);
-        postCountSync.incrementLikeWithFallback(TEST_POST_ID, -1);
-        waitForAsync();
-
-        // Then
-        Map<Long, Long> likeCounts = redisPostUpdateAdapter.getAndClearLikeCounts();
-        assertThat(likeCounts).containsEntry(TEST_POST_ID, 2L);
-    }
-
-    // ==================== 댓글수 버퍼 (직접 어댑터 호출) ====================
-
-    @Test
-    @DisplayName("댓글수 - 댓글 작성 시 Redis Hash 버퍼에 +1 증가")
-    void incrementComment_shouldBufferInRedis() {
-        // When
-        redisPostUpdateAdapter.incrementCommentBuffer(TEST_POST_ID, 1);
-
-        // Then
-        Map<Long, Long> commentCounts = redisPostUpdateAdapter.getAndClearCommentCounts();
-        assertThat(commentCounts).containsEntry(TEST_POST_ID, 1L);
-    }
-
-    @Test
-    @DisplayName("댓글수 - 댓글 삭제 시 Redis Hash 버퍼에 -1 감소")
-    void decrementComment_shouldBufferNegativeInRedis() {
-        // When
-        redisPostUpdateAdapter.incrementCommentBuffer(TEST_POST_ID, -1);
-
-        // Then
-        Map<Long, Long> commentCounts = redisPostUpdateAdapter.getAndClearCommentCounts();
-        assertThat(commentCounts).containsEntry(TEST_POST_ID, -1L);
     }
 
     // ==================== getAndClear 원자성 ====================

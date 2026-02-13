@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
@@ -37,7 +36,6 @@ public class PostInteractionService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RealtimePostSync realtimePostSync;
-    private final PostCountSync postCountSync;
 
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
@@ -65,8 +63,8 @@ public class PostInteractionService {
         if (isAlreadyLiked) {
             postLikeRepository.deleteByMemberAndPost(member, post);
 
-            // Redis 버퍼 + 캐시 즉시 반영 (DB는 스케줄러가 배치 처리)
-            postCountSync.incrementLikeWithFallback(postId, -1);
+            // 좋아요 수 DB 직접 반영
+            postRepository.decrementLikeCount(postId);
 
             // 비동기로 실시간 인기글 점수 감소
             realtimePostSync.updateRealtimeScore(postId, -4.0);
@@ -74,8 +72,8 @@ public class PostInteractionService {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeRepository.save(postLike);
 
-            // Redis 버퍼 + 캐시 즉시 반영 (DB는 스케줄러가 배치 처리)
-            postCountSync.incrementLikeWithFallback(postId, 1);
+            // 좋아요 수 DB 직접 반영
+            postRepository.incrementLikeCount(postId);
 
             // 비동기로 실시간 인기글 점수 증가
             realtimePostSync.updateRealtimeScore(postId, 4.0);

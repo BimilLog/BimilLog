@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
-import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
 
 import jaeik.bimillog.domain.post.repository.PostRepository;
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
@@ -58,9 +56,6 @@ class PostInteractionServiceTest extends BaseUnitTest {
     @Mock
     private RealtimePostSync realtimePostSync;
 
-    @Mock
-    private PostCountSync postCountSync;
-
     @InjectMocks
     private PostInteractionService postInteractionService;
 
@@ -88,11 +83,11 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         if (alreadyLiked) {
             verify(postLikeRepository).deleteByMemberAndPost(member, post);
-            verify(postCountSync).incrementLikeWithFallback(postId, -1);
+            verify(postRepository).decrementLikeCount(postId);
             verify(postLikeRepository, never()).save(any(PostLike.class));
         } else {
             verify(postLikeRepository).save(any(PostLike.class));
-            verify(postCountSync).incrementLikeWithFallback(postId, 1);
+            verify(postRepository).incrementLikeCount(postId);
             verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
         }
     }

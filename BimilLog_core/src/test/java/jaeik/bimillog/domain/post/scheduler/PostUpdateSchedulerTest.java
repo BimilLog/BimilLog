@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * <h2>PostUpdateScheduler 단위 테스트</h2>
- * <p>카운트 플러시 스케줄러(조회수/좋아요/댓글수)의 동작을 검증합니다.</p>
+ * <p>카운트 플러시 스케줄러(조회수)의 동작을 검증합니다.</p>
  * <p>DB + 모든 JSON LIST 동시 반영을 검증합니다.</p>
  */
 @Tag("unit")
@@ -50,8 +50,6 @@ class PostUpdateSchedulerTest {
     void shouldSkipViewCountDbUpdate_whenBufferEmpty() {
         // Given
         given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
-        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
-        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
 
         // When
         scheduler.flushAllCounts();
@@ -67,8 +65,6 @@ class PostUpdateSchedulerTest {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L, 2L, 3L);
         given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
-        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
-        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
 
         // When
         scheduler.flushAllCounts();
@@ -84,81 +80,17 @@ class PostUpdateSchedulerTest {
     }
 
     @Test
-    @DisplayName("조회수 DB 업데이트 실패 시 예외를 잡아 로깅 (다른 카운트는 계속 처리)")
+    @DisplayName("조회수 DB 업데이트 실패 시 예외를 잡아 로깅")
     void shouldCatchViewCountException_whenDbUpdateFails() {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L);
         given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
         doThrow(new RuntimeException("DB 오류")).when(postQueryRepository).bulkIncrementCount(any(), any());
-        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
-        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
 
         // When - 예외가 전파되지 않아야 함
         scheduler.flushAllCounts();
 
         // Then
         verify(postQueryRepository).bulkIncrementCount(eq(viewCounts), any(NumberPath.class));
-    }
-
-    // ==================== 좋아요 ====================
-
-    @Test
-    @DisplayName("좋아요 버퍼에 데이터가 있으면 DB + 모든 JSON LIST에 벌크 업데이트")
-    void shouldFlushLikeCountsToDB_whenBufferHasData() {
-        // Given
-        Map<Long, Long> likeCounts = Map.of(1L, 3L, 2L, -1L);
-        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
-        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(likeCounts);
-        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(Collections.emptyMap());
-
-        // When
-        scheduler.flushAllCounts();
-
-        // Then
-        verify(postQueryRepository).bulkIncrementCount(eq(likeCounts), any(NumberPath.class));
-        verify(redisPostJsonListAdapter, times(5)).batchIncrementCounts(any(), eq(likeCounts), eq(RedisKey.FIELD_LIKE_COUNT));
-    }
-
-    // ==================== 댓글수 ====================
-
-    @Test
-    @DisplayName("댓글수 버퍼에 데이터가 있으면 DB + 모든 JSON LIST에 벌크 업데이트")
-    void shouldFlushCommentCountsToDB_whenBufferHasData() {
-        // Given
-        Map<Long, Long> commentCounts = Map.of(1L, 2L, 3L, 1L);
-        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
-        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(Collections.emptyMap());
-        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(commentCounts);
-
-        // When
-        scheduler.flushAllCounts();
-
-        // Then
-        verify(postQueryRepository).bulkIncrementCount(eq(commentCounts), any(NumberPath.class));
-        verify(redisPostJsonListAdapter, times(5)).batchIncrementCounts(any(), eq(commentCounts), eq(RedisKey.FIELD_COMMENT_COUNT));
-    }
-
-    // ==================== 전체 플러시 ====================
-
-    @Test
-    @DisplayName("모든 카운트 버퍼에 데이터가 있으면 전부 DB + 모든 JSON LIST에 반영")
-    void shouldFlushAllCounts_whenAllBuffersHaveData() {
-        // Given
-        Map<Long, Long> viewCounts = Map.of(1L, 10L);
-        Map<Long, Long> likeCounts = Map.of(2L, 5L);
-        Map<Long, Long> commentCounts = Map.of(3L, 3L);
-        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
-        given(redisPostUpdateAdapter.getAndClearLikeCounts()).willReturn(likeCounts);
-        given(redisPostUpdateAdapter.getAndClearCommentCounts()).willReturn(commentCounts);
-
-        // When
-        scheduler.flushAllCounts();
-
-        // Then - DB 반영
-        verify(postQueryRepository).bulkIncrementCount(eq(viewCounts), any(NumberPath.class));
-        verify(postQueryRepository).bulkIncrementCount(eq(likeCounts), any(NumberPath.class));
-        verify(postQueryRepository).bulkIncrementCount(eq(commentCounts), any(NumberPath.class));
-        // JSON LIST 반영 (각 카운트 × 5개 키 = 15회)
-        verify(redisPostJsonListAdapter, times(15)).batchIncrementCounts(any(), any(), any());
     }
 }

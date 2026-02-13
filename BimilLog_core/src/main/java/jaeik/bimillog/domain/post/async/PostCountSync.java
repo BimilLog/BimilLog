@@ -1,15 +1,11 @@
 package jaeik.bimillog.domain.post.async;
 
-import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
-import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * <h2>게시글 조회수 증가 리스너</h2>
@@ -26,7 +22,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class PostCountSync {
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
-    private final PostRepository postRepository;
 
     /**
      * <h3>게시글 조회 이벤트 처리 (원자적)</h3>
@@ -43,59 +38,6 @@ public class PostCountSync {
             redisPostUpdateAdapter.markViewedAndIncrement(postId, viewerKey);
         } catch (Exception e) {
             log.warn("조회수 처리 실패: postId={}, error={}", postId, e.getMessage());
-        }
-    }
-
-    /**
-     * <h3>좋아요 수 Redis 버퍼 증감</h3>
-     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
-     * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
-     */
-    @Async("cacheCountUpdateExecutor")
-    public void incrementLikeWithFallback(Long postId, long delta) {
-        try {
-            redisPostUpdateAdapter.incrementLikeBuffer(postId, delta);
-        } catch (Exception e) {
-            log.warn("[LIKE_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
-            if (delta > 0) {
-                postRepository.incrementLikeCount(postId);
-            } else {
-                postRepository.decrementLikeCount(postId);
-            }
-        }
-    }
-
-    /**
-     * <h3>댓글 작성 시 댓글 수 증가</h3>
-     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
-     * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
-     */
-    @Async("cacheCountUpdateExecutor")
-    @TransactionalEventListener
-    public void handleCommentCreated(CommentCreatedEvent event) {
-        Long postId = event.getPostId();
-        try {
-            redisPostUpdateAdapter.incrementCommentBuffer(postId, 1);
-        } catch (Exception e) {
-            log.warn("[COMMENT_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
-            postRepository.incrementCommentCount(postId);
-        }
-    }
-
-    /**
-     * <h3>댓글 삭제 시 댓글 수 감소</h3>
-     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
-     * <p>Redis 실패 시 DB에 직접 반영합니다.</p>
-     */
-    @Async("cacheCountUpdateExecutor")
-    @TransactionalEventListener
-    public void handleCommentDeleted(CommentDeletedEvent event) {
-        Long postId = event.postId();
-        try {
-            redisPostUpdateAdapter.incrementCommentBuffer(postId, -1);
-        } catch (Exception e) {
-            log.warn("[COMMENT_FALLBACK] Redis 실패, DB 직접 반영: postId={}, error={}", postId, e.getMessage());
-            postRepository.decrementCommentCount(postId);
         }
     }
 }
