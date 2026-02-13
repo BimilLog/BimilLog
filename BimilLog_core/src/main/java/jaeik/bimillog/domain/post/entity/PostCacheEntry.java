@@ -3,6 +3,8 @@ package jaeik.bimillog.domain.post.entity;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <h2>JSON LIST 캐시 전용 DTO</h2>
@@ -59,5 +61,16 @@ public record PostCacheEntry(
                 .isLegend(legend)
                 .isNotice(notice)
                 .build();
+    }
+
+    /**
+     * PostCacheEntry 목록 + PostCountCache 목록 → PostSimpleDetail 목록 일괄 결합
+     */
+    public static List<PostSimpleDetail> combineAll(List<PostCacheEntry> entries, List<PostCountCache> counts) {
+        List<PostSimpleDetail> result = new ArrayList<>(entries.size());
+        for (int i = 0; i < entries.size(); i++) {
+            result.add(entries.get(i).toPostSimpleDetail(counts.get(i)));
+        }
+        return result;
     }
 }

@@ -75,7 +75,7 @@ public class RedisPostUpdateAdapter {
         DefaultRedisScript<List> script = new DefaultRedisScript<>(GET_AND_CLEAR_VIEW_COUNTS_SCRIPT, List.class);
         List<Object> result = stringRedisTemplate.execute(script, List.of(VIEW_COUNTS_KEY));
 
-        if (result == null || result.isEmpty()) {
+        if (result.isEmpty()) {
             return Collections.emptyMap();
         }
 

@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
-import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.PostCountCache;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
@@ -83,6 +82,7 @@ public class RedisPostCounterAdapter {
         }
 
         stringRedisTemplate.opsForHash().putAll(RedisKey.POST_COUNTERS_KEY, entries);
+        stringRedisTemplate.expire(RedisKey.POST_COUNTERS_KEY, RedisKey.DEFAULT_CACHE_TTL);
     }
 
     /**
@@ -131,19 +131,6 @@ public class RedisPostCounterAdapter {
         String[] args = postIds.stream().map(String::valueOf).toArray(String[]::new);
         DefaultRedisScript<Long> script = new DefaultRedisScript<>(REBUILD_SET_SCRIPT, Long.class);
         stringRedisTemplate.execute(script, List.of(categoryKey), (Object[]) args);
-    }
-
-    /**
-     * <h3>카테고리 SET에 ID 일괄 추가</h3>
-     *
-     * @param categoryKey 카테고리 SET 키
-     * @param postIds     추가할 게시글 ID 목록
-     */
-    public void addToCategorySet(String categoryKey, Collection<Long> postIds) {
-        if (postIds.isEmpty()) return;
-
-        String[] ids = postIds.stream().map(String::valueOf).toArray(String[]::new);
-        stringRedisTemplate.opsForSet().add(categoryKey, ids);
     }
 
     /**
@@ -208,23 +195,23 @@ public class RedisPostCounterAdapter {
                 prefix + RedisKey.COUNTER_SUFFIX_COMMENT);
     }
 
-    // ==================== 카운터 결합 (조회 시점) ====================
+    // ==================== 카운터 조회 (조회 시점) ====================
 
     /**
-     * <h3>PostCacheEntry + HMGET 카운터 → PostSimpleDetail 결합</h3>
-     * <p>JSON LIST에서 조회한 정적 데이터(PostCacheEntry)와 카운터 Hash의 카운트를 결합합니다.</p>
-     * <p>Redis 장애 시 카운트 0으로 반환합니다.</p>
+     * <h3>HMGET으로 게시글 카운터 일괄 조회</h3>
+     * <p>카운터 Hash에서 게시글 ID 목록에 해당하는 view/like/comment 카운트를 조회합니다.</p>
+     * <p>Redis 장애 시 모든 카운트를 0으로 반환합니다.</p>
      *
-     * @param entries JSON LIST에서 조회한 캐시 엔트리 목록
-     * @return 카운트가 결합된 PostSimpleDetail 목록
+     * @param postIds 카운터를 조회할 게시글 ID 목록
+     * @return 입력 순서와 동일한 PostCountCache 목록
      */
-    public List<PostSimpleDetail> combineWithCounters(List<PostCacheEntry> entries) {
-        if (entries.isEmpty()) return List.of();
+    public List<PostCountCache> getCounters(List<Long> postIds) {
+        if (postIds.isEmpty()) return List.of();
 
         try {
-            List<Object> hashKeys = new ArrayList<>(entries.size() * 3);
-            for (PostCacheEntry entry : entries) {
-                String prefix = entry.id().toString();
+            List<Object> hashKeys = new ArrayList<>(postIds.size() * 3);
+            for (Long postId : postIds) {
+                String prefix = postId.toString();
                 hashKeys.add(prefix + RedisKey.COUNTER_SUFFIX_VIEW);
                 hashKeys.add(prefix + RedisKey.COUNTER_SUFFIX_LIKE);
                 hashKeys.add(prefix + RedisKey.COUNTER_SUFFIX_COMMENT);
@@ -233,22 +220,19 @@ public class RedisPostCounterAdapter {
             List<Object> values = stringRedisTemplate.opsForHash()
                     .multiGet(RedisKey.POST_COUNTERS_KEY, hashKeys);
 
-            List<PostSimpleDetail> result = new ArrayList<>(entries.size());
-            for (int i = 0; i < entries.size(); i++) {
+            List<PostCountCache> result = new ArrayList<>(postIds.size());
+            for (int i = 0; i < postIds.size(); i++) {
                 int base = i * 3;
-                PostCountCache counts = new PostCountCache(
+                result.add(new PostCountCache(
                         parseIntOrZero(values.get(base)),
                         parseIntOrZero(values.get(base + 1)),
                         parseIntOrZero(values.get(base + 2))
-                );
-                result.add(entries.get(i).toPostSimpleDetail(counts));
+                ));
             }
             return result;
         } catch (Exception e) {
-            log.warn("[COUNTER_COMBINE] 카운터 결합 실패, 카운트 0으로 반환: {}", e.getMessage());
-            return entries.stream()
-                    .map(entry -> entry.toPostSimpleDetail(PostCountCache.ZERO))
-                    .toList();
+            log.warn("[COUNTER] 카운터 조회 실패, 0으로 반환: {}", e.getMessage());
+            return postIds.stream().map(id -> PostCountCache.ZERO).toList();
         }
     }
 
@@ -269,6 +253,6 @@ public class RedisPostCounterAdapter {
     public boolean isCachedPost(Long postId) {
         DefaultRedisScript<Long> script = new DefaultRedisScript<>(IS_CACHED_POST_SCRIPT, Long.class);
         Long result = stringRedisTemplate.execute(script, RedisKey.ALL_CACHED_CATEGORY_KEYS, postId.toString());
-        return result != null && result == 1L;
+        return result == 1L;
     }
 }

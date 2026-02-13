@@ -22,14 +22,14 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>PostUpdateScheduler 단위 테스트</h2>
+ * <h2>PostCountScheduler 단위 테스트</h2>
  * <p>카운트 플러시 스케줄러(조회수)의 동작을 검증합니다.</p>
  * <p>DB + 카운터 Hash 동시 반영을 검증합니다.</p>
  */
 @Tag("unit")
-@DisplayName("PostUpdateScheduler 단위 테스트")
+@DisplayName("PostCountScheduler 단위 테스트")
 @ExtendWith(MockitoExtension.class)
-class PostUpdateSchedulerTest {
+class PostCountSchedulerTest {
 
     @Mock
     private RedisPostUpdateAdapter redisPostUpdateAdapter;
@@ -41,7 +41,7 @@ class PostUpdateSchedulerTest {
     private RedisPostCounterAdapter redisPostCounterAdapter;
 
     @InjectMocks
-    private PostUpdateScheduler scheduler;
+    private PostCountScheduler scheduler;
 
     // ==================== 조회수 ====================
 
