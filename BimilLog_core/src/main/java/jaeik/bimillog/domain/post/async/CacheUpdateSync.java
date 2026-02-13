@@ -40,13 +40,21 @@ public class CacheUpdateSync {
 
     /**
      * <h3>새 글 작성 캐시 반영</h3>
-     * <p>첫 페이지 JSON LIST에 새 글을 추가합니다. (LPUSH + LTRIM)</p>
+     * <p>첫 페이지 JSON LIST에 새 글을 추가합니다. (Lua: LPUSH + LTRIM)</p>
+     * <p>잘려나간 글이 있으면 첫 페이지 SET에서 제거하고, 다른 카테고리에도 없으면 카운터도 정리합니다.</p>
      */
     @Async("cacheRefreshPool")
     public void asyncAddNewPost(PostSimpleDetail post) {
-        redisPostJsonListAdapter.addNewPost(RedisKey.FIRST_PAGE_JSON_KEY, PostCacheEntry.from(post), RedisKey.FIRST_PAGE_SIZE + 1);
+        Long removedId = redisPostJsonListAdapter.addNewPost(RedisKey.FIRST_PAGE_JSON_KEY, PostCacheEntry.from(post), RedisKey.FIRST_PAGE_SIZE + 1);
         redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, post.getId());
         redisPostCounterAdapter.batchSetCounters(List.of(post));
+
+        if (removedId != null) {
+            redisPostCounterAdapter.removeFromCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, removedId);
+            if (!redisPostCounterAdapter.isCachedPost(removedId)) {
+                redisPostCounterAdapter.removeCounterFields(removedId);
+            }
+        }
     }
 
     /**

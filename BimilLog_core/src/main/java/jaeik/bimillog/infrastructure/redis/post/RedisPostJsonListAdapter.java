@@ -64,6 +64,22 @@ public class RedisPostJsonListAdapter {
             "return nil";
 
     /**
+     * Lua — 새 글 추가: LLEN ≥ maxSize면 마지막 요소 ID 반환 → LPUSH → LTRIM
+     */
+    private static final String ADD_NEW_POST_SCRIPT =
+            "local maxSize = tonumber(ARGV[2]) " +
+            "local removedId = nil " +
+            "if redis.call('LLEN', KEYS[1]) >= maxSize then " +
+            "    local json = redis.call('LINDEX', KEYS[1], -1) " +
+            "    if json then " +
+            "        removedId = tostring(cjson.decode(json).id) " +
+            "    end " +
+            "end " +
+            "redis.call('LPUSH', KEYS[1], ARGV[1]) " +
+            "redis.call('LTRIM', KEYS[1], 0, maxSize - 1) " +
+            "return removedId";
+
+    /**
      * Lua — 전체 교체: DEL → RPUSH(JSON들) → EXPIRE
      */
     private static final String REPLACE_ALL_SCRIPT =
@@ -126,15 +142,19 @@ public class RedisPostJsonListAdapter {
     }
 
     /**
-     * <h3>새 글 추가</h3>
-     * <p>LPUSH(JSON) + LTRIM(0, maxSize-1)으로 최신 글을 맨 앞에 추가</p>
+     * <h3>새 글 추가 (원자적)</h3>
+     * <p>Lua 스크립트로 LLEN → LINDEX(마지막) → LPUSH → LTRIM을 원자적으로 수행합니다.</p>
+     * <p>LIST가 maxSize 이상이면 잘려나간 글의 ID를 반환합니다.</p>
+     *
+     * @return 잘려나간 글의 postId (없으면 null)
      */
-    public void addNewPost(String key, PostCacheEntry entry, int maxSize) {
+    public Long addNewPost(String key, PostCacheEntry entry, int maxSize) {
         String json = toJson(entry);
-        stringRedisTemplate.opsForList().leftPush(key, json);
-        stringRedisTemplate.opsForList().trim(key, 0, maxSize - 1);
+        DefaultRedisScript<String> script = new DefaultRedisScript<>(ADD_NEW_POST_SCRIPT, String.class);
+        String removedId = stringRedisTemplate.execute(script, List.of(key), json, String.valueOf(maxSize));
 
-        log.debug("[JSON_LIST] 새 글 추가 (key={}): postId={}", key, entry.id());
+        log.debug("[JSON_LIST] 새 글 추가 (key={}): postId={}, removedId={}", key, entry.id(), removedId);
+        return Long.parseLong(removedId);
     }
 
     /**
