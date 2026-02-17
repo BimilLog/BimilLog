@@ -143,8 +143,8 @@ public class AsyncConfig {
      * 캐시 갱신 전용 스레드 풀
      * <p>조회 시 HASH-ZSET 불일치 감지 후 비동기 HASH 갱신에 사용됩니다.</p>
      */
-    @Bean(name = "cacheRefreshPool")
-    public Executor cacheRefreshPool() {
+    @Bean(name = "cacheRefreshExecutor")
+    public Executor cacheRefreshExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(10);
         executor.setMaxPoolSize(30);

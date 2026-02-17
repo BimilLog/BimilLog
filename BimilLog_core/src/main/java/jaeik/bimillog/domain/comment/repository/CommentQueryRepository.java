@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.comment.repository;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -63,12 +65,20 @@ public class CommentQueryRepository {
         // 쿼리 빌딩
         JPAQuery<CommentInfo> query = getCommentInfoJPAQuery(memberId, parentClosure, userCommentLike);
 
+        // groupBy 구성
+        query.where(applyBlacklistFilter(comment.post.id.eq(postId), memberId));
+        if (memberId != null) {
+            query.groupBy(comment.id, comment.post.id, comment.member.id,
+                    member.memberName, comment.content, comment.deleted,
+                    comment.createdAt, parentClosure.ancestor.id, userCommentLike.id);
+        } else {
+            query.groupBy(comment.id, comment.post.id, comment.member.id,
+                    member.memberName, comment.content, comment.deleted,
+                    comment.createdAt, parentClosure.ancestor.id);
+        }
+
         // 쿼리 실행
         List<CommentInfo> content = query
-                .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
-                .groupBy(comment.id, comment.post.id, comment.member.id,
-                        member.memberName, comment.content, comment.deleted,
-                        comment.createdAt, parentClosure.ancestor.id, userCommentLike.id)
                 .orderBy(comment.createdAt.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -96,12 +106,20 @@ public class CommentQueryRepository {
         // 쿼리 빌딩
         JPAQuery<CommentInfo> query = getCommentInfoJPAQuery(memberId, parentClosure, userCommentLike);
 
+        // groupBy 구성
+        query.where(applyBlacklistFilter(comment.post.id.eq(postId), memberId));
+        if (memberId != null) {
+            query.groupBy(comment.id, comment.post.id, comment.member.id,
+                    member.memberName, comment.content, comment.deleted,
+                    comment.createdAt, parentClosure.ancestor.id, userCommentLike.id);
+        } else {
+            query.groupBy(comment.id, comment.post.id, comment.member.id,
+                    member.memberName, comment.content, comment.deleted,
+                    comment.createdAt, parentClosure.ancestor.id);
+        }
+
         // 쿼리 실행
         List<CommentInfo> popularComments = query
-                .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
-                .groupBy(comment.id, comment.post.id, comment.member.id,
-                        member.memberName, comment.content, comment.deleted,
-                        comment.createdAt, parentClosure.ancestor.id, userCommentLike.id)
                 .having(commentLike.countDistinct().goe(3)) // 추천 3개 이상
                 .orderBy(commentLike.countDistinct().desc())
                 .limit(3)
@@ -113,6 +131,14 @@ public class CommentQueryRepository {
 
     // 공통 댓글 빌딩
     private JPAQuery<CommentInfo> getCommentInfoJPAQuery(Long memberId, QCommentClosure parentClosure, QCommentLike userCommentLike) {
+        Expression<Boolean> userLikedExpression;
+
+        if (memberId != null) {
+            userLikedExpression = userCommentLike.id.isNotNull();
+        } else {
+            userLikedExpression = Expressions.constant(false);
+        }
+
         JPAQuery<CommentInfo> query = jpaQueryFactory
                 .select(Projections.constructor(CommentInfo.class,
                         comment.id,
@@ -124,7 +150,7 @@ public class CommentQueryRepository {
                         comment.createdAt,
                         parentClosure.ancestor.id.coalesce(comment.id),
                         commentLike.countDistinct().coalesce(0L).intValue(),
-                        userCommentLike.id.isNotNull()
+                        userLikedExpression
                 ))
                 .from(comment)
                 .leftJoin(comment.member, member)

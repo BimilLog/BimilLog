@@ -174,6 +174,7 @@ export const useAuthStore = create<AuthState>()(
                 if (response.success && response.data) {
                   set({
                     user: response.data,
+                    provider: response.data.provider ?? get().provider,
                     isAuthenticated: true,
                   });
 
