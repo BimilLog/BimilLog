@@ -121,11 +121,26 @@ public class RedisRealTimePostAdapter {
      * <h3>캐시 삭제</h3>
      * <p>score:realtime Sorted Set에서 특정 postId를 삭제합니다.</p>
      * <p>게시글 삭제 시 실시간 인기글 점수 정리를 위해 호출됩니다.</p>
+     * <p>서킷 OPEN 시 Caffeine 폴백 저장소에서 제거합니다.</p>
      *
      * @param postId 제거할 게시글 ID
      */
+    @CircuitBreaker(name = "realtimeRedis", fallbackMethod = "removePostIdFallback")
     public void removePostIdFromRealtimeScore(Long postId) {
         stringRedisTemplate.opsForZSet().remove(REALTIME_SCORE_KEY, String.valueOf(postId));
+    }
+
+    /**
+     * <h3>캐시 삭제 폴백</h3>
+     * <p>서킷 OPEN 또는 Redis 실패 시 Caffeine 폴백 저장소에서 게시글을 제거합니다.</p>
+     *
+     * @param postId 제거할 게시글 ID
+     * @param t      발생한 예외
+     */
+    @SuppressWarnings("unused")
+    private void removePostIdFallback(Long postId, Throwable t) {
+        log.warn("[CIRCUIT_FALLBACK] Redis 실패, 폴백 저장소에서 제거: postId={}, error={}", postId, t.getMessage());
+        fallbackStore.removePost(postId);
     }
 
 }

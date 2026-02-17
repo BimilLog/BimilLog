@@ -94,6 +94,17 @@ public class RealtimeScoreFallbackStore {
     }
 
     /**
+     * <h3>게시글 제거</h3>
+     * <p>삭제된 게시글을 폴백 저장소에서 제거합니다.</p>
+     *
+     * @param postId 제거할 게시글 ID
+     */
+    public void removePost(Long postId) {
+        scoreCache.invalidate(postId);
+        log.debug("[FALLBACK_STORE] 게시글 제거: postId={}", postId);
+    }
+
+    /**
      * <h3>저장소 초기화</h3>
      * <p>Redis 복구 후 또는 테스트 시 저장소를 초기화합니다.</p>
      */
