@@ -1,5 +1,7 @@
 // Member-related type definitions
 
+import type { SocialProvider } from './auth'
+
 // 사용자 정보 타입 (백엔드 MemberInfoResponseDTO와 일치)
 export interface Member {
   memberId: number            // 사용자 고유 ID
@@ -8,6 +10,7 @@ export interface Member {
   thumbnailImage: string      // 카카오 프로필 이미지 URL
   memberName: string          // 서비스 내에서 사용하는 사용자명 (변경 가능)
   role: "USER" | "ADMIN"      // 사용자 권한 레벨
+  provider: SocialProvider    // 소셜 로그인 제공자 (KAKAO, GOOGLE, NAVER)
 }
 
 // 간단한 사용자 정보 타입 (백엔드 SimpleMemberDTO와 일치)

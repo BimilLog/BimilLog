@@ -45,7 +45,7 @@ public class FriendRecommendService {
     private static final int THIRD_DEGREE_SAMPLE_SIZE = 100;
 
     /**
-     * 친구 추천 목록을 조회합니다.
+     * <h3>친구 추천 목록을 조회 실패시 DB폴백</h3>
      *
      * @param memberId 추천을 요청한 회원 ID
      * @param pageable 페이지네이션 정보
@@ -65,6 +65,9 @@ public class FriendRecommendService {
         }
     }
 
+    /**
+     * <h3>추천 친구 조회 상세</h3>
+     */
     private Page<RecommendedFriendDTO> getRecommendedFriends(Long memberId, Pageable pageable, boolean useRedis) {
         List<RecommendCandidate> candidates = new ArrayList<>();
 

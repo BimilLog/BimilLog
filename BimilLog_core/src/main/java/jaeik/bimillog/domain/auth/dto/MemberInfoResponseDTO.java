@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.auth.dto;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.MemberRole;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.Builder;
 
 /**
@@ -13,7 +14,7 @@ import lombok.Builder;
  */
 @Builder
 public record MemberInfoResponseDTO(Long memberId, Long settingId, String socialNickname, String thumbnailImage,
-                                    String memberName, MemberRole role) {
+                                    String memberName, MemberRole role, SocialProvider provider) {
 
     /**
      * <h3>CustomUserDetails에서 MemberInfoResponseDTO로 변환</h3>
@@ -30,6 +31,7 @@ public record MemberInfoResponseDTO(Long memberId, Long settingId, String social
                 .thumbnailImage(userDetails.getThumbnailImage())
                 .memberName(userDetails.getMemberName())
                 .role(userDetails.getRole())
+                .provider(userDetails.getProvider())
                 .build();
     }
 }
