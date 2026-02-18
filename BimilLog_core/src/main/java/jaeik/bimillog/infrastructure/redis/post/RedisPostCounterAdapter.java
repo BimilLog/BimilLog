@@ -62,6 +62,18 @@ public class RedisPostCounterAdapter {
             "end " +
             "return 1";
 
+    /**
+     * 추천수 댓글수 업데이트 루아 스크립트
+     * KEYS[1] 해시 키
+     * ARGV[1] 필드명
+     * ARGV[2] 증가할 값
+     */
+    private static final String UPDATE_COUNT_SCRIPT =
+            "if redis.call('HEXISTS', KEYS[1], ARGV[1]) == 1 then" +
+            "   return redis.call('HINCRBY', KEYS[1], ARGV[1], ARGV[2])" +
+            "else return nil" +
+            "end";
+
     // ==================== 카운터 Hash ====================
 
     /**
@@ -94,8 +106,8 @@ public class RedisPostCounterAdapter {
      * @param delta  증감값 (양수: 증가, 음수: 감소)
      */
     public void incrementCounter(Long postId, String suffix, long delta) {
-        stringRedisTemplate.opsForHash()
-                .increment(RedisKey.POST_COUNTERS_KEY, postId + suffix, delta);
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(UPDATE_COUNT_SCRIPT, Long.class);
+        stringRedisTemplate.execute(script, List.of(RedisKey.POST_COUNTERS_KEY), postId + suffix, String.valueOf(delta));
     }
 
     /**
