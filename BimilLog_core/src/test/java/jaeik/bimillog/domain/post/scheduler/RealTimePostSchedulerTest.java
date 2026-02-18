@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.scheduler;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
-import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
+import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

@@ -29,7 +29,7 @@ const PostActions = memo(({
 
   const handleToggleNotice = () => {
     if (isTogglingNotice) return; // 이중 클릭 방지
-    toggleNotice(post.id);
+    toggleNotice(post.id, post.notice);
   };
 
   return (

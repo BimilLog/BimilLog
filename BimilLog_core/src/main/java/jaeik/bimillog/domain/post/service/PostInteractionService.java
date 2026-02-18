@@ -45,17 +45,15 @@ public class PostInteractionService {
      * <p>이미 좋아요한 게시글인 경우 좋아요를 취소하고, 좋아요하지 않은 게시글인 경우 좋아요를 추가합니다.</p>
      *
      * @param memberId 현재 로그인한 사용자 ID
-     * @param postId 좋아요 대상 게시글 ID
+     * @param postId   좋아요 대상 게시글 ID
      */
     @Transactional
     public void likePost(Long memberId, Long postId) {
-        // 1. ID 기반으로 좋아요 존재 여부 확인 (엔티티 로딩 최소화)
+        // 좋아요 존재 여부 확인
         boolean isAlreadyLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
 
-        // 2. 좋아요 토글을 위해 필요한 엔티티만 로딩
         Member member = postToMemberAdapter.getMember(memberId);
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // 블랙리스트 확인 (익명 게시글이 아닌 경우에만)
         if (post.getMember() != null) {
@@ -63,31 +61,39 @@ public class PostInteractionService {
         }
 
         if (isAlreadyLiked) {
-            postLikeRepository.deleteByMemberAndPost(member, post);
+            unlikePost(member, post);
+            return;
+        }
 
-            // 좋아요 수 DB 직접 반영
-            postRepository.decrementLikeCount(postId);
+        likePost(member, post);
+    }
 
-            // 카운터 캐시 감소
-            postCountSync.incrementLikeCounter(postId, -1);
+    /**
+     * <h3>글 추천취소</h3>
+     */
+    private void unlikePost(Member member, Post post) {
+        postLikeRepository.deleteByMemberAndPost(member, post);
+        postRepository.decrementLikeCount(post.getId()); // 좋아요 수 DB 직접 반영
+        postCountSync.incrementLikeCounter(post.getId(), -1); // 카운터 캐시 감소
+        realtimePostSync.updateRealtimeScore(post.getId(), -4.0); // 비동기로 실시간 인기글 점수 감소
+    }
 
-            // 비동기로 실시간 인기글 점수 감소
-            realtimePostSync.updateRealtimeScore(postId, -4.0);
-        } else {
-            PostLike postLike = PostLike.builder().member(member).post(post).build();
-            postLikeRepository.save(postLike);
-            postRepository.incrementLikeCount(postId); // 좋아요 수 DB 직접 반영
-            postCountSync.incrementLikeCounter(postId, 1); // 비동기로 카운터 캐시 증가
-            realtimePostSync.updateRealtimeScore(postId, 4.0); // 비동기로 실시간 인기글 점수 증가
+    /**
+     * <h3>글 추천</h3>
+     */
+    private void likePost(Member member, Post post) {
+        PostLike postLike = PostLike.builder().member(member).post(post).build();
+        postLikeRepository.save(postLike);
+        postRepository.incrementLikeCount(post.getId()); // 좋아요 수 DB 직접 반영
+        postCountSync.incrementLikeCounter(post.getId(), 1); // 비동기로 카운터 캐시 증가
+        realtimePostSync.updateRealtimeScore(post.getId(), 4.0); // 비동기로 실시간 인기글 점수 증가
 
-            // 상호작용 점수 증가 이벤트 발행
-            if (post.getMember() != null) {
-                Long postAuthorId = post.getMember().getId();
-                if (!Objects.equals(postAuthorId, memberId)) {
-                    eventPublisher.publishEvent(new PostLikeEvent(postId, postAuthorId, memberId));
-                }
+        Long myId = member.getId();
+        if (post.getMember() != null) {
+            Long postAuthorId = post.getMember().getId();
+            if (!Objects.equals(postAuthorId, myId)) {
+                eventPublisher.publishEvent(new PostLikeEvent(post.getId(), postAuthorId, myId));
             }
         }
     }
-
 }

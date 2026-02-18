@@ -106,9 +106,9 @@ export function useToggleNoticeAction() {
   const queryClient = useQueryClient()
   const { showToast } = useToast()
 
-  const toggleNotice = (postId: number) => {
+  const toggleNotice = (postId: number, notice: boolean) => {
     startTransition(async () => {
-      const result = await toggleNoticeAction(postId)
+      const result = await toggleNoticeAction(postId, notice)
 
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) })

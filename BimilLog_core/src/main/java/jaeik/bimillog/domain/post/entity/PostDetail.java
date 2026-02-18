@@ -1,10 +1,10 @@
 package jaeik.bimillog.domain.post.entity;
 
 import com.querydsl.core.annotations.QueryProjection;
-import jaeik.bimillog.domain.post.service.PostQueryService;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -19,6 +19,7 @@ import java.time.Instant;
  * @version 2.0.0
  */
 @Getter
+@Setter
 @NoArgsConstructor
 public class PostDetail implements Serializable {
 
@@ -63,60 +64,5 @@ public class PostDetail implements Serializable {
         this.isWeekly = isWeekly;
         this.isLegend = isLegend;
         this.isNotice = isNotice;
-    }
-
-    /**
-     * <h3>추천 여부를 변경한 새로운 PostDetail 생성</h3>
-     * <p>캐시된 PostDetail의 isLiked 필드만 변경하여 새로운 immutable 객체를 생성합니다.</p>
-     * <p>필요한 필드만 변경하여 캐시 효율성을 높입니다.</p>
-     * <p>{@link PostQueryService}에서 로그인 사용자의 추천 상태 맞춤형 조회 시 호출됩니다.</p>
-     *
-     * @param isLiked 사용자 추천 여부
-     * @return PostDetail 새로운 PostDetail 객체
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public PostDetail withIsLiked(boolean isLiked) {
-        return PostDetail.builder()
-                .id(this.id)
-                .title(this.title)
-                .content(this.content)
-                .viewCount(this.viewCount)
-                .likeCount(this.likeCount)
-                .createdAt(this.createdAt)
-                .memberId(this.memberId)
-                .memberName(this.memberName)
-                .commentCount(this.commentCount)
-                .isLiked(isLiked)
-                .isWeekly(this.isWeekly)
-                .isLegend(this.isLegend)
-                .isNotice(this.isNotice)
-                .build();
-    }
-
-    /**
-     * <h3>목록용 검색 결과로 변환</h3>
-     * <p>PostDetail에서 PostSimpleDetail로 변환합니다.</p>
-     * <p>isLiked 정보는 목록 화면에서 필요하지 않으므로 제외됩니다.</p>
-     * <p>{@link PostQueryService}에서 게시글 목록 조회 시 호출됩니다.</p>
-     *
-     * @return PostSimpleDetail 목록용 검색 결과
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public PostSimpleDetail toSimpleDetail() {
-        return PostSimpleDetail.builder()
-                .id(this.id)
-                .title(this.title)
-                .viewCount(this.viewCount)
-                .likeCount(this.likeCount)
-                .createdAt(this.createdAt)
-                .memberId(this.memberId)
-                .memberName(this.memberName)
-                .commentCount(this.commentCount)
-                .isWeekly(this.isWeekly)
-                .isLegend(this.isLegend)
-                .isNotice(this.isNotice)
-                .build();
     }
 }

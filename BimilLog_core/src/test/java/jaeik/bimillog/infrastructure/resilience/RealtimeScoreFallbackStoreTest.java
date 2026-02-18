@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.resilience;
 
+import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

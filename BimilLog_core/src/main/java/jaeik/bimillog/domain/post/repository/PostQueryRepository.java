@@ -245,36 +245,6 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>공지사항 목록 조회 (스케줄러용)</h3>
-     * <p>isNotice=true인 게시글 목록을 최신순으로 조회합니다.</p>
-     *
-     * @return 공지사항 게시글 목록 (최대 100개, PostSimpleDetail)
-     */
-    @Transactional(readOnly = true)
-    public List<PostSimpleDetail> findNoticePosts() {
-        return findNoticePosts(PageRequest.of(0, 100)).getContent();
-    }
-
-    /**
-     * <h3>공지사항 목록 조회 (페이징)</h3>
-     * <p>isNotice=true인 게시글 목록을 페이징으로 조회합니다.</p>
-     *
-     * @param pageable 페이지 정보
-     * @return 공지사항 페이지
-     */
-    @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> findNoticePosts(Pageable pageable) {
-        Consumer<JPAQuery<?>> contentCustomizer = query -> query
-                .where(post.isNotice.eq(true))
-                .orderBy(post.id.desc());
-
-        Consumer<JPAQuery<?>> countCustomizer = query -> query
-                .where(post.isNotice.eq(true));
-
-        return findPostsWithQuery(contentCustomizer, countCustomizer, pageable);
-    }
-
-    /**
      * <h3>주간 인기 게시글 DB 폴백 조회 (페이징)</h3>
      */
     @Transactional(readOnly = true)

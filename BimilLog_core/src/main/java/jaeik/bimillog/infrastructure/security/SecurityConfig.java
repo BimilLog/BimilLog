@@ -98,7 +98,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/mypage").authenticated()
                         .requestMatchers("/api/comment/like").authenticated()
                         .requestMatchers("/api/comment/**").permitAll()
-                        .requestMatchers("/api/post/{postId}/notice").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/post/notice").hasRole("ADMIN")
                         .requestMatchers("/api/post/{postId}/like").permitAll()
                         .requestMatchers("/api/post/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

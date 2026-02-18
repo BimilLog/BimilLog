@@ -65,7 +65,7 @@ public class RedisPostCounterAdapter {
     // ==================== 카운터 Hash ====================
 
     /**
-     * <h3>카운터 절대값 일괄 설정 (24시간 스케줄러용)</h3>
+     * <h3>카운터 절대값 일괄 설정</h3>
      * <p>게시글 목록의 viewCount/likeCount/commentCount를 Hash에 절대값으로 SET합니다.</p>
      *
      * @param posts 캐시할 게시글 목록

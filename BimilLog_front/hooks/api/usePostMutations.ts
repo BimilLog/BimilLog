@@ -128,7 +128,8 @@ export const useToggleNotice = () => {
 
   return useMutation({
     mutationKey: mutationKeys.post.toggleNotice,
-    mutationFn: postCommand.toggleNotice,
+    mutationFn: ({ postId, notice }: { postId: number; notice: boolean }) =>
+      postCommand.toggleNotice(postId, notice),
     onError: (err: any) => {
       // HTTP 상태 코드에 따른 구체적인 에러 메시지 표시
       let errorMessage = '공지사항 변경에 실패했습니다.';
@@ -149,7 +150,7 @@ export const useToggleNotice = () => {
         showToast({ type: 'success', message: '공지사항 설정이 변경되었습니다.' });
       }
     },
-    onSettled: (data, error, postId) => {
+    onSettled: (data, error, { postId }) => {
       // 성공/실패 여부와 관계없이 서버 데이터로 동기화 - 최종 일관성 보장
       queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });

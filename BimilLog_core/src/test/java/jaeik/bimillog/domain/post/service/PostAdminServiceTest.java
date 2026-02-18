@@ -2,8 +2,6 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -11,13 +9,13 @@ import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,9 +41,6 @@ class PostAdminServiceTest extends BaseUnitTest {
     private PostRepository postRepository;
 
     @Mock
-    private PostQueryRepository postQueryRepository;
-
-    @Mock
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @Mock
@@ -66,24 +61,12 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .likeCount(10)
                 .commentCount(5)
                 .build();
-
-        PostSimpleDetail mockDetail = PostSimpleDetail.builder()
-                .id(postId)
-                .title("테스트 공지")
-                .viewCount(100)
-                .likeCount(10)
-                .createdAt(Instant.now())
-                .memberId(1L)
-                .memberName("테스트")
-                .commentCount(5)
-                .isNotice(true)
-                .build();
+        TestFixtures.setFieldValue(post, "id", postId);
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
-        given(postQueryRepository.findPostSimpleDetailById(postId)).willReturn(Optional.of(mockDetail));
 
-        // When
-        postAdminService.togglePostNotice(postId);
+        // When - 현재 공지가 아닌 상태(false)를 전달
+        postAdminService.togglePostNotice(postId, false);
 
         // Then
         verify(postRepository).findById(postId);
@@ -103,7 +86,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> postAdminService.togglePostNotice(postId))
+        assertThatThrownBy(() -> postAdminService.togglePostNotice(postId, false))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
@@ -127,8 +110,8 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
-        // When
-        postAdminService.togglePostNotice(postId);
+        // When - 현재 공지 상태(true)를 전달
+        postAdminService.togglePostNotice(postId, true);
 
         // Then
         verify(postRepository).findById(postId);

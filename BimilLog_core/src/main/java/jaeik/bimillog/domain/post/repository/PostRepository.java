@@ -44,20 +44,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void deleteAllByMemberId(Long memberId);
 
     /**
-     * <h3>조회수 증가</h3>
-     * <p>게시글 ID를 통해 조회수를 1 증가시킵니다.</p>
-     * <p>SELECT 없이 바로 UPDATE만 실행하여 성능을 최적화합니다.</p>
-     *
-     * @param postId 조회수를 증가시킬 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Modifying
-    @Query("UPDATE Post p SET p.views = p.views + 1 WHERE p.id = :postId")
-    void incrementViewsByPostId(Long postId);
-
-
-    /**
      * <h3>좋아요 수 원자적 증가</h3>
      */
     @Modifying

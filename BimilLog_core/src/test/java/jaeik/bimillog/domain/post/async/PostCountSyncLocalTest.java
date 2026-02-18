@@ -62,13 +62,13 @@ class PostCountSyncLocalTest {
         stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":m:100");
     }
 
-    // ==================== 조회수 버퍼 ====================
+    // ==================== 조회수 버퍼 (RealtimePostSync.postDetailCheck) ====================
 
     @Test
-    @DisplayName("조회수 - 첫 조회 시 SET NX EX 마킹 + 조회수 버퍼 증가")
-    void handlePostViewed_firstView_shouldMarkAndIncrement() {
+    @DisplayName("조회수 - 첫 조회 시 SET NX EX 마킹 + 조회수 버퍼 증가 + 실시간 점수 증가")
+    void postDetailCheck_firstView_shouldMarkAndIncrement() {
         // When
-        postCountSync.handlePostViewed(TEST_POST_ID, TEST_VIEWER_KEY);
+        realtimePostSync.postDetailCheck(TEST_POST_ID, TEST_VIEWER_KEY);
         waitForAsync();
 
         // Then - String 키로 viewer 마킹 확인
@@ -79,17 +79,22 @@ class PostCountSyncLocalTest {
         // Then - Hash 버퍼에 조회수 1 증가 확인
         Map<Long, Long> viewCounts = redisPostUpdateAdapter.getAndClearViewCounts();
         assertThat(viewCounts).containsEntry(TEST_POST_ID, 1L);
+
+        // Then - 실시간 점수 2.0 증가 확인
+        Double score = stringRedisTemplate.opsForZSet()
+                .score(RedisKey.REALTIME_POST_SCORE_KEY, String.valueOf(TEST_POST_ID));
+        assertThat(score).isEqualTo(2.0);
     }
 
     @Test
-    @DisplayName("조회수 - 중복 조회 시 조회수 증가하지 않음")
-    void handlePostViewed_duplicateView_shouldNotIncrement() {
+    @DisplayName("조회수 - 중복 조회 시 조회수 증가하지 않음 (실시간 점수는 증가)")
+    void postDetailCheck_duplicateView_shouldNotIncrementViewCount() {
         // Given - 첫 조회
-        postCountSync.handlePostViewed(TEST_POST_ID, TEST_VIEWER_KEY);
+        realtimePostSync.postDetailCheck(TEST_POST_ID, TEST_VIEWER_KEY);
         waitForAsync();
 
         // When - 같은 viewerKey로 재조회
-        postCountSync.handlePostViewed(TEST_POST_ID, TEST_VIEWER_KEY);
+        realtimePostSync.postDetailCheck(TEST_POST_ID, TEST_VIEWER_KEY);
         waitForAsync();
 
         // Then - 조회수는 1만 증가 (중복 방지)
@@ -99,11 +104,11 @@ class PostCountSyncLocalTest {
 
     @Test
     @DisplayName("조회수 - 다른 viewerKey는 각각 조회수 증가")
-    void handlePostViewed_differentViewers_shouldIncrementEach() {
+    void postDetailCheck_differentViewers_shouldIncrementEach() {
         // When
-        postCountSync.handlePostViewed(TEST_POST_ID, "ip:1.1.1.1");
-        postCountSync.handlePostViewed(TEST_POST_ID, "ip:2.2.2.2");
-        postCountSync.handlePostViewed(TEST_POST_ID, "m:100");
+        realtimePostSync.postDetailCheck(TEST_POST_ID, "ip:1.1.1.1");
+        realtimePostSync.postDetailCheck(TEST_POST_ID, "ip:2.2.2.2");
+        realtimePostSync.postDetailCheck(TEST_POST_ID, "m:100");
         waitForAsync();
 
         // Then - 3명 각각 조회수 증가
@@ -252,7 +257,7 @@ class PostCountSyncLocalTest {
     // ==================== 헬퍼 ====================
 
     /**
-     * @Async 메서드 완료 대기 (비동기 스레드 풀에서 실행되므로 잠시 대기)
+     * Async  메서드 완료 대기 (비동기 스레드 풀에서 실행되므로 잠시 대기)
      */
     private void waitForAsync() {
         try {

@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>게시글 관리자 서비스</h2>
@@ -32,7 +31,6 @@ import java.util.Optional;
 @Slf4j
 public class PostAdminService {
     private final PostRepository postRepository;
-    private final PostQueryRepository postQueryRepository;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
     private final RedisPostCounterAdapter redisPostCounterAdapter;
 
@@ -47,28 +45,42 @@ public class PostAdminService {
      * @param postId 공지 토글할 게시글 ID
      */
     @Transactional
-    public void togglePostNotice(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+    public void togglePostNotice(Long postId, boolean isNotice) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        post.updateNotice(!isNotice);
 
+        if (isNotice) {
+            releaseNotice(postId);
+            return;
+        }
+        registerNotice(post);
+    }
+
+    /**
+     * <h3>공지 해제</h3>
+     * JSON LIST에서 제거 + 공지 SET에서 제거
+     */
+    private void releaseNotice(Long postId) {
         try {
-            if (post.isNotice()) {
-                // 공지 해제: isNotice false + JSON LIST에서 제거 + 공지 SET에서 제거
-                post.updateNotice(false);
-                redisPostJsonListAdapter.removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
-                redisPostCounterAdapter.removeFromCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
-            } else {
-                // 공지 설정: isNotice true + JSON LIST에 LPUSH + 공지 SET에 추가 + 카운터 초기화
-                post.updateNotice(true);
-                Optional<PostSimpleDetail> detail = postQueryRepository.findPostSimpleDetailById(postId);
-                detail.ifPresent(d -> {
-                    redisPostJsonListAdapter.addNewPost(RedisKey.POST_NOTICE_JSON_KEY, PostCacheEntry.from(d), NOTICE_MAX_SIZE);
-                    redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
-                    redisPostCounterAdapter.batchSetCounters(List.of(d));
-                });
-            }
+            redisPostJsonListAdapter.removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
+            redisPostCounterAdapter.removeFromCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
         } catch (Exception e) {
-            log.error("공지 설정/해제 중 오류 발생: postId={}", postId, e);
+            log.error("공지 해제 중 오류 발생: postId={}", postId, e);
+        }
+    }
+
+    /**
+     * <h3>공지 설정</h3>
+     * JSON LIST에 LPUSH + 공지 SET에 추가 + 카운터 초기화
+     */
+    private void registerNotice(Post post) {
+        PostSimpleDetail from = PostSimpleDetail.from(post);
+        try {
+            redisPostJsonListAdapter.addNewPost(RedisKey.POST_NOTICE_JSON_KEY, PostCacheEntry.from(from), NOTICE_MAX_SIZE);
+            redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, post.getId());
+            redisPostCounterAdapter.batchSetCounters(List.of(from));
+        } catch (Exception e) {
+            log.error("공지 설정 중 오류 발생: postId={}", post.getId(), e);
         }
     }
 }
