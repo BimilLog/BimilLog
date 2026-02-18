@@ -9,6 +9,7 @@ import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,7 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .likeCount(10)
                 .commentCount(5)
                 .build();
+        TestFixtures.setFieldValue(post, "id", postId);
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 

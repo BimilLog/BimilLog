@@ -172,7 +172,7 @@ export async function deletePostAction(data: {
 /**
  * 공지사항 토글 Server Action (관리자 전용)
  */
-export async function toggleNoticeAction(postId: number, isNotice: boolean): Promise<ActionResult> {
+export async function toggleNoticeAction(postId: number, notice: boolean): Promise<ActionResult> {
   try {
     const apiUrl = getServerApiUrl()
     const headers = await getAuthHeaders()
@@ -180,7 +180,7 @@ export async function toggleNoticeAction(postId: number, isNotice: boolean): Pro
     const res = await fetch(`${apiUrl}/api/post/notice`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ postId, isNotice }),
+      body: JSON.stringify({ postId, notice }),
     })
 
     if (!res.ok) {

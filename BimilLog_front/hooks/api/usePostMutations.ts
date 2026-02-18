@@ -128,8 +128,8 @@ export const useToggleNotice = () => {
 
   return useMutation({
     mutationKey: mutationKeys.post.toggleNotice,
-    mutationFn: ({ postId, isNotice }: { postId: number; isNotice: boolean }) =>
-      postCommand.toggleNotice(postId, isNotice),
+    mutationFn: ({ postId, notice }: { postId: number; notice: boolean }) =>
+      postCommand.toggleNotice(postId, notice),
     onError: (err: any) => {
       // HTTP 상태 코드에 따른 구체적인 에러 메시지 표시
       let errorMessage = '공지사항 변경에 실패했습니다.';

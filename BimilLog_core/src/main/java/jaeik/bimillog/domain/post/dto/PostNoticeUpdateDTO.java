@@ -8,5 +8,5 @@ public class PostNoticeUpdateDTO {
     @NotNull
     Long postId;
 
-    boolean isNotice;
+    boolean notice;
 }
