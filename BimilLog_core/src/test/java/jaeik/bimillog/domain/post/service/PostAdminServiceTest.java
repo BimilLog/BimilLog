@@ -7,6 +7,7 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
@@ -46,6 +47,9 @@ class PostAdminServiceTest extends BaseUnitTest {
     @Mock
     private RedisPostCounterAdapter redisPostCounterAdapter;
 
+    @Mock
+    private RedisPostIndexAdapter redisPostIndexAdapter;
+
     @InjectMocks
     private PostAdminService postAdminService;
 
@@ -73,7 +77,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         // JSON LIST에 LPUSH (PostCacheEntry로 변환되어 저장)
         verify(redisPostJsonListAdapter).addNewPost(eq(RedisKey.POST_NOTICE_JSON_KEY), any(PostCacheEntry.class), anyInt());
         // 공지 SET에 추가 + 카운터 초기화
-        verify(redisPostCounterAdapter).addToCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
+        verify(redisPostIndexAdapter).addToCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
         verify(redisPostCounterAdapter).batchSetCounters(any());
     }
 
@@ -117,6 +121,6 @@ class PostAdminServiceTest extends BaseUnitTest {
         verify(postRepository).findById(postId);
         // JSON LIST에서 제거 + 공지 SET에서 제거
         verify(redisPostJsonListAdapter).removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
-        verify(redisPostCounterAdapter).removeFromCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
+        verify(redisPostIndexAdapter).removeFromCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
     }
 }

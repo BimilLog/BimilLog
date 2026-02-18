@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +29,6 @@ class PostCountSyncLocalTest {
 
     @Autowired
     private RealtimePostSync realtimePostSync;
-
-    @Autowired
-    private RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     @Autowired
     private RedisPostCounterAdapter redisPostCounterAdapter;
@@ -77,7 +73,7 @@ class PostCountSyncLocalTest {
         assertThat(exists).isTrue();
 
         // Then - Hash 버퍼에 조회수 1 증가 확인
-        Map<Long, Long> viewCounts = redisPostUpdateAdapter.getAndClearViewCounts();
+        Map<Long, Long> viewCounts = redisPostCounterAdapter.getAndClearViewCounts();
         assertThat(viewCounts).containsEntry(TEST_POST_ID, 1L);
 
         // Then - 실시간 점수 2.0 증가 확인
@@ -98,7 +94,7 @@ class PostCountSyncLocalTest {
         waitForAsync();
 
         // Then - 조회수는 1만 증가 (중복 방지)
-        Map<Long, Long> viewCounts = redisPostUpdateAdapter.getAndClearViewCounts();
+        Map<Long, Long> viewCounts = redisPostCounterAdapter.getAndClearViewCounts();
         assertThat(viewCounts).containsEntry(TEST_POST_ID, 1L);
     }
 
@@ -112,7 +108,7 @@ class PostCountSyncLocalTest {
         waitForAsync();
 
         // Then - 3명 각각 조회수 증가
-        Map<Long, Long> viewCounts = redisPostUpdateAdapter.getAndClearViewCounts();
+        Map<Long, Long> viewCounts = redisPostCounterAdapter.getAndClearViewCounts();
         assertThat(viewCounts).containsEntry(TEST_POST_ID, 3L);
     }
 
@@ -122,13 +118,13 @@ class PostCountSyncLocalTest {
     @DisplayName("getAndClear - 조회 후 버퍼가 비워짐")
     void getAndClear_shouldReturnAndDeleteBuffer() {
         // Given - 서로 다른 viewerKey로 2회 조회하여 버퍼에 2 누적
-        redisPostUpdateAdapter.markViewedAndIncrement(TEST_POST_ID, "ip:1.1.1.1");
-        redisPostUpdateAdapter.markViewedAndIncrement(TEST_POST_ID, "ip:2.2.2.2");
+        redisPostCounterAdapter.markViewedAndIncrement(TEST_POST_ID, "ip:1.1.1.1");
+        redisPostCounterAdapter.markViewedAndIncrement(TEST_POST_ID, "ip:2.2.2.2");
 
         // When - 첫 번째 호출
-        Map<Long, Long> first = redisPostUpdateAdapter.getAndClearViewCounts();
+        Map<Long, Long> first = redisPostCounterAdapter.getAndClearViewCounts();
         // When - 두 번째 호출
-        Map<Long, Long> second = redisPostUpdateAdapter.getAndClearViewCounts();
+        Map<Long, Long> second = redisPostCounterAdapter.getAndClearViewCounts();
 
         // Then
         assertThat(first).containsEntry(TEST_POST_ID, 2L);

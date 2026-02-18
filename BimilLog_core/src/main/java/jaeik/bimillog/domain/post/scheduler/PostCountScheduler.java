@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class PostCountScheduler {
-    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final PostQueryRepository postQueryRepository;
     private final RedisPostCounterAdapter redisPostCounterAdapter;
 
@@ -41,7 +39,7 @@ public class PostCountScheduler {
 
     private void flushViewCounts() {
         try {
-            Map<Long, Long> counts = redisPostUpdateAdapter.getAndClearViewCounts();
+            Map<Long, Long> counts = redisPostCounterAdapter.getAndClearViewCounts();
             if (counts.isEmpty()) return;
 
             postQueryRepository.bulkIncrementCount(counts, QPost.post.views);

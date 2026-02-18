@@ -9,6 +9,7 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class PostAdminService {
     private final PostRepository postRepository;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
     private final RedisPostCounterAdapter redisPostCounterAdapter;
+    private final RedisPostIndexAdapter redisPostIndexAdapter;
 
     private static final int NOTICE_MAX_SIZE = 100;
 
@@ -63,7 +65,7 @@ public class PostAdminService {
     private void releaseNotice(Long postId) {
         try {
             redisPostJsonListAdapter.removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
-            redisPostCounterAdapter.removeFromCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
+            redisPostIndexAdapter.removeFromCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, postId);
         } catch (Exception e) {
             log.error("공지 해제 중 오류 발생: postId={}", postId, e);
         }
@@ -77,7 +79,7 @@ public class PostAdminService {
         PostSimpleDetail from = PostSimpleDetail.from(post);
         try {
             redisPostJsonListAdapter.addNewPost(RedisKey.POST_NOTICE_JSON_KEY, PostCacheEntry.from(from), NOTICE_MAX_SIZE);
-            redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, post.getId());
+            redisPostIndexAdapter.addToCategorySet(RedisKey.CACHED_NOTICE_IDS_KEY, post.getId());
             redisPostCounterAdapter.batchSetCounters(List.of(from));
         } catch (Exception e) {
             log.error("공지 설정 중 오류 발생: postId={}", post.getId(), e);

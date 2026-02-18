@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class RealtimePostSync {
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
     private final RedisPostCounterAdapter redisPostCounterAdapter;
     private final PostQueryRepository postQueryRepository;
-    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
+    private final RedisPostIndexAdapter redisPostIndexAdapter;
 
     private static final double COMMENT_SCORE = 3.0;
     private static final double VIEW_SCORE = 2.0;
@@ -70,7 +70,7 @@ public class RealtimePostSync {
     public void postDetailCheck(Long postId, String viewerKey) {
         try {
             redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
-            redisPostUpdateAdapter.markViewedAndIncrement(postId, viewerKey);
+            redisPostCounterAdapter.markViewedAndIncrement(postId, viewerKey);
         } catch (Exception e) {
             log.warn("상세글 조회 점수 상승 실패: postId={}, error={}", postId, e.getMessage());
         }
@@ -116,7 +116,7 @@ public class RealtimePostSync {
     @Async("cacheRefreshExecutor")
     public void asyncRebuildRealtimeCache(List<Long> zsetTopIds) {
         try {
-            Set<Long> oldIds = new HashSet<>(redisPostCounterAdapter.getCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY));
+            Set<Long> oldIds = new HashSet<>(redisPostIndexAdapter.getCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY));
 
             List<PostSimpleDetail> dbPosts = postQueryRepository
                     .findPostSimpleDetailsByIds(zsetTopIds, PageRequest.of(0, REALTIME_TOP_N))
@@ -127,7 +127,7 @@ public class RealtimePostSync {
             List<Long> postIds = dbPosts.stream().map(PostSimpleDetail::getId).toList();
             List<PostCacheEntry> entries = dbPosts.stream().map(PostCacheEntry::from).toList();
             redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, entries, RedisKey.DEFAULT_CACHE_TTL);
-            redisPostCounterAdapter.rebuildCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY, postIds);
+            redisPostIndexAdapter.rebuildCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY, postIds);
 
             // 새로 들어온 글만 카운터 초기화 (기존 글 증분값 보존)
             List<PostSimpleDetail> addedPosts = dbPosts.stream()
