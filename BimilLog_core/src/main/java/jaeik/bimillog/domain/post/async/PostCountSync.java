@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.post.async;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -23,26 +22,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class PostCountSync {
-    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final RedisPostCounterAdapter redisPostCounterAdapter;
-
-    /**
-     * <h3>게시글 조회 이벤트 처리 (원자적)</h3>
-     * <p>Lua 스크립트로 중복 확인 + 마킹 + 조회수 증가를 원자적으로 처리합니다.</p>
-     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
-     * <p>동시 요청 시 Check-Then-Act 레이스 컨디션을 방지합니다.</p>
-     *
-     * @param postId    조회된 게시글 ID
-     * @param viewerKey 조회자 식별 키 (중복 조회 방지용)
-     */
-    @Async("cacheCountUpdateExecutor")
-    public void handlePostViewed(Long postId, String viewerKey) {
-        try {
-            redisPostUpdateAdapter.markViewedAndIncrement(postId, viewerKey);
-        } catch (Exception e) {
-            log.warn("조회수 처리 실패: postId={}, error={}", postId, e.getMessage());
-        }
-    }
 
     /**
      * <h3>좋아요 카운터 캐시 증감</h3>

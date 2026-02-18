@@ -93,10 +93,7 @@ public class PostCommandService {
         // 글 조회
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        // 비밀번호 검증 회원은 비밀번호가 null이기 때문에 통과한다.
-        if (!post.isAuthor(memberId, password)) {
-            throw new CustomException(ErrorCode.POST_FORBIDDEN);
-        }
+        checkAuthor(post, memberId, password);
 
         // 글 수정
         post.updatePost(title, content);
@@ -119,9 +116,7 @@ public class PostCommandService {
     public void deletePost(Long memberId, Long postId, Integer password) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        if (!post.isAuthor(memberId, password)) {
-            throw new CustomException(ErrorCode.POST_FORBIDDEN);
-        }
+        checkAuthor(post, memberId, password);
 
         // CASCADE로 Comment와 PostLike 자동 삭제
         postRepository.delete(post);
@@ -147,5 +142,11 @@ public class PostCommandService {
         }
         // 게시글 일괄 삭제
         postRepository.deleteAllByMemberId(memberId);
+    }
+
+    private void checkAuthor(Post post, Long memberId, Integer password) {
+        if (!post.isAuthor(memberId, password)) {
+            throw new CustomException(ErrorCode.POST_FORBIDDEN);
+        }
     }
 }

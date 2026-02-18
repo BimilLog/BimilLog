@@ -9,6 +9,7 @@ import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +41,10 @@ public class RealtimePostSync {
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
     private final RedisPostCounterAdapter redisPostCounterAdapter;
     private final PostQueryRepository postQueryRepository;
+    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     private static final double COMMENT_SCORE = 3.0;
+    private static final double VIEW_SCORE = 2.0;
     private static final int REALTIME_TOP_N = 5;
 
     /**
@@ -49,11 +52,28 @@ public class RealtimePostSync {
      * <p>게시글의 실시간 인기글 점수를 주어진 값만큼 증감시킵니다.</p>
      *
      * @param postId 게시글 ID
-     * @param score 증감할 점수 (양수: 증가, 음수: 감소)
+     * @param score  증감할 점수 (양수: 증가, 음수: 감소)
      */
     @Async("realtimeEventExecutor")
     public void updateRealtimeScore(Long postId, double score) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(postId, score);
+    }
+
+    /**
+     * <h3>게시글 상세 조회 조회수 상승 실시간 점수 상승</h3>
+     * <p>Lua 스크립트로 중복 확인 + 마킹 + 조회수 증가를 원자적으로 처리합니다.</p>
+     * <p>Hash 캐시 반영은 1분 플러시 스케줄러에서 일괄 처리합니다.</p>
+     * @param postId  조회된 게시글 ID
+     * @param viewerKey 조회자 식별 키 (중복 조회 방지용)
+     */
+    @Async("realtimeEventExecutor")
+    public void postDetailCheck(Long postId, String viewerKey) {
+        try {
+            redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
+            redisPostUpdateAdapter.markViewedAndIncrement(postId, viewerKey);
+        } catch (Exception e) {
+            log.warn("상세글 조회 점수 상승 실패: postId={}, error={}", postId, e.getMessage());
+        }
     }
 
     /**

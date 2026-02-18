@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
-import jaeik.bimillog.domain.post.async.PostCountSync;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
@@ -38,12 +37,10 @@ import java.util.stream.Collectors;
 @Log
 public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
-    private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final PostCacheService postCacheService;
-    private final PostCountSync postCountSync;
     private final RealtimePostSync realtimePostSync;
 
     /**
@@ -85,7 +82,7 @@ public class PostQueryService {
 
     /**
      * <h3>게시글 상세 조회</h3>
-     * <p>DB에서 직접 조회합니다. (상세 캐시 제거됨)</p>
+     * <p>DB에서 직접 조회합니다.</p>
      * <p>회원일 경우 블랙리스트 조사 및 좋아요 확인 후 주입하여 반환합니다.</p>
      * <p>중복 조회 방지 후 조회수 버퍼링 및 실시간 인기글 점수 증가 이벤트를 발행합니다.</p>
      *
@@ -97,23 +94,17 @@ public class PostQueryService {
     @Transactional
     public PostDetail getPost(Long postId, Long memberId, String viewerKey) {
         // 1. DB 조회
-        PostDetail result = postQueryRepository.findPostDetail(postId, null)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        PostDetail result = postQueryRepository.findPostDetail(postId, memberId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        // 2. 비동기로 조회수 증가 (중복 체크 후 Redis 버퍼링)
-        postCountSync.handlePostViewed(postId, viewerKey);
+        // 2. 비동기로 실시간 인기글 점수, 조회 수 증가
+        realtimePostSync.postDetailCheck(postId, viewerKey);
 
-        // 3. 비동기로 실시간 인기글 점수 증가
-        realtimePostSync.updateRealtimeScore(postId, 2.0);
-
-        // 4. 비회원이면 바로 반환
+        // 3. 비회원이면 바로 반환
         if (memberId == null) {
             return result;
         }
 
-        // 5. 회원이면 좋아요 여부 확인 및 블랙리스트 체크
-        boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
-        result = result.withIsLiked(isLiked);
+        // 4. 회원 블랙리스트 체크
         eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, result.getMemberId()));
         return result;
     }
