@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.resilience;
+package jaeik.bimillog.domain.post.repository;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

@@ -12,7 +12,7 @@ import java.util.List;
  * <p>카운트는 {@code post:counters} Hash에서 별도 관리합니다.</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 public record PostCacheEntry(
         Long id,

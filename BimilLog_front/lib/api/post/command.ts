@@ -56,6 +56,6 @@ export const postCommand = {
   like: (postId: number): Promise<ApiResponse<void>> =>
     apiClient.post(`/api/post/${postId}/like`, {}),
 
-  toggleNotice: (postId: number): Promise<ApiResponse<void>> =>
-    apiClient.post(`/api/post/${postId}/notice`, {}),
+  toggleNotice: (postId: number, isNotice: boolean): Promise<ApiResponse<void>> =>
+    apiClient.post(`/api/post/notice`, { postId, isNotice }),
 }

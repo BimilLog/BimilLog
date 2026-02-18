@@ -10,6 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -65,8 +67,8 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         // Given - 초기상태: 비공지
         assertThat(isNotice(testPost.getId())).isFalse();
 
-        // When & Then
-        performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
+        // When & Then - 현재 상태(false)를 전달하여 공지로 설정
+        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "isNotice", false), adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -81,8 +83,8 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         setAsNotice(testPost);
         assertThat(isNotice(testPost.getId())).isTrue();
 
-        // When & Then
-        performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
+        // When & Then - 현재 상태(true)를 전달하여 공지 해제
+        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "isNotice", true), adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -94,7 +96,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 공지 토글 실패 - 일반 사용자 권한 없음")
     void togglePostNotice_Fail_WithMemberRole() throws Exception {
         // When & Then - 403 Forbidden 예상
-        performPost("/api/post/" + testPost.getId() + "/notice", null, testUserDetails)
+        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "isNotice", false), testUserDetails)
                 .andDo(print())
                 .andExpect(status().isForbidden());
 
@@ -106,9 +108,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 공지 토글 실패 - 인증되지 않은 사용자")
     void togglePostNotice_Fail_Unauthorized() throws Exception {
         // When & Then - 403 Forbidden 예상
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                        .post("/api/post/" + testPost.getId() + "/notice")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf()))
+        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "isNotice", false))
                 .andDo(print())
                 .andExpect(status().isForbidden());
 
@@ -123,7 +123,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         Long nonExistentPostId = Long.MAX_VALUE;
 
         // When & Then - 404 Not Found 예상 (CustomException -> PostExceptionHandler)
-        performPost("/api/post/" + nonExistentPostId + "/notice", null, adminUserDetails)
+        performPost("/api/post/notice", Map.of("postId", nonExistentPostId, "isNotice", false), adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -135,7 +135,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         assertThat(isNotice(testPost.getId())).isFalse();
 
         // When & Then - 첫 번째 토글: 비공지 -> 공지
-        performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
+        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "isNotice", false), adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -143,7 +143,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         assertThat(isNotice(testPost.getId())).isTrue();
 
         // When & Then - 두 번째 토글: 공지 -> 비공지
-        performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
+        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "isNotice", true), adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk());
 
@@ -158,17 +158,17 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         assertThat(isNotice(testPost.getId())).isFalse();
 
         // 첫 번째 토글: 비공지 -> 공지
-        performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
+        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "isNotice", false), adminUserDetails)
                 .andExpect(status().isOk());
         assertThat(isNotice(testPost.getId())).isTrue();
 
         // 두 번째 토글: 공지 -> 비공지
-        performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
+        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "isNotice", true), adminUserDetails)
                 .andExpect(status().isOk());
         assertThat(isNotice(testPost.getId())).isFalse();
 
         // 세 번째 토글: 비공지 -> 공지
-        performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
+        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "isNotice", false), adminUserDetails)
                 .andExpect(status().isOk());
         assertThat(isNotice(testPost.getId())).isTrue();
     }
@@ -180,7 +180,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         assertThat(isNotice(testPost.getId())).isFalse();
 
         // When & Then - API 호출 성공
-        performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
+        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "isNotice", false), adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk());
 

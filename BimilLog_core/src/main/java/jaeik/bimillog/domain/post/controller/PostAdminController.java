@@ -1,15 +1,14 @@
 package jaeik.bimillog.domain.post.controller;
 
+import jaeik.bimillog.domain.post.dto.PostNoticeUpdateDTO;
 import jaeik.bimillog.domain.post.service.PostAdminService;
 import jaeik.bimillog.infrastructure.log.Log;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <h2>게시글 관리자 컨트롤러</h2>
@@ -41,10 +40,10 @@ public class PostAdminController {
      * @author Jaeik
      * @since 2.0.0
      */
-    @PostMapping("/{postId}/notice")
+    @PostMapping("/notice")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> togglePostNotice(@PathVariable Long postId) {
-        postAdminService.togglePostNotice(postId);
+    public ResponseEntity<Void> togglePostNotice(@Valid @RequestBody PostNoticeUpdateDTO postNoticeUpdateDTO) {
+        postAdminService.togglePostNotice(postNoticeUpdateDTO.getPostId(), postNoticeUpdateDTO.isNotice());
         return ResponseEntity.ok().build();
     }
 }
