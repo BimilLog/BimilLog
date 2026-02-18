@@ -6,7 +6,7 @@ package jaeik.bimillog.domain.post.entity;
  * <p>{@link PostCacheEntry}와 결합하여 {@link PostSimpleDetail}을 생성합니다.</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.7.0
  */
 public record PostCountCache(int viewCount, int likeCount, int commentCount) {
 

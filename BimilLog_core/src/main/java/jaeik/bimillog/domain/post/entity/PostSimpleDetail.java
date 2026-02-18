@@ -58,13 +58,6 @@ public class PostSimpleDetail implements Serializable {
     }
 
     /**
-     * 새 게시글용 PostSimpleDetail 생성 (모든 카운트 0)
-     */
-    public static PostSimpleDetail createNew(Long id, String title, Instant createdAt, Long memberId, String memberName) {
-        return new PostSimpleDetail(id, title, 0, 0, createdAt, memberId, memberName, 0, false, false, false);
-    }
-
-    /**
      * Post 엔티티로부터 PostSimpleDetail 생성
      */
     public static PostSimpleDetail from(Post post) {

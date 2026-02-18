@@ -93,7 +93,7 @@ public class PostQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable, Long viewerId) {
+    public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable) {
         Consumer<JPAQuery<?>> customizer = query -> query.where(post.member.id.eq(memberId));
         return findPostsWithQuery(customizer, customizer, pageable);
     }
@@ -413,39 +413,6 @@ public class PostQueryRepository {
                 .fetch();
 
         return new PageImpl<>(content, pageable, postIds.size());
-    }
-
-    /**
-     * <h3>단건 게시글 간단 상세 조회</h3>
-     * <p>단일 게시글의 PostSimpleDetail을 조회합니다.</p>
-     *
-     * @param postId 조회할 게시글 ID
-     * @return PostSimpleDetail (없으면 Optional.empty)
-     */
-    @Transactional(readOnly = true)
-    public Optional<PostSimpleDetail> findPostSimpleDetailById(Long postId) {
-        if (postId == null) {
-            return Optional.empty();
-        }
-
-        PostSimpleDetail result = jpaQueryFactory
-                .select(new QPostSimpleDetail(
-                        post.id,
-                        post.title,
-                        post.views,
-                        post.likeCount,
-                        post.createdAt,
-                        post.member.id,
-                        post.memberName,
-                        post.commentCount,
-                        post.isWeekly,
-                        post.isLegend,
-                        post.isNotice))
-                .from(post)
-                .where(post.id.eq(postId))
-                .fetchOne();
-
-        return Optional.ofNullable(result);
     }
 
     /**

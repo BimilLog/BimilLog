@@ -151,16 +151,7 @@ class PostCacheServiceTest {
 
         given(redisPostJsonListAdapter.getAll(jsonKey)).willReturn(Collections.emptyList());
 
-        switch (label) {
-            case "WEEKLY" -> given(postQueryRepository.findWeeklyPostsFallback(any(Pageable.class)))
-                    .willReturn(Page.empty());
-            case "LEGEND" -> given(postQueryRepository.findLegendPostsFallback(any(Pageable.class)))
-                    .willReturn(Page.empty());
-            case "NOTICE" -> given(postQueryRepository.findNoticePostsFallback(any(Pageable.class)))
-                    .willReturn(Page.empty());
-        }
-
-        // When
+        // When: 캐시가 비어있으면 getCachedPosts()에서 Page.empty()를 바로 반환 (DB 폴백 아님)
         Page<PostSimpleDetail> result = switch (label) {
             case "WEEKLY" -> postCacheService.getWeeklyPosts(pageable);
             case "LEGEND" -> postCacheService.getPopularPostLegend(pageable);
@@ -171,6 +162,7 @@ class PostCacheServiceTest {
         // Then
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isZero();
+        verifyNoInteractions(postQueryRepository);
     }
 
     @ParameterizedTest(name = "{1} - Redis 장애 시 DB fallback")

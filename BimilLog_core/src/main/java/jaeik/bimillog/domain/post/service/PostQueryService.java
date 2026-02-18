@@ -118,7 +118,7 @@ public class PostQueryService {
      * @return MemberActivityPost 마이페이지 글 정보
      */
     public MemberActivityPost getMemberActivityPosts(Long memberId, Pageable pageable) {
-        Page<PostSimpleDetail> writePosts = postQueryRepository.findPostsByMemberId(memberId, pageable, memberId);
+        Page<PostSimpleDetail> writePosts = postQueryRepository.findPostsByMemberId(memberId, pageable);
         Page<PostSimpleDetail> likedPosts = postQueryRepository.findLikedPostsByMemberId(memberId, pageable);
         return new MemberActivityPost(writePosts, likedPosts);
     }

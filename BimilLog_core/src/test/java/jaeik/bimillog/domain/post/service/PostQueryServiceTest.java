@@ -328,7 +328,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(userPost), pageable, 1);
 
         Page<PostSimpleDetail> emptyLikedPage = Page.empty();
-        given(postQueryRepository.findPostsByMemberId(memberId, pageable, memberId)).willReturn(expectedPage);
+        given(postQueryRepository.findPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
         given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(emptyLikedPage);
 
         // When
@@ -338,7 +338,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.getWritePosts()).isEqualTo(expectedPage);
         assertThat(result.getWritePosts().getContent()).hasSize(1);
 
-        verify(postQueryRepository).findPostsByMemberId(memberId, pageable, memberId);
+        verify(postQueryRepository).findPostsByMemberId(memberId, pageable);
     }
 
     @Test
@@ -351,7 +351,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(likedPost), pageable, 1);
 
         Page<PostSimpleDetail> emptyWritePage = Page.empty();
-        given(postQueryRepository.findPostsByMemberId(memberId, pageable, memberId)).willReturn(emptyWritePage);
+        given(postQueryRepository.findPostsByMemberId(memberId, pageable)).willReturn(emptyWritePage);
         given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
 
         // When
