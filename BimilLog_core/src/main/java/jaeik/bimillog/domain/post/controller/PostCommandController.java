@@ -108,9 +108,6 @@ public class PostCommandController {
     @PostMapping("/{postId}/like")
     public ResponseEntity<Void> likePost(@PathVariable Long postId,
                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new CustomException(ErrorCode.AUTH_NULL_SECURITY_CONTEXT);
-        }
         postInteractionService.likePost(userDetails.getMemberId(), postId);
         return ResponseEntity.ok().build();
     }

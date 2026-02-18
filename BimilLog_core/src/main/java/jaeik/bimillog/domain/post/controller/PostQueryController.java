@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.post.dto.CursorPageResponse;
-import jaeik.bimillog.domain.post.dto.FullPostDTO;
 import jaeik.bimillog.domain.post.dto.PostSearchDTO;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
@@ -76,15 +75,14 @@ public class PostQueryController {
          message = "게시글 상세 조회",
          logExecutionTime = true,
          excludeParams = {"request", "userDetails"})
-    public ResponseEntity<FullPostDTO> getPost(@PathVariable Long postId,
+    public ResponseEntity<PostDetail> getPost(@PathVariable Long postId,
                                                @AuthenticationPrincipal CustomUserDetails userDetails,
                                                HttpServletRequest request) {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
         String viewerKey = buildViewerKey(memberId, request);
         PostDetail postDetail = postQueryService.getPost(postId, memberId, viewerKey);
-        FullPostDTO fullPostDTO = FullPostDTO.convertToFullPostResDTO(postDetail);
 
-        return ResponseEntity.ok(fullPostDTO);
+        return ResponseEntity.ok(postDetail);
     }
 
     /**
