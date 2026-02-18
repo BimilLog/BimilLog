@@ -51,6 +51,8 @@ public class CommentCommandService {
     private final CommentLikeRepository commentLikeRepository;
     private final CommentClosureRepository commentClosureRepository;
 
+    private static final long COMMENT_COUNT = 1L;
+
     /**
      * <h3>댓글 작성</h3>
      * <p>새로운 댓글을 작성하고 계층 구조에 맞게 저장합니다.</p>
@@ -95,7 +97,7 @@ public class CommentCommandService {
             postRepository.incrementCommentCount(postId);
 
             // 카운터 캐시 증가
-            postCountSync.incrementCommentCounter(postId, 1);
+            updatePostCacheCount(postId, COMMENT_COUNT);
 
             // 댓글 작성 이벤트 발행 (실시간 인기글 점수, 알림, 친구 상호작용)
             Long postUserId = post.getMember() != null ? post.getMember().getId() : null;
@@ -151,10 +153,21 @@ public class CommentCommandService {
         postRepository.decrementCommentCount(postId);
 
         // 카운터 캐시 감소
-        postCountSync.incrementCommentCounter(postId, -1);
+        updatePostCacheCount(postId, -COMMENT_COUNT);
 
         // 댓글 삭제 이벤트 발행 (실시간 인기글 점수 감소)
         eventPublisher.publishEvent(new CommentDeletedEvent(postId));
+    }
+
+    /**
+     * <h3>캐시 댓글 수 증가</h3>
+     */
+    private void updatePostCacheCount(Long postId, long delta) {
+        try {
+            postCountSync.incrementCommentCounter(postId, delta);
+        } catch (Exception e) {
+            log.warn("댓글 카운터 캐시 증감 실패: postId={}, delta={}, error={}", postId, delta, e.getMessage());
+        }
     }
 
     /**

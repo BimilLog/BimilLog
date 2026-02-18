@@ -26,39 +26,27 @@ public class PostCountSync {
 
     /**
      * <h3>좋아요 카운터 캐시 증감</h3>
-     * <p>캐시글인 경우에만 post:counters Hash의 {postId}:like 필드를 HINCRBY로 증감합니다.</p>
-     * <p>Lua 스크립트로 5개 카테고리 SET을 한 번에 확인하여 캐시글 여부를 판단합니다.</p>
+     * <p>Lua 스크립트로 HEXISTS 확인 후 HINCRBY를 원자적으로 수행합니다.</p>
+     * <p>캐시글이 아니면(Hash 필드 없음) 무시됩니다.</p>
      *
      * @param postId 게시글 ID
      * @param delta  증감값 (1: 좋아요 추가, -1: 좋아요 취소)
      */
     @Async("cacheCountUpdateExecutor")
     public void incrementLikeCounter(Long postId, long delta) {
-        try {
-            if (redisPostCounterAdapter.isCachedPost(postId)) {
-                redisPostCounterAdapter.incrementCounter(postId, RedisKey.COUNTER_SUFFIX_LIKE, delta);
-            }
-        } catch (Exception e) {
-            log.warn("좋아요 카운터 캐시 증감 실패: postId={}, delta={}, error={}", postId, delta, e.getMessage());
-        }
+        redisPostCounterAdapter.incrementCounter(postId, RedisKey.COUNTER_SUFFIX_LIKE, delta);
     }
 
     /**
      * <h3>댓글 카운터 캐시 증감</h3>
-     * <p>캐시글인 경우에만 post:counters Hash의 {postId}:comment 필드를 HINCRBY로 증감합니다.</p>
-     * <p>Lua 스크립트로 5개 카테고리 SET을 한 번에 확인하여 캐시글 여부를 판단합니다.</p>
+     * <p>Lua 스크립트로 HEXISTS 확인 후 HINCRBY를 원자적으로 수행합니다.</p>
+     * <p>캐시글이 아니면(Hash 필드 없음) 무시됩니다.</p>
      *
      * @param postId 게시글 ID
      * @param delta  증감값 (1: 댓글 작성, -1: 댓글 삭제)
      */
     @Async("cacheCountUpdateExecutor")
     public void incrementCommentCounter(Long postId, long delta) {
-        try {
-            if (redisPostCounterAdapter.isCachedPost(postId)) {
-                redisPostCounterAdapter.incrementCounter(postId, RedisKey.COUNTER_SUFFIX_COMMENT, delta);
-            }
-        } catch (Exception e) {
-            log.warn("댓글 카운터 캐시 증감 실패: postId={}, delta={}, error={}", postId, delta, e.getMessage());
-        }
+        redisPostCounterAdapter.incrementCounter(postId, RedisKey.COUNTER_SUFFIX_COMMENT, delta);
     }
 }

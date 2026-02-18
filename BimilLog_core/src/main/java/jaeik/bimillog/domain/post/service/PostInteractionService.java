@@ -74,8 +74,7 @@ public class PostInteractionService {
     private void unlikePost(Member member, Post post) {
         postLikeRepository.deleteByMemberAndPost(member, post);
         postRepository.decrementLikeCount(post.getId()); // 좋아요 수 DB 직접 반영
-        postCountSync.incrementLikeCounter(post.getId(), -1); // 카운터 캐시 감소
-        realtimePostSync.updateRealtimeScore(post.getId(), -4.0); // 비동기로 실시간 인기글 점수 감소
+        updateCache(post.getId(), -1, -4.0);
     }
 
     /**
@@ -85,8 +84,7 @@ public class PostInteractionService {
         PostLike postLike = PostLike.builder().member(member).post(post).build();
         postLikeRepository.save(postLike);
         postRepository.incrementLikeCount(post.getId()); // 좋아요 수 DB 직접 반영
-        postCountSync.incrementLikeCounter(post.getId(), 1); // 비동기로 카운터 캐시 증가
-        realtimePostSync.updateRealtimeScore(post.getId(), 4.0); // 비동기로 실시간 인기글 점수 증가
+        updateCache(post.getId(), 1, 4.0);
 
         Long myId = member.getId();
         if (post.getMember() != null) {
@@ -94,6 +92,18 @@ public class PostInteractionService {
             if (!Objects.equals(postAuthorId, myId)) {
                 eventPublisher.publishEvent(new PostLikeEvent(post.getId(), postAuthorId, myId));
             }
+        }
+    }
+
+    /**
+     * <h3>캐시 업데이트</h3>
+     */
+    private void updateCache(Long postId, long count, double score) {
+        try {
+            postCountSync.incrementLikeCounter(postId, count); // 카운터 캐시 감소
+            realtimePostSync.updateRealtimeScore(postId, score); // 비동기로 실시간 인기글 점수 감소
+        } catch (Exception e) {
+            log.error("추천 관련 캐시 증감 실패: postId={}, error={}", postId, e.getMessage());
         }
     }
 }

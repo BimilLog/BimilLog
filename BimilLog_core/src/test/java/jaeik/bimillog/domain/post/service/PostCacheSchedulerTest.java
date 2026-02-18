@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,9 @@ class PostCacheSchedulerTest {
     private RedisPostCounterAdapter redisPostCounterAdapter;
 
     @Mock
+    private RedisPostIndexAdapter redisPostIndexAdapter;
+
+    @Mock
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Mock
@@ -70,6 +74,7 @@ class PostCacheSchedulerTest {
         postCacheScheduler = new PostCacheScheduler(
                 redisPostJsonListAdapter,
                 redisPostCounterAdapter,
+                redisPostIndexAdapter,
                 redisRealTimePostAdapter,
                 postQueryRepository,
                 postRepository,
@@ -98,7 +103,7 @@ class PostCacheSchedulerTest {
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
         // 카운터 캐시 + 캐시글 ID SET 동기화
         verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_WEEKLY_IDS_KEY), eq(List.of(1L, 2L)));
+        verify(redisPostIndexAdapter).rebuildCategorySet(eq(RedisKey.CACHED_WEEKLY_IDS_KEY), eq(List.of(1L, 2L)));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -155,7 +160,7 @@ class PostCacheSchedulerTest {
         verify(postRepository).setLegendFlag(List.of(1L));
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_LEGEND_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
         verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_LEGEND_IDS_KEY), eq(List.of(1L)));
+        verify(redisPostIndexAdapter).rebuildCategorySet(eq(RedisKey.CACHED_LEGEND_IDS_KEY), eq(List.of(1L)));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -222,7 +227,7 @@ class PostCacheSchedulerTest {
         // Then
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_NOTICE_JSON_KEY), any(), eq(RedisKey.DEFAULT_CACHE_TTL));
         verify(redisPostCounterAdapter).batchSetCounters(any());
-        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_NOTICE_IDS_KEY), any());
+        verify(redisPostIndexAdapter).rebuildCategorySet(eq(RedisKey.CACHED_NOTICE_IDS_KEY), any());
 
         // 공지사항은 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -261,7 +266,7 @@ class PostCacheSchedulerTest {
         // Then
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.FIRST_PAGE_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
         verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostCounterAdapter).rebuildCategorySet(eq(RedisKey.CACHED_FIRSTPAGE_IDS_KEY), eq(List.of(1L, 2L)));
+        verify(redisPostIndexAdapter).rebuildCategorySet(eq(RedisKey.CACHED_FIRSTPAGE_IDS_KEY), eq(List.of(1L, 2L)));
 
         // 첫 페이지는 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -305,7 +310,7 @@ class PostCacheSchedulerTest {
         // Then
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_REALTIME_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
         verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostCounterAdapter).rebuildCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY, List.of(3L, 1L, 5L));
+        verify(redisPostIndexAdapter).rebuildCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY, List.of(3L, 1L, 5L));
     }
 
     @Test

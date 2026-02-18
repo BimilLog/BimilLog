@@ -4,7 +4,6 @@ import com.querydsl.core.types.dsl.NumberPath;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -32,9 +31,6 @@ import static org.mockito.Mockito.*;
 class PostCountSchedulerTest {
 
     @Mock
-    private RedisPostUpdateAdapter redisPostUpdateAdapter;
-
-    @Mock
     private PostQueryRepository postQueryRepository;
 
     @Mock
@@ -49,7 +45,7 @@ class PostCountSchedulerTest {
     @DisplayName("조회수 버퍼가 비어있으면 DB 업데이트 건너뜀")
     void shouldSkipViewCountDbUpdate_whenBufferEmpty() {
         // Given
-        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
+        given(redisPostCounterAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
 
         // When
         scheduler.flushAllCounts();
@@ -63,7 +59,7 @@ class PostCountSchedulerTest {
     void shouldFlushViewCountsToDB_whenBufferHasData() {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L, 2L, 3L);
-        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
+        given(redisPostCounterAdapter.getAndClearViewCounts()).willReturn(viewCounts);
         // postId 1만 캐시글, 2는 비캐시글
         given(redisPostCounterAdapter.isCachedPost(1L)).willReturn(true);
         given(redisPostCounterAdapter.isCachedPost(2L)).willReturn(false);
@@ -82,7 +78,7 @@ class PostCountSchedulerTest {
     void shouldCatchViewCountException_whenDbUpdateFails() {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L);
-        given(redisPostUpdateAdapter.getAndClearViewCounts()).willReturn(viewCounts);
+        given(redisPostCounterAdapter.getAndClearViewCounts()).willReturn(viewCounts);
         doThrow(new RuntimeException("DB 오류")).when(postQueryRepository).bulkIncrementCount(any(), any());
 
         // When - 예외가 전파되지 않아야 함

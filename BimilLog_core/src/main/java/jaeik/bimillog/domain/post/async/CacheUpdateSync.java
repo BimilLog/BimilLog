@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class CacheUpdateSync {
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
     private final RedisPostCounterAdapter redisPostCounterAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private final RedisPostIndexAdapter redisPostIndexAdapter;
 
     private static final List<String> ALL_JSON_KEYS = List.of(
             RedisKey.FIRST_PAGE_JSON_KEY,
@@ -46,11 +48,11 @@ public class CacheUpdateSync {
     @Async("cacheRefreshPool")
     public void asyncAddNewPost(PostSimpleDetail post) {
         Long removedId = redisPostJsonListAdapter.addNewPost(RedisKey.FIRST_PAGE_JSON_KEY, PostCacheEntry.from(post), RedisKey.FIRST_PAGE_SIZE + 1);
-        redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, post.getId());
+        redisPostIndexAdapter.addToCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, post.getId());
         redisPostCounterAdapter.batchSetCounters(List.of(post));
 
         if (removedId != null) {
-            redisPostCounterAdapter.removeFromCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, removedId);
+            redisPostIndexAdapter.removeFromCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, removedId);
             if (!redisPostCounterAdapter.isCachedPost(removedId)) {
                 redisPostCounterAdapter.removeCounterFields(removedId);
             }
@@ -76,7 +78,7 @@ public class CacheUpdateSync {
     @Async("cacheRefreshPool")
     public void asyncDeletePost(Long postId) {
         redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
-        redisPostCounterAdapter.removeFromAllCategorySets(postId);
+        redisPostIndexAdapter.removeFromAllCategorySets(postId);
         redisPostCounterAdapter.removeCounterFields(postId);
 
         // 주간/레전드/공지/실시간 JSON LIST에서 삭제
@@ -92,7 +94,7 @@ public class CacheUpdateSync {
             if (!nextPosts.isEmpty()) {
                 PostSimpleDetail next = nextPosts.getFirst();
                 redisPostJsonListAdapter.appendPost(RedisKey.FIRST_PAGE_JSON_KEY, PostCacheEntry.from(next), RedisKey.FIRST_PAGE_SIZE + 1);
-                redisPostCounterAdapter.addToCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, next.getId());
+                redisPostIndexAdapter.addToCategorySet(RedisKey.CACHED_FIRSTPAGE_IDS_KEY, next.getId());
                 redisPostCounterAdapter.batchSetCounters(List.of(next));
             }
         }

@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,15 +35,9 @@ import java.util.stream.Collectors;
 public class RedisPostCounterAdapter {
     private final StringRedisTemplate stringRedisTemplate;
 
-    /**
-     * Lua: DEL + SADD 원자적 재구축
-     */
-    private static final String REBUILD_SET_SCRIPT =
-            "redis.call('DEL', KEYS[1]) " +
-            "if #ARGV > 0 then " +
-            "    redis.call('SADD', KEYS[1], unpack(ARGV)) " +
-            "end " +
-            "return #ARGV";
+    private static final String VIEW_PREFIX = RedisKey.VIEW_PREFIX;
+    private static final Duration VIEW_TTL = Duration.ofSeconds(RedisKey.VIEW_TTL_SECONDS);
+    private static final String VIEW_COUNTS_KEY = RedisKey.VIEW_COUNTS_KEY;
 
     /**
      * Lua: 5개 SET 중 하나라도 SISMEMBER=1이면 true
@@ -54,13 +49,28 @@ public class RedisPostCounterAdapter {
             "return 0";
 
     /**
-     * Lua: 5개 SET 모두에서 SREM
+     * 추천수 댓글수 업데이트 루아 스크립트
+     * KEYS[1] 해시 키
+     * ARGV[1] 필드명
+     * ARGV[2] 증가할 값
      */
-    private static final String REMOVE_FROM_ALL_SETS_SCRIPT =
-            "for i = 1, #KEYS do " +
-            "    redis.call('SREM', KEYS[i], ARGV[1]) " +
-            "end " +
-            "return 1";
+    private static final String UPDATE_COUNT_SCRIPT =
+            "if redis.call('HEXISTS', KEYS[1], ARGV[1]) == 1 then" +
+            "   return redis.call('HINCRBY', KEYS[1], ARGV[1], ARGV[2])" +
+            "else return nil" +
+            "end";
+
+    /**
+     * 조회수 버퍼를 원자적으로 읽고 삭제하는 Lua 스크립트.
+     * EXISTS → HGETALL → DEL을 단일 트랜잭션으로 처리하여 RENAME 갭 문제 해결.
+     */
+    private static final String GET_AND_CLEAR_VIEW_COUNTS_SCRIPT =
+            "if redis.call('EXISTS', KEYS[1]) == 0 then " +
+                    "    return nil " +
+                    "end " +
+                    "local entries = redis.call('HGETALL', KEYS[1]) " +
+                    "redis.call('DEL', KEYS[1]) " +
+                    "return entries";
 
     // ==================== 카운터 Hash ====================
 
@@ -94,8 +104,8 @@ public class RedisPostCounterAdapter {
      * @param delta  증감값 (양수: 증가, 음수: 감소)
      */
     public void incrementCounter(Long postId, String suffix, long delta) {
-        stringRedisTemplate.opsForHash()
-                .increment(RedisKey.POST_COUNTERS_KEY, postId + suffix, delta);
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(UPDATE_COUNT_SCRIPT, Long.class);
+        stringRedisTemplate.execute(script, List.of(RedisKey.POST_COUNTERS_KEY), postId + suffix, String.valueOf(delta));
     }
 
     /**
@@ -113,70 +123,6 @@ public class RedisPostCounterAdapter {
                         .increment(RedisKey.POST_COUNTERS_KEY, postId + suffix, delta));
     }
 
-    // ==================== 카테고리별 SET ====================
-
-    /**
-     * <h3>카테고리 SET 원자적 재구축 (24시간 스케줄러용)</h3>
-     * <p>Lua 스크립트로 DEL + SADD를 원자적으로 수행합니다.</p>
-     *
-     * @param categoryKey 카테고리 SET 키 (e.g. {@link RedisKey#CACHED_WEEKLY_IDS_KEY})
-     * @param postIds     새로운 게시글 ID 집합
-     */
-    public void rebuildCategorySet(String categoryKey, Collection<Long> postIds) {
-        if (postIds.isEmpty()) {
-            stringRedisTemplate.delete(categoryKey);
-            return;
-        }
-
-        String[] args = postIds.stream().map(String::valueOf).toArray(String[]::new);
-        DefaultRedisScript<Long> script = new DefaultRedisScript<>(REBUILD_SET_SCRIPT, Long.class);
-        stringRedisTemplate.execute(script, List.of(categoryKey), (Object[]) args);
-    }
-
-    /**
-     * <h3>카테고리 SET에 ID 단건 추가</h3>
-     *
-     * @param categoryKey 카테고리 SET 키
-     * @param postId      추가할 게시글 ID
-     */
-    public void addToCategorySet(String categoryKey, Long postId) {
-        stringRedisTemplate.opsForSet().add(categoryKey, postId.toString());
-    }
-
-    /**
-     * <h3>카테고리 SET에서 ID 단건 제거</h3>
-     *
-     * @param categoryKey 카테고리 SET 키
-     * @param postId      제거할 게시글 ID
-     */
-    public void removeFromCategorySet(String categoryKey, Long postId) {
-        stringRedisTemplate.opsForSet().remove(categoryKey, postId.toString());
-    }
-
-    /**
-     * <h3>카테고리 SET의 모든 ID 조회</h3>
-     * <p>SMEMBERS로 SET의 모든 ID를 조회합니다.</p>
-     *
-     * @param categoryKey 카테고리 SET 키
-     * @return 게시글 ID 집합
-     */
-    public Set<Long> getCategorySet(String categoryKey) {
-        Set<String> ids = stringRedisTemplate.opsForSet().members(categoryKey);
-        if (ids == null || ids.isEmpty()) return Set.of();
-        return ids.stream().map(Long::parseLong).collect(Collectors.toSet());
-    }
-
-    /**
-     * <h3>모든 카테고리 SET에서 ID 제거</h3>
-     * <p>Lua 스크립트로 5개 SET 모두에서 SREM을 원자적으로 수행합니다.</p>
-     * <p>글 삭제 시 사용합니다.</p>
-     *
-     * @param postId 제거할 게시글 ID
-     */
-    public void removeFromAllCategorySets(Long postId) {
-        DefaultRedisScript<Long> script = new DefaultRedisScript<>(REMOVE_FROM_ALL_SETS_SCRIPT, Long.class);
-        stringRedisTemplate.execute(script, RedisKey.ALL_CACHED_CATEGORY_KEYS, postId.toString());
-    }
 
     // ==================== 카운터 Hash 필드 제거 ====================
 
@@ -254,5 +200,55 @@ public class RedisPostCounterAdapter {
         DefaultRedisScript<Long> script = new DefaultRedisScript<>(IS_CACHED_POST_SCRIPT, Long.class);
         Long result = stringRedisTemplate.execute(script, RedisKey.ALL_CACHED_CATEGORY_KEYS, postId.toString());
         return result == 1L;
+    }
+
+
+
+    /**
+     * <h3>조회 마킹 + 조회수 증가</h3>
+     * <p>SET NX EX로 중복 확인과 마킹을 원자적 1커맨드로 처리합니다.</p>
+     * <p>키가 새로 생성된 경우에만 조회수 버퍼를 증가시킵니다.</p>
+     *
+     * @param postId    게시글 ID
+     * @param viewerKey 조회자 키 (m:{memberId} 또는 ip:{clientIp})
+     * @return 조회수가 증가되었으면 true, 이미 조회한 경우 false
+     */
+    public boolean markViewedAndIncrement(Long postId, String viewerKey) {
+        String key = VIEW_PREFIX + postId + ":" + viewerKey;
+        Boolean isNew = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", VIEW_TTL);
+
+        if (Boolean.TRUE.equals(isNew)) {
+            stringRedisTemplate.opsForHash().increment(VIEW_COUNTS_KEY, postId.toString(), 1L);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * <h3>조회수 버퍼 조회 및 초기화 (원자적)</h3>
+     * <p>Lua 스크립트로 EXISTS → HGETALL → DEL을 원자적으로 처리합니다.</p>
+     * <p>RENAME 패턴의 갭 문제와 다중 인스턴스 데이터 손실을 방지합니다.</p>
+     *
+     * @return postId → 증가량 맵 (비어있으면 빈 맵)
+     */
+    @SuppressWarnings("unchecked")
+    public Map<Long, Long> getAndClearViewCounts() {
+        DefaultRedisScript<List> script = new DefaultRedisScript<>(GET_AND_CLEAR_VIEW_COUNTS_SCRIPT, List.class);
+        List<Object> result = stringRedisTemplate.execute(script, List.of(VIEW_COUNTS_KEY));
+
+        if (result.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<Long, Long> counts = new HashMap<>();
+        for (int i = 0; i + 1 < result.size(); i += 2) {
+            Object keyObj = result.get(i);
+            Object valueObj = result.get(i + 1);
+            if (keyObj == null || valueObj == null) {
+                continue;
+            }
+            counts.put(Long.parseLong(keyObj.toString()), Long.parseLong(valueObj.toString()));
+        }
+        return counts;
     }
 }
