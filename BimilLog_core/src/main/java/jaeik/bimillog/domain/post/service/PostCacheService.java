@@ -41,15 +41,10 @@ public class PostCacheService {
      */
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
         try {
-            List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(RedisKey.POST_WEEKLY_JSON_KEY);
-            if (!entries.isEmpty()) {
-                List<PostSimpleDetail> posts = combineWithCounters(entries);
-                return postUtil.paginate(posts, pageable);
-            }
+            return getCachedPosts(pageable, RedisKey.POST_WEEKLY_JSON_KEY);
         } catch (Exception e) {
-            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.POST_WEEKLY_JSON_KEY, e.getMessage());
+            return postQueryRepository.findWeeklyPostsFallback(pageable);
         }
-        return postQueryRepository.findWeeklyPostsFallback(pageable);
     }
 
     /**
@@ -57,15 +52,10 @@ public class PostCacheService {
      */
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
         try {
-            List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(RedisKey.POST_LEGEND_JSON_KEY);
-            if (!entries.isEmpty()) {
-                List<PostSimpleDetail> posts = combineWithCounters(entries);
-                return postUtil.paginate(posts, pageable);
-            }
+            return getCachedPosts(pageable, RedisKey.POST_LEGEND_JSON_KEY);
         } catch (Exception e) {
-            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.POST_LEGEND_JSON_KEY, e.getMessage());
+            return postQueryRepository.findLegendPostsFallback(pageable);
         }
-        return postQueryRepository.findLegendPostsFallback(pageable);
     }
 
     /**
@@ -73,15 +63,10 @@ public class PostCacheService {
      */
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
         try {
-            List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(RedisKey.POST_NOTICE_JSON_KEY);
-            if (!entries.isEmpty()) {
-                List<PostSimpleDetail> posts = combineWithCounters(entries);
-                return postUtil.paginate(posts, pageable);
-            }
+            return getCachedPosts(pageable, RedisKey.POST_NOTICE_JSON_KEY);
         } catch (Exception e) {
-            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.POST_NOTICE_JSON_KEY, e.getMessage());
+            return postQueryRepository.findNoticePostsFallback(pageable);
         }
-        return postQueryRepository.findNoticePostsFallback(pageable);
     }
 
     /**
@@ -97,6 +82,16 @@ public class PostCacheService {
             log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.FIRST_PAGE_JSON_KEY, e.getMessage());
         }
         return postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
+    }
+
+
+    private Page<PostSimpleDetail> getCachedPosts(Pageable pageable, String key) {
+        List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(key);
+        if (!entries.isEmpty()) {
+            List<PostSimpleDetail> posts = combineWithCounters(entries);
+            return postUtil.paginate(posts, pageable);
+        }
+        return Page.empty();
     }
 
     /**
