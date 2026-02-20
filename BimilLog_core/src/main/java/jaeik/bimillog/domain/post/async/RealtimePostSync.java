@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.async;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
@@ -11,11 +11,11 @@ import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,11 +36,10 @@ public class RealtimePostSync {
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
     private final RedisPostCounterAdapter redisPostCounterAdapter;
-    private final PostQueryRepository postQueryRepository;
+    private final PostRepository postRepository;
 
     private static final double COMMENT_SCORE = 3.0;
     private static final double VIEW_SCORE = 2.0;
-    private static final int REALTIME_TOP_N = 5;
 
     /**
      * <h3>실시간 인기글 점수 업데이트</h3>
@@ -86,28 +85,16 @@ public class RealtimePostSync {
      * <p>ZSet과 LIST의 ID 순서가 불일치할 때 호출됩니다.</p>
      * <p>현재 LIST에서 oldIds를 추출하여 새로 들어온 글과 빠진 글을 판별합니다.</p>
      *
-     * @param zsetTopIds ZSet에서 조회한 인기글 ID 목록 (점수 내림차순)
      */
     @Async("cacheRefreshExecutor")
-    public void asyncRebuildRealtimeCache(List<Long> zsetTopIds) {
-        try {
-            // 현재 LIST에서 이전 ID 집합 추출
-            Set<Long> oldIds = new HashSet<>(
-                    redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)
-                            .stream().map(PostSimpleDetail::getId).toList()
-            );
+    public void asyncRebuildRealtimeCache(List<Long> newIds) {
+        List<PostSimpleDetail> dbPosts = postRepository.findAllByIds(newIds).stream()
+                .map(PostSimpleDetail::from).toList();
 
-            List<PostSimpleDetail> dbPosts = postQueryRepository
-                    .findPostSimpleDetailsByIds(zsetTopIds, PageRequest.of(0, REALTIME_TOP_N))
-                    .getContent();
-            if (dbPosts.isEmpty()) return;
-
-            redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, dbPosts, RedisKey.DEFAULT_CACHE_TTL);
-
-            log.debug("[REALTIME] 비동기 캐시 갱신 완료: {}개 (신규: {}개)", dbPosts.size(),
-                    dbPosts.stream().filter(p -> !oldIds.contains(p.getId())).count());
-        } catch (Exception e) {
-            log.warn("[REALTIME] 비동기 캐시 갱신 실패: {}", e.getMessage());
+        if (dbPosts.isEmpty()) {
+            return;
         }
+
+        redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, dbPosts, RedisKey.DEFAULT_CACHE_TTL);
     }
 }

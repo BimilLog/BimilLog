@@ -12,7 +12,6 @@ import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -20,7 +19,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -44,13 +42,12 @@ public class PostCacheScheduler {
     private final PostRepository postRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    private static final int REALTIME_TOP_N = 5;
 
     @Scheduled(cron = "0 0 3 * * *")
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     @Transactional
     public void updateWeeklyPopularPosts() {
-        refreshCache("WEEKLY", postQueryRepository::findWeeklyPopularPosts,
+        refreshCache("WEEKLY", () -> postQueryRepository.findFeaturedPostsForScheduler(RedisKey.POST_WEEKLY_JSON_KEY),
                 RedisKey.POST_WEEKLY_JSON_KEY,
                 postRepository::clearWeeklyFlag, postRepository::setWeeklyFlag,
                 "주간 인기 게시글로 선정되었어요!", NotificationType.POST_FEATURED_WEEKLY);
@@ -60,7 +57,7 @@ public class PostCacheScheduler {
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     @Transactional
     public void updateLegendaryPosts() {
-        refreshCache("LEGEND", postQueryRepository::findLegendaryPosts,
+        refreshCache("LEGEND", () -> postQueryRepository.findFeaturedPostsForScheduler(RedisKey.POST_LEGEND_JSON_KEY),
                 RedisKey.POST_LEGEND_JSON_KEY,
                 postRepository::clearLegendFlag, postRepository::setLegendFlag,
                 "명예의 전당에 등극했어요!", NotificationType.POST_FEATURED_LEGEND);
@@ -70,8 +67,8 @@ public class PostCacheScheduler {
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshNoticePosts() {
         refreshCache("NOTICE",
-                () -> postQueryRepository.findNoticePostsForScheduler().stream()
-                        .sorted(Comparator.comparingLong(PostSimpleDetail::getId).reversed()).toList(),
+                () -> postRepository.findByIsNoticeTrueOrderByIdDesc().stream()
+                        .map(PostSimpleDetail::from).toList(),
                 RedisKey.POST_NOTICE_JSON_KEY,
                 null, null, null, null);
     }
@@ -101,9 +98,8 @@ public class PostCacheScheduler {
             return;
         }
 
-        List<PostSimpleDetail> posts = postQueryRepository
-                .findPostSimpleDetailsByIds(topIds, PageRequest.of(0, REALTIME_TOP_N))
-                .getContent();
+        List<PostSimpleDetail> posts = postRepository.findAllByIds(topIds).stream()
+                .map(PostSimpleDetail::from).toList();
 
         if (!posts.isEmpty()) {
             redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);

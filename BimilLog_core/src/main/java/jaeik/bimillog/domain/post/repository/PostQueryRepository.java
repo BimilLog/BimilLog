@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.post.repository;
 
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
@@ -27,7 +27,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * <h2>게시글 조회 어댑터</h2>
@@ -60,7 +59,6 @@ public class PostQueryRepository {
      */
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findBoardPostsByCursor(Long cursor, int size) {
-        // 커서 조건: cursor가 있으면 해당 ID보다 작은 게시글만 조회
         BooleanExpression cursorCondition = cursor != null ? post.id.lt(cursor) : null;
 
         return jpaQueryFactory
@@ -78,8 +76,8 @@ public class PostQueryRepository {
                         post.isNotice))
                 .from(post)
                 .where(cursorCondition)
-                .orderBy(post.id.desc())  // ID 내림차순 (최신순)
-                .limit(size + 1)          // hasNext 판단용 +1
+                .orderBy(post.id.desc())
+                .limit(size + 1)
                 .fetch();
     }
 
@@ -91,12 +89,9 @@ public class PostQueryRepository {
      * @param memberId 사용자 ID
      * @param pageable 페이지 정보
      * @return 작성한 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
      */
     public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable) {
-        Consumer<JPAQuery<?>> customizer = query -> query.where(post.member.id.eq(memberId));
-        return findPostsWithQuery(customizer, customizer, pageable);
+        return selectPostSimpleDetails(post.member.id.eq(memberId), post.createdAt.desc(), pageable);
     }
 
     /**
@@ -107,8 +102,6 @@ public class PostQueryRepository {
      * @param memberId 사용자 ID
      * @param pageable 페이지 정보
      * @return 추천한 게시글 목록 페이지 (추천일 기준 최신순)
-     * @author Jaeik
-     * @since 2.0.0
      */
     public Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
         List<PostSimpleDetail> content = jpaQueryFactory
@@ -127,12 +120,11 @@ public class PostQueryRepository {
                 ))
                 .from(post)
                 .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
-                .orderBy(postLike.createdAt.desc())  // 추천일 기준 정렬
+                .orderBy(postLike.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // Count 쿼리
         Long total = jpaQueryFactory
                 .select(post.countDistinct())
                 .from(post)
@@ -143,65 +135,22 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>주간 인기 게시글 조회 (스케줄러용)</h3>
-     * <p>지난 7일간의 인기 게시글 목록을 조회합니다.</p>
-     *
-     * @return 주간 인기 게시글 목록 (최대 5개, PostSimpleDetail)
+     * <h3>주간/레전드 게시글 조회 (스케줄러용)</h3>
+     * <p>redisKey에 따라 조건과 개수를 다르게 설정합니다.</p>
+     * <p>WEEKLY: 7일 이내 추천 1개 이상, 최대 5개 / LEGEND: 추천 20개 이상, 최대 50개</p>
      */
     @Transactional(readOnly = true)
-    public List<PostSimpleDetail> findWeeklyPopularPosts() {
-        return findWeeklyPopularPosts(PageRequest.of(0, 5)).getContent();
-    }
-
-    /**
-     * <h3>주간 인기 게시글 조회 (페이징)</h3>
-     * <p>지난 7일간의 인기 게시글 목록을 페이징으로 조회합니다.</p>
-     *
-     * @param pageable 페이지 정보
-     * @return 주간 인기 게시글 페이지
-     */
-    @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> findWeeklyPopularPosts(Pageable pageable) {
-        BooleanExpression weeklyCondition = post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS));
-
-        Consumer<JPAQuery<?>> contentCustomizer = query -> query
-                .where(weeklyCondition.and(post.likeCount.goe(1)))
-                .orderBy(post.likeCount.desc());
-
-        Consumer<JPAQuery<?>> countCustomizer = query -> query
-                .where(weeklyCondition.and(post.likeCount.goe(1)));
-
-        return findPostsWithQuery(contentCustomizer, countCustomizer, pageable);
-    }
-
-    /**
-     * <h3>레전드 게시글 조회 (스케줄러용)</h3>
-     * <p>추천 수가 20개 이상인 게시글 중 가장 추천 수가 많은 상위 50개 게시글을 조회합니다.</p>
-     *
-     * @return 전설의 게시글 목록 (최대 50개, PostSimpleDetail)
-     */
-    @Transactional(readOnly = true)
-    public List<PostSimpleDetail> findLegendaryPosts() {
-        return findLegendaryPosts(PageRequest.of(0, 50)).getContent();
-    }
-
-    /**
-     * <h3>레전드 게시글 조회 (페이징)</h3>
-     * <p>추천 수가 20개 이상인 게시글을 페이징으로 조회합니다.</p>
-     *
-     * @param pageable 페이지 정보
-     * @return 레전드 게시글 페이지
-     */
-    @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> findLegendaryPosts(Pageable pageable) {
-        Consumer<JPAQuery<?>> contentCustomizer = query -> query
-                .where(post.likeCount.goe(20))
-                .orderBy(post.likeCount.desc());
-
-        Consumer<JPAQuery<?>> countCustomizer = query -> query
-                .where(post.likeCount.goe(20));
-
-        return findPostsWithQuery(contentCustomizer, countCustomizer, pageable);
+    public List<PostSimpleDetail> findFeaturedPostsForScheduler(String redisKey) {
+        BooleanExpression condition;
+        int limit;
+        if (redisKey.equals(RedisKey.POST_WEEKLY_JSON_KEY)) {
+            condition = post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS)).and(post.likeCount.goe(1));
+            limit = 5;
+        } else {
+            condition = post.likeCount.goe(20);
+            limit = 50;
+        }
+        return selectPostSimpleDetails(condition, post.likeCount.desc(), PageRequest.of(0, limit)).getContent();
     }
 
     /**
@@ -211,8 +160,6 @@ public class PostQueryRepository {
      * @param postId   조회할 게시글 ID
      * @param memberId 현재 사용자 ID (좋아요 여부 확인용, null 가능)
      * @return 게시글 상세 정보 프로젝션 (게시글이 없으면 empty)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional(readOnly = true)
     public Optional<PostDetail> findPostDetail(Long postId, Long memberId) {
@@ -259,39 +206,7 @@ public class PostQueryRepository {
         } else {
             condition = post.isNotice.eq(true);
         }
-
-        Consumer<JPAQuery<?>> customizer = query -> query
-                .where(condition)
-                .orderBy(post.id.desc());
-
-        Consumer<JPAQuery<?>> countCustomizer = query -> query
-                .where(condition);
-
-        return findPostsWithQuery(customizer, countCustomizer, pageable);
-    }
-
-    /**
-     * <h3>공지사항 게시글 목록 조회 (스케줄러 캐시 갱신용)</h3>
-     */
-    @Transactional(readOnly = true)
-    public List<PostSimpleDetail> findNoticePostsForScheduler() {
-        return jpaQueryFactory
-                .select(new QPostSimpleDetail(
-                        post.id,
-                        post.title,
-                        post.views,
-                        post.likeCount,
-                        post.createdAt,
-                        post.member.id,
-                        post.memberName,
-                        post.commentCount,
-                        post.isWeekly,
-                        post.isLegend,
-                        post.isNotice))
-                .from(post)
-                .where(post.isNotice.eq(true))
-                .orderBy(post.id.desc())
-                .fetch();
+        return selectPostSimpleDetails(condition, post.id.desc(), pageable);
     }
 
     /**
@@ -304,13 +219,9 @@ public class PostQueryRepository {
      */
     @Transactional(readOnly = true)
     public Page<PostSimpleDetail> findRecentPopularPosts(Pageable pageable) {
-        // 1시간 이내 생성된 게시글
         BooleanExpression recentCondition = post.createdAt.after(Instant.now().minus(1, ChronoUnit.HOURS));
-
-        // 인기도 점수: 조회수 + (추천수 * 30)
         var popularityScore = post.views.add(post.likeCount.multiply(30));
 
-        // 상위 5개로 제한
         int maxResults = 5;
         int offset = (int) Math.min(pageable.getOffset(), maxResults);
         int limit = Math.min(pageable.getPageSize(), maxResults - offset);
@@ -340,7 +251,6 @@ public class PostQueryRepository {
                 .limit(limit)
                 .fetch();
 
-        // 전체 개수는 최대 5개로 제한
         Long actualTotal = jpaQueryFactory
                 .select(post.count())
                 .from(post)
@@ -348,26 +258,12 @@ public class PostQueryRepository {
                 .fetchOne();
 
         long total = Math.min(actualTotal != null ? actualTotal : 0L, maxResults);
-
         return new PageImpl<>(content, pageable, total);
-    }
-
-    /**
-     * <h3>PostId 목록으로 Post 리스트 반환</h3>
-     */
-    public List<Post> findAllByIds(List<Long> postIds) {
-        return jpaQueryFactory
-                .select(post)
-                .from(post)
-                .leftJoin(post.member).fetchJoin()
-                .where(post.id.in(postIds))
-                .fetch();
     }
 
     /**
      * <h3>PostId 목록으로 PostSimpleDetail 페이징 조회</h3>
      * <p>폴백 저장소에서 조회한 postId 목록으로 게시글 상세 정보를 페이징 조회합니다.</p>
-     * <p>ID 내림차순으로 정렬됩니다.</p>
      *
      * @param postIds  조회할 게시글 ID 목록
      * @param pageable 페이징 정보
@@ -378,7 +274,13 @@ public class PostQueryRepository {
         if (postIds == null || postIds.isEmpty()) {
             return new PageImpl<>(List.of(), pageable, 0);
         }
+        return selectPostSimpleDetails(post.id.in(postIds), post.id.desc(), pageable);
+    }
 
+    /**
+     * <h3>PostSimpleDetail 공통 조회 (BooleanExpression 기반)</h3>
+     */
+    private Page<PostSimpleDetail> selectPostSimpleDetails(BooleanExpression condition, OrderSpecifier<?> order, Pageable pageable) {
         List<PostSimpleDetail> content = jpaQueryFactory
                 .select(new QPostSimpleDetail(
                         post.id,
@@ -393,61 +295,18 @@ public class PostQueryRepository {
                         post.isLegend,
                         post.isNotice))
                 .from(post)
-                .where(post.id.in(postIds))
-                .orderBy(post.id.desc())
+                .where(condition)
+                .orderBy(order)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        return new PageImpl<>(content, pageable, postIds.size());
-    }
-
-    /**
-     * <h3>게시글 목록 조회</h3>
-     * <p>비정규화 컬럼을 직접 참조하여 조회합니다.</p>
-     *
-     * @param contentQueryCustomizer Content 쿼리 커스터마이징 로직 (JOIN, WHERE 등)
-     * @param countQueryCustomizer   Count 쿼리 커스터마이징 로직 (JOIN, WHERE 등)
-     * @param pageable               페이지 정보
-     * @return 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Page<PostSimpleDetail> findPostsWithQuery(Consumer<JPAQuery<?>> contentQueryCustomizer,
-                                                     Consumer<JPAQuery<?>> countQueryCustomizer, Pageable pageable) {
-        JPAQuery<PostSimpleDetail> contentQuery = jpaQueryFactory
-                .select(new QPostSimpleDetail(
-                        post.id,
-                        post.title,
-                        post.views,
-                        post.likeCount,
-                        post.createdAt,
-                        post.member.id,
-                        post.memberName,
-                        post.commentCount,
-                        post.isWeekly,
-                        post.isLegend,
-                        post.isNotice))
-                .from(post);
-
-        // 커스터마이징 적용 (JOIN, WHERE 등)
-        contentQueryCustomizer.accept(contentQuery);
-
-        // 페이징 및 정렬
-        List<PostSimpleDetail> content = contentQuery
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        // Count 쿼리 빌딩
-        JPAQuery<Long> countQuery = jpaQueryFactory
+        Long total = jpaQueryFactory
                 .select(post.countDistinct())
-                .from(post);
+                .from(post)
+                .where(condition)
+                .fetchOne();
 
-        // 커스터마이징 적용 (JOIN, WHERE 등)
-        countQueryCustomizer.accept(countQuery);
-        Long total = countQuery.fetchOne();
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
@@ -461,8 +320,6 @@ public class PostQueryRepository {
      * </pre>
      */
     public void bulkIncrementCount(Map<Long, Long> counts, NumberPath<Integer> field) {
-        if (counts.isEmpty()) return;
-
         QPost post = QPost.post;
 
         CaseBuilder.Cases<Integer, NumberExpression<Integer>> caseExpression = null;
