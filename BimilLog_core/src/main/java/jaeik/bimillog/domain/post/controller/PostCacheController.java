@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.service.PostCacheService;
 import jaeik.bimillog.domain.post.service.RealtimePostCacheService;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -53,7 +54,7 @@ public class PostCacheController {
      */
     @GetMapping("/weekly")
     public ResponseEntity<Page<PostSimpleDetail>> getWeeklyPopularPosts(Pageable pageable) {
-        Page<PostSimpleDetail> weeklyPosts = postCacheService.getWeeklyPosts(pageable);
+        Page<PostSimpleDetail> weeklyPosts = postCacheService.getPopularPosts(pageable, RedisKey.POST_WEEKLY_JSON_KEY);
         return ResponseEntity.ok(weeklyPosts);
     }
 
@@ -66,7 +67,7 @@ public class PostCacheController {
      */
     @GetMapping("/legend")
     public ResponseEntity<Page<PostSimpleDetail>> getLegendBoard(Pageable pageable) {
-        Page<PostSimpleDetail> legendPopularPosts = postCacheService.getPopularPostLegend(pageable);
+        Page<PostSimpleDetail> legendPopularPosts = postCacheService.getPopularPosts(pageable, RedisKey.POST_LEGEND_JSON_KEY);
         return ResponseEntity.ok(legendPopularPosts);
     }
 
@@ -79,7 +80,7 @@ public class PostCacheController {
      */
     @GetMapping("/notice")
     public ResponseEntity<Page<PostSimpleDetail>> getNoticeBoard(Pageable pageable) {
-        Page<PostSimpleDetail> noticePosts = postCacheService.getNoticePosts(pageable);
+        Page<PostSimpleDetail> noticePosts = postCacheService.getPopularPosts(pageable, RedisKey.POST_NOTICE_JSON_KEY);
         return ResponseEntity.ok(noticePosts);
     }
 }

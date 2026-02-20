@@ -12,6 +12,7 @@ import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.entity.jpa.QPostLike;
 import jaeik.bimillog.domain.post.service.PostQueryService;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -245,41 +246,27 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>주간 인기 게시글 DB 폴백 조회 (페이징)</h3>
+     * <h3>주간, 레전드, 공지 폴백 로직</h3>
+     * <p>redisKey에 따라 조건을 다르게 설정하여 단일 쿼리로 처리합니다.</p>
      */
     @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> findWeeklyPostsFallback(Pageable pageable) {
-        Consumer<JPAQuery<?>> customizer = query -> query
-                .where(post.isWeekly.eq(true))
-                .orderBy(post.id.desc());
-        Consumer<JPAQuery<?>> countCustomizer = query -> query
-                .where(post.isWeekly.eq(true));
-        return findPostsWithQuery(customizer, countCustomizer, pageable);
-    }
+    public Page<PostSimpleDetail> findPostsFallback(Pageable pageable, String redisKey) {
+        BooleanExpression condition;
+        if (redisKey.equals(RedisKey.POST_WEEKLY_JSON_KEY)) {
+            condition = post.isWeekly.eq(true);
+        } else if (redisKey.equals(RedisKey.POST_LEGEND_JSON_KEY)) {
+            condition = post.isLegend.eq(true);
+        } else {
+            condition = post.isNotice.eq(true);
+        }
 
-    /**
-     * <h3>레전드 게시글 DB 폴백 조회 (페이징)</h3>
-     */
-    @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> findLegendPostsFallback(Pageable pageable) {
         Consumer<JPAQuery<?>> customizer = query -> query
-                .where(post.isLegend.eq(true))
+                .where(condition)
                 .orderBy(post.id.desc());
-        Consumer<JPAQuery<?>> countCustomizer = query -> query
-                .where(post.isLegend.eq(true));
-        return findPostsWithQuery(customizer, countCustomizer, pageable);
-    }
 
-    /**
-     * <h3>공지사항 DB 폴백 조회 (페이징)</h3>
-     */
-    @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> findNoticePostsFallback(Pageable pageable) {
-        Consumer<JPAQuery<?>> customizer = query -> query
-                .where(post.isNotice.eq(true))
-                .orderBy(post.id.desc());
         Consumer<JPAQuery<?>> countCustomizer = query -> query
-                .where(post.isNotice.eq(true));
+                .where(condition);
+
         return findPostsWithQuery(customizer, countCustomizer, pageable);
     }
 

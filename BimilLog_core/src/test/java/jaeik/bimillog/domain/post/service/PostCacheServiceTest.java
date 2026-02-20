@@ -69,82 +69,35 @@ class PostCacheServiceTest {
         );
     }
 
-    @Test
-    @DisplayName("주간 인기글 조회 - JSON LIST 캐시 히트")
-    void shouldGetWeeklyPosts_CacheHit() {
+    @ParameterizedTest(name = "{1} - JSON LIST 캐시 히트")
+    @MethodSource("provideCacheHitScenarios")
+    @DisplayName("주간/레전드/공지 캐시 히트")
+    void shouldGetPopularPosts_CacheHit(String jsonKey, String label, String titlePrefix) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(1L, "주간 인기글 1");
-        PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, "주간 인기글 2");
+        PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(1L, titlePrefix + " 1");
+        PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, titlePrefix + " 2");
         List<PostCacheEntry> entries = List.of(entry1, entry2);
         List<PostCountCache> counts = List.of(PostCountCache.ZERO, PostCountCache.ZERO);
 
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_WEEKLY_JSON_KEY)).willReturn(entries);
+        given(redisPostJsonListAdapter.getAll(jsonKey)).willReturn(entries);
         given(redisPostCounterAdapter.getCounters(List.of(1L, 2L))).willReturn(counts);
         given(postUtil.paginate(any(), eq(pageable)))
                 .willReturn(new PageImpl<>(PostCacheEntry.combineAll(entries, counts), pageable, 2));
 
         // When
-        Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
+        Page<PostSimpleDetail> result = postCacheService.getPopularPosts(pageable, jsonKey);
 
         // Then
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
-        verify(redisPostJsonListAdapter).getAll(RedisKey.POST_WEEKLY_JSON_KEY);
+        verify(redisPostJsonListAdapter).getAll(jsonKey);
         verify(redisPostCounterAdapter).getCounters(List.of(1L, 2L));
     }
 
-    @Test
-    @DisplayName("레전드 인기 게시글 페이징 조회 - 캐시 히트")
-    void shouldGetPopularPostLegend() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(1L, "레전드 게시글 1");
-        PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, "레전드 게시글 2");
-        List<PostCacheEntry> entries = List.of(entry1, entry2);
-        List<PostCountCache> counts = List.of(PostCountCache.ZERO, PostCountCache.ZERO);
-
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_LEGEND_JSON_KEY)).willReturn(entries);
-        given(redisPostCounterAdapter.getCounters(List.of(1L, 2L))).willReturn(counts);
-        given(postUtil.paginate(any(), eq(pageable)))
-                .willReturn(new PageImpl<>(PostCacheEntry.combineAll(entries, counts), pageable, 2));
-
-        // When
-        Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
-
-        // Then
-        assertThat(result.getContent()).hasSize(2);
-        verify(redisPostJsonListAdapter).getAll(RedisKey.POST_LEGEND_JSON_KEY);
-        verify(redisPostCounterAdapter).getCounters(List.of(1L, 2L));
-    }
-
-    @Test
-    @DisplayName("공지사항 조회 - 캐시 히트")
-    void shouldGetNoticePosts_CacheHit() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        PostCacheEntry entry = PostTestDataBuilder.createCacheEntry(1L, "공지사항");
-        List<PostCacheEntry> entries = List.of(entry);
-        List<PostCountCache> counts = List.of(PostCountCache.ZERO);
-
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_NOTICE_JSON_KEY)).willReturn(entries);
-        given(redisPostCounterAdapter.getCounters(List.of(1L))).willReturn(counts);
-        given(postUtil.paginate(any(), eq(pageable)))
-                .willReturn(new PageImpl<>(PostCacheEntry.combineAll(entries, counts), pageable, 1));
-
-        // When
-        Page<PostSimpleDetail> result = postCacheService.getNoticePosts(pageable);
-
-        // Then
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("공지사항");
-        verify(redisPostJsonListAdapter).getAll(RedisKey.POST_NOTICE_JSON_KEY);
-        verify(redisPostCounterAdapter).getCounters(List.of(1L));
-    }
-
-    @ParameterizedTest(name = "{1} - JSON LIST 비어있음 → DB 폴백")
+    @ParameterizedTest(name = "{1} - JSON LIST 비어있음 → Page.empty() 반환")
     @MethodSource("provideCacheEmptyScenarios")
-    @DisplayName("JSON LIST 비어있음 - DB 폴백")
+    @DisplayName("JSON LIST 비어있음 - DB 폴백 없이 빈 결과 반환")
     void shouldFallbackToDb_WhenCacheEmpty(String jsonKey, String label) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
@@ -152,12 +105,7 @@ class PostCacheServiceTest {
         given(redisPostJsonListAdapter.getAll(jsonKey)).willReturn(Collections.emptyList());
 
         // When: 캐시가 비어있으면 getCachedPosts()에서 Page.empty()를 바로 반환 (DB 폴백 아님)
-        Page<PostSimpleDetail> result = switch (label) {
-            case "WEEKLY" -> postCacheService.getWeeklyPosts(pageable);
-            case "LEGEND" -> postCacheService.getPopularPostLegend(pageable);
-            case "NOTICE" -> postCacheService.getNoticePosts(pageable);
-            default -> throw new IllegalArgumentException("Unknown label: " + label);
-        };
+        Page<PostSimpleDetail> result = postCacheService.getPopularPosts(pageable, jsonKey);
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -175,27 +123,24 @@ class PostCacheServiceTest {
 
         given(redisPostJsonListAdapter.getAll(jsonKey))
                 .willThrow(new RuntimeException("Redis connection failed"));
-
-        switch (label) {
-            case "WEEKLY" -> given(postQueryRepository.findWeeklyPostsFallback(any(Pageable.class)))
-                    .willReturn(new PageImpl<>(List.of(post), pageable, 1));
-            case "LEGEND" -> given(postQueryRepository.findLegendPostsFallback(any(Pageable.class)))
-                    .willReturn(new PageImpl<>(List.of(post), pageable, 1));
-            case "NOTICE" -> given(postQueryRepository.findNoticePostsFallback(any(Pageable.class)))
-                    .willReturn(new PageImpl<>(List.of(post), pageable, 1));
-        }
+        given(postQueryRepository.findPostsFallback(any(Pageable.class), eq(jsonKey)))
+                .willReturn(new PageImpl<>(List.of(post), pageable, 1));
 
         // When
-        Page<PostSimpleDetail> result = switch (label) {
-            case "WEEKLY" -> postCacheService.getWeeklyPosts(pageable);
-            case "LEGEND" -> postCacheService.getPopularPostLegend(pageable);
-            case "NOTICE" -> postCacheService.getNoticePosts(pageable);
-            default -> throw new IllegalArgumentException("Unknown label: " + label);
-        };
+        Page<PostSimpleDetail> result = postCacheService.getPopularPosts(pageable, jsonKey);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo(expectedTitle);
+        verify(postQueryRepository).findPostsFallback(any(Pageable.class), eq(jsonKey));
+    }
+
+    static Stream<Arguments> provideCacheHitScenarios() {
+        return Stream.of(
+                Arguments.of(RedisKey.POST_WEEKLY_JSON_KEY, "WEEKLY", "주간 인기글"),
+                Arguments.of(RedisKey.POST_LEGEND_JSON_KEY, "LEGEND", "레전드 게시글"),
+                Arguments.of(RedisKey.POST_NOTICE_JSON_KEY, "NOTICE", "공지사항")
+        );
     }
 
     static Stream<Arguments> provideCacheEmptyScenarios() {

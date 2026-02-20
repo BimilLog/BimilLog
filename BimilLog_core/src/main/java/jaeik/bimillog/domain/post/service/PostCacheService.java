@@ -37,35 +37,14 @@ public class PostCacheService {
     private final PostUtil postUtil;
 
     /**
-     * 주간 인기글 목록 조회
+     * 주간, 레전드, 공지 목록 조회
      */
-    public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
+    public Page<PostSimpleDetail> getPopularPosts(Pageable pageable, String redisKey) {
         try {
-            return getCachedPosts(pageable, RedisKey.POST_WEEKLY_JSON_KEY);
+            return getCachedPosts(pageable, redisKey);
         } catch (Exception e) {
-            return postQueryRepository.findWeeklyPostsFallback(pageable);
-        }
-    }
-
-    /**
-     * 전설 인기글 목록 조회
-     */
-    public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
-        try {
-            return getCachedPosts(pageable, RedisKey.POST_LEGEND_JSON_KEY);
-        } catch (Exception e) {
-            return postQueryRepository.findLegendPostsFallback(pageable);
-        }
-    }
-
-    /**
-     * 공지사항 목록 조회
-     */
-    public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
-        try {
-            return getCachedPosts(pageable, RedisKey.POST_NOTICE_JSON_KEY);
-        } catch (Exception e) {
-            return postQueryRepository.findNoticePostsFallback(pageable);
+            log.error("[REDIS_FALLBACK] {} Redis 장애: {}", redisKey, e.getMessage());
+            return postQueryRepository.findPostsFallback(pageable, redisKey);
         }
     }
 
