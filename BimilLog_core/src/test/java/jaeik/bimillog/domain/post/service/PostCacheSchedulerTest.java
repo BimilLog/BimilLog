@@ -3,7 +3,9 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
@@ -80,7 +82,8 @@ class PostCacheSchedulerTest {
         PostSimpleDetail post2 = createPostSimpleDetail(2L, "주간인기글2", 2L);
         List<PostSimpleDetail> posts = List.of(post1, post2);
 
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryRepository.findPosts(PostQueryType.WEEKLY_SCHEDULER, Pageable.unpaged()))
+                .willReturn(new PageImpl<>(posts));
 
         // When
         postCacheScheduler.updateWeeklyPopularPosts();
@@ -112,7 +115,8 @@ class PostCacheSchedulerTest {
         PostSimpleDetail userPost = createPostSimpleDetail(2L, "회원글", 2L);
         List<PostSimpleDetail> posts = List.of(anonymousPost, userPost);
 
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryRepository.findPosts(PostQueryType.WEEKLY_SCHEDULER, Pageable.unpaged()))
+                .willReturn(new PageImpl<>(posts));
 
         // When
         postCacheScheduler.updateWeeklyPopularPosts();
@@ -137,7 +141,8 @@ class PostCacheSchedulerTest {
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
         List<PostSimpleDetail> posts = List.of(legendPost);
 
-        given(postQueryRepository.findLegendaryPosts()).willReturn(posts);
+        given(postQueryRepository.findPosts(PostQueryType.LEGEND_SCHEDULER, Pageable.unpaged()))
+                .willReturn(new PageImpl<>(posts));
 
         // When
         postCacheScheduler.updateLegendaryPosts();
@@ -162,13 +167,14 @@ class PostCacheSchedulerTest {
     @DisplayName("전설의 게시글 업데이트 - 게시글 목록 비어있는 경우")
     void shouldUpdateLegendaryPosts_WhenPostListIsEmpty() {
         // Given
-        given(postQueryRepository.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(postQueryRepository.findPosts(PostQueryType.LEGEND_SCHEDULER, Pageable.unpaged()))
+                .willReturn(new PageImpl<>(Collections.emptyList()));
 
         // When
         postCacheScheduler.updateLegendaryPosts();
 
         // Then
-        verify(postQueryRepository).findLegendaryPosts();
+        verify(postQueryRepository).findPosts(PostQueryType.LEGEND_SCHEDULER, Pageable.unpaged());
 
         // 게시글이 없으면 플래그 업데이트, 캐시, 이벤트 발행 안함
         verify(postRepository, never()).clearLegendFlag();
@@ -182,7 +188,8 @@ class PostCacheSchedulerTest {
         // Given - 대량의 게시글 생성 (100개)
         List<PostSimpleDetail> largePosts = createLargePostList(100);
 
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(largePosts);
+        given(postQueryRepository.findPosts(PostQueryType.WEEKLY_SCHEDULER, Pageable.unpaged()))
+                .willReturn(new PageImpl<>(largePosts));
 
         // When
         postCacheScheduler.updateWeeklyPopularPosts();
@@ -200,11 +207,33 @@ class PostCacheSchedulerTest {
     @DisplayName("공지사항 캐시 갱신 - 성공 (DB 조회 → JSON LIST 전체 교체 with TTL)")
     void shouldRefreshNoticePosts_WhenPostsExist() {
         // Given
-        PostSimpleDetail notice1 = createPostSimpleDetail(1L, "공지1", 1L);
-        PostSimpleDetail notice2 = createPostSimpleDetail(2L, "공지2", 2L);
-        List<PostSimpleDetail> posts = List.of(notice1, notice2);
+        Post mockPost1 = mock(Post.class);
+        given(mockPost1.getId()).willReturn(1L);
+        given(mockPost1.getTitle()).willReturn("공지1");
+        given(mockPost1.getViews()).willReturn(0);
+        given(mockPost1.getLikeCount()).willReturn(0);
+        given(mockPost1.getCreatedAt()).willReturn(Instant.now());
+        given(mockPost1.getMember()).willReturn(null);
+        given(mockPost1.getMemberName()).willReturn("관리자");
+        given(mockPost1.getCommentCount()).willReturn(0);
+        given(mockPost1.isWeekly()).willReturn(false);
+        given(mockPost1.isLegend()).willReturn(false);
+        given(mockPost1.isNotice()).willReturn(true);
 
-        given(postQueryRepository.findNoticePostsForScheduler()).willReturn(posts);
+        Post mockPost2 = mock(Post.class);
+        given(mockPost2.getId()).willReturn(2L);
+        given(mockPost2.getTitle()).willReturn("공지2");
+        given(mockPost2.getViews()).willReturn(0);
+        given(mockPost2.getLikeCount()).willReturn(0);
+        given(mockPost2.getCreatedAt()).willReturn(Instant.now());
+        given(mockPost2.getMember()).willReturn(null);
+        given(mockPost2.getMemberName()).willReturn("관리자");
+        given(mockPost2.getCommentCount()).willReturn(0);
+        given(mockPost2.isWeekly()).willReturn(false);
+        given(mockPost2.isLegend()).willReturn(false);
+        given(mockPost2.isNotice()).willReturn(true);
+
+        given(postRepository.findByIsNoticeTrueOrderByIdDesc()).willReturn(List.of(mockPost1, mockPost2));
 
         // When
         postCacheScheduler.refreshNoticePosts();
@@ -222,7 +251,7 @@ class PostCacheSchedulerTest {
     @DisplayName("공지사항 캐시 갱신 - 공지 없으면 스킵")
     void shouldSkipNoticeRefresh_WhenNoNoticePosts() {
         // Given
-        given(postQueryRepository.findNoticePostsForScheduler()).willReturn(Collections.emptyList());
+        given(postRepository.findByIsNoticeTrueOrderByIdDesc()).willReturn(Collections.emptyList());
 
         // When
         postCacheScheduler.refreshNoticePosts();

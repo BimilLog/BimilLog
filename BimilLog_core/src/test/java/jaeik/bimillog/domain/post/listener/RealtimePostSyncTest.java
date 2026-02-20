@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
-import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -40,7 +40,7 @@ class RealtimePostSyncTest {
     private RedisPostCounterAdapter redisPostCounterAdapter;
 
     @Mock
-    private PostQueryRepository postQueryRepository;
+    private PostRepository postRepository;
 
     private RealtimePostSync listener;
 
@@ -50,7 +50,7 @@ class RealtimePostSyncTest {
                 redisRealTimePostAdapter,
                 redisPostJsonListAdapter,
                 redisPostCounterAdapter,
-                postQueryRepository
+                postRepository
         );
         reset(redisRealTimePostAdapter);
     }

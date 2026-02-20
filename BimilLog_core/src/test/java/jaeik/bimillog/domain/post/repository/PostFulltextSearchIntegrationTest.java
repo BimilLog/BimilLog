@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.repository;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.entity.PostSearchType;
+import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.service.PostSearchService;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
@@ -130,7 +130,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("정상 케이스 - 제목 전문 검색 (3글자 이상, 실제 비즈니스 로직)")
     void shouldFindPostsByTitleFullText_WhenKoreanQueryProvided() {
         // Given: 한글 검색어 "프로그래밍" (3글자 이상, 실제 사용 시나리오)
-        PostSearchType searchType = PostSearchType.TITLE;
+        PostQueryType searchType = PostQueryType.TITLE;
         String query = "프로그래밍";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -156,7 +156,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("정상 케이스 - 제목+내용 전문 검색 (3글자 이상, TITLE_CONTENT)")
     void shouldFindPostsByTitleContentFullText_WhenSearchingBothFields() {
         // Given: "스프링" 검색 (제목 또는 내용에 포함, 3글자)
-        PostSearchType searchType = PostSearchType.TITLE_CONTENT;
+        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
         String query = "스프링";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -182,7 +182,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("정상 케이스 - 내용 전문 검색")
     void shouldFindPostsByContentFullText_WhenKeywordOnlyInContent() {
         // Given: 내용에만 있는 "데이터베이스" 검색
-        PostSearchType searchType = PostSearchType.TITLE_CONTENT;
+        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
         String query = "데이터베이스";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -204,7 +204,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("정상 케이스 - 영문 전문 검색(4글자)")
     void shouldFindPostsByEnglishFullText_WhenEnglishQueryProvided() {
         // Given: 영문 검색어 "Java"
-        PostSearchType searchType = PostSearchType.TITLE;
+        PostQueryType searchType = PostQueryType.TITLE;
         String query = "Java";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -226,7 +226,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("정상 케이스 - 페이징 동작 확인")
     void shouldSupportPaging_WhenMultipleResultsFound() {
         // Given: 여러 게시글에 포함된 검색어
-        PostSearchType searchType = PostSearchType.TITLE_CONTENT;
+        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
         String query = "프로그래밍";
 
         // 첫 페이지: 크기 1
@@ -248,7 +248,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("비즈니스 로직 - 모든 게시글이 검색 결과에 포함됨")
     void shouldIncludeAllPosts_WhenSearching() {
         // Given: 검색어 "자바" (여러 게시글에 포함)
-        PostSearchType searchType = PostSearchType.TITLE_CONTENT;
+        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
         String query = "자바";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -272,7 +272,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("엣지 케이스 - 검색 결과 없음")
     void shouldReturnEmptyPage_WhenNoResultsFound() {
         // Given: 존재하지 않는 검색어
-        PostSearchType searchType = PostSearchType.TITLE;
+        PostQueryType searchType = PostQueryType.TITLE;
         String query = "존재하지않는검색어12345";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -289,7 +289,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("엣지 케이스 - 1글자 검색어 (ngram 미만이지만 LIKE 부분검색 폴백)")
     void shouldFallbackToPartialMatch_WhenSingleCharacterQuery() {
         // Given: 1글자 검색어 (ngram_token_size=2 미만 → 전문검색 대신 LIKE 부분검색 폴백)
-        PostSearchType searchType = PostSearchType.TITLE;
+        PostQueryType searchType = PostQueryType.TITLE;
         String query = "자";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -305,7 +305,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("비즈니스 로직 - 최신순 정렬")
     void shouldSortByCreatedAtDesc_WhenSearching() {
         // Given: 여러 게시글에 포함된 검색어 "개발자" (3글자)
-        PostSearchType searchType = PostSearchType.TITLE_CONTENT;
+        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
         String query = "개발";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -328,7 +328,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("비즈니스 로직 - 댓글 수와 추천 수 포함")
     void shouldIncludeLikeAndCommentCounts_InSearchResults() {
         // Given: 검색어 "프로그래밍" (3글자 이상)
-        PostSearchType searchType = PostSearchType.TITLE_CONTENT;
+        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
         String query = "프로그래밍";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -346,7 +346,7 @@ class PostFulltextSearchIntegrationTest {
     @DisplayName("정상 케이스 - 한글 내용 전문 검색 (3글자)")
     void shouldFindPosts_WhenLongerKoreanQueryProvided() {
         // Given: 3글자 이상 한글 검색어
-        PostSearchType searchType = PostSearchType.TITLE_CONTENT;
+        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
         String query = "스프링";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -364,7 +364,7 @@ class PostFulltextSearchIntegrationTest {
         }
     }
 
-    private Page<PostSimpleDetail> searchFullText(PostSearchType type, String query, Pageable pageable, Long viewerId) {
+    private Page<PostSimpleDetail> searchFullText(PostQueryType type, String query, Pageable pageable, Long viewerId) {
         return postSearchService.searchPost(type, query, pageable, viewerId);
     }
 }

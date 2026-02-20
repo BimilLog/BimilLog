@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
@@ -16,6 +17,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +49,7 @@ public class PostCacheScheduler {
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     @Transactional
     public void updateWeeklyPopularPosts() {
-        refreshCache("WEEKLY", () -> postQueryRepository.findFeaturedPostsForScheduler(RedisKey.POST_WEEKLY_JSON_KEY),
+        refreshCache("WEEKLY", () -> postQueryRepository.findPosts(PostQueryType.WEEKLY_SCHEDULER, Pageable.unpaged()).getContent(),
                 RedisKey.POST_WEEKLY_JSON_KEY,
                 postRepository::clearWeeklyFlag, postRepository::setWeeklyFlag,
                 "주간 인기 게시글로 선정되었어요!", NotificationType.POST_FEATURED_WEEKLY);
@@ -57,7 +59,7 @@ public class PostCacheScheduler {
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     @Transactional
     public void updateLegendaryPosts() {
-        refreshCache("LEGEND", () -> postQueryRepository.findFeaturedPostsForScheduler(RedisKey.POST_LEGEND_JSON_KEY),
+        refreshCache("LEGEND", () -> postQueryRepository.findPosts(PostQueryType.LEGEND_SCHEDULER, Pageable.unpaged()).getContent(),
                 RedisKey.POST_LEGEND_JSON_KEY,
                 postRepository::clearLegendFlag, postRepository::setLegendFlag,
                 "명예의 전당에 등극했어요!", NotificationType.POST_FEATURED_LEGEND);
@@ -140,8 +142,7 @@ public class PostCacheScheduler {
         }
     }
 
-    private void publishFeaturedEventFromSimpleDetails(List<PostSimpleDetail> posts, String sseMessage,
-                                                       NotificationType notificationType) {
+    private void publishFeaturedEventFromSimpleDetails(List<PostSimpleDetail> posts, String sseMessage, NotificationType notificationType) {
         posts.stream().filter(post -> post.getMemberId() != null)
                 .forEach(post -> {
                     eventPublisher.publishEvent(new PostFeaturedEvent(

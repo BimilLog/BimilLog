@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.repository;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
-import jaeik.bimillog.domain.post.entity.PostSearchType;
+import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
@@ -233,7 +233,7 @@ class PostQueryRepositoryIntegrationTest {
     @DisplayName("정상 케이스 - 부분 검색 (LIKE '%query%')")
     void shouldFindPostsByPartialMatch_WhenValidSearchQueryProvided() {
         // Given: 부분 검색
-        PostSearchType searchType = PostSearchType.TITLE;
+        PostQueryType searchType = PostQueryType.TITLE;
         String query = "첫";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -250,7 +250,7 @@ class PostQueryRepositoryIntegrationTest {
     @DisplayName("정상 케이스 - 접두사 검색 (LIKE 'query%')")
     void shouldFindPostsByPrefixMatch_WhenValidPrefixProvided() {
         // Given: 접두사 검색 (작성자명 4글자 이상)
-        PostSearchType searchType = PostSearchType.WRITER;
+        PostQueryType searchType = PostQueryType.WRITER;
         String query = "test";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -268,7 +268,7 @@ class PostQueryRepositoryIntegrationTest {
     @DisplayName("정상 케이스 - 전문 검색 (MySQL FULLTEXT)")
     void shouldFindPostsByFullTextSearch_WhenValidQueryProvided() {
         // Given: 3글자 이상 검색어
-        PostSearchType searchType = PostSearchType.TITLE;
+        PostQueryType searchType = PostQueryType.TITLE;
         String query = "첫번째";
         Pageable pageable = PageRequest.of(0, 10);
 

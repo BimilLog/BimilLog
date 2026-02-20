@@ -30,6 +30,20 @@ public class RedisPostJsonListAdapter {
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
 
+    private static final List<String> ALL_JSON_KEYS = List.of(
+            RedisKey.FIRST_PAGE_JSON_KEY,
+            RedisKey.POST_WEEKLY_JSON_KEY,
+            RedisKey.POST_LEGEND_JSON_KEY,
+            RedisKey.POST_NOTICE_JSON_KEY,
+            RedisKey.POST_REALTIME_JSON_KEY
+    );
+
+    public RedisPostJsonListAdapter(StringRedisTemplate stringRedisTemplate) {
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
+    }
+
     /**
      * Lua #1 — 제목 업데이트: LIST를 순회하여 id 매칭 → 제목 교체 → LSET
      */
@@ -95,13 +109,7 @@ public class RedisPostJsonListAdapter {
             "end " +
             "return 0";
 
-    private static final List<String> ALL_JSON_KEYS = List.of(
-            RedisKey.FIRST_PAGE_JSON_KEY,
-            RedisKey.POST_WEEKLY_JSON_KEY,
-            RedisKey.POST_LEGEND_JSON_KEY,
-            RedisKey.POST_NOTICE_JSON_KEY,
-            RedisKey.POST_REALTIME_JSON_KEY
-    );
+
 
     /**
      * Lua — 전체 교체: DEL → RPUSH(JSON들) → EXPIRE
@@ -116,11 +124,7 @@ public class RedisPostJsonListAdapter {
             "end " +
             "return redis.call('LLEN', KEYS[1])";
 
-    public RedisPostJsonListAdapter(StringRedisTemplate stringRedisTemplate) {
-        this.stringRedisTemplate = stringRedisTemplate;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-    }
+
 
     /**
      * <h3>전체 조회</h3>
@@ -169,16 +173,13 @@ public class RedisPostJsonListAdapter {
      * <h3>새 글 추가 (원자적)</h3>
      * <p>Lua 스크립트로 LLEN → LINDEX(마지막) → LPUSH → LTRIM을 원자적으로 수행합니다.</p>
      * <p>LIST가 maxSize 이상이면 잘려나간 글의 ID를 반환합니다.</p>
-     *
-     * @return 잘려나간 글의 postId (없으면 null)
      */
-    public Long addNewPost(String key, PostSimpleDetail entry, int maxSize) {
+    public void addNewPost(String key, PostSimpleDetail entry, int maxSize) {
         String json = toJson(entry);
         DefaultRedisScript<String> script = new DefaultRedisScript<>(ADD_NEW_POST_SCRIPT, String.class);
         String removedId = stringRedisTemplate.execute(script, List.of(key), json, String.valueOf(maxSize));
 
         log.debug("[JSON_LIST] 새 글 추가 (key={}): postId={}, removedId={}", key, entry.getId(), removedId);
-        return removedId != null ? Long.parseLong(removedId) : null;
     }
 
     /**

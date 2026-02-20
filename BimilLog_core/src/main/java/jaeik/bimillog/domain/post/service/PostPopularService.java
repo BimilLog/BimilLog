@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
@@ -34,7 +35,7 @@ public class PostPopularService {
     /**
      * 주간, 레전드, 공지 목록 조회
      */
-    public Page<PostSimpleDetail> getPopularPosts(Pageable pageable, String redisKey) {
+    public Page<PostSimpleDetail> getPopularPosts(Pageable pageable, String redisKey, PostQueryType type) {
         try {
             List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(redisKey);
             if (!posts.isEmpty()) {
@@ -42,8 +43,8 @@ public class PostPopularService {
             }
             return Page.empty();
         } catch (Exception e) {
-            log.error("[REDIS_FALLBACK] {} Redis 장애: {}", redisKey, e.getMessage());
-            return postQueryRepository.findPostsFallback(pageable, redisKey);
+            log.error("[REDIS_FALLBACK] {} Redis 장애: {}", type, e.getMessage());
+            return postQueryRepository.findPosts(type, pageable);
         }
     }
 }

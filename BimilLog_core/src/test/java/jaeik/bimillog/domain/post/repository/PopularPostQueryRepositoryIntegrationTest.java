@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -144,7 +145,7 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> popularPosts = postQueryRepository.findWeeklyPopularPosts();
+        List<PostSimpleDetail> popularPosts = postQueryRepository.findPosts(PostQueryType.WEEKLY_SCHEDULER, Pageable.unpaged()).getContent();
 
         // Then
         assertThat(popularPosts).hasSize(2);
@@ -172,7 +173,7 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> legendaryPosts = postQueryRepository.findLegendaryPosts();
+        List<PostSimpleDetail> legendaryPosts = postQueryRepository.findPosts(PostQueryType.LEGEND_SCHEDULER, Pageable.unpaged()).getContent();
 
         // Then
         assertThat(legendaryPosts).hasSize(2);

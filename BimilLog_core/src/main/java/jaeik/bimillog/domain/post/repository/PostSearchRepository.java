@@ -1,10 +1,7 @@
 package jaeik.bimillog.domain.post.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
-import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 @Slf4j
 @Repository
@@ -23,8 +19,6 @@ import java.util.function.Consumer;
 public class PostSearchRepository {
     private final PostFulltextRepository postFullTextRepository;
     private final PostQueryRepository postQueryRepository;
-
-    private static final QPost post = QPost.post;
 
     /**
      * <h3>MySQL FULLTEXT 전문 검색</h3>
@@ -39,19 +33,21 @@ public class PostSearchRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<Object[]> findByFullTextSearch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
+    public Page<Object[]> findByFullTextSearch(PostQueryType type, String query, Pageable pageable, Long viewerId) {
         String searchTerm = query + "*";
         try {
             List<Object[]> rows = switch (type) {
                 case TITLE -> postFullTextRepository.findByTitleFullText(searchTerm, pageable, viewerId);
                 case TITLE_CONTENT -> postFullTextRepository.findByTitleContentFullText(searchTerm, pageable, viewerId);
                 case WRITER -> List.of();
+                default -> throw new IllegalArgumentException("지원하지 않는 검색 타입: " + type);
             };
 
             long total = switch (type) {
                 case TITLE -> postFullTextRepository.countByTitleFullText(searchTerm, viewerId);
                 case TITLE_CONTENT -> postFullTextRepository.countByTitleContentFullText(searchTerm, viewerId);
                 case WRITER -> 0L;
+                default -> throw new IllegalArgumentException("지원하지 않는 검색 타입: " + type);
             };
 
             return new PageImpl<>(rows, pageable, total);
@@ -76,15 +72,9 @@ public class PostSearchRepository {
      * @author Jaeik
      * @since 2.3.0
      */
-    public Page<PostSimpleDetail> findByPrefixMatch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
-        BooleanExpression condition = switch (type) {
-            case WRITER -> post.memberName.startsWith(query);
-            case TITLE -> post.title.startsWith(query);
-            case TITLE_CONTENT -> post.title.startsWith(query).or(post.content.startsWith(query));
-        };
-
-        Consumer<JPAQuery<?>> customizer = q -> q.where(condition);
-        return postQueryRepository.findPostsWithQuery(customizer, customizer, pageable);
+    public Page<PostSimpleDetail> findByPrefixMatch(PostQueryType type, String query, Pageable pageable, Long viewerId) {
+        BooleanExpression condition = type.getPrefixConditionFn().apply(query);
+        return postQueryRepository.findPosts(type, condition, pageable);
     }
 
     /**
@@ -99,15 +89,9 @@ public class PostSearchRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> findByPartialMatch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
-        BooleanExpression condition = switch (type) {
-            case TITLE -> post.title.contains(query);
-            case WRITER -> post.memberName.contains(query);
-            case TITLE_CONTENT -> post.title.contains(query).or(post.content.contains(query));
-        };
-
-        Consumer<JPAQuery<?>> customizer = q -> q.where(condition);
-        return postQueryRepository.findPostsWithQuery(customizer, customizer, pageable);
+    public Page<PostSimpleDetail> findByPartialMatch(PostQueryType type, String query, Pageable pageable, Long viewerId) {
+        BooleanExpression condition = type.getPartialConditionFn().apply(query);
+        return postQueryRepository.findPosts(type, condition, pageable);
     }
 
 

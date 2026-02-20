@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.service.PostPopularService;
 import jaeik.bimillog.domain.post.service.RealtimePostCacheService;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -54,7 +55,7 @@ public class PostCacheController {
      */
     @GetMapping("/weekly")
     public ResponseEntity<Page<PostSimpleDetail>> getWeeklyPopularPosts(Pageable pageable) {
-        Page<PostSimpleDetail> weeklyPosts = postPopularService.getPopularPosts(pageable, RedisKey.POST_WEEKLY_JSON_KEY);
+        Page<PostSimpleDetail> weeklyPosts = postPopularService.getPopularPosts(pageable, RedisKey.POST_WEEKLY_JSON_KEY, PostQueryType.WEEKLY);
         return ResponseEntity.ok(weeklyPosts);
     }
 
@@ -67,7 +68,7 @@ public class PostCacheController {
      */
     @GetMapping("/legend")
     public ResponseEntity<Page<PostSimpleDetail>> getLegendBoard(Pageable pageable) {
-        Page<PostSimpleDetail> legendPopularPosts = postPopularService.getPopularPosts(pageable, RedisKey.POST_LEGEND_JSON_KEY);
+        Page<PostSimpleDetail> legendPopularPosts = postPopularService.getPopularPosts(pageable, RedisKey.POST_LEGEND_JSON_KEY, PostQueryType.LEGEND);
         return ResponseEntity.ok(legendPopularPosts);
     }
 
@@ -80,7 +81,7 @@ public class PostCacheController {
      */
     @GetMapping("/notice")
     public ResponseEntity<Page<PostSimpleDetail>> getNoticeBoard(Pageable pageable) {
-        Page<PostSimpleDetail> noticePosts = postPopularService.getPopularPosts(pageable, RedisKey.POST_NOTICE_JSON_KEY);
+        Page<PostSimpleDetail> noticePosts = postPopularService.getPopularPosts(pageable, RedisKey.POST_NOTICE_JSON_KEY, PostQueryType.NOTICE);
         return ResponseEntity.ok(noticePosts);
     }
 }
