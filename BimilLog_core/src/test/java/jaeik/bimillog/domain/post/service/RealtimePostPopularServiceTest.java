@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
-import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
@@ -84,17 +83,13 @@ class RealtimePostPopularServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         List<Long> zsetIds = List.of(2L, 1L);
-        PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(2L, "인기글1");
-        PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(1L, "인기글2");
-        List<PostCacheEntry> entries = List.of(entry1, entry2);
         List<PostSimpleDetail> posts = List.of(
                 PostTestDataBuilder.createPostSearchResult(2L, "인기글1"),
                 PostTestDataBuilder.createPostSearchResult(1L, "인기글2")
         );
 
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(entries);
-        given(postUtil.combineWithCounters(entries)).willReturn(posts);
+        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
         given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(posts, pageable, 2));
 
         // When
@@ -111,17 +106,13 @@ class RealtimePostPopularServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         List<Long> zsetIds = List.of(3L, 1L);
-        PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(1L, "인기글1");
-        PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, "인기글2");
-        List<PostCacheEntry> entries = List.of(entry1, entry2);
         List<PostSimpleDetail> posts = List.of(
                 PostTestDataBuilder.createPostSearchResult(1L, "인기글1"),
                 PostTestDataBuilder.createPostSearchResult(2L, "인기글2")
         );
 
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(entries);
-        given(postUtil.combineWithCounters(entries)).willReturn(posts);
+        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
         given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(posts, pageable, 2));
 
         // When
@@ -138,13 +129,11 @@ class RealtimePostPopularServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         List<Long> zsetIds = List.of(1L, 2L);
-        List<PostCacheEntry> emptyEntries = List.of();
         List<PostSimpleDetail> emptyPosts = List.of();
 
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(emptyEntries);
-        given(postUtil.combineWithCounters(emptyEntries)).willReturn(emptyPosts);
-        given(postUtil.paginate(emptyPosts, pageable)).willReturn(new PageImpl<>(emptyPosts, pageable, 0));
+        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(emptyPosts);
+        given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(emptyPosts, pageable, 0));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);

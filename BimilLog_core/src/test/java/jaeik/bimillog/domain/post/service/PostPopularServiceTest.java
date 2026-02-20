@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
@@ -9,9 +8,7 @@ import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -35,7 +32,7 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>PostPopularService 테스트</h2>
  * <p>주간/레전드/공지 인기글 캐시 조회 로직을 검증합니다.</p>
- * <p>JSON LIST(PostCacheEntry) + 카운터 Hash(HMGET) → PostSimpleDetail 결합 경로를 검증합니다.</p>
+ * <p>JSON LIST → PostSimpleDetail 조회 경로를 검증합니다.</p>
  * <p>DB 폴백은 독립 boolean 플래그 기반 쿼리를 사용합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
@@ -69,16 +66,12 @@ class PostPopularServiceTest {
     void shouldGetPopularPosts_CacheHit(String jsonKey, String label, String titlePrefix) {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(1L, titlePrefix + " 1");
-        PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, titlePrefix + " 2");
-        List<PostCacheEntry> entries = List.of(entry1, entry2);
         List<PostSimpleDetail> posts = List.of(
                 PostTestDataBuilder.createPostSearchResult(1L, titlePrefix + " 1"),
                 PostTestDataBuilder.createPostSearchResult(2L, titlePrefix + " 2")
         );
 
-        given(redisPostJsonListAdapter.getAll(jsonKey)).willReturn(entries);
-        given(postUtil.combineWithCounters(entries)).willReturn(posts);
+        given(redisPostJsonListAdapter.getAll(jsonKey)).willReturn(posts);
         given(postUtil.paginate(any(), eq(pageable)))
                 .willReturn(new PageImpl<>(posts, pageable, 2));
 
@@ -89,7 +82,6 @@ class PostPopularServiceTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
         verify(redisPostJsonListAdapter).getAll(jsonKey);
-        verify(postUtil).combineWithCounters(entries);
     }
 
     @ParameterizedTest(name = "{1} - JSON LIST 비어있음 → Page.empty() 반환")
@@ -156,77 +148,4 @@ class PostPopularServiceTest {
         );
     }
 
-    // ==================== 첫 페이지 캐시 조회 (JSON LIST 방식) ====================
-
-    @Nested
-    @DisplayName("첫 페이지 캐시 조회 (JSON LIST)")
-    class FirstPageTests {
-
-        @Test
-        @DisplayName("첫 페이지 캐시 히트 - JSON LIST + 카운터 결합")
-        void shouldGetFirstPagePosts_CacheHit() {
-            // Given
-            PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(3L, "최신글");
-            PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, "두번째글");
-            PostCacheEntry entry3 = PostTestDataBuilder.createCacheEntry(1L, "세번째글");
-            List<PostCacheEntry> entries = List.of(entry1, entry2, entry3);
-            List<PostSimpleDetail> posts = List.of(
-                    PostTestDataBuilder.createPostSearchResult(3L, "최신글"),
-                    PostTestDataBuilder.createPostSearchResult(2L, "두번째글"),
-                    PostTestDataBuilder.createPostSearchResult(1L, "세번째글")
-            );
-
-            given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(entries);
-            given(postUtil.combineWithCounters(entries)).willReturn(posts);
-
-            // When
-            List<PostSimpleDetail> result = postPopularService.getFirstPagePosts();
-
-            // Then
-            assertThat(result).hasSize(3);
-            assertThat(result.get(0).getTitle()).isEqualTo("최신글");
-            verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
-            verify(postUtil).combineWithCounters(entries);
-            verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
-        }
-
-        @Test
-        @DisplayName("첫 페이지 캐시 미스 (빈 JSON LIST) - DB 폴백")
-        void shouldGetFirstPagePosts_CacheMiss_DbFallback() {
-            // Given
-            PostSimpleDetail dbPost = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
-            List<PostSimpleDetail> dbPosts = List.of(dbPost);
-
-            given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(Collections.emptyList());
-            given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
-
-            // When
-            List<PostSimpleDetail> result = postPopularService.getFirstPagePosts();
-
-            // Then
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).getTitle()).isEqualTo("DB 폴백 글");
-            verify(postQueryRepository).findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
-        }
-
-        @Test
-        @DisplayName("첫 페이지 Redis 장애 - DB 폴백")
-        void shouldGetFirstPagePosts_RedisFailure_DbFallback() {
-            // Given
-            PostSimpleDetail dbPost = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
-            List<PostSimpleDetail> dbPosts = List.of(dbPost);
-
-            given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY))
-                    .willThrow(new RuntimeException("Redis connection failed"));
-            given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
-
-            // When
-            List<PostSimpleDetail> result = postPopularService.getFirstPagePosts();
-
-            // Then
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).getTitle()).isEqualTo("DB 폴백 글");
-            verify(postQueryRepository).findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
-        }
-    }
 }

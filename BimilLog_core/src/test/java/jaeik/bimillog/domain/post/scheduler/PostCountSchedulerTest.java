@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.post.scheduler;
 
 import com.querydsl.core.types.dsl.NumberPath;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
-import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>PostCountScheduler 단위 테스트</h2>
  * <p>카운트 플러시 스케줄러(조회수)의 동작을 검증합니다.</p>
- * <p>DB + 카운터 Hash 동시 반영을 검증합니다.</p>
+ * <p>DB + JSON LIST 카운터 동시 반영을 검증합니다.</p>
  */
 @Tag("unit")
 @DisplayName("PostCountScheduler 단위 테스트")
@@ -35,6 +35,9 @@ class PostCountSchedulerTest {
 
     @Mock
     private RedisPostCounterAdapter redisPostCounterAdapter;
+
+    @Mock
+    private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @InjectMocks
     private PostCountScheduler scheduler;
@@ -55,22 +58,20 @@ class PostCountSchedulerTest {
     }
 
     @Test
-    @DisplayName("조회수 버퍼에 데이터가 있으면 DB + 카운터 Hash에 벌크 업데이트")
+    @DisplayName("조회수 버퍼에 데이터가 있으면 DB + JSON LIST 카운터에 벌크 업데이트")
     void shouldFlushViewCountsToDB_whenBufferHasData() {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L, 2L, 3L);
         given(redisPostCounterAdapter.getAndClearViewCounts()).willReturn(viewCounts);
-        // postId 1만 캐시글, 2는 비캐시글
-        given(redisPostCounterAdapter.isCachedPost(1L)).willReturn(true);
-        given(redisPostCounterAdapter.isCachedPost(2L)).willReturn(false);
 
         // When
         scheduler.flushAllCounts();
 
-        // Then
+        // Then - DB에 벌크 업데이트
         verify(postQueryRepository).bulkIncrementCount(eq(viewCounts), any(NumberPath.class));
-        // 카운터 캐시에는 캐시글만 필터링되어 반영 (postId 1만)
-        verify(redisPostCounterAdapter).batchIncrementCounter(eq(Map.of(1L, 5L)), eq(RedisKey.COUNTER_SUFFIX_VIEW));
+        // JSON LIST 전체에 카운터 증분 (postId별로 incrementCounterInAllLists 호출)
+        verify(redisPostJsonListAdapter).incrementCounterInAllLists(eq(1L), eq("viewCount"), eq(5L));
+        verify(redisPostJsonListAdapter).incrementCounterInAllLists(eq(2L), eq("viewCount"), eq(3L));
     }
 
     @Test

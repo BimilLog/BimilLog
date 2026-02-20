@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
@@ -37,12 +36,11 @@ public class PostPopularService {
      */
     public Page<PostSimpleDetail> getPopularPosts(Pageable pageable, String redisKey) {
         try {
-            List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(redisKey);
-            if (!entries.isEmpty()) {
-                return Page.empty();
+            List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(redisKey);
+            if (!posts.isEmpty()) {
+                return postUtil.paginate(posts, pageable);
             }
-            List<PostSimpleDetail> posts = postUtil.combineWithCounters(entries);
-            return postUtil.paginate(posts, pageable);
+            return Page.empty();
         } catch (Exception e) {
             log.error("[REDIS_FALLBACK] {} Redis 장애: {}", redisKey, e.getMessage());
             return postQueryRepository.findPostsFallback(pageable, redisKey);

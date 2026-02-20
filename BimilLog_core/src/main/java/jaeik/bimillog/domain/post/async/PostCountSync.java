@@ -1,52 +1,45 @@
 package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
- * <h2>게시글 조회수 증가 리스너</h2>
- * <p>게시글 조회 이벤트를 수신하여 중복 조회 방지 후 조회수를 증가시킵니다.</p>
- * <p>Redis SET으로 24시간 중복 조회를 방지하고, Redis Hash에 조회수를 버퍼링합니다.</p>
- * <p>글 단위 Hash 캐시는 1분 플러시 스케줄러에서 일괄 반영합니다.</p>
+ * <h2>게시글 카운터 캐시 증감</h2>
+ * <p>추천/댓글 이벤트를 받아 모든 JSON LIST의 카운터를 비동기로 증분합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 3.1.0
  */
-@Log(logResult = false, level = Log.LogLevel.DEBUG, message = "조회수 증가")
+@Log(logResult = false, level = Log.LogLevel.DEBUG, message = "카운터 증감")
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class PostCountSync {
-    private final RedisPostCounterAdapter redisPostCounterAdapter;
+    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     /**
-     * <h3>좋아요 카운터 캐시 증감</h3>
-     * <p>Lua 스크립트로 HEXISTS 확인 후 HINCRBY를 원자적으로 수행합니다.</p>
-     * <p>캐시글이 아니면(Hash 필드 없음) 무시됩니다.</p>
+     * <h3>좋아요 카운터 증감</h3>
      *
      * @param postId 게시글 ID
      * @param delta  증감값 (1: 좋아요 추가, -1: 좋아요 취소)
      */
     @Async("cacheCountUpdateExecutor")
     public void incrementLikeCounter(Long postId, long delta) {
-        redisPostCounterAdapter.incrementCounter(postId, RedisKey.COUNTER_SUFFIX_LIKE, delta);
+        redisPostJsonListAdapter.incrementCounterInAllLists(postId, "likeCount", delta);
     }
 
     /**
-     * <h3>댓글 카운터 캐시 증감</h3>
-     * <p>Lua 스크립트로 HEXISTS 확인 후 HINCRBY를 원자적으로 수행합니다.</p>
-     * <p>캐시글이 아니면(Hash 필드 없음) 무시됩니다.</p>
+     * <h3>댓글 카운터 증감</h3>
      *
      * @param postId 게시글 ID
      * @param delta  증감값 (1: 댓글 작성, -1: 댓글 삭제)
      */
     @Async("cacheCountUpdateExecutor")
     public void incrementCommentCounter(Long postId, long delta) {
-        redisPostCounterAdapter.incrementCounter(postId, RedisKey.COUNTER_SUFFIX_COMMENT, delta);
+        redisPostJsonListAdapter.incrementCounterInAllLists(postId, "commentCount", delta);
     }
 }

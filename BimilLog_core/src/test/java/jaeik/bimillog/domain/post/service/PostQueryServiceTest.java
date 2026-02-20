@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -23,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,7 +61,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private PostPopularService postPopularService;
+    private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @Mock
     private RealtimePostSync realtimePostSync;
@@ -72,10 +75,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long cursor = null;
         int size = 10;
-        PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
-        List<PostSimpleDetail> posts = List.of(postResult);
+        List<PostSimpleDetail> cached = List.of(PostTestDataBuilder.createPostSearchResult(1L, "제목1"));
 
-        given(postPopularService.getFirstPagePosts()).willReturn(posts);
+        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -85,7 +87,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
         assertThat(result.nextCursor()).isNull();
 
-        verify(postPopularService).getFirstPagePosts();
+        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
@@ -96,15 +98,14 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long cursor = null;
         int size = 2;
-        List<PostSimpleDetail> cachedPosts = List.of(
+        List<PostSimpleDetail> cached = List.of(
                 PostTestDataBuilder.createPostSearchResult(5L, "제목5"),
                 PostTestDataBuilder.createPostSearchResult(4L, "제목4"),
                 PostTestDataBuilder.createPostSearchResult(3L, "제목3"),
                 PostTestDataBuilder.createPostSearchResult(2L, "제목2"),
                 PostTestDataBuilder.createPostSearchResult(1L, "제목1")
         );
-
-        given(postPopularService.getFirstPagePosts()).willReturn(cachedPosts);
+        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -115,7 +116,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().get(1).getTitle()).isEqualTo("제목4");
         assertThat(result.nextCursor()).isEqualTo(4L);
 
-        verify(postPopularService).getFirstPagePosts();
+        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
@@ -129,7 +130,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
         List<PostSimpleDetail> dbPosts = List.of(postResult);
 
-        given(postPopularService.getFirstPagePosts()).willReturn(dbPosts);
+        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(Collections.emptyList());
+        given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -138,7 +140,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("DB 폴백 글");
 
-        verify(postPopularService).getFirstPagePosts();
+        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
     }
 
@@ -160,7 +162,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
 
-        verify(postPopularService, never()).getFirstPagePosts();
+        verify(redisPostJsonListAdapter, never()).getAll(any());
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository).findBoardPostsByCursor(cursor, size);
     }
@@ -173,17 +175,13 @@ class PostQueryServiceTest extends BaseUnitTest {
         int size = 20;
         Long memberId = 100L;
 
-        List<PostSimpleDetail> cachedPosts = List.of(
+        List<PostSimpleDetail> cached = List.of(
                 PostTestDataBuilder.createPostSearchResultWithMemberId(1L, "게시글1", 1L),
                 PostTestDataBuilder.createPostSearchResultWithMemberId(2L, "블랙게시글", 2L),
                 PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
         );
-        List<PostSimpleDetail> filteredPosts = List.of(
-                PostTestDataBuilder.createPostSearchResultWithMemberId(1L, "게시글1", 1L),
-                PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
-        );
 
-        given(postPopularService.getFirstPagePosts()).willReturn(cachedPosts);
+        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
         given(postToMemberAdapter.getInterActionBlacklist(memberId)).willReturn(List.of(2L));
 
         // When
@@ -194,7 +192,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).extracting(PostSimpleDetail::getId).containsExactly(1L, 3L);
         assertThat(result.nextCursor()).isNull();
 
-        verify(postPopularService).getFirstPagePosts();
+        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
     }
 
     @Test
