@@ -58,7 +58,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private PostCacheService postCacheService;
+    private PostPopularService postPopularService;
 
     @Mock
     private RealtimePostSync realtimePostSync;
@@ -75,7 +75,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         List<PostSimpleDetail> posts = List.of(postResult);
 
-        given(postCacheService.getFirstPagePosts()).willReturn(posts);
+        given(postPopularService.getFirstPagePosts()).willReturn(posts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -85,7 +85,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
         assertThat(result.nextCursor()).isNull();
 
-        verify(postCacheService).getFirstPagePosts();
+        verify(postPopularService).getFirstPagePosts();
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
@@ -104,7 +104,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 PostTestDataBuilder.createPostSearchResult(1L, "제목1")
         );
 
-        given(postCacheService.getFirstPagePosts()).willReturn(cachedPosts);
+        given(postPopularService.getFirstPagePosts()).willReturn(cachedPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -115,7 +115,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().get(1).getTitle()).isEqualTo("제목4");
         assertThat(result.nextCursor()).isEqualTo(4L);
 
-        verify(postCacheService).getFirstPagePosts();
+        verify(postPopularService).getFirstPagePosts();
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
@@ -129,7 +129,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
         List<PostSimpleDetail> dbPosts = List.of(postResult);
 
-        given(postCacheService.getFirstPagePosts()).willReturn(dbPosts);
+        given(postPopularService.getFirstPagePosts()).willReturn(dbPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -138,7 +138,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("DB 폴백 글");
 
-        verify(postCacheService).getFirstPagePosts();
+        verify(postPopularService).getFirstPagePosts();
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
     }
 
@@ -160,7 +160,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
 
-        verify(postCacheService, never()).getFirstPagePosts();
+        verify(postPopularService, never()).getFirstPagePosts();
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository).findBoardPostsByCursor(cursor, size);
     }
@@ -183,7 +183,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
         );
 
-        given(postCacheService.getFirstPagePosts()).willReturn(cachedPosts);
+        given(postPopularService.getFirstPagePosts()).willReturn(cachedPosts);
         given(postToMemberAdapter.getInterActionBlacklist(memberId)).willReturn(List.of(2L));
 
         // When
@@ -194,7 +194,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).extracting(PostSimpleDetail::getId).containsExactly(1L, 3L);
         assertThat(result.nextCursor()).isNull();
 
-        verify(postCacheService).getFirstPagePosts();
+        verify(postPopularService).getFirstPagePosts();
     }
 
     @Test

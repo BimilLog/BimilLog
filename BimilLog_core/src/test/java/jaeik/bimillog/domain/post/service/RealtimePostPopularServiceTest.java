@@ -2,12 +2,10 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.PostCacheEntry;
-import jaeik.bimillog.domain.post.entity.PostCountCache;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
@@ -40,7 +38,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RealtimePostCacheService 테스트")
 @Tag("unit")
-class RealtimePostCacheServiceTest {
+class RealtimePostPopularServiceTest {
 
     @Mock
     private PostQueryRepository postQueryRepository;
@@ -50,9 +48,6 @@ class RealtimePostCacheServiceTest {
 
     @Mock
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
-
-    @Mock
-    private RedisPostCounterAdapter redisPostCounterAdapter;
 
     @Mock
     private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
@@ -92,12 +87,15 @@ class RealtimePostCacheServiceTest {
         PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(2L, "인기글1");
         PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(1L, "인기글2");
         List<PostCacheEntry> entries = List.of(entry1, entry2);
-        List<PostCountCache> counts = List.of(PostCountCache.ZERO, PostCountCache.ZERO);
+        List<PostSimpleDetail> posts = List.of(
+                PostTestDataBuilder.createPostSearchResult(2L, "인기글1"),
+                PostTestDataBuilder.createPostSearchResult(1L, "인기글2")
+        );
 
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
         given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(entries);
-        given(redisPostCounterAdapter.getCounters(List.of(2L, 1L))).willReturn(counts);
-        given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(PostCacheEntry.combineAll(entries, counts), pageable, 2));
+        given(postUtil.combineWithCounters(entries)).willReturn(posts);
+        given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(posts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
@@ -116,12 +114,15 @@ class RealtimePostCacheServiceTest {
         PostCacheEntry entry1 = PostTestDataBuilder.createCacheEntry(1L, "인기글1");
         PostCacheEntry entry2 = PostTestDataBuilder.createCacheEntry(2L, "인기글2");
         List<PostCacheEntry> entries = List.of(entry1, entry2);
-        List<PostCountCache> counts = List.of(PostCountCache.ZERO, PostCountCache.ZERO);
+        List<PostSimpleDetail> posts = List.of(
+                PostTestDataBuilder.createPostSearchResult(1L, "인기글1"),
+                PostTestDataBuilder.createPostSearchResult(2L, "인기글2")
+        );
 
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
         given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(entries);
-        given(redisPostCounterAdapter.getCounters(List.of(1L, 2L))).willReturn(counts);
-        given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(PostCacheEntry.combineAll(entries, counts), pageable, 2));
+        given(postUtil.combineWithCounters(entries)).willReturn(posts);
+        given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(posts, pageable, 2));
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
@@ -142,7 +143,7 @@ class RealtimePostCacheServiceTest {
 
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
         given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(emptyEntries);
-        given(redisPostCounterAdapter.getCounters(List.of())).willReturn(List.of());
+        given(postUtil.combineWithCounters(emptyEntries)).willReturn(emptyPosts);
         given(postUtil.paginate(emptyPosts, pageable)).willReturn(new PageImpl<>(emptyPosts, pageable, 0));
 
         // When

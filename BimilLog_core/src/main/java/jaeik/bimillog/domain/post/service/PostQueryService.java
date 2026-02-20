@@ -7,9 +7,12 @@ import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.*;
+import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,8 +43,9 @@ public class PostQueryService {
     private final PostRepository postRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final PostCacheService postCacheService;
+    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
     private final RealtimePostSync realtimePostSync;
+    private final PostUtil postUtil;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -59,7 +63,7 @@ public class PostQueryService {
 
         // 첫 페이지라면 캐시 조회 아니라면 DB 조회
         if (cursor == null) {
-            posts = postCacheService.getFirstPagePosts();
+            posts = getFirstPagePosts();
         } else {
             posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
         }
@@ -78,6 +82,21 @@ public class PostQueryService {
 
         Long nextCursor = hasNext && !posts.isEmpty() ? posts.getLast().getId() : null;
         return CursorPageResponse.of(posts, nextCursor);
+    }
+
+    /**
+     * 첫 페이지 캐시 조회 — JSON LIST 방식 (캐시 미스/장애 시 DB 폴백)
+     */
+    private List<PostSimpleDetail> getFirstPagePosts() {
+        try {
+            List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY);
+            if (!entries.isEmpty()) {
+                return postUtil.combineWithCounters(entries);
+            }
+        } catch (Exception e) {
+            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.FIRST_PAGE_JSON_KEY, e.getMessage());
+        }
+        return postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
     }
 
     /**

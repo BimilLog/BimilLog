@@ -4,13 +4,11 @@ import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.PostCacheEntry;
-import jaeik.bimillog.domain.post.entity.PostCountCache;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
@@ -40,7 +38,6 @@ public class RealtimePostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
-    private final RedisPostCounterAdapter redisPostCounterAdapter;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
     private final RealtimePostSync realtimePostSync;
     private final PostUtil postUtil;
@@ -50,30 +47,27 @@ public class RealtimePostCacheService {
 
     /**
      * <h3>실시간 인기글 목록 조회</h3>
-     * <p>ZSet(source of truth) 먼저 조회 → LIST 비교 → 불일치 시 비동기 갱신</p>
+     * <p>ZSet 조회 → LIST 비교 → 불일치 시 비동기 갱신</p>
      * <p>서킷 OPEN → {@link #getRealtimePostsFallback(Pageable, Throwable)}에서 Caffeine 폴백</p>
      * <p>Redis 예외(서킷 CLOSED) → DB 유사 인기글 폴백</p>
      */
     @CircuitBreaker(name = REALTIME_REDIS_CIRCUIT, fallbackMethod = "getRealtimePostsFallback")
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
         // 1. ZSet top 5 조회
-        List<Long> zsetTopIds = redisRealTimePostAdapter.getRangePostId();
-        if (zsetTopIds.isEmpty()) {
+        List<Long> realtimeTop5Id = redisRealTimePostAdapter.getRangePostId();
+        if (realtimeTop5Id.isEmpty()) {
             return new PageImpl<>(List.of(), pageable, 0);
         }
 
         // 2. LIST 조회 → ZSet ID 순서와 비교
         List<PostCacheEntry> entries = redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY);
         List<Long> listIds = entries.stream().map(PostCacheEntry::id).toList();
-        if (!zsetTopIds.equals(listIds)) {
-            realtimePostSync.asyncRebuildRealtimeCache(zsetTopIds);
+        if (!realtimeTop5Id.equals(listIds)) {
+            realtimePostSync.asyncRebuildRealtimeCache(realtimeTop5Id);
         }
 
         // 3. 카운터 조회 후 결합
-        List<Long> postIds = entries.stream().map(PostCacheEntry::id).toList();
-        List<PostCountCache> counts = redisPostCounterAdapter.getCounters(postIds);
-        List<PostSimpleDetail> posts = PostCacheEntry.combineAll(entries, counts);
-
+        List<PostSimpleDetail> posts = postUtil.combineWithCounters(entries);
         return postUtil.paginate(posts, pageable);
     }
 
@@ -88,7 +82,7 @@ public class RealtimePostCacheService {
             return getRealtimePostsFromCaffeine(pageable);
         }
 
-        log.warn("[REALTIME] Redis 예외, DB 폴백: {}", t.getMessage());
+        log.warn("[REALTIME] Redis 예외, 서킷 닫힘 DB 폴백: {}", t.getMessage());
         return postQueryRepository.findRecentPopularPosts(pageable);
     }
 

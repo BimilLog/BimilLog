@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.service.PostCacheService;
+import jaeik.bimillog.domain.post.service.PostPopularService;
 import jaeik.bimillog.domain.post.service.RealtimePostCacheService;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/post")
 public class PostCacheController {
     private final RealtimePostCacheService realtimePostCacheService;
-    private final PostCacheService postCacheService;
+    private final PostPopularService postPopularService;
 
     /**
      * <h3>실시간 인기글 조회 API</h3>
@@ -54,7 +54,7 @@ public class PostCacheController {
      */
     @GetMapping("/weekly")
     public ResponseEntity<Page<PostSimpleDetail>> getWeeklyPopularPosts(Pageable pageable) {
-        Page<PostSimpleDetail> weeklyPosts = postCacheService.getPopularPosts(pageable, RedisKey.POST_WEEKLY_JSON_KEY);
+        Page<PostSimpleDetail> weeklyPosts = postPopularService.getPopularPosts(pageable, RedisKey.POST_WEEKLY_JSON_KEY);
         return ResponseEntity.ok(weeklyPosts);
     }
 
@@ -67,7 +67,7 @@ public class PostCacheController {
      */
     @GetMapping("/legend")
     public ResponseEntity<Page<PostSimpleDetail>> getLegendBoard(Pageable pageable) {
-        Page<PostSimpleDetail> legendPopularPosts = postCacheService.getPopularPosts(pageable, RedisKey.POST_LEGEND_JSON_KEY);
+        Page<PostSimpleDetail> legendPopularPosts = postPopularService.getPopularPosts(pageable, RedisKey.POST_LEGEND_JSON_KEY);
         return ResponseEntity.ok(legendPopularPosts);
     }
 
@@ -80,7 +80,7 @@ public class PostCacheController {
      */
     @GetMapping("/notice")
     public ResponseEntity<Page<PostSimpleDetail>> getNoticeBoard(Pageable pageable) {
-        Page<PostSimpleDetail> noticePosts = postCacheService.getPopularPosts(pageable, RedisKey.POST_NOTICE_JSON_KEY);
+        Page<PostSimpleDetail> noticePosts = postPopularService.getPopularPosts(pageable, RedisKey.POST_NOTICE_JSON_KEY);
         return ResponseEntity.ok(noticePosts);
     }
 }

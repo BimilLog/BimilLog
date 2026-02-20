@@ -43,7 +43,7 @@ public class RedisRealTimePostAdapter {
      */
     public List<Long> getRangePostId() {
         Set<String> set = stringRedisTemplate.opsForZSet().reverseRange(REALTIME_SCORE_KEY, 0, 4);
-        if (set == null || set.isEmpty()) {
+        if (set == null) {
             return Collections.emptyList();
         }
         return set.stream().map(Long::parseLong).collect(Collectors.toList());
