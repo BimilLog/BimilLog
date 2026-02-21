@@ -21,8 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -76,19 +74,6 @@ public class PostQueryRepository {
                 .orderBy(post.id.desc())
                 .limit(size + 1)
                 .fetch();
-    }
-
-    /**
-     * <h3>사용자 작성 게시글 목록 조회</h3>
-     * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>{@link PostQueryService}에서 사용자 작성 게시글 내역 조회 시 호출됩니다.</p>
-     *
-     * @param memberId 사용자 ID
-     * @param pageable 페이지 정보
-     * @return 작성한 게시글 목록 페이지
-     */
-    public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable) {
-        return findPosts(PostQueryType.MEMBER_POSTS, PostQueryType.MEMBER_POSTS.getMemberConditionFn().apply(memberId), pageable);
     }
 
     /**
@@ -171,63 +156,20 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>최근 인기 게시글 조회 (실시간 인기글 폴백용)</h3>
-     * <p>최근 1시간 이내 생성된 게시글 중 (조회수 + 추천수*30) 기준 인기순으로 조회합니다.</p>
-     * <p>Redis 장애 시 실시간 인기글의 Graceful Degradation 폴백으로 사용됩니다.</p>
-     * <p>결과 수는 호출 측 pageable의 pageSize로 제어합니다.</p>
+     * <h3>게시글 목록 조회</h3>
+     * <p>호출 측에서 조건을 직접 제공하고, PostQueryType에서 정렬·limit을 가져옵니다.</p>
+     * <p>hasLimit인 경우 pageable을 무시하고 type의 limit으로 페이지를 구성합니다.</p>
      *
-     * @param pageable 페이지 정보
-     * @return 최근 인기 게시글 페이지
-     */
-    @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> findRecentPopularPosts(Pageable pageable) {
-        BooleanExpression recentCondition = post.createdAt.after(Instant.now().minus(1, ChronoUnit.HOURS));
-        var popularityScore = post.views.add(post.likeCount.multiply(30));
-        return selectPostSimpleDetails(recentCondition, pageable, popularityScore.desc(), post.createdAt.desc());
-    }
-
-    /**
-     * <h3>실시간 인기글 카페인 ID를 통해 디비 조회</h3>
-     * <p>카페인에서 조회한 postId 목록으로 게시글 상세 정보를 페이징 조회합니다.</p>
-     *
-     * @param postIds  조회할 게시글 ID 목록
-     * @param pageable 페이징 정보
-     * @return PostSimpleDetail 페이지
-     */
-    @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> findPostSimpleDetailsByIds(List<Long> postIds, Pageable pageable) {
-        return selectPostSimpleDetails(post.id.in(postIds), pageable, post.id.desc());
-    }
-
-
-    /**
-     * <h3>게시글 목록 조회 (enum 조건)</h3>
-     * <p>PostQueryType에 내장된 조건을 사용하여 게시글 목록을 조회합니다.</p>
-     * <p>WEEKLY / LEGEND / NOTICE / WEEKLY_SCHEDULER / LEGEND_SCHEDULER 에서 사용합니다.</p>
-     *
-     * @param type     조회 타입 (조건·정렬·limit 포함)
-     * @param pageable 페이지 정보 (hasLimit인 경우 무시됨)
-     * @return 게시글 목록 페이지
-     */
-    @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> findPosts(PostQueryType type, Pageable pageable) {
-        Pageable effectivePageable = type.hasLimit() ? PageRequest.of(0, type.getLimit()) : pageable;
-        return selectPostSimpleDetails(type.condition(), effectivePageable, type.getOrder());
-    }
-
-    /**
-     * <h3>게시글 목록 조회 (외부 조건)</h3>
-     * <p>호출 측에서 조건을 직접 제공하고, PostQueryType에서 정렬을 가져옵니다.</p>
-     * <p>MEMBER_POSTS / TITLE / WRITER / TITLE_CONTENT 에서 사용합니다.</p>
-     *
-     * @param type      조회 타입 (정렬 정보 포함)
-     * @param condition 외부 조건
+     * @param type      조회 타입 (정렬·limit 포함)
+     * @param condition 조건 (ENUM의 conditionFn/memberConditionFn/idsConditionFn 등에서 생성)
      * @param pageable  페이지 정보
      * @return 게시글 목록 페이지
      */
     @Transactional(readOnly = true)
+    @SuppressWarnings("unchecked")
     public Page<PostSimpleDetail> findPosts(PostQueryType type, BooleanExpression condition, Pageable pageable) {
-        return selectPostSimpleDetails(condition, pageable, type.getOrder());
+        Pageable effectivePageable = type.hasLimit() ? PageRequest.of(0, type.getLimit()) : pageable;
+        return selectPostSimpleDetails(condition, effectivePageable, type.getOrders());
     }
 
     /**

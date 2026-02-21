@@ -44,7 +44,7 @@ public class PostPopularService {
             return Page.empty();
         } catch (Exception e) {
             log.error("[REDIS_FALLBACK] {} Redis 장애: {}", type, e.getMessage());
-            return postQueryRepository.findPosts(type, pageable);
+            return postQueryRepository.findPosts(type, type.condition(), pageable);
         }
     }
 }

@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -326,7 +327,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(userPost), pageable, 1);
 
         Page<PostSimpleDetail> emptyLikedPage = Page.empty();
-        given(postQueryRepository.findPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
+        given(postQueryRepository.findPosts(eq(PostQueryType.MEMBER_POSTS), any(BooleanExpression.class), eq(pageable))).willReturn(expectedPage);
         given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(emptyLikedPage);
 
         // When
@@ -336,7 +337,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.getWritePosts()).isEqualTo(expectedPage);
         assertThat(result.getWritePosts().getContent()).hasSize(1);
 
-        verify(postQueryRepository).findPostsByMemberId(memberId, pageable);
+        verify(postQueryRepository).findPosts(eq(PostQueryType.MEMBER_POSTS), any(BooleanExpression.class), eq(pageable));
     }
 
     @Test
@@ -349,7 +350,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(likedPost), pageable, 1);
 
         Page<PostSimpleDetail> emptyWritePage = Page.empty();
-        given(postQueryRepository.findPostsByMemberId(memberId, pageable)).willReturn(emptyWritePage);
+        given(postQueryRepository.findPosts(eq(PostQueryType.MEMBER_POSTS), any(BooleanExpression.class), eq(pageable))).willReturn(emptyWritePage);
         given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
 
         // When

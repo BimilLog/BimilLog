@@ -162,7 +162,10 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자별 게시글 조회
-        Page<PostSimpleDetail> result = postQueryRepository.findPostsByMemberId(memberId, pageable);
+        Page<PostSimpleDetail> result = postQueryRepository.findPosts(
+                PostQueryType.MEMBER_POSTS,
+                PostQueryType.MEMBER_POSTS.getMemberConditionFn().apply(memberId),
+                pageable);
 
         // Then: 해당 사용자의 게시글만 조회됨
         assertThat(result).isNotNull();
