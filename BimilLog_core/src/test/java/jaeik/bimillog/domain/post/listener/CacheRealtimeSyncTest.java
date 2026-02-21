@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +34,7 @@ class CacheRealtimeSyncTest {
     private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Mock
-    private RedisPostListDeleteAdapter redisPostListDeleteAdapter;
+    private RedisPostListUpdateAdapter redisPostListUpdateAdapter;
 
     @Mock
     private RedisPostViewAdapter redisPostViewAdapter;
@@ -48,7 +48,7 @@ class CacheRealtimeSyncTest {
     void setUp() {
         listener = new CacheRealtimeSync(
                 redisPostRealTimeAdapter,
-                redisPostListDeleteAdapter,
+                redisPostListUpdateAdapter,
                 redisPostViewAdapter,
                 postRepository
         );

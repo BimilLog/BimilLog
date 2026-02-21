@@ -7,6 +7,7 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
@@ -40,6 +41,9 @@ class PostAdminServiceTest extends BaseUnitTest {
     private PostRepository postRepository;
 
     @Mock
+    private RedisPostListUpdateAdapter redisPostListUpdateAdapter;
+
+    @Mock
     private RedisPostListDeleteAdapter redisPostListDeleteAdapter;
 
     @InjectMocks
@@ -66,7 +70,7 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        verify(redisPostListDeleteAdapter).addNewPost(eq(RedisKey.POST_NOTICE_JSON_KEY), any(PostSimpleDetail.class), anyInt());
+        verify(redisPostListUpdateAdapter).addPostToList(eq(RedisKey.POST_NOTICE_JSON_KEY), any(PostSimpleDetail.class), anyInt());
     }
 
     @Test
@@ -83,7 +87,7 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postRepository).findById(postId);
-        verify(redisPostListDeleteAdapter, never()).removePost(eq(RedisKey.POST_NOTICE_JSON_KEY), eq(postId));
+        verify(redisPostListDeleteAdapter, never()).removePost(eq(postId));
     }
 
     @Test
@@ -108,6 +112,6 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Then
         verify(postRepository).findById(postId);
         // JSON LIST에서 제거
-        verify(redisPostListDeleteAdapter).removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
+        verify(redisPostListDeleteAdapter).removePost(postId);
     }
 }

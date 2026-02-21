@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.scheduler;
 import com.querydsl.core.types.dsl.NumberPath;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ class PostCacheViewSchedulerTest {
     private RedisPostViewAdapter redisPostViewAdapter;
 
     @Mock
-    private RedisPostListDeleteAdapter redisPostListDeleteAdapter;
+    private RedisPostListUpdateAdapter redisPostListUpdateAdapter;
 
     @InjectMocks
     private PostCacheViewScheduler scheduler;
@@ -70,8 +70,8 @@ class PostCacheViewSchedulerTest {
         // Then - DB에 벌크 업데이트
         verify(postQueryRepository).bulkIncrementCount(eq(viewCounts), any(NumberPath.class));
         // JSON LIST 전체에 카운터 증분 (postId별로 incrementCounterInAllLists 호출)
-        verify(redisPostListDeleteAdapter).incrementCounterInAllLists(eq(1L), eq("viewCount"), eq(5L));
-        verify(redisPostListDeleteAdapter).incrementCounterInAllLists(eq(2L), eq("viewCount"), eq(3L));
+        verify(redisPostListUpdateAdapter).incrementCounterInAllLists(eq(1L), eq("viewCount"), eq(5L));
+        verify(redisPostListUpdateAdapter).incrementCounterInAllLists(eq(2L), eq("viewCount"), eq(3L));
     }
 
     @Test

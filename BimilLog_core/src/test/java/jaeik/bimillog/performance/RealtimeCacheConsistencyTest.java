@@ -60,7 +60,7 @@ class RealtimeCacheConsistencyTest {
 
     private CircuitBreaker circuitBreaker;
 
-    private static final int POST_COUNT = 15;
+    private static final int POST_COUNT = 1000;
     private static final int TOTAL_ROUNDS = 200;
     private static final int TOGGLE_INTERVAL = 20;
     private static final int COMPARE_OFFSET = TOGGLE_INTERVAL / 2; // 전환 사이 중간 지점에서 비교

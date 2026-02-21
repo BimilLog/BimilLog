@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -46,7 +46,7 @@ class RealtimePostPopularServiceTest {
     private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Mock
-    private RedisPostListDeleteAdapter redisPostListDeleteAdapter;
+    private RedisPostListQueryAdapter redisPostListQueryAdapter;
 
     @Mock
     private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
@@ -74,7 +74,7 @@ class RealtimePostPopularServiceTest {
 
         // Then
         assertThat(result.getContent()).isEmpty();
-        verify(redisPostListDeleteAdapter, never()).getAll(any());
+        verify(redisPostListQueryAdapter, never()).getAll(any());
     }
 
     @Test
@@ -89,7 +89,7 @@ class RealtimePostPopularServiceTest {
         );
 
         given(redisPostRealTimeAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostListDeleteAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
+        given(redisPostListQueryAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
         given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(posts, pageable, 2));
 
         // When
@@ -112,7 +112,7 @@ class RealtimePostPopularServiceTest {
         );
 
         given(redisPostRealTimeAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostListDeleteAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
+        given(redisPostListQueryAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
         given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(posts, pageable, 2));
 
         // When
@@ -132,7 +132,7 @@ class RealtimePostPopularServiceTest {
         List<PostSimpleDetail> emptyPosts = List.of();
 
         given(redisPostRealTimeAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostListDeleteAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(emptyPosts);
+        given(redisPostListQueryAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(emptyPosts);
         given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(emptyPosts, pageable, 0));
 
         // When

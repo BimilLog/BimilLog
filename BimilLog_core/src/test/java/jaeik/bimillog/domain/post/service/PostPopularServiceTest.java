@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListQueryAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -45,7 +45,7 @@ class PostPopularServiceTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private RedisPostListDeleteAdapter redisPostListDeleteAdapter;
+    private RedisPostListQueryAdapter redisPostListQueryAdapter;
 
     @Mock
     private PostUtil postUtil;
@@ -56,7 +56,7 @@ class PostPopularServiceTest {
     void setUp() {
         postPopularService = new PostPopularService(
                 postQueryRepository,
-                redisPostListDeleteAdapter,
+                redisPostListQueryAdapter,
                 postUtil
         );
     }
@@ -72,7 +72,7 @@ class PostPopularServiceTest {
                 PostTestDataBuilder.createPostSearchResult(2L, titlePrefix + " 2")
         );
 
-        given(redisPostListDeleteAdapter.getAll(jsonKey)).willReturn(posts);
+        given(redisPostListQueryAdapter.getAll(jsonKey)).willReturn(posts);
         given(postUtil.paginate(any(), eq(pageable)))
                 .willReturn(new PageImpl<>(posts, pageable, 2));
 
@@ -82,7 +82,7 @@ class PostPopularServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getTotalElements()).isEqualTo(2);
-        verify(redisPostListDeleteAdapter).getAll(jsonKey);
+        verify(redisPostListQueryAdapter).getAll(jsonKey);
     }
 
     @ParameterizedTest(name = "{1} - JSON LIST 비어있음 → Page.empty() 반환")
@@ -92,7 +92,7 @@ class PostPopularServiceTest {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
 
-        given(redisPostListDeleteAdapter.getAll(jsonKey)).willReturn(Collections.emptyList());
+        given(redisPostListQueryAdapter.getAll(jsonKey)).willReturn(Collections.emptyList());
 
         // When: 캐시가 비어있으면 getCachedPosts()에서 Page.empty()를 바로 반환 (DB 폴백 아님)
         Page<PostSimpleDetail> result = postPopularService.getPopularPosts(pageable, jsonKey, type);
@@ -111,7 +111,7 @@ class PostPopularServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, expectedTitle);
 
-        given(redisPostListDeleteAdapter.getAll(jsonKey))
+        given(redisPostListQueryAdapter.getAll(jsonKey))
                 .willThrow(new RuntimeException("Redis connection failed"));
         given(postQueryRepository.selectPostSimpleDetails(any(), eq(pageable), any()))
                 .willReturn(new PageImpl<>(List.of(post), pageable, 1));
