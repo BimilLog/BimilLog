@@ -20,8 +20,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
@@ -83,7 +83,7 @@ class PostCacheSchedulerTest {
         PostSimpleDetail post2 = createPostSimpleDetail(2L, "주간인기글2", 2L);
         List<PostSimpleDetail> posts = List.of(post1, post2);
 
-        given(postQueryRepository.findPosts(eq(PostQueryType.WEEKLY_SCHEDULER), any(BooleanExpression.class), eq(Pageable.unpaged())))
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit())), any()))
                 .willReturn(new PageImpl<>(posts));
 
         // When
@@ -116,7 +116,7 @@ class PostCacheSchedulerTest {
         PostSimpleDetail userPost = createPostSimpleDetail(2L, "회원글", 2L);
         List<PostSimpleDetail> posts = List.of(anonymousPost, userPost);
 
-        given(postQueryRepository.findPosts(eq(PostQueryType.WEEKLY_SCHEDULER), any(BooleanExpression.class), eq(Pageable.unpaged())))
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit())), any()))
                 .willReturn(new PageImpl<>(posts));
 
         // When
@@ -142,7 +142,7 @@ class PostCacheSchedulerTest {
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
         List<PostSimpleDetail> posts = List.of(legendPost);
 
-        given(postQueryRepository.findPosts(eq(PostQueryType.LEGEND_SCHEDULER), any(BooleanExpression.class), eq(Pageable.unpaged())))
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit())), any()))
                 .willReturn(new PageImpl<>(posts));
 
         // When
@@ -168,14 +168,14 @@ class PostCacheSchedulerTest {
     @DisplayName("전설의 게시글 업데이트 - 게시글 목록 비어있는 경우")
     void shouldUpdateLegendaryPosts_WhenPostListIsEmpty() {
         // Given
-        given(postQueryRepository.findPosts(eq(PostQueryType.LEGEND_SCHEDULER), any(BooleanExpression.class), eq(Pageable.unpaged())))
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit())), any()))
                 .willReturn(new PageImpl<>(Collections.emptyList()));
 
         // When
         postCacheScheduler.updateLegendaryPosts();
 
         // Then
-        verify(postQueryRepository).findPosts(eq(PostQueryType.LEGEND_SCHEDULER), any(BooleanExpression.class), eq(Pageable.unpaged()));
+        verify(postQueryRepository).selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit())), any());
 
         // 게시글이 없으면 플래그 업데이트, 캐시, 이벤트 발행 안함
         verify(postRepository, never()).clearLegendFlag();
@@ -189,7 +189,7 @@ class PostCacheSchedulerTest {
         // Given - 대량의 게시글 생성 (100개)
         List<PostSimpleDetail> largePosts = createLargePostList(100);
 
-        given(postQueryRepository.findPosts(eq(PostQueryType.WEEKLY_SCHEDULER), any(BooleanExpression.class), eq(Pageable.unpaged())))
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit())), any()))
                 .willReturn(new PageImpl<>(largePosts));
 
         // When

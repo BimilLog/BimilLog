@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -156,26 +155,11 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>게시글 목록 조회</h3>
-     * <p>호출 측에서 조건을 직접 제공하고, PostQueryType에서 정렬·limit을 가져옵니다.</p>
-     * <p>hasLimit인 경우 pageable을 무시하고 type의 limit으로 페이지를 구성합니다.</p>
-     *
-     * @param type      조회 타입 (정렬·limit 포함)
-     * @param condition 조건 (ENUM의 conditionFn/memberConditionFn/idsConditionFn 등에서 생성)
-     * @param pageable  페이지 정보
-     * @return 게시글 목록 페이지
+     * <h3>PostSimpleDetail 공통 조회 (BooleanExpression 기반)</h3>
      */
     @Transactional(readOnly = true)
     @SuppressWarnings("unchecked")
-    public Page<PostSimpleDetail> findPosts(PostQueryType type, BooleanExpression condition, Pageable pageable) {
-        Pageable effectivePageable = type.hasLimit() ? PageRequest.of(0, type.getLimit()) : pageable;
-        return selectPostSimpleDetails(condition, effectivePageable, type.getOrders());
-    }
-
-    /**
-     * <h3>PostSimpleDetail 공통 조회 (BooleanExpression 기반)</h3>
-     */
-    private Page<PostSimpleDetail> selectPostSimpleDetails(BooleanExpression condition, Pageable pageable, OrderSpecifier<?>... orders) {
+    public Page<PostSimpleDetail> selectPostSimpleDetails(BooleanExpression condition, Pageable pageable, OrderSpecifier<?>... orders) {
         List<PostSimpleDetail> content = jpaQueryFactory
                 .select(new QPostSimpleDetail(
                         post.id,

@@ -81,7 +81,7 @@ public class RealtimePostCacheService {
         }
 
         log.warn("[REALTIME] Redis 예외, 서킷 닫힘 DB 폴백: {}", t.getMessage());
-        return postQueryRepository.findPosts(PostQueryType.REALTIME_FALLBACK, PostQueryType.REALTIME_FALLBACK.condition(), pageable);
+        return postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), pageable, PostQueryType.REALTIME_FALLBACK.getOrders());
     }
 
     /**
@@ -95,13 +95,13 @@ public class RealtimePostCacheService {
             if (postIds.isEmpty()) {
                 return new PageImpl<>(List.of(), pageable, 0);
             }
-            return postQueryRepository.findPosts(
-                    PostQueryType.CAFFEINE_REALTIME,
+            return postQueryRepository.selectPostSimpleDetails(
                     PostQueryType.CAFFEINE_REALTIME.getIdsConditionFn().apply(postIds),
-                    pageable);
+                    pageable,
+                    PostQueryType.CAFFEINE_REALTIME.getOrders());
         } catch (Exception e) {
             log.warn("[CAFFEINE_FALLBACK] Caffeine 폴백 실패, DB 직접 조회: {}", e.getMessage());
-            return postQueryRepository.findPosts(PostQueryType.REALTIME_FALLBACK, PostQueryType.REALTIME_FALLBACK.condition(), pageable);
+            return postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), pageable, PostQueryType.REALTIME_FALLBACK.getOrders());
         }
     }
 }

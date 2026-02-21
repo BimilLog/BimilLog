@@ -74,7 +74,7 @@ public class PostSearchRepository {
      */
     public Page<PostSimpleDetail> findByPrefixMatch(PostQueryType type, String query, Pageable pageable, Long viewerId) {
         BooleanExpression condition = type.getPrefixConditionFn().apply(query);
-        return postQueryRepository.findPosts(type, condition, pageable);
+        return postQueryRepository.selectPostSimpleDetails(condition, pageable, type.getOrders());
     }
 
     /**
@@ -91,7 +91,7 @@ public class PostSearchRepository {
      */
     public Page<PostSimpleDetail> findByPartialMatch(PostQueryType type, String query, Pageable pageable, Long viewerId) {
         BooleanExpression condition = type.getPartialConditionFn().apply(query);
-        return postQueryRepository.findPosts(type, condition, pageable);
+        return postQueryRepository.selectPostSimpleDetails(condition, pageable, type.getOrders());
     }
 
 

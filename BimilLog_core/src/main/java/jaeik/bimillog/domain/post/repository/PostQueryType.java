@@ -90,7 +90,7 @@ public enum PostQueryType {
 
     CAFFEINE_REALTIME(
             null, null, null, null,
-            ids -> QPost.post.id.in(ids),
+            QPost.post.id::in,
             new OrderSpecifier[]{QPost.post.id.desc()}, -1);
 
     private final Supplier<BooleanExpression> conditionFn;

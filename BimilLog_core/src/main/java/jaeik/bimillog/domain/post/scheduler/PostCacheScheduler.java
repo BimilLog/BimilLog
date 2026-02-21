@@ -17,6 +17,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,7 +50,7 @@ public class PostCacheScheduler {
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     @Transactional
     public void updateWeeklyPopularPosts() {
-        refreshCache("WEEKLY", () -> postQueryRepository.findPosts(PostQueryType.WEEKLY_SCHEDULER, PostQueryType.WEEKLY_SCHEDULER.condition(), Pageable.unpaged()).getContent(),
+        refreshCache("WEEKLY", () -> postQueryRepository.selectPostSimpleDetails(PostQueryType.WEEKLY_SCHEDULER.condition(), PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit()), PostQueryType.WEEKLY_SCHEDULER.getOrders()).getContent(),
                 RedisKey.POST_WEEKLY_JSON_KEY,
                 postRepository::clearWeeklyFlag, postRepository::setWeeklyFlag,
                 "주간 인기 게시글로 선정되었어요!", NotificationType.POST_FEATURED_WEEKLY);
@@ -59,7 +60,7 @@ public class PostCacheScheduler {
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     @Transactional
     public void updateLegendaryPosts() {
-        refreshCache("LEGEND", () -> postQueryRepository.findPosts(PostQueryType.LEGEND_SCHEDULER, PostQueryType.LEGEND_SCHEDULER.condition(), Pageable.unpaged()).getContent(),
+        refreshCache("LEGEND", () -> postQueryRepository.selectPostSimpleDetails(PostQueryType.LEGEND_SCHEDULER.condition(), PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit()), PostQueryType.LEGEND_SCHEDULER.getOrders()).getContent(),
                 RedisKey.POST_LEGEND_JSON_KEY,
                 postRepository::clearLegendFlag, postRepository::setLegendFlag,
                 "명예의 전당에 등극했어요!", NotificationType.POST_FEATURED_LEGEND);

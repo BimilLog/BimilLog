@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
@@ -148,7 +149,7 @@ class RealtimeDbFallbackConsistencyTest {
                 entityManager.clear();
 
                 List<Long> redisTop = getRedisTop(TOP_N);
-                Page<PostSimpleDetail> dbPage = postQueryRepository.findRecentPopularPosts(PageRequest.of(0, TOP_N));
+                Page<PostSimpleDetail> dbPage = postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), PageRequest.of(0, TOP_N), PostQueryType.REALTIME_FALLBACK.getOrders());
                 List<Long> dbTop = dbPage.getContent().stream()
                         .map(PostSimpleDetail::getId)
                         .toList();

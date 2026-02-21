@@ -113,7 +113,7 @@ class PostPopularServiceTest {
 
         given(redisPostJsonListAdapter.getAll(jsonKey))
                 .willThrow(new RuntimeException("Redis connection failed"));
-        given(postQueryRepository.findPosts(any(PostQueryType.class), any(Pageable.class)))
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(pageable), any()))
                 .willReturn(new PageImpl<>(List.of(post), pageable, 1));
 
         // When
@@ -122,7 +122,7 @@ class PostPopularServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo(expectedTitle);
-        verify(postQueryRepository).findPosts(any(PostQueryType.class), any(Pageable.class));
+        verify(postQueryRepository).selectPostSimpleDetails(any(), eq(pageable), any());
     }
 
     static Stream<Arguments> provideCacheHitScenarios() {

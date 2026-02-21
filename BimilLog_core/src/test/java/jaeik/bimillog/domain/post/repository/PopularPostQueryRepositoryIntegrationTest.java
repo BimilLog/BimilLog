@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -145,7 +144,7 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> popularPosts = postQueryRepository.findPosts(PostQueryType.WEEKLY_SCHEDULER, Pageable.unpaged()).getContent();
+        List<PostSimpleDetail> popularPosts = postQueryRepository.selectPostSimpleDetails(PostQueryType.WEEKLY_SCHEDULER.condition(), PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit()), PostQueryType.WEEKLY_SCHEDULER.getOrders()).getContent();
 
         // Then
         assertThat(popularPosts).hasSize(2);
@@ -173,7 +172,7 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> legendaryPosts = postQueryRepository.findPosts(PostQueryType.LEGEND_SCHEDULER, Pageable.unpaged()).getContent();
+        List<PostSimpleDetail> legendaryPosts = postQueryRepository.selectPostSimpleDetails(PostQueryType.LEGEND_SCHEDULER.condition(), PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit()), PostQueryType.LEGEND_SCHEDULER.getOrders()).getContent();
 
         // Then
         assertThat(legendaryPosts).hasSize(2);
@@ -203,7 +202,7 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        Page<PostSimpleDetail> result = postQueryRepository.findRecentPopularPosts(PageRequest.of(0, 5));
+        Page<PostSimpleDetail> result = postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), PageRequest.of(0, 5), PostQueryType.REALTIME_FALLBACK.getOrders());
 
         // Then
         assertThat(result.getContent()).hasSize(3);
