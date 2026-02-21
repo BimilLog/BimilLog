@@ -6,12 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <h2>실시간 인기글 폴백 저장소</h2>
  * <p>Redis 장애 시 실시간 인기글 점수를 Caffeine 캐시에 임시 저장합니다.</p>
  * <p>서킷브레이커 OPEN 상태에서 fallbackMethod로 호출됩니다.</p>
- * <p>실시간 특성상 Redis 복구 시 이전 데이터 복구 없이 새로 시작합니다.</p>
+ * <p>Redis 복구(CLOSED 전환) 시 누적 점수와 삭제 로그를 Redis에 반영한 뒤 초기화합니다.</p>
  *
  * @author Jaeik
  * @version 2.6.0
@@ -26,6 +27,9 @@ public class RealtimeScoreFallbackStore {
     private final Cache<Long, Double> scoreCache = Caffeine.newBuilder()
             .maximumSize(MAX_SIZE)
             .build();
+
+    // OPEN 구간 중 삭제된 게시글 ID 추적 (CLOSED 전환 시 Redis에서도 제거)
+    private final Set<Long> deletedPostIds = ConcurrentHashMap.newKeySet();
 
     /**
      * <h3>점수 증가</h3>
@@ -101,7 +105,28 @@ public class RealtimeScoreFallbackStore {
      */
     public void removePost(Long postId) {
         scoreCache.invalidate(postId);
-        log.debug("[FALLBACK_STORE] 게시글 제거: postId={}", postId);
+        deletedPostIds.add(postId);
+        log.debug("[FALLBACK_STORE] 게시글 제거 및 삭제 로그 기록: postId={}", postId);
+    }
+
+    /**
+     * <h3>전체 점수 스냅샷 조회</h3>
+     * <p>CLOSED 전환 시 Redis 합산을 위해 현재 저장된 모든 점수를 반환합니다.</p>
+     *
+     * @return postId → score 불변 복사본
+     */
+    public Map<Long, Double> getAllScores() {
+        return Map.copyOf(scoreCache.asMap());
+    }
+
+    /**
+     * <h3>삭제 로그 조회</h3>
+     * <p>CLOSED 전환 시 Redis에서 제거할 게시글 ID 목록을 반환합니다.</p>
+     *
+     * @return OPEN 구간 중 삭제된 게시글 ID 불변 복사본
+     */
+    public Set<Long> getDeletedPostIds() {
+        return Set.copyOf(deletedPostIds);
     }
 
     /**
@@ -110,6 +135,7 @@ public class RealtimeScoreFallbackStore {
      */
     public void clear() {
         scoreCache.invalidateAll();
+        deletedPostIds.clear();
         log.info("[FALLBACK_STORE] 저장소 초기화");
     }
 }

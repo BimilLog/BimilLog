@@ -6,6 +6,8 @@ import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
@@ -30,6 +32,7 @@ public class RedisPostRealTimeAdapter {
     private static final String REALTIME_SCORE_KEY = RedisKey.REALTIME_POST_SCORE_KEY;
     public static final double REALTIME_POST_SCORE_DECAY_RATE = 0.97;
     public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
+    private static final int SYNC_BATCH_SIZE = 500;
 
     /**
      * <h3>실시간 인기글 조회</h3>
@@ -128,5 +131,51 @@ public class RedisPostRealTimeAdapter {
     private void removePostIdFallback(Long postId, Throwable t) {
         log.warn("[CIRCUIT_FALLBACK] Redis 실패, 폴백 저장소에서 제거: postId={}, error={}", postId, t.getMessage());
         fallbackStore.removePost(postId);
+    }
+
+    /**
+     * <h3>Caffeine 폴백 데이터를 Redis에 동기화</h3>
+     * <p>서킷 CLOSED 전환 시 호출됩니다.</p>
+     * <p>OPEN 구간에 누락된 점수를 Redis에 합산하고, 삭제된 게시글을 Redis에서 제거합니다.</p>
+     * <p>서킷브레이커 없이 직접 호출하며, 실패 시 로그만 남기고 계속 진행합니다(best-effort).</p>
+     *
+     * @param scores     OPEN 구간에 Caffeine에 쌓인 postId → score 맵
+     * @param deletedIds OPEN 구간에 삭제된 게시글 ID 목록
+     */
+    public void syncFallbackToRedis(Map<Long, Double> scores, Set<Long> deletedIds) {
+        try {
+            // 1. 삭제 배치 파이프라인 (OPEN 구간 중 삭제된 게시글 Redis에서 제거)
+            List<Long> deletedList = new ArrayList<>(deletedIds);
+            for (int i = 0; i < deletedList.size(); i += SYNC_BATCH_SIZE) {
+                List<Long> batch = deletedList.subList(i, Math.min(i + SYNC_BATCH_SIZE, deletedList.size()));
+                stringRedisTemplate.executePipelined((RedisCallback<Object>) conn -> {
+                    StringRedisConnection c = (StringRedisConnection) conn;
+                    for (Long postId : batch) {
+                        c.zRem(REALTIME_SCORE_KEY, String.valueOf(postId));
+                    }
+                    return null;
+                });
+            }
+
+            // 2. 점수 합산 배치 파이프라인 (OPEN 구간 누락 이벤트 Redis에 반영)
+            List<Map.Entry<Long, Double>> scoreList = new ArrayList<>(scores.entrySet());
+            for (int i = 0; i < scoreList.size(); i += SYNC_BATCH_SIZE) {
+                List<Map.Entry<Long, Double>> batch = scoreList.subList(i, Math.min(i + SYNC_BATCH_SIZE, scoreList.size()));
+                stringRedisTemplate.executePipelined((RedisCallback<Object>) conn -> {
+                    StringRedisConnection c = (StringRedisConnection) conn;
+                    for (Map.Entry<Long, Double> entry : batch) {
+                        c.zIncrBy(REALTIME_SCORE_KEY, entry.getValue(), String.valueOf(entry.getKey()));
+                    }
+                    return null;
+                });
+            }
+
+            int deleteBatches = (deletedList.size() + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
+            int scoreBatches  = (scoreList.size()   + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
+            log.info("[SYNC] Caffeine → Redis 파이프라인 동기화 완료: 삭제={}건({}배치), 점수합산={}건({}배치)",
+                    deletedIds.size(), deleteBatches, scores.size(), scoreBatches);
+        } catch (Exception e) {
+            log.warn("[SYNC] Caffeine → Redis 동기화 실패 (무시하고 초기화 진행): {}", e.getMessage());
+        }
     }
 }
