@@ -21,6 +21,7 @@ import java.util.function.Supplier;
  *   <li>MEMBER_POSTS : 회원 작성 게시글 조회 (memberConditionFn으로 memberId 조건 제공)</li>
  *   <li>TITLE / WRITER / TITLE_CONTENT : 검색 타입 (prefixConditionFn / partialConditionFn으로 쿼리 조건 제공)</li>
  *   <li>CAFFEINE_REALTIME : 카페인 폴백용 (idsConditionFn으로 postId 목록 조건 제공)</li>
+ *   <li>LIKED_POSTS : 회원 추천 게시글 조회 (idsConditionFn으로 postId 목록 조건 제공)</li>
  * </ul>
  */
 @Getter
@@ -89,6 +90,11 @@ public enum PostQueryType {
             new OrderSpecifier[]{QPost.post.id.desc()}, -1),
 
     CAFFEINE_REALTIME(
+            null, null, null, null,
+            QPost.post.id::in,
+            new OrderSpecifier[]{QPost.post.id.desc()}, -1),
+
+    LIKED_POSTS(
             null, null, null, null,
             QPost.post.id::in,
             new OrderSpecifier[]{QPost.post.id.desc()}, -1);

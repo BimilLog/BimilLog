@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.entity;
 
 import com.querydsl.core.annotations.QueryProjection;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,6 +46,24 @@ public class PostDetail implements Serializable {
      * <p>QueryDSL @QueryProjection을 위한 전용 생성자입니다.</p>
      * <p>PostQueryAdapter에서 게시글 상세 조회 시 QueryDSL을 통해 호출됩니다.</p>
      */
+    public static PostDetail from(Post post, boolean isLiked) {
+        return PostDetail.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .viewCount(post.getViews())
+                .likeCount(post.getLikeCount())
+                .createdAt(post.getCreatedAt())
+                .memberId(post.getMember() != null ? post.getMember().getId() : null)
+                .memberName(post.getMemberName())
+                .commentCount(post.getCommentCount())
+                .isLiked(isLiked)
+                .isWeekly(post.isWeekly())
+                .isLegend(post.isLegend())
+                .isNotice(post.isNotice())
+                .build();
+    }
+
     @Builder
     @QueryProjection
     public PostDetail(Long id, String title, String content, Integer viewCount,

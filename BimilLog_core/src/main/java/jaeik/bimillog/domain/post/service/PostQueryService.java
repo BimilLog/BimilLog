@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
     private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisPostJsonListAdapter redisPostJsonListAdapter;
@@ -108,20 +109,25 @@ public class PostQueryService {
      * @param viewerKey 조회자 식별 키 (중복 조회 방지용)
      * @return PostDetail 게시글 상세 정보 (좋아요 수, 댓글 수, 사용자 좋아요 여부 포함)
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public PostDetail getPost(Long postId, Long memberId, String viewerKey) {
-        // 1. DB 조회
-        PostDetail result = postQueryRepository.findPostDetail(postId, memberId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        // 1. 게시글 조회
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        // 2. 비동기로 실시간 인기글 점수, 조회 수 증가
+        // 2. 추천 여부 조회 (회원만)
+        boolean isLiked = memberId != null && postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
+        PostDetail result = PostDetail.from(post, isLiked);
+
+        // 3. 비동기로 실시간 인기글 점수, 조회 수 증가
         realtimePostSync.postDetailCheck(postId, viewerKey);
 
-        // 3. 비회원이면 바로 반환
+        // 4. 비회원이면 바로 반환
         if (memberId == null) {
             return result;
         }
 
-        // 4. 회원 블랙리스트 체크
+        // 5. 회원 블랙리스트 체크
         eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, result.getMemberId()));
         return result;
     }

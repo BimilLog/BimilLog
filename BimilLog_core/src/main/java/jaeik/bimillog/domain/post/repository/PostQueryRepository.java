@@ -3,12 +3,10 @@ package jaeik.bimillog.domain.post.repository;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.entity.jpa.QPostLike;
 import jaeik.bimillog.domain.post.service.PostQueryService;
@@ -22,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * <h2>게시글 조회 어댑터</h2>
@@ -113,45 +110,6 @@ public class PostQueryRepository {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
-    }
-
-    /**
-     * <h3>게시글 상세 조회</h3>
-     * <p>{@link PostQueryService}에서 게시글 상세 페이지 조회 시 호출됩니다.</p>
-     *
-     * @param postId   조회할 게시글 ID
-     * @param memberId 현재 사용자 ID (좋아요 여부 확인용, null 가능)
-     * @return 게시글 상세 정보 프로젝션 (게시글이 없으면 empty)
-     */
-    @Transactional(readOnly = true)
-    public Optional<PostDetail> findPostDetail(Long postId, Long memberId) {
-        QPostLike userPostLike = new QPostLike("userPostLike");
-
-        PostDetail result = jpaQueryFactory.select(new QPostDetail(
-                        post.id,
-                        post.title,
-                        post.content,
-                        post.views,
-                        post.likeCount,
-                        post.createdAt,
-                        post.member.id,
-                        post.memberName,
-                        post.commentCount,
-                        new CaseBuilder()
-                                .when(userPostLike.id.isNotNull())
-                                .then(true)
-                                .otherwise(false),
-                        post.isWeekly, post.isLegend, post.isNotice
-                ))
-                .from(post)
-                .leftJoin(userPostLike).on(
-                        userPostLike.post.id.eq(post.id)
-                                .and(memberId != null ? userPostLike.member.id.eq(memberId) : Expressions.FALSE)
-                )
-                .where(post.id.eq(postId))
-                .fetchOne();
-
-        return Optional.ofNullable(result);
     }
 
     /**
