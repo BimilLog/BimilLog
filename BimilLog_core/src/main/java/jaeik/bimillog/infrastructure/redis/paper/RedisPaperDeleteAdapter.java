@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import static jaeik.bimillog.infrastructure.redis.paper.RedisPaperKeys.REALTIME_PAPER_SCORE_KEY;
+import static jaeik.bimillog.infrastructure.redis.RedisKey.REALTIME_PAPER_SCORE_KEY;
 
 /**
  * <h2>롤링페이퍼 캐시 삭제 어댑터</h2>

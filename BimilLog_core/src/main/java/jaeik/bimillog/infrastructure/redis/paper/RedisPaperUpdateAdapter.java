@@ -5,11 +5,12 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static jaeik.bimillog.infrastructure.redis.paper.RedisPaperKeys.*;
+import static jaeik.bimillog.infrastructure.redis.RedisKey.*;
 
 /**
  * <h2>롤링페이퍼 캐시 갱신 어댑터</h2>
@@ -50,10 +51,22 @@ public class RedisPaperUpdateAdapter {
      * <p>PaperScheduledService 스케줄러에서 주기적으로 호출됩니다.</p>
      */
     public void applyRealtimePopularPaperScoreDecay() {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptText(
+                "local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES') " +
+                "for i = 1, #members, 2 do " +
+                "    local member = members[i] " +
+                "    local score = tonumber(members[i + 1]) " +
+                "    local newScore = score * tonumber(ARGV[1]) " +
+                "    redis.call('ZADD', KEYS[1], newScore, member) " +
+                "end " +
+                "return redis.call('ZCARD', KEYS[1])"
+        );
+        script.setResultType(Long.class);
         try {
             // 1. 모든 항목의 점수에 0.97 곱하기 (Lua 스크립트 사용)
             redisTemplate.execute(
-                    SCORE_DECAY_SCRIPT,
+                    script,
                     List.of(REALTIME_PAPER_SCORE_KEY),
                     REALTIME_PAPER_SCORE_DECAY_RATE
             );

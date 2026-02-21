@@ -28,14 +28,6 @@ public class RedisPostCounterAdapter {
     private static final Duration VIEW_TTL = Duration.ofSeconds(RedisKey.VIEW_TTL_SECONDS);
     private static final String VIEW_COUNTS_KEY = RedisKey.VIEW_COUNTS_KEY;
 
-    private static final String GET_AND_CLEAR_VIEW_COUNTS_SCRIPT =
-            "if redis.call('EXISTS', KEYS[1]) == 0 then " +
-            "    return nil " +
-            "end " +
-            "local entries = redis.call('HGETALL', KEYS[1]) " +
-            "redis.call('DEL', KEYS[1]) " +
-            "return entries";
-
     /**
      * <h3>조회 마킹 + 조회수 증가</h3>
      * <p>SET NX EX로 중복 확인과 마킹을 원자적 1커맨드로 처리합니다.</p>
@@ -64,6 +56,13 @@ public class RedisPostCounterAdapter {
      */
     @SuppressWarnings("unchecked")
     public Map<Long, Long> getAndClearViewCounts() {
+        final String GET_AND_CLEAR_VIEW_COUNTS_SCRIPT =
+                "if redis.call('EXISTS', KEYS[1]) == 0 then " +
+                "    return nil " +
+                "end " +
+                "local entries = redis.call('HGETALL', KEYS[1]) " +
+                "redis.call('DEL', KEYS[1]) " +
+                "return entries";
         DefaultRedisScript<List> script = new DefaultRedisScript<>(GET_AND_CLEAR_VIEW_COUNTS_SCRIPT, List.class);
         List<Object> result = stringRedisTemplate.execute(script, List.of(VIEW_COUNTS_KEY));
 

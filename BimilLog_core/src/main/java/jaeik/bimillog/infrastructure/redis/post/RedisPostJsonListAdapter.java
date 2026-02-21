@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -26,6 +27,7 @@ import java.util.List;
  */
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class RedisPostJsonListAdapter {
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
@@ -37,93 +39,6 @@ public class RedisPostJsonListAdapter {
             RedisKey.POST_NOTICE_JSON_KEY,
             RedisKey.POST_REALTIME_JSON_KEY
     );
-
-    public RedisPostJsonListAdapter(StringRedisTemplate stringRedisTemplate) {
-        this.stringRedisTemplate = stringRedisTemplate;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-    }
-
-    /**
-     * Lua #1 — 제목 업데이트: LIST를 순회하여 id 매칭 → 제목 교체 → LSET
-     */
-    private static final String UPDATE_TITLE_SCRIPT =
-            "local items = redis.call('LRANGE', KEYS[1], 0, -1) " +
-            "for i, item in ipairs(items) do " +
-            "    local data = cjson.decode(item) " +
-            "    if tostring(data.id) == ARGV[1] then " +
-            "        data.title = ARGV[2] " +
-            "        redis.call('LSET', KEYS[1], i-1, cjson.encode(data)) " +
-            "        return 1 " +
-            "    end " +
-            "end " +
-            "return 0";
-
-    /**
-     * Lua #2 — 삭제 + 마지막 요소 ID 반환: LIST에서 id 매칭 → LREM → 마지막 요소 id 반환
-     */
-    private static final String REMOVE_POST_SCRIPT =
-            "local items = redis.call('LRANGE', KEYS[1], 0, -1) " +
-            "for i, item in ipairs(items) do " +
-            "    local data = cjson.decode(item) " +
-            "    if tostring(data.id) == ARGV[1] then " +
-            "        redis.call('LREM', KEYS[1], 1, item) " +
-            "        local last = redis.call('LINDEX', KEYS[1], -1) " +
-            "        if last then " +
-            "            local lastData = cjson.decode(last) " +
-            "            return tostring(lastData.id) " +
-            "        end " +
-            "        return nil " +
-            "    end " +
-            "end " +
-            "return nil";
-
-    /**
-     * Lua — 새 글 추가: LLEN ≥ maxSize면 마지막 요소 ID 반환 → LPUSH → LTRIM
-     */
-    private static final String ADD_NEW_POST_SCRIPT =
-            "local maxSize = tonumber(ARGV[2]) " +
-            "local removedId = nil " +
-            "if redis.call('LLEN', KEYS[1]) >= maxSize then " +
-            "    local json = redis.call('LINDEX', KEYS[1], -1) " +
-            "    if json then " +
-            "        removedId = tostring(cjson.decode(json).id) " +
-            "    end " +
-            "end " +
-            "redis.call('LPUSH', KEYS[1], ARGV[1]) " +
-            "redis.call('LTRIM', KEYS[1], 0, maxSize - 1) " +
-            "return removedId";
-
-    /**
-     * Lua — 카운터 증분: LIST 순회 → id 매칭 → 해당 필드 증분 → LSET
-     */
-    private static final String INCREMENT_COUNTER_SCRIPT =
-            "local items = redis.call('LRANGE', KEYS[1], 0, -1) " +
-            "for i, item in ipairs(items) do " +
-            "    local data = cjson.decode(item) " +
-            "    if tostring(data.id) == ARGV[1] then " +
-            "        data[ARGV[2]] = (data[ARGV[2]] or 0) + tonumber(ARGV[3]) " +
-            "        redis.call('LSET', KEYS[1], i-1, cjson.encode(data)) " +
-            "        return 1 " +
-            "    end " +
-            "end " +
-            "return 0";
-
-
-
-    /**
-     * Lua — 전체 교체: DEL → RPUSH(JSON들) → EXPIRE
-     */
-    private static final String REPLACE_ALL_SCRIPT =
-            "redis.call('DEL', KEYS[1]) " +
-            "for i = 1, #ARGV - 1 do " +
-            "    redis.call('RPUSH', KEYS[1], ARGV[i]) " +
-            "end " +
-            "if tonumber(ARGV[#ARGV]) > 0 then " +
-            "    redis.call('EXPIRE', KEYS[1], tonumber(ARGV[#ARGV])) " +
-            "end " +
-            "return redis.call('LLEN', KEYS[1])";
-
 
 
     /**
@@ -148,25 +63,28 @@ public class RedisPostJsonListAdapter {
     }
 
     /**
-     * <h3>전체 교체 (스케줄러용)</h3>
+     * <h3>특정 글의 리스트 전체 교체</h3>
      * <p>Lua 스크립트로 DEL → RPUSH(JSON들) → EXPIRE를 원자적으로 수행</p>
      */
-    public void replaceAll(String key, List<PostSimpleDetail> entries, Duration ttl) {
-        if (entries == null || entries.isEmpty()) {
-            stringRedisTemplate.delete(key);
-            return;
+    public void replaceAll(String key, List<PostSimpleDetail> posts, Duration ttl) {
+        final String REPLACE_ALL_SCRIPT =
+                "redis.call('DEL', KEYS[1]) " +
+                        "for i = 1, #ARGV - 1 do " +
+                        "    redis.call('RPUSH', KEYS[1], ARGV[i]) " +
+                        "end " +
+                        "if tonumber(ARGV[#ARGV]) > 0 then " +
+                        "    redis.call('EXPIRE', KEYS[1], tonumber(ARGV[#ARGV])) " +
+                        "end " +
+                        "return redis.call('LLEN', KEYS[1])";
+
+        String[] args = new String[posts.size() + 1];
+        for (int i = 0; i < posts.size(); i++) {
+            args[i] = toJson(posts.get(i));
         }
 
-        String[] args = new String[entries.size() + 1];
-        for (int i = 0; i < entries.size(); i++) {
-            args[i] = toJson(entries.get(i));
-        }
-        args[entries.size()] = ttl != null ? String.valueOf(ttl.getSeconds()) : "0";
-
+        args[posts.size()] = ttl != null ? String.valueOf(ttl.getSeconds()) : "0";
         DefaultRedisScript<Long> script = new DefaultRedisScript<>(REPLACE_ALL_SCRIPT, Long.class);
         stringRedisTemplate.execute(script, List.of(key), (Object[]) args);
-
-        log.debug("[JSON_LIST] 전체 교체 (key={}): {}개", key, entries.size());
     }
 
     /**
@@ -175,6 +93,18 @@ public class RedisPostJsonListAdapter {
      * <p>LIST가 maxSize 이상이면 잘려나간 글의 ID를 반환합니다.</p>
      */
     public void addNewPost(String key, PostSimpleDetail entry, int maxSize) {
+        final String ADD_NEW_POST_SCRIPT =
+                "local maxSize = tonumber(ARGV[2]) " +
+                "local removedId = nil " +
+                "if redis.call('LLEN', KEYS[1]) >= maxSize then " +
+                "    local json = redis.call('LINDEX', KEYS[1], -1) " +
+                "    if json then " +
+                "        removedId = tostring(cjson.decode(json).id) " +
+                "    end " +
+                "end " +
+                "redis.call('LPUSH', KEYS[1], ARGV[1]) " +
+                "redis.call('LTRIM', KEYS[1], 0, maxSize - 1) " +
+                "return removedId";
         String json = toJson(entry);
         DefaultRedisScript<String> script = new DefaultRedisScript<>(ADD_NEW_POST_SCRIPT, String.class);
         String removedId = stringRedisTemplate.execute(script, List.of(key), json, String.valueOf(maxSize));
@@ -187,6 +117,17 @@ public class RedisPostJsonListAdapter {
      * <p>Lua #1: LIST를 순회하여 id 매칭 후 제목 교체</p>
      */
     public void updateTitle(String key, Long postId, String title) {
+        final String UPDATE_TITLE_SCRIPT =
+                "local items = redis.call('LRANGE', KEYS[1], 0, -1) " +
+                "for i, item in ipairs(items) do " +
+                "    local data = cjson.decode(item) " +
+                "    if tostring(data.id) == ARGV[1] then " +
+                "        data.title = ARGV[2] " +
+                "        redis.call('LSET', KEYS[1], i-1, cjson.encode(data)) " +
+                "        return 1 " +
+                "    end " +
+                "end " +
+                "return 0";
         DefaultRedisScript<Long> script = new DefaultRedisScript<>(UPDATE_TITLE_SCRIPT, Long.class);
         stringRedisTemplate.execute(script, List.of(key), postId.toString(), title);
 
@@ -200,6 +141,21 @@ public class RedisPostJsonListAdapter {
      * @return 삭제 후 마지막 요소의 postId (보충이 필요한 경우), 없으면 null
      */
     public Long removePost(String key, Long postId) {
+        final String REMOVE_POST_SCRIPT =
+                "local items = redis.call('LRANGE', KEYS[1], 0, -1) " +
+                "for i, item in ipairs(items) do " +
+                "    local data = cjson.decode(item) " +
+                "    if tostring(data.id) == ARGV[1] then " +
+                "        redis.call('LREM', KEYS[1], 1, item) " +
+                "        local last = redis.call('LINDEX', KEYS[1], -1) " +
+                "        if last then " +
+                "            local lastData = cjson.decode(last) " +
+                "            return tostring(lastData.id) " +
+                "        end " +
+                "        return nil " +
+                "    end " +
+                "end " +
+                "return nil";
         DefaultRedisScript<String> script = new DefaultRedisScript<>(REMOVE_POST_SCRIPT, String.class);
         String result = stringRedisTemplate.execute(script, List.of(key), postId.toString());
 
@@ -231,6 +187,17 @@ public class RedisPostJsonListAdapter {
      * @param delta  증감값
      */
     public void incrementCounterInAllLists(Long postId, String field, long delta) {
+        final String INCREMENT_COUNTER_SCRIPT =
+                "local items = redis.call('LRANGE', KEYS[1], 0, -1) " +
+                "for i, item in ipairs(items) do " +
+                "    local data = cjson.decode(item) " +
+                "    if tostring(data.id) == ARGV[1] then " +
+                "        data[ARGV[2]] = (data[ARGV[2]] or 0) + tonumber(ARGV[3]) " +
+                "        redis.call('LSET', KEYS[1], i-1, cjson.encode(data)) " +
+                "        return 1 " +
+                "    end " +
+                "end " +
+                "return 0";
         DefaultRedisScript<Long> script = new DefaultRedisScript<>(INCREMENT_COUNTER_SCRIPT, Long.class);
         String postIdStr = postId.toString();
         String deltaStr = String.valueOf(delta);
