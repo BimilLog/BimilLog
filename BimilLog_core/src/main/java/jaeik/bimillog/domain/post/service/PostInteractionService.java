@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.async.PostCountSync;
-import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import jaeik.bimillog.domain.post.async.CacheUpdateCountSync;
+import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
@@ -36,8 +36,8 @@ public class PostInteractionService {
     private final PostLikeRepository postLikeRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final RealtimePostSync realtimePostSync;
-    private final PostCountSync postCountSync;
+    private final CacheRealtimeSync cacheRealtimeSync;
+    private final CacheUpdateCountSync cacheUpdateCountSync;
 
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
@@ -100,8 +100,8 @@ public class PostInteractionService {
      */
     private void updateCache(Long postId, long count, double score) {
         try {
-            postCountSync.incrementLikeCounter(postId, count); // 카운터 캐시 감소
-            realtimePostSync.updateRealtimeScore(postId, score); // 비동기로 실시간 인기글 점수 감소
+            cacheUpdateCountSync.incrementLikeCounter(postId, count); // 카운터 캐시 감소
+            cacheRealtimeSync.updateRealtimeScore(postId, score); // 비동기로 실시간 인기글 점수 감소
         } catch (Exception e) {
             log.error("추천 관련 캐시 증감 실패: postId={}, error={}", postId, e.getMessage());
         }

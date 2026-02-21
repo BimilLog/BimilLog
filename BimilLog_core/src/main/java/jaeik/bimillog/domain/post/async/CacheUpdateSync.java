@@ -3,8 +3,9 @@ package jaeik.bimillog.domain.post.async;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -24,16 +25,9 @@ import java.util.List;
 @Slf4j
 public class CacheUpdateSync {
     private final PostQueryRepository postQueryRepository;
-    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
-    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
-
-    private static final List<String> ALL_JSON_KEYS = List.of(
-            RedisKey.FIRST_PAGE_JSON_KEY,
-            RedisKey.POST_WEEKLY_JSON_KEY,
-            RedisKey.POST_LEGEND_JSON_KEY,
-            RedisKey.POST_NOTICE_JSON_KEY,
-            RedisKey.POST_REALTIME_JSON_KEY
-    );
+    private final RedisPostListUpdateAdapter redisPostListUpdateAdapter;
+    private final RedisPostRealTimeAdapter redisPostRealTimeAdapter;
+    private final RedisPostListDeleteAdapter redisPostListDeleteAdapter;
 
     /**
      * <h3>새 글 작성 캐시 반영</h3>
@@ -41,7 +35,7 @@ public class CacheUpdateSync {
      */
     @Async("cacheRefreshPool")
     public void asyncAddNewPost(PostSimpleDetail post) {
-        redisPostJsonListAdapter.addNewPost(
+        redisPostListUpdateAdapter.addPostToList(
                 RedisKey.FIRST_PAGE_JSON_KEY, post, RedisKey.FIRST_PAGE_SIZE + 1);
     }
 
@@ -51,9 +45,7 @@ public class CacheUpdateSync {
      */
     @Async("cacheRefreshPool")
     public void asyncUpdatePost(Long postId, PostSimpleDetail updatedPost) {
-        for (String key : ALL_JSON_KEYS) {
-            redisPostJsonListAdapter.updateTitle(key, postId, updatedPost.getTitle());
-        }
+        redisPostListUpdateAdapter.updateTitle(postId, updatedPost.getTitle());
     }
 
     /**
@@ -63,18 +55,14 @@ public class CacheUpdateSync {
      */
     @Async("cacheRefreshPool")
     public void asyncDeletePost(Long postId) {
-        redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
+        redisPostRealTimeAdapter.removePostIdFromRealtimeScore(postId);
+        redisPostListDeleteAdapter.removePostFromCacheLists(postId);
 
-        redisPostJsonListAdapter.removePost(RedisKey.POST_WEEKLY_JSON_KEY, postId);
-        redisPostJsonListAdapter.removePost(RedisKey.POST_LEGEND_JSON_KEY, postId);
-        redisPostJsonListAdapter.removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
-        redisPostJsonListAdapter.removePost(RedisKey.POST_REALTIME_JSON_KEY, postId);
-
-        Long lastPostId = redisPostJsonListAdapter.removePost(RedisKey.FIRST_PAGE_JSON_KEY, postId);
+        Long lastPostId = redisPostListDeleteAdapter.removePostAndGetLastId(RedisKey.FIRST_PAGE_JSON_KEY, postId);
         if (lastPostId != null) {
             List<PostSimpleDetail> nextPosts = postQueryRepository.findBoardPostsByCursor(lastPostId, 1);
             if (!nextPosts.isEmpty()) {
-                redisPostJsonListAdapter.appendPost(
+                redisPostListDeleteAdapter.appendPost(
                         RedisKey.FIRST_PAGE_JSON_KEY, nextPosts.getFirst(), RedisKey.FIRST_PAGE_SIZE + 1);
             }
         }

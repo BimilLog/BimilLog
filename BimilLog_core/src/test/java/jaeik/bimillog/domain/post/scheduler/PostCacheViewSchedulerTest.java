@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.post.scheduler;
 
 import com.querydsl.core.types.dsl.NumberPath;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -21,26 +21,26 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>PostCountScheduler 단위 테스트</h2>
+ * <h2>PostCacheViewScheduler 단위 테스트</h2>
  * <p>카운트 플러시 스케줄러(조회수)의 동작을 검증합니다.</p>
  * <p>DB + JSON LIST 카운터 동시 반영을 검증합니다.</p>
  */
 @Tag("unit")
-@DisplayName("PostCountScheduler 단위 테스트")
+@DisplayName("PostCacheViewScheduler 단위 테스트")
 @ExtendWith(MockitoExtension.class)
-class PostCountSchedulerTest {
+class PostCacheViewSchedulerTest {
 
     @Mock
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private RedisPostCounterAdapter redisPostCounterAdapter;
+    private RedisPostViewAdapter redisPostViewAdapter;
 
     @Mock
-    private RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private RedisPostListUpdateAdapter redisPostListUpdateAdapter;
 
     @InjectMocks
-    private PostCountScheduler scheduler;
+    private PostCacheViewScheduler scheduler;
 
     // ==================== 조회수 ====================
 
@@ -48,7 +48,7 @@ class PostCountSchedulerTest {
     @DisplayName("조회수 버퍼가 비어있으면 DB 업데이트 건너뜀")
     void shouldSkipViewCountDbUpdate_whenBufferEmpty() {
         // Given
-        given(redisPostCounterAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
+        given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(Collections.emptyMap());
 
         // When
         scheduler.flushAllCounts();
@@ -62,7 +62,7 @@ class PostCountSchedulerTest {
     void shouldFlushViewCountsToDB_whenBufferHasData() {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L, 2L, 3L);
-        given(redisPostCounterAdapter.getAndClearViewCounts()).willReturn(viewCounts);
+        given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(viewCounts);
 
         // When
         scheduler.flushAllCounts();
@@ -70,8 +70,8 @@ class PostCountSchedulerTest {
         // Then - DB에 벌크 업데이트
         verify(postQueryRepository).bulkIncrementCount(eq(viewCounts), any(NumberPath.class));
         // JSON LIST 전체에 카운터 증분 (postId별로 incrementCounterInAllLists 호출)
-        verify(redisPostJsonListAdapter).incrementCounterInAllLists(eq(1L), eq("viewCount"), eq(5L));
-        verify(redisPostJsonListAdapter).incrementCounterInAllLists(eq(2L), eq("viewCount"), eq(3L));
+        verify(redisPostListUpdateAdapter).incrementCounterInAllLists(eq(1L), eq("viewCount"), eq(5L));
+        verify(redisPostListUpdateAdapter).incrementCounterInAllLists(eq(2L), eq("viewCount"), eq(3L));
     }
 
     @Test
@@ -79,7 +79,7 @@ class PostCountSchedulerTest {
     void shouldCatchViewCountException_whenDbUpdateFails() {
         // Given
         Map<Long, Long> viewCounts = Map.of(1L, 5L);
-        given(redisPostCounterAdapter.getAndClearViewCounts()).willReturn(viewCounts);
+        given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(viewCounts);
         doThrow(new RuntimeException("DB 오류")).when(postQueryRepository).bulkIncrementCount(any(), any());
 
         // When - 예외가 전파되지 않아야 함

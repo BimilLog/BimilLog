@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.scheduler;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class RealTimePostScheduler {
 
-    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private final RedisPostRealTimeAdapter redisPostRealTimeAdapter;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
 
@@ -52,7 +52,7 @@ public class RealTimePostScheduler {
             }
         } else {
             try {
-                redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
+                redisPostRealTimeAdapter.applyRealtimePopularScoreDecay();
             } catch (Exception e) {
                 log.error("Redis 실시간 인기글 점수 지수감쇠 적용 실패", e);
             }

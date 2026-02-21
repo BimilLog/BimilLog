@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.paper;
 
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,7 +40,7 @@ class RedisPaperUpdateAdapterIntegrationTest {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private static final String SCORE_KEY = RedisPaperKeys.REALTIME_PAPER_SCORE_KEY;
+    private static final String SCORE_KEY = RedisKey.REALTIME_PAPER_SCORE_KEY;
 
     @BeforeEach
     void setUp() {

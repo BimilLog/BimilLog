@@ -6,7 +6,8 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PostAdminService {
     private final PostRepository postRepository;
-    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisPostListUpdateAdapter redisPostListUpdateAdapter;
+    private final RedisPostListDeleteAdapter redisPostListDeleteAdapter;
 
     private static final int NOTICE_MAX_SIZE = 100;
 
@@ -47,7 +49,7 @@ public class PostAdminService {
 
     private void releaseNotice(Long postId) {
         try {
-            redisPostJsonListAdapter.removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
+            redisPostListDeleteAdapter.removePost(postId);
         } catch (Exception e) {
             log.error("공지 해제 중 오류 발생: postId={}", postId, e);
         }
@@ -56,7 +58,7 @@ public class PostAdminService {
     private void registerNotice(Post post) {
         try {
             PostSimpleDetail detail = PostSimpleDetail.from(post);
-            redisPostJsonListAdapter.addNewPost(
+            redisPostListUpdateAdapter.addPostToList(
                     RedisKey.POST_NOTICE_JSON_KEY, detail, NOTICE_MAX_SIZE);
         } catch (Exception e) {
             log.error("공지 설정 중 오류 발생: postId={}", post.getId(), e);

@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
@@ -58,7 +58,7 @@ class RealtimeDbFallbackConsistencyTest {
     private static final Logger log = LoggerFactory.getLogger(RealtimeDbFallbackConsistencyTest.class);
 
     @Autowired
-    private RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Autowired
     private PostRepository postRepository;
@@ -141,7 +141,7 @@ class RealtimeDbFallbackConsistencyTest {
             for (int e = 0; e < viewEvents; e++) {
                 int postIdx = pickWeightedIndex(weights);
                 Post post = testPosts.get(postIdx);
-                redisRealTimePostAdapter.incrementRealtimePopularScore(post.getId(), VIEW_SCORE);
+                redisPostRealTimeAdapter.incrementRealtimePopularScore(post.getId(), VIEW_SCORE);
             }
 
             if (round % COMPARE_INTERVAL == 0) {

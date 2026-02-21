@@ -9,8 +9,8 @@ import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -22,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -48,10 +47,10 @@ import static org.mockito.Mockito.*;
 class PostCacheSchedulerTest {
 
     @Mock
-    private RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private RedisPostListUpdateAdapter redisPostListUpdateAdapter;
 
     @Mock
-    private RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Mock
     private PostQueryRepository postQueryRepository;
@@ -67,8 +66,8 @@ class PostCacheSchedulerTest {
     @BeforeEach
     void setUp() {
         postCacheScheduler = new PostCacheScheduler(
-                redisPostJsonListAdapter,
-                redisRealTimePostAdapter,
+                redisPostListUpdateAdapter,
+                redisPostRealTimeAdapter,
                 postQueryRepository,
                 postRepository,
                 eventPublisher
@@ -94,7 +93,7 @@ class PostCacheSchedulerTest {
         verify(postRepository).clearWeeklyFlag();
         verify(postRepository).setWeeklyFlag(List.of(1L, 2L));
         // JSON LIST 전체 교체
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostListUpdateAdapter).replaceList(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -124,7 +123,7 @@ class PostCacheSchedulerTest {
 
         // Then
         verify(postRepository).clearWeeklyFlag();
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), any());
+        verify(redisPostListUpdateAdapter).replaceList(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), any());
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -151,7 +150,7 @@ class PostCacheSchedulerTest {
         // Then
         verify(postRepository).clearLegendFlag();
         verify(postRepository).setLegendFlag(List.of(1L));
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_LEGEND_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostListUpdateAdapter).replaceList(eq(RedisKey.POST_LEGEND_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -179,7 +178,7 @@ class PostCacheSchedulerTest {
 
         // 게시글이 없으면 플래그 업데이트, 캐시, 이벤트 발행 안함
         verify(postRepository, never()).clearLegendFlag();
-        verify(redisPostJsonListAdapter, never()).replaceAll(any(), any(), any());
+        verify(redisPostListUpdateAdapter, never()).replaceList(any(), any(), any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -196,7 +195,7 @@ class PostCacheSchedulerTest {
         postCacheScheduler.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), any());
+        verify(redisPostListUpdateAdapter).replaceList(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), any());
 
         // 100개 게시글 중 memberId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));
@@ -240,7 +239,7 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshNoticePosts();
 
         // Then
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_NOTICE_JSON_KEY), any(), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostListUpdateAdapter).replaceList(eq(RedisKey.POST_NOTICE_JSON_KEY), any(), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 공지사항은 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -258,7 +257,7 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshNoticePosts();
 
         // Then
-        verify(redisPostJsonListAdapter, never()).replaceAll(any(), any(), any());
+        verify(redisPostListUpdateAdapter, never()).replaceList(any(), any(), any());
     }
 
     // ==================== 첫 페이지 ====================
@@ -277,7 +276,7 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshFirstPageCache();
 
         // Then
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.FIRST_PAGE_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostListUpdateAdapter).replaceList(eq(RedisKey.FIRST_PAGE_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
 
         // 첫 페이지는 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -296,7 +295,7 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshFirstPageCache();
 
         // Then
-        verify(redisPostJsonListAdapter, never()).replaceAll(any(), any(), any());
+        verify(redisPostListUpdateAdapter, never()).replaceList(any(), any(), any());
     }
 
     // ==================== 실시간 인기글 ====================
@@ -311,7 +310,7 @@ class PostCacheSchedulerTest {
         PostSimpleDetail post3 = createPostSimpleDetail(5L, "실시간인기글3", 3L);
         List<PostSimpleDetail> posts = List.of(post1, post2, post3);
 
-        given(redisRealTimePostAdapter.getRangePostId()).willReturn(topIds);
+        given(redisPostRealTimeAdapter.getRangePostId()).willReturn(topIds);
         given(postRepository.findAllByIds(topIds)).willReturn(
                 posts.stream().map(p -> mock(Post.class)).toList());
 
@@ -319,20 +318,20 @@ class PostCacheSchedulerTest {
         postCacheScheduler.refreshRealtimePopularPosts();
 
         // Then
-        verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_REALTIME_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
+        verify(redisPostListUpdateAdapter).replaceList(eq(RedisKey.POST_REALTIME_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
     }
 
     @Test
     @DisplayName("실시간 인기글 캐시 갱신 - ZSet 비어있으면 스킵")
     void shouldSkipRealtimeRefresh_WhenZSetIsEmpty() {
         // Given
-        given(redisRealTimePostAdapter.getRangePostId()).willReturn(List.of());
+        given(redisPostRealTimeAdapter.getRangePostId()).willReturn(List.of());
 
         // When
         postCacheScheduler.refreshRealtimePopularPosts();
 
         // Then
-        verify(redisPostJsonListAdapter, never()).replaceAll(
+        verify(redisPostListUpdateAdapter, never()).replaceList(
                 eq(RedisKey.POST_REALTIME_JSON_KEY), any(), any());
     }
 

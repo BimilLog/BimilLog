@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,7 +18,6 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,8 +38,8 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 @Slf4j
 public class PostCacheScheduler {
-    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
-    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private final RedisPostListUpdateAdapter redisPostListUpdateAdapter;
+    private final RedisPostRealTimeAdapter redisPostRealTimeAdapter;
     private final PostQueryRepository postQueryRepository;
     private final PostRepository postRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -88,14 +87,14 @@ public class PostCacheScheduler {
             return;
         }
 
-        redisPostJsonListAdapter.replaceAll(RedisKey.FIRST_PAGE_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
+        redisPostListUpdateAdapter.replaceList(RedisKey.FIRST_PAGE_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
         log.info("첫 페이지 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
     }
 
     @Scheduled(cron = "0 0 3 * * *")
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshRealtimePopularPosts() {
-        List<Long> topIds = redisRealTimePostAdapter.getRangePostId();
+        List<Long> topIds = redisPostRealTimeAdapter.getRangePostId();
         if (topIds.isEmpty()) {
             log.info("실시간 인기글에 대한 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
@@ -105,7 +104,7 @@ public class PostCacheScheduler {
                 .map(PostSimpleDetail::from).toList();
 
         if (!posts.isEmpty()) {
-            redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
+            redisPostListUpdateAdapter.replaceList(RedisKey.POST_REALTIME_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
             log.info("실시간 인기글 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
         }
     }
@@ -131,7 +130,7 @@ public class PostCacheScheduler {
             setFlag.accept(ids);
         }
 
-        redisPostJsonListAdapter.replaceAll(redisKey, posts, RedisKey.DEFAULT_CACHE_TTL);
+        redisPostListUpdateAdapter.replaceList(redisKey, posts, RedisKey.DEFAULT_CACHE_TTL);
         log.info("{} 캐시 업데이트 완료. {}개의 게시글이 처리됨", type, posts.size());
 
         if (eventMessage != null) {

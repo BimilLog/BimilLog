@@ -41,6 +41,8 @@ public final class RedisKey {
     // key: paper:realtime:score
 
     public static final String REALTIME_PAPER_SCORE_KEY = "paper:realtime:score";
+    public static final double REALTIME_PAPER_SCORE_DECAY_RATE = 0.97;
+    public static final double REALTIME_PAPER_SCORE_THRESHOLD = 1.0;
 
     // ==================== 인증 : JWT블랙리스트 (String) ====================
     // key: TemporaryToken:blacklist:{tokenHash}

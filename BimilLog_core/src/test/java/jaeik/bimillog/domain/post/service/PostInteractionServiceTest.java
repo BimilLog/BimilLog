@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
@@ -16,8 +17,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import jaeik.bimillog.domain.post.async.PostCountSync;
-import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import jaeik.bimillog.domain.post.async.CacheUpdateCountSync;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
@@ -55,10 +55,10 @@ class PostInteractionServiceTest extends BaseUnitTest {
     private PostToMemberAdapter postToMemberAdapter;
 
     @Mock
-    private RealtimePostSync realtimePostSync;
+    private CacheRealtimeSync cacheRealtimeSync;
 
     @Mock
-    private PostCountSync postCountSync;
+    private CacheUpdateCountSync cacheUpdateCountSync;
 
     @InjectMocks
     private PostInteractionService postInteractionService;
@@ -88,12 +88,12 @@ class PostInteractionServiceTest extends BaseUnitTest {
         if (alreadyLiked) {
             verify(postLikeRepository).deleteByMemberAndPost(member, post);
             verify(postRepository).decrementLikeCount(postId);
-            verify(postCountSync).incrementLikeCounter(postId, -1);
+            verify(cacheUpdateCountSync).incrementLikeCounter(postId, -1);
             verify(postLikeRepository, never()).save(any(PostLike.class));
         } else {
             verify(postLikeRepository).save(any(PostLike.class));
             verify(postRepository).incrementLikeCount(postId);
-            verify(postCountSync).incrementLikeCounter(postId, 1);
+            verify(cacheUpdateCountSync).incrementLikeCounter(postId, 1);
             verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
         }
     }

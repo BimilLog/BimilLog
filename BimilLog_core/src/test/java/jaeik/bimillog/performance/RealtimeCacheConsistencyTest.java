@@ -2,7 +2,7 @@ package jaeik.bimillog.performance;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>서킷이 열리고 닫힐 때 Redis ZSet과 Caffeine FallbackStore의 순위 결과가
  * SNS 특성상 큰 차이가 없음을 실제 Redis 환경에서 검증합니다.</p>
  *
- * <p>실제 동작과 동일하게 {@link RedisRealTimePostAdapter#incrementRealtimePopularScore}를
+ * <p>실제 동작과 동일하게 {@link RedisPostRealTimeAdapter#incrementRealtimePopularScore}를
  * 항상 호출하고, 서킷 개폐만 직접 제어합니다.
  * 서킷 OPEN 시 어댑터의 fallback이 자동으로 Caffeine에 점수를 적립합니다.</p>
  *
@@ -47,7 +47,7 @@ class RealtimeCacheConsistencyTest {
     private static final Logger log = LoggerFactory.getLogger(RealtimeCacheConsistencyTest.class);
 
     @Autowired
-    private RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Autowired
     private RealtimeScoreFallbackStore fallbackStore;
@@ -60,7 +60,7 @@ class RealtimeCacheConsistencyTest {
 
     private CircuitBreaker circuitBreaker;
 
-    private static final int POST_COUNT = 15;
+    private static final int POST_COUNT = 1000;
     private static final int TOTAL_ROUNDS = 200;
     private static final int TOGGLE_INTERVAL = 20;
     private static final int COMPARE_OFFSET = TOGGLE_INTERVAL / 2; // 전환 사이 중간 지점에서 비교
@@ -98,13 +98,13 @@ class RealtimeCacheConsistencyTest {
             for (int e = 0; e < eventCount; e++) {
                 long postId = pickWeightedPostId(weights);
                 // 실제 동작과 동일: 어댑터 호출 → 서킷 OPEN이면 fallback이 Caffeine에 적립
-                redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
+                redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
             }
 
             // 감쇠 적용 (50라운드마다)
             if (round % DECAY_INTERVAL == 0) {
                 if (!circuitOpen) {
-                    redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
+                    redisPostRealTimeAdapter.applyRealtimePopularScoreDecay();
                 }
                 fallbackStore.applyDecay();
             }

@@ -1,13 +1,13 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import jaeik.bimillog.domain.post.service.RealtimePostCacheService;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -23,21 +23,18 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisRealTimePostAdapter {
-    private static final String REALTIME_SCORE_KEY = RedisKey.REALTIME_POST_SCORE_KEY;
-
+public class RedisPostRealTimeAdapter {
     private final StringRedisTemplate stringRedisTemplate;
     private final RealtimeScoreFallbackStore fallbackStore;
 
+    private static final String REALTIME_SCORE_KEY = RedisKey.REALTIME_POST_SCORE_KEY;
     public static final double REALTIME_POST_SCORE_DECAY_RATE = 0.97;
     public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
-
-
 
     /**
      * <h3>실시간 인기글 조회</h3>
      * <p>실시간 인기글 에서 점수가 높은 게시글 ID순서대로 조회합니다.</p>
-     * <p>서킷브레이커는 {@link jaeik.bimillog.domain.post.service.RealtimePostCacheService}에서 관리합니다.</p>
+     * <p>서킷브레이커는 {@link RealtimePostCacheService}에서 관리합니다.</p>
      *
      * @return List<Long> 게시글 ID 목록 (점수 내림차순)
      */
@@ -78,37 +75,27 @@ public class RedisRealTimePostAdapter {
     }
 
     /**
-     * 실시간 인기글 점수 감쇠를 위한 Lua 스크립트
-     * <p>Redis Sorted Set의 모든 게시글 점수에 SCORE_DECAY_RATE(0.9)를 곱합니다.</p>
-     */
-    public static final RedisScript<Long> SCORE_DECAY_SCRIPT;
-
-    static {
-        String luaScript =
-                "local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES') " +
-                        "for i = 1, #members, 2 do " +
-                        "    local member = members[i] " +
-                        "    local score = tonumber(members[i + 1]) " +
-                        "    local newScore = score * tonumber(ARGV[1]) " +
-                        "    redis.call('ZADD', KEYS[1], newScore, member) " +
-                        "end " +
-                        "return redis.call('ZCARD', KEYS[1])";
-
-        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
-        script.setScriptText(luaScript);
-        script.setResultType(Long.class);
-        SCORE_DECAY_SCRIPT = script;
-    }
-
-    /**
      * <h3>점수 감쇠 (스케쥴러)</h3>
-     * <p>Redis Sorted Set의 모든 게시글 점수에 0.9를 곱하고, 임계값(1점) 이하의 게시글을 제거합니다.</p>
-     * <p>PostCacheScheduler 스케줄러에서 5분마다 호출됩니다.</p>
+     * <p>Redis Sorted Set의 모든 게시글 점수에 0.97를 곱하고, 임계값(1점) 이하의 게시글을 제거합니다.</p>
+     * <p>PostCacheScheduler 스케줄러에서 10분마다 호출됩니다.</p>
      */
     public void applyRealtimePopularScoreDecay() {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptText(
+                "local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES') " +
+                "for i = 1, #members, 2 do " +
+                "    local member = members[i] " +
+                "    local score = tonumber(members[i + 1]) " +
+                "    local newScore = score * tonumber(ARGV[1]) " +
+                "    redis.call('ZADD', KEYS[1], newScore, member) " +
+                "end " +
+                "return redis.call('ZCARD', KEYS[1])"
+        );
+        script.setResultType(Long.class);
+
         // 1. 모든 항목의 점수에 0.97 곱하기
         stringRedisTemplate.execute(
-                SCORE_DECAY_SCRIPT,
+                script,
                 List.of(REALTIME_SCORE_KEY),
                 String.valueOf(REALTIME_POST_SCORE_DECAY_RATE)
         );
@@ -142,5 +129,4 @@ public class RedisRealTimePostAdapter {
         log.warn("[CIRCUIT_FALLBACK] Redis 실패, 폴백 저장소에서 제거: postId={}, error={}", postId, t.getMessage());
         fallbackStore.removePost(postId);
     }
-
 }

@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.comment.repository.*;
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.async.PostCountSync;
+import jaeik.bimillog.domain.post.async.CacheUpdateCountSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
@@ -44,7 +44,7 @@ import java.util.Objects;
 public class CommentCommandService {
     private final ApplicationEventPublisher eventPublisher;
     private final PostRepository postRepository;
-    private final PostCountSync postCountSync;
+    private final CacheUpdateCountSync cacheUpdateCountSync;
     private final CommentToMemberAdapter commentToMemberAdapter;
     private final CommentRepository commentRepository;
     private final CommentDeleteRepository commentDeleteRepository;
@@ -164,7 +164,7 @@ public class CommentCommandService {
      */
     private void updatePostCacheCount(Long postId, long delta) {
         try {
-            postCountSync.incrementCommentCounter(postId, delta);
+            cacheUpdateCountSync.incrementCommentCounter(postId, delta);
         } catch (Exception e) {
             log.warn("댓글 카운터 캐시 증감 실패: postId={}, delta={}, error={}", postId, delta, e.getMessage());
         }

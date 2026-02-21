@@ -2,15 +2,15 @@ package jaeik.bimillog.domain.post.service;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,10 +36,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RealtimePostCacheService {
     private final PostQueryRepository postQueryRepository;
-    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
-    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisPostRealTimeAdapter redisPostRealTimeAdapter;
+    private final RedisPostListQueryAdapter redisPostListQueryAdapter;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
-    private final RealtimePostSync realtimePostSync;
+    private final CacheRealtimeSync cacheRealtimeSync;
     private final PostUtil postUtil;
 
     private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
@@ -54,16 +54,16 @@ public class RealtimePostCacheService {
     @CircuitBreaker(name = REALTIME_REDIS_CIRCUIT, fallbackMethod = "getRealtimePostsFallback")
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
         // 1. ZSet top 5 조회
-        List<Long> realtimeTop5Id = redisRealTimePostAdapter.getRangePostId();
+        List<Long> realtimeTop5Id = redisPostRealTimeAdapter.getRangePostId();
         if (realtimeTop5Id.isEmpty()) {
             return new PageImpl<>(List.of(), pageable, 0);
         }
 
         // 2. LIST 조회 → ZSet ID 순서와 비교
-        List<PostSimpleDetail> entries = redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY);
+        List<PostSimpleDetail> entries = redisPostListQueryAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY);
         List<Long> listIds = entries.stream().map(PostSimpleDetail::getId).toList();
         if (!realtimeTop5Id.equals(listIds)) {
-            realtimePostSync.asyncRebuildRealtimeCache(realtimeTop5Id);
+            cacheRealtimeSync.asyncRebuildRealtimeCache(realtimeTop5Id);
         }
 
         return postUtil.paginate(entries, pageable);
