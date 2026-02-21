@@ -3,7 +3,8 @@ package jaeik.bimillog.infrastructure.redis.post;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jaeik.bimillog.domain.post.entity.PostCacheEntry;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -28,6 +29,20 @@ import java.util.List;
 public class RedisPostJsonListAdapter {
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
+
+    private static final List<String> ALL_JSON_KEYS = List.of(
+            RedisKey.FIRST_PAGE_JSON_KEY,
+            RedisKey.POST_WEEKLY_JSON_KEY,
+            RedisKey.POST_LEGEND_JSON_KEY,
+            RedisKey.POST_NOTICE_JSON_KEY,
+            RedisKey.POST_REALTIME_JSON_KEY
+    );
+
+    public RedisPostJsonListAdapter(StringRedisTemplate stringRedisTemplate) {
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
+    }
 
     /**
      * Lua #1 — 제목 업데이트: LIST를 순회하여 id 매칭 → 제목 교체 → LSET
@@ -80,6 +95,23 @@ public class RedisPostJsonListAdapter {
             "return removedId";
 
     /**
+     * Lua — 카운터 증분: LIST 순회 → id 매칭 → 해당 필드 증분 → LSET
+     */
+    private static final String INCREMENT_COUNTER_SCRIPT =
+            "local items = redis.call('LRANGE', KEYS[1], 0, -1) " +
+            "for i, item in ipairs(items) do " +
+            "    local data = cjson.decode(item) " +
+            "    if tostring(data.id) == ARGV[1] then " +
+            "        data[ARGV[2]] = (data[ARGV[2]] or 0) + tonumber(ARGV[3]) " +
+            "        redis.call('LSET', KEYS[1], i-1, cjson.encode(data)) " +
+            "        return 1 " +
+            "    end " +
+            "end " +
+            "return 0";
+
+
+
+    /**
      * Lua — 전체 교체: DEL → RPUSH(JSON들) → EXPIRE
      */
     private static final String REPLACE_ALL_SCRIPT =
@@ -92,26 +124,22 @@ public class RedisPostJsonListAdapter {
             "end " +
             "return redis.call('LLEN', KEYS[1])";
 
-    public RedisPostJsonListAdapter(StringRedisTemplate stringRedisTemplate) {
-        this.stringRedisTemplate = stringRedisTemplate;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-    }
+
 
     /**
      * <h3>전체 조회</h3>
-     * <p>LRANGE 0 -1 → JSON 파싱하여 PostCacheEntry 리스트 반환</p>
+     * <p>LRANGE 0 -1 → JSON 파싱하여 PostSimpleDetail 리스트 반환</p>
      */
-    public List<PostCacheEntry> getAll(String key) {
+    public List<PostSimpleDetail> getAll(String key) {
         List<String> jsonList = stringRedisTemplate.opsForList().range(key, 0, -1);
-        if (jsonList == null || jsonList.isEmpty()) {
+        if (jsonList == null) {
             return Collections.emptyList();
         }
 
-        List<PostCacheEntry> result = new ArrayList<>(jsonList.size());
+        List<PostSimpleDetail> result = new ArrayList<>(jsonList.size());
         for (String json : jsonList) {
             try {
-                result.add(objectMapper.readValue(json, PostCacheEntry.class));
+                result.add(objectMapper.readValue(json, PostSimpleDetail.class));
             } catch (JsonProcessingException e) {
                 log.warn("[JSON_LIST] JSON 파싱 실패 (key={}): {}", key, e.getMessage());
             }
@@ -123,7 +151,7 @@ public class RedisPostJsonListAdapter {
      * <h3>전체 교체 (스케줄러용)</h3>
      * <p>Lua 스크립트로 DEL → RPUSH(JSON들) → EXPIRE를 원자적으로 수행</p>
      */
-    public void replaceAll(String key, List<PostCacheEntry> entries, Duration ttl) {
+    public void replaceAll(String key, List<PostSimpleDetail> entries, Duration ttl) {
         if (entries == null || entries.isEmpty()) {
             stringRedisTemplate.delete(key);
             return;
@@ -145,16 +173,13 @@ public class RedisPostJsonListAdapter {
      * <h3>새 글 추가 (원자적)</h3>
      * <p>Lua 스크립트로 LLEN → LINDEX(마지막) → LPUSH → LTRIM을 원자적으로 수행합니다.</p>
      * <p>LIST가 maxSize 이상이면 잘려나간 글의 ID를 반환합니다.</p>
-     *
-     * @return 잘려나간 글의 postId (없으면 null)
      */
-    public Long addNewPost(String key, PostCacheEntry entry, int maxSize) {
+    public void addNewPost(String key, PostSimpleDetail entry, int maxSize) {
         String json = toJson(entry);
         DefaultRedisScript<String> script = new DefaultRedisScript<>(ADD_NEW_POST_SCRIPT, String.class);
         String removedId = stringRedisTemplate.execute(script, List.of(key), json, String.valueOf(maxSize));
 
-        log.debug("[JSON_LIST] 새 글 추가 (key={}): postId={}, removedId={}", key, entry.id(), removedId);
-        return Long.parseLong(removedId);
+        log.debug("[JSON_LIST] 새 글 추가 (key={}): postId={}, removedId={}", key, entry.getId(), removedId);
     }
 
     /**
@@ -179,28 +204,46 @@ public class RedisPostJsonListAdapter {
         String result = stringRedisTemplate.execute(script, List.of(key), postId.toString());
 
         log.debug("[JSON_LIST] 글 삭제 (key={}): postId={}, lastId={}", key, postId, result);
-        return Long.parseLong(result);
+        return result != null ? Long.parseLong(result) : null;
     }
 
     /**
      * <h3>삭제 후 보충</h3>
      * <p>RPUSH(JSON) — LIST 크기가 maxSize 미만일 때만 뒤에 추가</p>
      */
-    public void appendPost(String key, PostCacheEntry entry, int maxSize) {
+    public void appendPost(String key, PostSimpleDetail entry, int maxSize) {
         Long currentSize = stringRedisTemplate.opsForList().size(key);
         if (currentSize != null && currentSize < maxSize) {
             String json = toJson(entry);
             stringRedisTemplate.opsForList().rightPush(key, json);
 
-            log.debug("[JSON_LIST] 보충 추가 (key={}): postId={}", key, entry.id());
+            log.debug("[JSON_LIST] 보충 추가 (key={}): postId={}", key, entry.getId());
         }
     }
 
-    private String toJson(PostCacheEntry entry) {
+    /**
+     * <h3>모든 JSON LIST의 카운터 증분</h3>
+     * <p>5개 리스트 전체에서 해당 postId의 field 값을 delta만큼 증분합니다.</p>
+     * <p>리스트에 없는 글은 무시됩니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @param field  JSON 필드명 ("viewCount", "likeCount", "commentCount")
+     * @param delta  증감값
+     */
+    public void incrementCounterInAllLists(Long postId, String field, long delta) {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(INCREMENT_COUNTER_SCRIPT, Long.class);
+        String postIdStr = postId.toString();
+        String deltaStr = String.valueOf(delta);
+        for (String key : ALL_JSON_KEYS) {
+            stringRedisTemplate.execute(script, List.of(key), postIdStr, field, deltaStr);
+        }
+    }
+
+    private String toJson(PostSimpleDetail entry) {
         try {
             return objectMapper.writeValueAsString(entry);
         } catch (JsonProcessingException e) {
-            throw new IllegalStateException("[JSON_LIST] JSON 직렬화 실패: postId=" + entry.id(), e);
+            throw new IllegalStateException("[JSON_LIST] JSON 직렬화 실패: postId=" + entry.getId(), e);
         }
     }
 }

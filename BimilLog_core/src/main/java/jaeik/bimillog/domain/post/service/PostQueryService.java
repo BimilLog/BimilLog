@@ -10,6 +10,8 @@ import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -38,9 +40,10 @@ import java.util.stream.Collectors;
 public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
     private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final PostCacheService postCacheService;
+    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
     private final RealtimePostSync realtimePostSync;
 
     /**
@@ -59,7 +62,7 @@ public class PostQueryService {
 
         // 첫 페이지라면 캐시 조회 아니라면 DB 조회
         if (cursor == null) {
-            posts = postCacheService.getFirstPagePosts();
+            posts = getFirstPagePosts();
         } else {
             posts = postQueryRepository.findBoardPostsByCursor(cursor, size);
         }
@@ -81,6 +84,21 @@ public class PostQueryService {
     }
 
     /**
+     * 첫 페이지 캐시 조회 — JSON LIST 방식 (캐시 미스/장애 시 DB 폴백)
+     */
+    private List<PostSimpleDetail> getFirstPagePosts() {
+        try {
+            List<PostSimpleDetail> cached = redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY);
+            if (!cached.isEmpty()) {
+                return cached;
+            }
+        } catch (Exception e) {
+            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", RedisKey.FIRST_PAGE_JSON_KEY, e.getMessage());
+        }
+        return postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
+    }
+
+    /**
      * <h3>게시글 상세 조회</h3>
      * <p>DB에서 직접 조회합니다.</p>
      * <p>회원일 경우 블랙리스트 조사 및 좋아요 확인 후 주입하여 반환합니다.</p>
@@ -91,20 +109,25 @@ public class PostQueryService {
      * @param viewerKey 조회자 식별 키 (중복 조회 방지용)
      * @return PostDetail 게시글 상세 정보 (좋아요 수, 댓글 수, 사용자 좋아요 여부 포함)
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public PostDetail getPost(Long postId, Long memberId, String viewerKey) {
-        // 1. DB 조회
-        PostDetail result = postQueryRepository.findPostDetail(postId, memberId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        // 1. 게시글 조회
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        // 2. 비동기로 실시간 인기글 점수, 조회 수 증가
+        // 2. 추천 여부 조회 (회원만)
+        boolean isLiked = memberId != null && postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
+        PostDetail result = PostDetail.from(post, isLiked);
+
+        // 3. 비동기로 실시간 인기글 점수, 조회 수 증가
         realtimePostSync.postDetailCheck(postId, viewerKey);
 
-        // 3. 비회원이면 바로 반환
+        // 4. 비회원이면 바로 반환
         if (memberId == null) {
             return result;
         }
 
-        // 4. 회원 블랙리스트 체크
+        // 5. 회원 블랙리스트 체크
         eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, result.getMemberId()));
         return result;
     }
@@ -118,7 +141,10 @@ public class PostQueryService {
      * @return MemberActivityPost 마이페이지 글 정보
      */
     public MemberActivityPost getMemberActivityPosts(Long memberId, Pageable pageable) {
-        Page<PostSimpleDetail> writePosts = postQueryRepository.findPostsByMemberId(memberId, pageable);
+        Page<PostSimpleDetail> writePosts = postQueryRepository.selectPostSimpleDetails(
+                PostQueryType.MEMBER_POSTS.getMemberConditionFn().apply(memberId),
+                pageable,
+                PostQueryType.MEMBER_POSTS.getOrders());
         Page<PostSimpleDetail> likedPosts = postQueryRepository.findLikedPostsByMemberId(memberId, pageable);
         return new MemberActivityPost(writePosts, likedPosts);
     }
@@ -137,6 +163,6 @@ public class PostQueryService {
      * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
      */
     public List<Post> findAllByIds(List<Long> postIds) {
-        return postQueryRepository.findAllByIds(postIds);
+        return postRepository.findAllByIds(postIds);
     }
 }

@@ -58,6 +58,25 @@ public class PostSimpleDetail implements Serializable {
     }
 
     /**
+     * 새 게시글 저장 직후 첫 페이지 캐시용 PostSimpleDetail 생성 (카운터 0으로 초기화)
+     */
+    public static PostSimpleDetail ofNewPost(Post post, Long memberId, String memberName) {
+        return new PostSimpleDetail(
+                post.getId(),
+                post.getTitle(),
+                0,
+                0,
+                post.getCreatedAt(),
+                memberId,
+                memberName,
+                0,
+                false,
+                false,
+                false
+        );
+    }
+
+    /**
      * Post 엔티티로부터 PostSimpleDetail 생성
      */
     public static PostSimpleDetail from(Post post) {

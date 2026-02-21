@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.RedisKey;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -22,7 +24,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,13 +54,16 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostRepository postRepository;
 
     @Mock
+    private PostLikeRepository postLikeRepository;
+
+    @Mock
     private PostToMemberAdapter postToMemberAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private PostCacheService postCacheService;
+    private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @Mock
     private RealtimePostSync realtimePostSync;
@@ -72,10 +77,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long cursor = null;
         int size = 10;
-        PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
-        List<PostSimpleDetail> posts = List.of(postResult);
+        List<PostSimpleDetail> cached = List.of(PostTestDataBuilder.createPostSearchResult(1L, "제목1"));
 
-        given(postCacheService.getFirstPagePosts()).willReturn(posts);
+        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -85,7 +89,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
         assertThat(result.nextCursor()).isNull();
 
-        verify(postCacheService).getFirstPagePosts();
+        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
@@ -96,15 +100,14 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long cursor = null;
         int size = 2;
-        List<PostSimpleDetail> cachedPosts = List.of(
+        List<PostSimpleDetail> cached = List.of(
                 PostTestDataBuilder.createPostSearchResult(5L, "제목5"),
                 PostTestDataBuilder.createPostSearchResult(4L, "제목4"),
                 PostTestDataBuilder.createPostSearchResult(3L, "제목3"),
                 PostTestDataBuilder.createPostSearchResult(2L, "제목2"),
                 PostTestDataBuilder.createPostSearchResult(1L, "제목1")
         );
-
-        given(postCacheService.getFirstPagePosts()).willReturn(cachedPosts);
+        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -115,7 +118,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().get(1).getTitle()).isEqualTo("제목4");
         assertThat(result.nextCursor()).isEqualTo(4L);
 
-        verify(postCacheService).getFirstPagePosts();
+        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
@@ -129,7 +132,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
         List<PostSimpleDetail> dbPosts = List.of(postResult);
 
-        given(postCacheService.getFirstPagePosts()).willReturn(dbPosts);
+        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(Collections.emptyList());
+        given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -138,7 +142,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("DB 폴백 글");
 
-        verify(postCacheService).getFirstPagePosts();
+        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
     }
 
@@ -160,7 +164,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
 
-        verify(postCacheService, never()).getFirstPagePosts();
+        verify(redisPostJsonListAdapter, never()).getAll(any());
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository).findBoardPostsByCursor(cursor, size);
     }
@@ -173,17 +177,13 @@ class PostQueryServiceTest extends BaseUnitTest {
         int size = 20;
         Long memberId = 100L;
 
-        List<PostSimpleDetail> cachedPosts = List.of(
+        List<PostSimpleDetail> cached = List.of(
                 PostTestDataBuilder.createPostSearchResultWithMemberId(1L, "게시글1", 1L),
                 PostTestDataBuilder.createPostSearchResultWithMemberId(2L, "블랙게시글", 2L),
                 PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
         );
-        List<PostSimpleDetail> filteredPosts = List.of(
-                PostTestDataBuilder.createPostSearchResultWithMemberId(1L, "게시글1", 1L),
-                PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
-        );
 
-        given(postCacheService.getFirstPagePosts()).willReturn(cachedPosts);
+        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
         given(postToMemberAdapter.getInterActionBlacklist(memberId)).willReturn(List.of(2L));
 
         // When
@@ -194,7 +194,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).extracting(PostSimpleDetail::getId).containsExactly(1L, 3L);
         assertThat(result.nextCursor()).isNull();
 
-        verify(postCacheService).getFirstPagePosts();
+        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
     }
 
     @Test
@@ -205,20 +205,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long memberId = 2L;
         Long postAuthorId = 1L;
 
-        PostDetail mockPostDetail = PostDetail.builder()
-                .id(postId)
-                .title("게시글 제목")
-                .content("게시글 내용")
-                .memberId(postAuthorId)
-                .isLiked(true)
-                .viewCount(100)
-                .likeCount(50)
-                .createdAt(Instant.now())
-                .memberName("testMember")
-                .commentCount(10)
-                .build();
-        given(postQueryRepository.findPostDetail(postId, memberId))
-                .willReturn(Optional.of(mockPostDetail));
+        Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "게시글 제목", "게시글 내용"));
+        given(postRepository.findById(postId)).willReturn(Optional.of(mockPost));
+        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
 
         // When
         PostDetail result = postQueryService.getPost(postId, memberId, "test-viewer");
@@ -227,7 +216,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isTrue();
 
-        verify(postQueryRepository).findPostDetail(postId, memberId);
+        verify(postRepository).findById(postId);
+        verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
         verify(realtimePostSync).postDetailCheck(postId, "test-viewer");
         verify(eventPublisher).publishEvent(any(CheckBlacklistEvent.class));
     }
@@ -239,20 +229,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postId = 1L;
         Long postAuthorId = 1L;
 
-        PostDetail mockPostDetail = PostDetail.builder()
-                .id(postId)
-                .title("게시글 제목")
-                .content("게시글 내용")
-                .memberId(postAuthorId)
-                .isLiked(false)
-                .viewCount(10)
-                .likeCount(5)
-                .createdAt(Instant.now())
-                .memberName("testMember")
-                .commentCount(3)
-                .build();
-        given(postQueryRepository.findPostDetail(postId, null))
-                .willReturn(Optional.of(mockPostDetail));
+        Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "게시글 제목", "게시글 내용"));
+        given(postRepository.findById(postId)).willReturn(Optional.of(mockPost));
 
         // When
         PostDetail result = postQueryService.getPost(postId, null, "test-viewer");
@@ -261,7 +239,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isFalse();
 
-        verify(postQueryRepository).findPostDetail(postId, null);
+        verify(postRepository).findById(postId);
+        verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
         verify(realtimePostSync).postDetailCheck(postId, "test-viewer");
         verify(eventPublisher, never()).publishEvent(any(CheckBlacklistEvent.class));
     }
@@ -273,14 +252,14 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postId = 999L;
         Long memberId = 1L;
 
-        given(postQueryRepository.findPostDetail(postId, memberId)).willReturn(Optional.empty());
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPost(postId, memberId, "test-viewer"))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(postQueryRepository).findPostDetail(postId, memberId);
+        verify(postRepository).findById(postId);
     }
 
     @Test
@@ -328,7 +307,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(userPost), pageable, 1);
 
         Page<PostSimpleDetail> emptyLikedPage = Page.empty();
-        given(postQueryRepository.findPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(pageable), any())).willReturn(expectedPage);
         given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(emptyLikedPage);
 
         // When
@@ -338,7 +317,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.getWritePosts()).isEqualTo(expectedPage);
         assertThat(result.getWritePosts().getContent()).hasSize(1);
 
-        verify(postQueryRepository).findPostsByMemberId(memberId, pageable);
+        verify(postQueryRepository).selectPostSimpleDetails(any(), eq(pageable), any());
     }
 
     @Test
@@ -351,7 +330,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(likedPost), pageable, 1);
 
         Page<PostSimpleDetail> emptyWritePage = Page.empty();
-        given(postQueryRepository.findPostsByMemberId(memberId, pageable)).willReturn(emptyWritePage);
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(pageable), any())).willReturn(emptyWritePage);
         given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
 
         // When

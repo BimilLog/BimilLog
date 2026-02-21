@@ -4,13 +4,14 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.async.RealtimePostSync;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.domain.post.repository.PostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -33,13 +34,24 @@ class RealtimePostSyncTest {
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Mock
+    private RedisPostJsonListAdapter redisPostJsonListAdapter;
+
+    @Mock
     private RedisPostCounterAdapter redisPostCounterAdapter;
 
-    @InjectMocks
+    @Mock
+    private PostRepository postRepository;
+
     private RealtimePostSync listener;
 
     @BeforeEach
     void setUp() {
+        listener = new RealtimePostSync(
+                redisRealTimePostAdapter,
+                redisPostJsonListAdapter,
+                redisPostCounterAdapter,
+                postRepository
+        );
         reset(redisRealTimePostAdapter);
     }
 

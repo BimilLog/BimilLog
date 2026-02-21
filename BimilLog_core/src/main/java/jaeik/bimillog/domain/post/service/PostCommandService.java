@@ -71,16 +71,7 @@ public class PostCommandService {
         post = postRepository.save(post);
 
         // 첫 페이지 캐시 비동기 추가
-        PostSimpleDetail newPostDetail = PostSimpleDetail.builder()
-                .id(post.getId())
-                .title(post.getTitle())
-                .createdAt(post.getCreatedAt())
-                .memberId(memberId)
-                .memberName(memberName)
-                .viewCount(0)
-                .likeCount(0)
-                .commentCount(0)
-                .build();
+        PostSimpleDetail newPostDetail = PostSimpleDetail.ofNewPost(post, memberId, memberName);
         cacheUpdateSync.asyncAddNewPost(newPostDetail);
 
         return post.getId();

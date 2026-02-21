@@ -3,12 +3,12 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostIndexAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
@@ -50,12 +51,6 @@ class PostCacheSchedulerTest {
     private RedisPostJsonListAdapter redisPostJsonListAdapter;
 
     @Mock
-    private RedisPostCounterAdapter redisPostCounterAdapter;
-
-    @Mock
-    private RedisPostIndexAdapter redisPostIndexAdapter;
-
-    @Mock
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Mock
@@ -73,8 +68,6 @@ class PostCacheSchedulerTest {
     void setUp() {
         postCacheScheduler = new PostCacheScheduler(
                 redisPostJsonListAdapter,
-                redisPostCounterAdapter,
-                redisPostIndexAdapter,
                 redisRealTimePostAdapter,
                 postQueryRepository,
                 postRepository,
@@ -90,7 +83,8 @@ class PostCacheSchedulerTest {
         PostSimpleDetail post2 = createPostSimpleDetail(2L, "주간인기글2", 2L);
         List<PostSimpleDetail> posts = List.of(post1, post2);
 
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit())), any()))
+                .willReturn(new PageImpl<>(posts));
 
         // When
         postCacheScheduler.updateWeeklyPopularPosts();
@@ -99,11 +93,8 @@ class PostCacheSchedulerTest {
         // 플래그 업데이트
         verify(postRepository).clearWeeklyFlag();
         verify(postRepository).setWeeklyFlag(List.of(1L, 2L));
-        // JSON LIST 전체 교체 (PostCacheEntry로 변환되어 저장)
+        // JSON LIST 전체 교체
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_WEEKLY_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
-        // 카운터 캐시 + 캐시글 ID SET 동기화
-        verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostIndexAdapter).rebuildCategorySet(eq(RedisKey.CACHED_WEEKLY_IDS_KEY), eq(List.of(1L, 2L)));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -125,7 +116,8 @@ class PostCacheSchedulerTest {
         PostSimpleDetail userPost = createPostSimpleDetail(2L, "회원글", 2L);
         List<PostSimpleDetail> posts = List.of(anonymousPost, userPost);
 
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit())), any()))
+                .willReturn(new PageImpl<>(posts));
 
         // When
         postCacheScheduler.updateWeeklyPopularPosts();
@@ -150,7 +142,8 @@ class PostCacheSchedulerTest {
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
         List<PostSimpleDetail> posts = List.of(legendPost);
 
-        given(postQueryRepository.findLegendaryPosts()).willReturn(posts);
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit())), any()))
+                .willReturn(new PageImpl<>(posts));
 
         // When
         postCacheScheduler.updateLegendaryPosts();
@@ -159,8 +152,6 @@ class PostCacheSchedulerTest {
         verify(postRepository).clearLegendFlag();
         verify(postRepository).setLegendFlag(List.of(1L));
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_LEGEND_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
-        verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostIndexAdapter).rebuildCategorySet(eq(RedisKey.CACHED_LEGEND_IDS_KEY), eq(List.of(1L)));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -177,13 +168,14 @@ class PostCacheSchedulerTest {
     @DisplayName("전설의 게시글 업데이트 - 게시글 목록 비어있는 경우")
     void shouldUpdateLegendaryPosts_WhenPostListIsEmpty() {
         // Given
-        given(postQueryRepository.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit())), any()))
+                .willReturn(new PageImpl<>(Collections.emptyList()));
 
         // When
         postCacheScheduler.updateLegendaryPosts();
 
         // Then
-        verify(postQueryRepository).findLegendaryPosts();
+        verify(postQueryRepository).selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit())), any());
 
         // 게시글이 없으면 플래그 업데이트, 캐시, 이벤트 발행 안함
         verify(postRepository, never()).clearLegendFlag();
@@ -197,7 +189,8 @@ class PostCacheSchedulerTest {
         // Given - 대량의 게시글 생성 (100개)
         List<PostSimpleDetail> largePosts = createLargePostList(100);
 
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(largePosts);
+        given(postQueryRepository.selectPostSimpleDetails(any(), eq(PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit())), any()))
+                .willReturn(new PageImpl<>(largePosts));
 
         // When
         postCacheScheduler.updateWeeklyPopularPosts();
@@ -215,19 +208,39 @@ class PostCacheSchedulerTest {
     @DisplayName("공지사항 캐시 갱신 - 성공 (DB 조회 → JSON LIST 전체 교체 with TTL)")
     void shouldRefreshNoticePosts_WhenPostsExist() {
         // Given
-        PostSimpleDetail notice1 = createPostSimpleDetail(1L, "공지1", 1L);
-        PostSimpleDetail notice2 = createPostSimpleDetail(2L, "공지2", 2L);
-        List<PostSimpleDetail> posts = List.of(notice1, notice2);
+        Post mockPost1 = mock(Post.class);
+        given(mockPost1.getId()).willReturn(1L);
+        given(mockPost1.getTitle()).willReturn("공지1");
+        given(mockPost1.getViews()).willReturn(0);
+        given(mockPost1.getLikeCount()).willReturn(0);
+        given(mockPost1.getCreatedAt()).willReturn(Instant.now());
+        given(mockPost1.getMember()).willReturn(null);
+        given(mockPost1.getMemberName()).willReturn("관리자");
+        given(mockPost1.getCommentCount()).willReturn(0);
+        given(mockPost1.isWeekly()).willReturn(false);
+        given(mockPost1.isLegend()).willReturn(false);
+        given(mockPost1.isNotice()).willReturn(true);
 
-        given(postQueryRepository.findNoticePostsForScheduler()).willReturn(posts);
+        Post mockPost2 = mock(Post.class);
+        given(mockPost2.getId()).willReturn(2L);
+        given(mockPost2.getTitle()).willReturn("공지2");
+        given(mockPost2.getViews()).willReturn(0);
+        given(mockPost2.getLikeCount()).willReturn(0);
+        given(mockPost2.getCreatedAt()).willReturn(Instant.now());
+        given(mockPost2.getMember()).willReturn(null);
+        given(mockPost2.getMemberName()).willReturn("관리자");
+        given(mockPost2.getCommentCount()).willReturn(0);
+        given(mockPost2.isWeekly()).willReturn(false);
+        given(mockPost2.isLegend()).willReturn(false);
+        given(mockPost2.isNotice()).willReturn(true);
+
+        given(postRepository.findByIsNoticeTrueOrderByIdDesc()).willReturn(List.of(mockPost1, mockPost2));
 
         // When
         postCacheScheduler.refreshNoticePosts();
 
         // Then
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_NOTICE_JSON_KEY), any(), eq(RedisKey.DEFAULT_CACHE_TTL));
-        verify(redisPostCounterAdapter).batchSetCounters(any());
-        verify(redisPostIndexAdapter).rebuildCategorySet(eq(RedisKey.CACHED_NOTICE_IDS_KEY), any());
 
         // 공지사항은 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -239,7 +252,7 @@ class PostCacheSchedulerTest {
     @DisplayName("공지사항 캐시 갱신 - 공지 없으면 스킵")
     void shouldSkipNoticeRefresh_WhenNoNoticePosts() {
         // Given
-        given(postQueryRepository.findNoticePostsForScheduler()).willReturn(Collections.emptyList());
+        given(postRepository.findByIsNoticeTrueOrderByIdDesc()).willReturn(Collections.emptyList());
 
         // When
         postCacheScheduler.refreshNoticePosts();
@@ -265,8 +278,6 @@ class PostCacheSchedulerTest {
 
         // Then
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.FIRST_PAGE_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
-        verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostIndexAdapter).rebuildCategorySet(eq(RedisKey.CACHED_FIRSTPAGE_IDS_KEY), eq(List.of(1L, 2L)));
 
         // 첫 페이지는 플래그 업데이트나 이벤트 발행 없음
         verify(postRepository, never()).clearWeeklyFlag();
@@ -301,16 +312,14 @@ class PostCacheSchedulerTest {
         List<PostSimpleDetail> posts = List.of(post1, post2, post3);
 
         given(redisRealTimePostAdapter.getRangePostId()).willReturn(topIds);
-        given(postQueryRepository.findPostSimpleDetailsByIds(eq(topIds), any(Pageable.class)))
-                .willReturn(new PageImpl<>(posts));
+        given(postRepository.findAllByIds(topIds)).willReturn(
+                posts.stream().map(p -> mock(Post.class)).toList());
 
         // When
         postCacheScheduler.refreshRealtimePopularPosts();
 
         // Then
         verify(redisPostJsonListAdapter).replaceAll(eq(RedisKey.POST_REALTIME_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
-        verify(redisPostCounterAdapter).batchSetCounters(posts);
-        verify(redisPostIndexAdapter).rebuildCategorySet(RedisKey.CACHED_REALTIME_IDS_KEY, List.of(3L, 1L, 5L));
     }
 
     @Test

@@ -1,7 +1,6 @@
 package jaeik.bimillog.testutil.builder;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.entity.PostCacheEntry;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
@@ -69,13 +68,6 @@ public class PostTestDataBuilder {
                 .commentCount(0)
                 .createdAt(Instant.now())
                 .build();
-    }
-
-    /**
-     * PostCacheEntry 생성 (JSON LIST 캐시용)
-     */
-    public static PostCacheEntry createCacheEntry(Long id, String title) {
-        return new PostCacheEntry(id, title, Instant.now(), 1L, "작성자", false, false, false);
     }
 
 }

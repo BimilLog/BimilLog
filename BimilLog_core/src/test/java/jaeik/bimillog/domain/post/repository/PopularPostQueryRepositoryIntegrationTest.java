@@ -144,7 +144,7 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> popularPosts = postQueryRepository.findWeeklyPopularPosts();
+        List<PostSimpleDetail> popularPosts = postQueryRepository.selectPostSimpleDetails(PostQueryType.WEEKLY_SCHEDULER.condition(), PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit()), PostQueryType.WEEKLY_SCHEDULER.getOrders()).getContent();
 
         // Then
         assertThat(popularPosts).hasSize(2);
@@ -172,11 +172,11 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> legendaryPosts = postQueryRepository.findLegendaryPosts();
+        List<PostSimpleDetail> legendaryPosts = postQueryRepository.selectPostSimpleDetails(PostQueryType.LEGEND_SCHEDULER.condition(), PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit()), PostQueryType.LEGEND_SCHEDULER.getOrders()).getContent();
 
         // Then
         assertThat(legendaryPosts).hasSize(2);
-        assertThat(legendaryPosts.get(0).getTitle()).isEqualTo("전설의 게시글2");
+        assertThat(legendaryPosts.getFirst().getTitle()).isEqualTo("전설의 게시글2");
         assertThat(legendaryPosts.get(0).getId()).isNotNull();
         assertThat(legendaryPosts.get(0).getMemberId()).isEqualTo(testMember.getId());
         assertThat(legendaryPosts.get(1).getTitle()).isEqualTo("전설의 게시글1");
@@ -202,7 +202,7 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        Page<PostSimpleDetail> result = postQueryRepository.findRecentPopularPosts(PageRequest.of(0, 5));
+        Page<PostSimpleDetail> result = postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), PageRequest.of(0, 5), PostQueryType.REALTIME_FALLBACK.getOrders());
 
         // Then
         assertThat(result.getContent()).hasSize(3);
@@ -223,7 +223,8 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        PostDetail postDetail = postQueryRepository.findPostDetail(post.getId(), null).orElse(null);
+        Post postEntity = postRepository.findById(post.getId()).orElse(null);
+        PostDetail postDetail = postEntity != null ? PostDetail.from(postEntity, false) : null;
 
         // Then
         assertThat(postDetail).isNotNull();
@@ -240,7 +241,8 @@ class PopularPostQueryRepositoryIntegrationTest {
         Long nonExistentPostId = 999999L; // 확실히 존재하지 않는 큰 ID 사용
 
         // When
-        PostDetail postDetail = postQueryRepository.findPostDetail(nonExistentPostId, null).orElse(null);
+        Post postEntity = postRepository.findById(nonExistentPostId).orElse(null);
+        PostDetail postDetail = postEntity != null ? PostDetail.from(postEntity, false) : null;
 
         // Then
         assertNull(postDetail);
