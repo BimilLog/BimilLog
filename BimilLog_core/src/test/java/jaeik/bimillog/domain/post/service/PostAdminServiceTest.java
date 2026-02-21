@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +40,7 @@ class PostAdminServiceTest extends BaseUnitTest {
     private PostRepository postRepository;
 
     @Mock
-    private RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private RedisPostListDeleteAdapter redisPostListDeleteAdapter;
 
     @InjectMocks
     private PostAdminService postAdminService;
@@ -66,7 +66,7 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(postRepository).findById(postId);
-        verify(redisPostJsonListAdapter).addNewPost(eq(RedisKey.POST_NOTICE_JSON_KEY), any(PostSimpleDetail.class), anyInt());
+        verify(redisPostListDeleteAdapter).addNewPost(eq(RedisKey.POST_NOTICE_JSON_KEY), any(PostSimpleDetail.class), anyInt());
     }
 
     @Test
@@ -83,7 +83,7 @@ class PostAdminServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postRepository).findById(postId);
-        verify(redisPostJsonListAdapter, never()).removePost(eq(RedisKey.POST_NOTICE_JSON_KEY), eq(postId));
+        verify(redisPostListDeleteAdapter, never()).removePost(eq(RedisKey.POST_NOTICE_JSON_KEY), eq(postId));
     }
 
     @Test
@@ -108,6 +108,6 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Then
         verify(postRepository).findById(postId);
         // JSON LIST에서 제거
-        verify(redisPostJsonListAdapter).removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
+        verify(redisPostListDeleteAdapter).removePost(RedisKey.POST_NOTICE_JSON_KEY, postId);
     }
 }

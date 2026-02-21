@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.async;
 
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -18,8 +18,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PostCountSync {
-    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+public class CacheUpdateCountSync {
+    private final RedisPostListUpdateAdapter redisPostListUpdateAdapter;
 
     /**
      * <h3>좋아요 카운터 증감</h3>
@@ -29,7 +29,7 @@ public class PostCountSync {
      */
     @Async("cacheCountUpdateExecutor")
     public void incrementLikeCounter(Long postId, long delta) {
-        redisPostJsonListAdapter.incrementCounterInAllLists(postId, "likeCount", delta);
+        redisPostListUpdateAdapter.incrementCounterInAllLists(postId, "likeCount", delta);
     }
 
     /**
@@ -40,6 +40,6 @@ public class PostCountSync {
      */
     @Async("cacheCountUpdateExecutor")
     public void incrementCommentCounter(Long postId, long delta) {
-        redisPostJsonListAdapter.incrementCounterInAllLists(postId, "commentCount", delta);
+        redisPostListUpdateAdapter.incrementCounterInAllLists(postId, "commentCount", delta);
     }
 }

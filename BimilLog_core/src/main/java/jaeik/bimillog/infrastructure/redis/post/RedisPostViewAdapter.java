@@ -4,11 +4,9 @@ import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.*;
 
 /**
  * <h2>게시글 조회수 버퍼 Redis 어댑터</h2>
@@ -21,7 +19,7 @@ import java.util.*;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisPostCounterAdapter {
+public class RedisPostViewAdapter {
     private final StringRedisTemplate stringRedisTemplate;
 
     private static final String VIEW_PREFIX = RedisKey.VIEW_PREFIX;
@@ -48,35 +46,5 @@ public class RedisPostCounterAdapter {
         return false;
     }
 
-    /**
-     * <h3>조회수 버퍼 조회 및 초기화 (원자적)</h3>
-     * <p>Lua 스크립트로 EXISTS → HGETALL → DEL을 원자적으로 처리합니다.</p>
-     *
-     * @return postId → 증가량 맵 (비어있으면 빈 맵)
-     */
-    @SuppressWarnings("unchecked")
-    public Map<Long, Long> getAndClearViewCounts() {
-        final String GET_AND_CLEAR_VIEW_COUNTS_SCRIPT =
-                "if redis.call('EXISTS', KEYS[1]) == 0 then " +
-                "    return nil " +
-                "end " +
-                "local entries = redis.call('HGETALL', KEYS[1]) " +
-                "redis.call('DEL', KEYS[1]) " +
-                "return entries";
-        DefaultRedisScript<List> script = new DefaultRedisScript<>(GET_AND_CLEAR_VIEW_COUNTS_SCRIPT, List.class);
-        List<Object> result = stringRedisTemplate.execute(script, List.of(VIEW_COUNTS_KEY));
 
-        if (result == null || result.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        Map<Long, Long> counts = new HashMap<>();
-        for (int i = 0; i + 1 < result.size(); i += 2) {
-            Object keyObj = result.get(i);
-            Object valueObj = result.get(i + 1);
-            if (keyObj == null || valueObj == null) continue;
-            counts.put(Long.parseLong(keyObj.toString()), Long.parseLong(valueObj.toString()));
-        }
-        return counts;
-    }
 }

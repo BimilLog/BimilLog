@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -43,16 +43,16 @@ class RealtimePostPopularServiceTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Mock
-    private RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private RedisPostListDeleteAdapter redisPostListDeleteAdapter;
 
     @Mock
     private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
 
     @Mock
-    private RealtimePostSync realtimePostSync;
+    private CacheRealtimeSync cacheRealtimeSync;
 
     @Mock
     private PostUtil postUtil;
@@ -67,14 +67,14 @@ class RealtimePostPopularServiceTest {
     void shouldReturnEmptyPage_WhenZSetIsEmpty() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
-        given(redisRealTimePostAdapter.getRangePostId()).willReturn(List.of());
+        given(redisPostRealTimeAdapter.getRangePostId()).willReturn(List.of());
 
         // When
         Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
 
         // Then
         assertThat(result.getContent()).isEmpty();
-        verify(redisPostJsonListAdapter, never()).getAll(any());
+        verify(redisPostListDeleteAdapter, never()).getAll(any());
     }
 
     @Test
@@ -88,8 +88,8 @@ class RealtimePostPopularServiceTest {
                 PostTestDataBuilder.createPostSearchResult(1L, "인기글2")
         );
 
-        given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
+        given(redisPostRealTimeAdapter.getRangePostId()).willReturn(zsetIds);
+        given(redisPostListDeleteAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
         given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(posts, pageable, 2));
 
         // When
@@ -97,7 +97,7 @@ class RealtimePostPopularServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(2);
-        verify(realtimePostSync, never()).asyncRebuildRealtimeCache(any());
+        verify(cacheRealtimeSync, never()).asyncRebuildRealtimeCache(any());
     }
 
     @Test
@@ -111,8 +111,8 @@ class RealtimePostPopularServiceTest {
                 PostTestDataBuilder.createPostSearchResult(2L, "인기글2")
         );
 
-        given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
+        given(redisPostRealTimeAdapter.getRangePostId()).willReturn(zsetIds);
+        given(redisPostListDeleteAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
         given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(posts, pageable, 2));
 
         // When
@@ -120,7 +120,7 @@ class RealtimePostPopularServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(2);
-        verify(realtimePostSync).asyncRebuildRealtimeCache(zsetIds);
+        verify(cacheRealtimeSync).asyncRebuildRealtimeCache(zsetIds);
     }
 
     @Test
@@ -131,8 +131,8 @@ class RealtimePostPopularServiceTest {
         List<Long> zsetIds = List.of(1L, 2L);
         List<PostSimpleDetail> emptyPosts = List.of();
 
-        given(redisRealTimePostAdapter.getRangePostId()).willReturn(zsetIds);
-        given(redisPostJsonListAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(emptyPosts);
+        given(redisPostRealTimeAdapter.getRangePostId()).willReturn(zsetIds);
+        given(redisPostListDeleteAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(emptyPosts);
         given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(emptyPosts, pageable, 0));
 
         // When
@@ -140,6 +140,6 @@ class RealtimePostPopularServiceTest {
 
         // Then
         assertThat(result.getContent()).isEmpty();
-        verify(realtimePostSync).asyncRebuildRealtimeCache(zsetIds);
+        verify(cacheRealtimeSync).asyncRebuildRealtimeCache(zsetIds);
     }
 }

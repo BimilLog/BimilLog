@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.scheduler;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 class RealTimePostSchedulerTest {
 
     @Mock
-    private RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Mock
     private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
@@ -58,7 +58,7 @@ class RealTimePostSchedulerTest {
         scheduler.applyRealtimeScoreDecay();
 
         // Then
-        verify(redisRealTimePostAdapter).applyRealtimePopularScoreDecay();
+        verify(redisPostRealTimeAdapter).applyRealtimePopularScoreDecay();
         verify(realtimeScoreFallbackStore, never()).applyDecay();
     }
 
@@ -73,7 +73,7 @@ class RealTimePostSchedulerTest {
 
         // Then
         verify(realtimeScoreFallbackStore).applyDecay();
-        verify(redisRealTimePostAdapter, never()).applyRealtimePopularScoreDecay();
+        verify(redisPostRealTimeAdapter, never()).applyRealtimePopularScoreDecay();
     }
 
     @Test
@@ -87,7 +87,7 @@ class RealTimePostSchedulerTest {
 
         // Then
         verify(realtimeScoreFallbackStore).applyDecay();
-        verify(redisRealTimePostAdapter, never()).applyRealtimePopularScoreDecay();
+        verify(redisPostRealTimeAdapter, never()).applyRealtimePopularScoreDecay();
     }
 
     @Test
@@ -96,13 +96,13 @@ class RealTimePostSchedulerTest {
         // Given
         given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.CLOSED);
         willThrow(new RuntimeException("Redis 연결 실패"))
-                .given(redisRealTimePostAdapter).applyRealtimePopularScoreDecay();
+                .given(redisPostRealTimeAdapter).applyRealtimePopularScoreDecay();
 
         // When - 예외가 전파되지 않아야 함
         scheduler.applyRealtimeScoreDecay();
 
         // Then
-        verify(redisRealTimePostAdapter).applyRealtimePopularScoreDecay();
+        verify(redisPostRealTimeAdapter).applyRealtimePopularScoreDecay();
     }
 
     @Test

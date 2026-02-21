@@ -6,19 +6,16 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * <h2>실시간 인기글 점수 업데이트</h2>
@@ -32,10 +29,10 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class RealtimePostSync {
-    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
-    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
-    private final RedisPostCounterAdapter redisPostCounterAdapter;
+public class CacheRealtimeSync {
+    private final RedisPostRealTimeAdapter redisPostRealTimeAdapter;
+    private final RedisPostListUpdateAdapter redisPostListUpdateAdapter;
+    private final RedisPostViewAdapter redisPostViewAdapter;
     private final PostRepository postRepository;
 
     private static final double COMMENT_SCORE = 3.0;
@@ -46,7 +43,7 @@ public class RealtimePostSync {
      */
     @Async("realtimeEventExecutor")
     public void updateRealtimeScore(Long postId, double score) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, score);
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, score);
     }
 
     /**
@@ -55,8 +52,8 @@ public class RealtimePostSync {
     @Async("realtimeEventExecutor")
     public void postDetailCheck(Long postId, String viewerKey) {
         try {
-            redisRealTimePostAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
-            redisPostCounterAdapter.markViewedAndIncrement(postId, viewerKey);
+            redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
+            redisPostViewAdapter.markViewedAndIncrement(postId, viewerKey);
         } catch (Exception e) {
             log.warn("상세글 조회 점수 상승 실패: postId={}, error={}", postId, e.getMessage());
         }
@@ -68,7 +65,7 @@ public class RealtimePostSync {
     @TransactionalEventListener
     @Async("realtimeEventExecutor")
     public void handleCommentCreated(CommentCreatedEvent event) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(event.getPostId(), COMMENT_SCORE);
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(event.getPostId(), COMMENT_SCORE);
     }
 
     /**
@@ -77,7 +74,7 @@ public class RealtimePostSync {
     @TransactionalEventListener
     @Async("realtimeEventExecutor")
     public void handleCommentDeleted(CommentDeletedEvent event) {
-        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);
     }
 
     /**
@@ -95,6 +92,6 @@ public class RealtimePostSync {
             return;
         }
 
-        redisPostJsonListAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, dbPosts, RedisKey.DEFAULT_CACHE_TTL);
+        redisPostListUpdateAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, dbPosts, RedisKey.DEFAULT_CACHE_TTL);
     }
 }

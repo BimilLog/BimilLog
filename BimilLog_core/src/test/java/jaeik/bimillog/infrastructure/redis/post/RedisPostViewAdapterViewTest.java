@@ -24,13 +24,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>RedisPostCounterAdapter 조회수 버퍼 단위 테스트</h2>
+ * <h2>RedisPostViewAdapter 조회수 버퍼 단위 테스트</h2>
  * <p>Redis 기반 조회수 중복 방지 및 버퍼링 로직을 검증합니다.</p>
  */
 @Tag("unit")
-@DisplayName("RedisPostCounterAdapter 조회수 버퍼 단위 테스트")
+@DisplayName("RedisPostViewAdapter 조회수 버퍼 단위 테스트")
 @ExtendWith(MockitoExtension.class)
-class RedisPostCounterAdapterViewTest {
+class RedisPostViewAdapterViewTest {
 
     @Mock
     private StringRedisTemplate stringRedisTemplate;
@@ -42,7 +42,7 @@ class RedisPostCounterAdapterViewTest {
     private HashOperations<String, Object, Object> hashOperations;
 
     @InjectMocks
-    private RedisPostCounterAdapter adapter;
+    private RedisPostViewAdapter adapter;
 
     @Test
     @DisplayName("새로운 조회 시 SET NX EX 성공 + 조회수 버퍼 증가")

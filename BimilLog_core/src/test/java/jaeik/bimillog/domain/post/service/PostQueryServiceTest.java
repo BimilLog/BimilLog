@@ -2,14 +2,14 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
-import jaeik.bimillog.domain.post.async.RealtimePostSync;
+import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
 
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -63,10 +63,10 @@ class PostQueryServiceTest extends BaseUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private RedisPostListDeleteAdapter redisPostListDeleteAdapter;
 
     @Mock
-    private RealtimePostSync realtimePostSync;
+    private CacheRealtimeSync cacheRealtimeSync;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -79,7 +79,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         int size = 10;
         List<PostSimpleDetail> cached = List.of(PostTestDataBuilder.createPostSearchResult(1L, "제목1"));
 
-        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
+        given(redisPostListDeleteAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -89,7 +89,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
         assertThat(result.nextCursor()).isNull();
 
-        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
+        verify(redisPostListDeleteAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
@@ -107,7 +107,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 PostTestDataBuilder.createPostSearchResult(2L, "제목2"),
                 PostTestDataBuilder.createPostSearchResult(1L, "제목1")
         );
-        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
+        given(redisPostListDeleteAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
 
         // When
         var result = postQueryService.getBoardByCursor(cursor, size, null);
@@ -118,7 +118,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content().get(1).getTitle()).isEqualTo("제목4");
         assertThat(result.nextCursor()).isEqualTo(4L);
 
-        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
+        verify(redisPostListDeleteAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository, never()).findBoardPostsByCursor(any(), anyInt());
     }
@@ -132,7 +132,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "DB 폴백 글");
         List<PostSimpleDetail> dbPosts = List.of(postResult);
 
-        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(Collections.emptyList());
+        given(redisPostListDeleteAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(Collections.emptyList());
         given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE)).willReturn(dbPosts);
 
         // When
@@ -142,7 +142,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("DB 폴백 글");
 
-        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
+        verify(redisPostListDeleteAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
     }
 
@@ -164,7 +164,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).hasSize(1);
         assertThat(result.content().getFirst().getTitle()).isEqualTo("제목1");
 
-        verify(redisPostJsonListAdapter, never()).getAll(any());
+        verify(redisPostListDeleteAdapter, never()).getAll(any());
         verify(postToMemberAdapter, never()).getInterActionBlacklist(any());
         verify(postQueryRepository).findBoardPostsByCursor(cursor, size);
     }
@@ -183,7 +183,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
         );
 
-        given(redisPostJsonListAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
+        given(redisPostListDeleteAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
         given(postToMemberAdapter.getInterActionBlacklist(memberId)).willReturn(List.of(2L));
 
         // When
@@ -194,7 +194,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.content()).extracting(PostSimpleDetail::getId).containsExactly(1L, 3L);
         assertThat(result.nextCursor()).isNull();
 
-        verify(redisPostJsonListAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
+        verify(redisPostListDeleteAdapter).getAll(RedisKey.FIRST_PAGE_JSON_KEY);
     }
 
     @Test
@@ -218,7 +218,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(postRepository).findById(postId);
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(realtimePostSync).postDetailCheck(postId, "test-viewer");
+        verify(cacheRealtimeSync).postDetailCheck(postId, "test-viewer");
         verify(eventPublisher).publishEvent(any(CheckBlacklistEvent.class));
     }
 
@@ -241,7 +241,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(postRepository).findById(postId);
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
-        verify(realtimePostSync).postDetailCheck(postId, "test-viewer");
+        verify(cacheRealtimeSync).postDetailCheck(postId, "test-viewer");
         verify(eventPublisher, never()).publishEvent(any(CheckBlacklistEvent.class));
     }
 

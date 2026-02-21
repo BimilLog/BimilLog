@@ -2,10 +2,10 @@ package jaeik.bimillog.domain.post.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
-import jaeik.bimillog.domain.post.async.RealtimePostSync;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostCounterAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>RealtimePostSync 단위 테스트</h2>
+ * <h2>CacheRealtimeSync 단위 테스트</h2>
  * <p>실시간 인기글 점수 리스너의 이벤트 처리 로직을 검증합니다.</p>
  * <p>서킷브레이커 동작은 RedisRealTimePostAdapter에서 테스트합니다.</p>
  *
@@ -26,33 +26,33 @@ import static org.mockito.Mockito.*;
  * @version 2.6.0
  */
 @Tag("unit")
-@DisplayName("RealtimePostSync 단위 테스트")
+@DisplayName("CacheRealtimeSync 단위 테스트")
 @ExtendWith(MockitoExtension.class)
-class RealtimePostSyncTest {
+class CacheRealtimeSyncTest {
 
     @Mock
-    private RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Mock
-    private RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private RedisPostListDeleteAdapter redisPostListDeleteAdapter;
 
     @Mock
-    private RedisPostCounterAdapter redisPostCounterAdapter;
+    private RedisPostViewAdapter redisPostViewAdapter;
 
     @Mock
     private PostRepository postRepository;
 
-    private RealtimePostSync listener;
+    private CacheRealtimeSync listener;
 
     @BeforeEach
     void setUp() {
-        listener = new RealtimePostSync(
-                redisRealTimePostAdapter,
-                redisPostJsonListAdapter,
-                redisPostCounterAdapter,
+        listener = new CacheRealtimeSync(
+                redisPostRealTimeAdapter,
+                redisPostListDeleteAdapter,
+                redisPostViewAdapter,
                 postRepository
         );
-        reset(redisRealTimePostAdapter);
+        reset(redisPostRealTimeAdapter);
     }
 
     @Test
@@ -65,7 +65,7 @@ class RealtimePostSyncTest {
         listener.handleCommentCreated(event);
 
         // Then
-        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(100L, 3.0);
+        verify(redisPostRealTimeAdapter, times(1)).incrementRealtimePopularScore(100L, 3.0);
     }
 
     @Test
@@ -75,7 +75,7 @@ class RealtimePostSyncTest {
         listener.updateRealtimeScore(1L, 4.0);
 
         // Then
-        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, 4.0);
+        verify(redisPostRealTimeAdapter, times(1)).incrementRealtimePopularScore(1L, 4.0);
     }
 
     @Test
@@ -85,7 +85,7 @@ class RealtimePostSyncTest {
         listener.updateRealtimeScore(1L, -4.0);
 
         // Then
-        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, -4.0);
+        verify(redisPostRealTimeAdapter, times(1)).incrementRealtimePopularScore(1L, -4.0);
     }
 
     @Test
@@ -98,6 +98,6 @@ class RealtimePostSyncTest {
         listener.handleCommentDeleted(event);
 
         // Then
-        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(100L, -3.0);
+        verify(redisPostRealTimeAdapter, times(1)).incrementRealtimePopularScore(100L, -3.0);
     }
 }

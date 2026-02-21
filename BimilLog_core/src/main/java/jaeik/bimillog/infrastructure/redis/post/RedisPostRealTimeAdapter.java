@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisRealTimePostAdapter {
+public class RedisPostRealTimeAdapter {
     private static final String REALTIME_SCORE_KEY = RedisKey.REALTIME_POST_SCORE_KEY;
 
     private final StringRedisTemplate stringRedisTemplate;

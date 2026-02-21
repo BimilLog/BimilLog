@@ -19,7 +19,7 @@ import static jaeik.bimillog.infrastructure.redis.RedisKey.REALTIME_POST_SCORE_K
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>RedisRealTimePostAdapter 통합 테스트</h2>
+ * <h2>RedisPostRealTimeAdapter 통합 테스트</h2>
  * <p>로컬 Redis 환경에서 실시간 인기글 점수 관리 어댑터의 핵심 기능을 검증합니다.</p>
  *
  * @author Jaeik
@@ -29,10 +29,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
-class RedisRealTimePostAdapterIntegrationTest {
+class RedisPostRealTimeAdapterIntegrationTest {
 
     @Autowired
-    private RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -54,7 +54,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         }
 
         // When: 실시간 인기글 ID 조회 (항상 상위 5개)
-        List<Long> result = redisRealTimePostAdapter.getRangePostId();
+        List<Long> result = redisPostRealTimeAdapter.getRangePostId();
 
         // Then: 상위 5개 반환
         assertThat(result).hasSize(5);
@@ -67,7 +67,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         // Given: 데이터 없음
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostAdapter.getRangePostId();
+        List<Long> result = redisPostRealTimeAdapter.getRangePostId();
 
         // Then: 빈 목록 반환
         assertThat(result).isEmpty();
@@ -85,7 +85,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, 500L, 20.0);
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostAdapter.getRangePostId();
+        List<Long> result = redisPostRealTimeAdapter.getRangePostId();
 
         // Then: 점수 내림차순으로 정렬됨
         assertThat(result).containsExactly(400L, 200L, 500L, 100L, 300L); // 30, 25, 20, 15, 10
@@ -100,7 +100,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         String scoreKey = REALTIME_POST_SCORE_KEY;
 
         // When: 점수 증가
-        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, score);
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, score);
 
         // Then: Sorted Set에서 점수 확인
         Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId);
@@ -115,9 +115,9 @@ class RedisRealTimePostAdapterIntegrationTest {
         String scoreKey = REALTIME_POST_SCORE_KEY;
 
         // When: 여러 번 점수 증가 (조회 2점 + 댓글 3점 + 추천 4점)
-        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, 2.0); // 조회
-        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, 3.0); // 댓글
-        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, 4.0); // 추천
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, 2.0); // 조회
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, 3.0); // 댓글
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, 4.0); // 추천
 
         // Then: 누적 점수 확인
         Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId);
@@ -134,7 +134,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, 3L, 2.0);
 
         // When: 감쇠 적용 (0.97배)
-        redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
+        redisPostRealTimeAdapter.applyRealtimePopularScoreDecay();
 
         // Then: 점수가 0.97배로 감소
         Double score1 = redisTemplate.opsForZSet().score(scoreKey, 1L);
@@ -161,7 +161,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         assertThat(initialSize).isEqualTo(4);
 
         // When: 감쇠 적용
-        redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
+        redisPostRealTimeAdapter.applyRealtimePopularScoreDecay();
 
         // Then: 임계값(1.0) 이하의 게시글은 제거됨
         Long finalSize = redisTemplate.opsForZSet().size(scoreKey);
@@ -199,7 +199,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         assertThat(score).isEqualTo(100.0);
 
         // When: removePostIdFromRealtimeScore() 호출
-        redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
+        redisPostRealTimeAdapter.removePostIdFromRealtimeScore(postId);
 
         // Then: Sorted Set에서 제거됨 확인
         Double scoreAfter = redisTemplate.opsForZSet().score(scoreKey, postId);

@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostJsonListAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostListQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -29,7 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostPopularService {
     private final PostQueryRepository postQueryRepository;
-    private final RedisPostJsonListAdapter redisPostJsonListAdapter;
+    private final RedisPostListQueryAdapter redisPostListQueryAdapter;
     private final PostUtil postUtil;
 
     /**
@@ -37,7 +37,7 @@ public class PostPopularService {
      */
     public Page<PostSimpleDetail> getPopularPosts(Pageable pageable, String redisKey, PostQueryType type) {
         try {
-            List<PostSimpleDetail> posts = redisPostJsonListAdapter.getAll(redisKey);
+            List<PostSimpleDetail> posts = redisPostListQueryAdapter.getAll(redisKey);
             if (!posts.isEmpty()) {
                 return postUtil.paginate(posts, pageable);
             }
