@@ -65,6 +65,8 @@ class RealtimeCacheConsistencyTest {
     private static final int TOGGLE_INTERVAL = 20;
     private static final int COMPARE_OFFSET = TOGGLE_INTERVAL / 2; // 전환 사이 중간 지점에서 비교
     private static final int DECAY_INTERVAL = 50;
+    private static final int WARMUP_INTERVAL = 10;
+    private static final int CAFFEINE_WARM_UP_SIZE = 100;
     private static final int TOP_N = 5;
     private static final double VIEW_SCORE = 2.0;
     private static final double MAX_ACCEPTABLE_ERROR_RATE = 0.90;
@@ -88,7 +90,14 @@ class RealtimeCacheConsistencyTest {
         // Given: Zipf's Law를 적용한 가중치 분포 생성
         double[] weights = buildZipfSkewedWeights(POST_COUNT, ZIPF_EXPONENT);
         boolean circuitOpen = false;
-        List<Double> similarities = new ArrayList<>();
+
+        // 직후: 서킷 OPEN 전환 시점 (해당 라운드 이벤트는 CLOSED 구간에서 발생)
+        List<Integer> immediateRounds = new ArrayList<>();
+        List<Double> immediateAfterOpenSimilarities = new ArrayList<>();
+
+        // 중간: OPEN 진입 후 COMPARE_OFFSET 라운드 경과 시점
+        List<Integer> midpointRounds = new ArrayList<>();
+        List<Double> midpointSimilarities = new ArrayList<>();
 
         // When: 200라운드 시뮬레이션
         for (int round = 1; round <= TOTAL_ROUNDS; round++) {
@@ -97,8 +106,15 @@ class RealtimeCacheConsistencyTest {
             int eventCount = ThreadLocalRandom.current().nextInt(5, 11);
             for (int e = 0; e < eventCount; e++) {
                 long postId = pickWeightedPostId(weights);
-                // 실제 동작과 동일: 어댑터 호출 → 서킷 OPEN이면 fallback이 Caffeine에 적립
                 redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
+            }
+
+            // 1분 스케줄러 시뮬레이션: CLOSED 구간에서 10라운드마다 Redis Top100 → Caffeine 웜업
+            if (!circuitOpen && round % WARMUP_INTERVAL == 0) {
+                Map<Long, Double> topScores = redisPostRealTimeAdapter.getTopNWithScores(CAFFEINE_WARM_UP_SIZE);
+                if (!topScores.isEmpty()) {
+                    fallbackStore.warmUp(topScores);
+                }
             }
 
             // 감쇠 적용 (50라운드마다)
@@ -112,39 +128,64 @@ class RealtimeCacheConsistencyTest {
             // 서킷 토글 (20라운드마다)
             if (round % TOGGLE_INTERVAL == 0) {
                 circuitOpen = !circuitOpen;
+
                 if (circuitOpen) {
                     circuitBreaker.transitionToOpenState();
+
+                    // OPEN 직후 비교
+                    List<Long> redisTop = getRedisTop(TOP_N);
+                    List<Long> caffeineTop = fallbackStore.getTopPostIds(0, TOP_N);
+                    double jaccard = jaccardSimilarity(redisTop, caffeineTop);
+                    immediateRounds.add(round);
+                    immediateAfterOpenSimilarities.add(jaccard);
+
+                    log.info("  라운드 {} [OPEN 직후]: Redis={}, Caffeine={}, 유사도={}",
+                            String.format("%3d", round), redisTop, caffeineTop, String.format("%.4f", jaccard));
                 } else {
                     circuitBreaker.transitionToClosedState();
                 }
             }
 
-            // 전환 사이 중간 지점에서 비교 (10, 30, 50, 70, ...)
-            if (round % TOGGLE_INTERVAL == COMPARE_OFFSET) {
+            // OPEN 구간 중간 지점 비교
+            if (round % TOGGLE_INTERVAL == COMPARE_OFFSET && circuitOpen) {
                 List<Long> redisTop = getRedisTop(TOP_N);
                 List<Long> caffeineTop = fallbackStore.getTopPostIds(0, TOP_N);
-
                 double jaccard = jaccardSimilarity(redisTop, caffeineTop);
-                similarities.add(jaccard);
+                midpointRounds.add(round);
+                midpointSimilarities.add(jaccard);
 
-                log.info("  라운드 {}: Redis={}, Caffeine={}, 유사도={}",
+                log.info("  라운드 {} [OPEN 중간]: Redis={}, Caffeine={}, 유사도={}",
                         String.format("%3d", round), redisTop, caffeineTop, String.format("%.4f", jaccard));
             }
         }
 
-        // Then: 평균 오차율 검증
-        double avgSimilarity = similarities.stream()
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .orElse(0.0);
-        double avgErrorRate = 1.0 - avgSimilarity;
+        // Then: 최종 결과 집계
+        double avgImmediateSimilarity = immediateAfterOpenSimilarities.stream()
+                .mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double avgImmediateErrorRate = 1.0 - avgImmediateSimilarity;
 
-        log.info("[결과] 전환 횟수: {}, 평균 자카드 유사도: {}, 평균 오차율: {} (Zipf s={})",
-                similarities.size(), String.format("%.4f", avgSimilarity),
-                String.format("%.4f", avgErrorRate), ZIPF_EXPONENT);
+        double avgMidpointSimilarity = midpointSimilarities.stream()
+                .mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double avgMidpointErrorRate = 1.0 - avgMidpointSimilarity;
 
-        assertThat(avgErrorRate)
-                .as("평균 오차율(1 - 자카드 유사도)이 90%% 이하여야 합니다. 실제: %.2f%%", avgErrorRate * 100)
+        log.info("============================================================");
+        log.info("[OPEN 직후] 측정 라운드: {}", immediateRounds);
+        log.info("[OPEN 직후] 유사도 목록: {}", immediateAfterOpenSimilarities.stream()
+                .map(s -> String.format("%.4f", s)).toList());
+        log.info("[OPEN 직후] 평균 유사도: {}, 평균 오차율: {}%",
+                String.format("%.4f", avgImmediateSimilarity),
+                String.format("%.1f", avgImmediateErrorRate * 100));
+        log.info("------------------------------------------------------------");
+        log.info("[OPEN 중간] 측정 라운드: {}", midpointRounds);
+        log.info("[OPEN 중간] 유사도 목록: {}", midpointSimilarities.stream()
+                .map(s -> String.format("%.4f", s)).toList());
+        log.info("[OPEN 중간] 평균 유사도: {}, 평균 오차율: {}%",
+                String.format("%.4f", avgMidpointSimilarity),
+                String.format("%.1f", avgMidpointErrorRate * 100));
+        log.info("============================================================");
+
+        assertThat(avgMidpointErrorRate)
+                .as("평균 오차율(1 - 자카드 유사도)이 90%% 이하여야 합니다. 실제: %.2f%%", avgMidpointErrorRate * 100)
                 .isLessThanOrEqualTo(MAX_ACCEPTABLE_ERROR_RATE);
     }
 
@@ -152,7 +193,8 @@ class RealtimeCacheConsistencyTest {
 
     /**
      * Zipf's Law (P = 1/r^s)를 적용한 가중치 분포 생성
-     * @param count 전체 아이템 수 (N)
+     *
+     * @param count    전체 아이템 수 (N)
      * @param exponent Zipf 지수 (s) - 보통 1.0 내외
      */
     private double[] buildZipfSkewedWeights(int count, double exponent) {

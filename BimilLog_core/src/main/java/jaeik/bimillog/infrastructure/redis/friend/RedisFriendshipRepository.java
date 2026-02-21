@@ -57,7 +57,6 @@ public class RedisFriendshipRepository {
                 return null;
             });
 
-            // String → Long 변환 (호출자가 List<Long> 캐스팅 사용)
             return rawResults.stream()
                     .map(result -> {
                         if (result instanceof List<?> list) {

@@ -6,12 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <h2>실시간 인기글 폴백 저장소</h2>
  * <p>Redis 장애 시 실시간 인기글 점수를 Caffeine 캐시에 임시 저장합니다.</p>
  * <p>서킷브레이커 OPEN 상태에서 fallbackMethod로 호출됩니다.</p>
- * <p>실시간 특성상 Redis 복구 시 이전 데이터 복구 없이 새로 시작합니다.</p>
+ * <p>Redis 복구(CLOSED 전환) 시 누적 점수와 삭제 로그를 Redis에 반영한 뒤 초기화합니다.</p>
  *
  * @author Jaeik
  * @version 2.6.0
@@ -26,6 +27,9 @@ public class RealtimeScoreFallbackStore {
     private final Cache<Long, Double> scoreCache = Caffeine.newBuilder()
             .maximumSize(MAX_SIZE)
             .build();
+
+    // OPEN 구간 중 삭제된 게시글 ID 추적 (CLOSED 전환 시 Redis에서도 제거)
+    private final Set<Long> deletedPostIds = ConcurrentHashMap.newKeySet();
 
     /**
      * <h3>점수 증가</h3>
@@ -101,7 +105,50 @@ public class RealtimeScoreFallbackStore {
      */
     public void removePost(Long postId) {
         scoreCache.invalidate(postId);
-        log.debug("[FALLBACK_STORE] 게시글 제거: postId={}", postId);
+        deletedPostIds.add(postId);
+        log.debug("[FALLBACK_STORE] 게시글 제거 및 삭제 로그 기록: postId={}", postId);
+    }
+
+    /**
+     * <h3>Redis 점수로 웜업</h3>
+     * <p>스케줄러가 주기적으로 Redis Top N 점수를 Caffeine에 반영합니다.</p>
+     * <p>서킷 CLOSED 상태일 때만 호출되어 Caffeine이 항상 최신 상태를 유지합니다.</p>
+     *
+     * @param redisScores Redis ZSet에서 가져온 postId → score 맵
+     */
+    public void warmUp(Map<Long, Double> redisScores) {
+        redisScores.forEach(scoreCache::put);
+        log.debug("[FALLBACK_STORE] Redis Top{} 웜업 완료", redisScores.size());
+    }
+
+    /**
+     * <h3>삭제 로그 조회</h3>
+     * <p>CLOSED 전환 시 Redis에서 제거할 게시글 ID 목록을 반환합니다.</p>
+     *
+     * @return OPEN 구간 중 삭제된 게시글 ID 불변 복사본
+     */
+    public Set<Long> getDeletedPostIds() {
+        return Set.copyOf(deletedPostIds);
+    }
+
+    /**
+     * <h3>전체 점수 스냅샷 조회</h3>
+     * <p>CLOSED 전환 시 Redis에 동기화할 모든 postId → score 항목을 반환합니다.</p>
+     *
+     * @return postId → score 불변 복사본
+     */
+    public Map<Long, Double> getAllScores() {
+        return Map.copyOf(scoreCache.asMap());
+    }
+
+    /**
+     * <h3>삭제 로그만 초기화</h3>
+     * <p>CLOSED 전환 시 Redis 삭제 재처리 완료 후 호출합니다.</p>
+     * <p>점수 캐시는 유지하여 다음 OPEN 구간에서 콜드스타트 없이 서빙합니다.</p>
+     */
+    public void clearDeletedPostIds() {
+        deletedPostIds.clear();
+        log.debug("[FALLBACK_STORE] 삭제 로그 초기화");
     }
 
     /**
@@ -110,6 +157,7 @@ public class RealtimeScoreFallbackStore {
      */
     public void clear() {
         scoreCache.invalidateAll();
+        deletedPostIds.clear();
         log.info("[FALLBACK_STORE] 저장소 초기화");
     }
 }
