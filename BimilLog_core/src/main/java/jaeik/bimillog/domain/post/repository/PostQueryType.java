@@ -4,6 +4,7 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -25,7 +26,7 @@ import java.util.function.Supplier;
  * </ul>
  */
 @Getter
-@SuppressWarnings({"rawtypes", "unchecked"})
+@RequiredArgsConstructor
 public enum PostQueryType {
 
     WEEKLY(
@@ -107,28 +108,7 @@ public enum PostQueryType {
     private final OrderSpecifier[] orders;
     private final int limit;
 
-    PostQueryType(
-            Supplier<BooleanExpression> conditionFn,
-            Function<Long, BooleanExpression> memberConditionFn,
-            Function<String, BooleanExpression> prefixConditionFn,
-            Function<String, BooleanExpression> partialConditionFn,
-            Function<List<Long>, BooleanExpression> idsConditionFn,
-            OrderSpecifier[] orders,
-            int limit) {
-        this.conditionFn = conditionFn;
-        this.memberConditionFn = memberConditionFn;
-        this.prefixConditionFn = prefixConditionFn;
-        this.partialConditionFn = partialConditionFn;
-        this.idsConditionFn = idsConditionFn;
-        this.orders = orders;
-        this.limit = limit;
-    }
-
     public BooleanExpression condition() {
         return conditionFn.get();
-    }
-
-    public boolean hasLimit() {
-        return limit > 0;
     }
 }

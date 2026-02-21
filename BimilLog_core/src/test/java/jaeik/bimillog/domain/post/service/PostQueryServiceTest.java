@@ -24,7 +24,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -53,6 +52,9 @@ class PostQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private PostRepository postRepository;
+
+    @Mock
+    private PostLikeRepository postLikeRepository;
 
     @Mock
     private PostToMemberAdapter postToMemberAdapter;
@@ -203,20 +205,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long memberId = 2L;
         Long postAuthorId = 1L;
 
-        PostDetail mockPostDetail = PostDetail.builder()
-                .id(postId)
-                .title("게시글 제목")
-                .content("게시글 내용")
-                .memberId(postAuthorId)
-                .isLiked(true)
-                .viewCount(100)
-                .likeCount(50)
-                .createdAt(Instant.now())
-                .memberName("testMember")
-                .commentCount(10)
-                .build();
-        given(postQueryRepository.findPostDetail(postId, memberId))
-                .willReturn(Optional.of(mockPostDetail));
+        Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "게시글 제목", "게시글 내용"));
+        given(postRepository.findById(postId)).willReturn(Optional.of(mockPost));
+        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
 
         // When
         PostDetail result = postQueryService.getPost(postId, memberId, "test-viewer");
@@ -225,7 +216,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isTrue();
 
-        verify(postQueryRepository).findPostDetail(postId, memberId);
+        verify(postRepository).findById(postId);
+        verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
         verify(realtimePostSync).postDetailCheck(postId, "test-viewer");
         verify(eventPublisher).publishEvent(any(CheckBlacklistEvent.class));
     }
@@ -237,20 +229,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postId = 1L;
         Long postAuthorId = 1L;
 
-        PostDetail mockPostDetail = PostDetail.builder()
-                .id(postId)
-                .title("게시글 제목")
-                .content("게시글 내용")
-                .memberId(postAuthorId)
-                .isLiked(false)
-                .viewCount(10)
-                .likeCount(5)
-                .createdAt(Instant.now())
-                .memberName("testMember")
-                .commentCount(3)
-                .build();
-        given(postQueryRepository.findPostDetail(postId, null))
-                .willReturn(Optional.of(mockPostDetail));
+        Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "게시글 제목", "게시글 내용"));
+        given(postRepository.findById(postId)).willReturn(Optional.of(mockPost));
 
         // When
         PostDetail result = postQueryService.getPost(postId, null, "test-viewer");
@@ -259,7 +239,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isFalse();
 
-        verify(postQueryRepository).findPostDetail(postId, null);
+        verify(postRepository).findById(postId);
+        verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
         verify(realtimePostSync).postDetailCheck(postId, "test-viewer");
         verify(eventPublisher, never()).publishEvent(any(CheckBlacklistEvent.class));
     }
@@ -271,14 +252,14 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postId = 999L;
         Long memberId = 1L;
 
-        given(postQueryRepository.findPostDetail(postId, memberId)).willReturn(Optional.empty());
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPost(postId, memberId, "test-viewer"))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(postQueryRepository).findPostDetail(postId, memberId);
+        verify(postRepository).findById(postId);
     }
 
     @Test

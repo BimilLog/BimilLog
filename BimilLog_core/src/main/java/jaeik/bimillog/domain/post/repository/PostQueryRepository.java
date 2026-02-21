@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * <h2>게시글 조회 어댑터</h2>
@@ -113,10 +114,9 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>PostSimpleDetail 공통 조회 (BooleanExpression 기반)</h3>
+     * <h3>PostSimpleDetail 공통 조회</h3>
      */
     @Transactional(readOnly = true)
-    @SuppressWarnings("unchecked")
     public Page<PostSimpleDetail> selectPostSimpleDetails(BooleanExpression condition, Pageable pageable, OrderSpecifier<?>... orders) {
         List<PostSimpleDetail> content = jpaQueryFactory
                 .select(new QPostSimpleDetail(
@@ -170,7 +170,7 @@ public class PostQueryRepository {
             }
         }
 
-        NumberExpression<Integer> delta = caseExpression.otherwise(0);
+        NumberExpression<Integer> delta = Objects.requireNonNull(caseExpression).otherwise(0);
 
         jpaQueryFactory.update(post)
                 .set(field, field.add(delta))
