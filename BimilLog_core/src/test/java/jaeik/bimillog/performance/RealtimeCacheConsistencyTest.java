@@ -66,6 +66,8 @@ class RealtimeCacheConsistencyTest {
     private static final int TOGGLE_INTERVAL = 20;
     private static final int COMPARE_OFFSET = TOGGLE_INTERVAL / 2; // 전환 사이 중간 지점에서 비교
     private static final int DECAY_INTERVAL = 50;
+    private static final int WARMUP_INTERVAL = 10;    // 1분 스케줄러 시뮬레이션 주기
+    private static final int CAFFEINE_WARM_UP_SIZE = 100;
     private static final int TOP_N = 5;
     private static final double VIEW_SCORE = 2.0;
     private static final double MAX_ACCEPTABLE_ERROR_RATE = 0.90;
@@ -132,6 +134,16 @@ class RealtimeCacheConsistencyTest {
                 redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, VIEW_SCORE);
             }
 
+            // 1분 스케줄러 시뮬레이션: CLOSED 구간에서 10라운드마다 Redis Top100 → Caffeine 웜업
+            if (!circuitOpen && round % WARMUP_INTERVAL == 0) {
+                Map<Long, Double> topScores = redisPostRealTimeAdapter.getTopNWithScores(CAFFEINE_WARM_UP_SIZE);
+                if (!topScores.isEmpty()) {
+                    fallbackStore.warmUp(topScores);
+                }
+                log.info("[DEBUGGING] 라운드 {} [웜업] Redis Top{} → Caffeine (Caffeine 항목수={})",
+                        round, CAFFEINE_WARM_UP_SIZE, fallbackStore.size());
+            }
+
             // 감쇠 적용 (50라운드마다)
             if (round % DECAY_INTERVAL == 0) {
                 if (!circuitOpen) {
@@ -161,14 +173,14 @@ class RealtimeCacheConsistencyTest {
                     log.info("[DEBUGGING]   Redis 누적 이벤트(CLOSED 구간): {}, 현재 Redis 항목수: {}",
                             totalEventsInClosed, redisTotalEntries);
                     log.info("[DEBUGGING]   Redis Top{} 점수: {}", TOP_N, formatScoreMap(redisTopAtToggle, redisScoresAtToggle));
-                    log.info("[DEBUGGING]   Caffeine은 이 시점 초기화됨 → OPEN 구간 동안 {} 이벤트만 적립 예정",
-                            "(다음 " + COMPARE_OFFSET + "라운드 동안)");
+                    log.info("[DEBUGGING]   Caffeine 웜업 상태: 항목수={} (마지막 웜업 기준, 콜드스타트 없음)",
+                            fallbackStore.size());
                 } else if (wasOpen) {
                     // OPEN → CLOSED 전환
                     log.info("[DEBUGGING] === 라운드 {} OPEN→CLOSED 전환 ===", round);
                     log.info("[DEBUGGING]   OPEN 구간 누적 이벤트: {}, Caffeine 항목수: {}",
                             totalEventsInOpen, fallbackStore.size());
-                    log.info("[DEBUGGING]   CLOSED 전환 시 Caffeine 초기화 예정 (CircuitBreakerEventConfig)");
+                    log.info("[DEBUGGING]   CLOSED 전환: 삭제 로그만 초기화, Caffeine 점수 유지 (다음 웜업까지 최대 {}라운드)", WARMUP_INTERVAL);
                 }
 
                 if (circuitOpen) {
@@ -179,8 +191,8 @@ class RealtimeCacheConsistencyTest {
             }
 
             // 서킷 OPEN 구간의 중간 지점에서만 비교 (30, 70, 110, ...)
-            // CLOSED 구간은 서킷 전환 시 CircuitBreakerEventConfig가 Caffeine을 초기화하므로 측정 불가
             if (round % TOGGLE_INTERVAL == COMPARE_OFFSET && circuitOpen) {
+
                 List<Long> redisTop = getRedisTop(TOP_N);
                 List<Long> caffeineTop = fallbackStore.getTopPostIds(0, TOP_N);
 
@@ -267,7 +279,8 @@ class RealtimeCacheConsistencyTest {
 
     /**
      * Zipf's Law (P = 1/r^s)를 적용한 가중치 분포 생성
-     * @param count 전체 아이템 수 (N)
+     *
+     * @param count    전체 아이템 수 (N)
      * @param exponent Zipf 지수 (s) - 보통 1.0 내외
      */
     private double[] buildZipfSkewedWeights(int count, double exponent) {

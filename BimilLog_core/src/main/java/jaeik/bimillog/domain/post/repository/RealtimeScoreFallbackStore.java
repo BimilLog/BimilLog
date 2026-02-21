@@ -110,13 +110,15 @@ public class RealtimeScoreFallbackStore {
     }
 
     /**
-     * <h3>전체 점수 스냅샷 조회</h3>
-     * <p>CLOSED 전환 시 Redis 합산을 위해 현재 저장된 모든 점수를 반환합니다.</p>
+     * <h3>Redis 점수로 웜업</h3>
+     * <p>스케줄러가 주기적으로 Redis Top N 점수를 Caffeine에 반영합니다.</p>
+     * <p>서킷 CLOSED 상태일 때만 호출되어 Caffeine이 항상 최신 상태를 유지합니다.</p>
      *
-     * @return postId → score 불변 복사본
+     * @param redisScores Redis ZSet에서 가져온 postId → score 맵
      */
-    public Map<Long, Double> getAllScores() {
-        return Map.copyOf(scoreCache.asMap());
+    public void warmUp(Map<Long, Double> redisScores) {
+        redisScores.forEach(scoreCache::put);
+        log.debug("[FALLBACK_STORE] Redis Top{} 웜업 완료", redisScores.size());
     }
 
     /**
@@ -127,6 +129,16 @@ public class RealtimeScoreFallbackStore {
      */
     public Set<Long> getDeletedPostIds() {
         return Set.copyOf(deletedPostIds);
+    }
+
+    /**
+     * <h3>삭제 로그만 초기화</h3>
+     * <p>CLOSED 전환 시 Redis 삭제 재처리 완료 후 호출합니다.</p>
+     * <p>점수 캐시는 유지하여 다음 OPEN 구간에서 콜드스타트 없이 서빙합니다.</p>
+     */
+    public void clearDeletedPostIds() {
+        deletedPostIds.clear();
+        log.debug("[FALLBACK_STORE] 삭제 로그 초기화");
     }
 
     /**

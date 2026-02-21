@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -18,8 +17,7 @@ import java.util.Set;
  * <p>realtimeRedis 서킷 CLOSED 전환 시:</p>
  * <ol>
  *   <li>OPEN 구간에 삭제된 게시글을 Redis에서 제거합니다.</li>
- *   <li>OPEN 구간에 Caffeine에 쌓인 점수를 Redis에 합산합니다.</li>
- *   <li>Caffeine 폴백 저장소를 초기화합니다.</li>
+ *   <li>삭제 로그만 초기화합니다 (점수 캐시는 유지 — 다음 OPEN 시 콜드스타트 방지).</li>
  * </ol>
  *
  * @author Jaeik
@@ -44,15 +42,12 @@ public class CircuitBreakerEventConfig {
             log.info("[CIRCUIT] realtimeRedis 상태 전환: {}", transition);
 
             if (transition.getToState() == CircuitBreaker.State.CLOSED) {
-                Map<Long, Double> scores = realtimeScoreFallbackStore.getAllScores();
                 Set<Long> deletedIds = realtimeScoreFallbackStore.getDeletedPostIds();
-
-                if (!scores.isEmpty() || !deletedIds.isEmpty()) {
-                    redisPostRealTimeAdapter.syncFallbackToRedis(scores, deletedIds);
+                if (!deletedIds.isEmpty()) {
+                    redisPostRealTimeAdapter.replayDeletionsToRedis(deletedIds);
                 }
-
-                realtimeScoreFallbackStore.clear();
-                log.info("[CIRCUIT] Caffeine 폴백 저장소 초기화 완료 (Redis 복구)");
+                realtimeScoreFallbackStore.clearDeletedPostIds();
+                log.info("[CIRCUIT] CLOSED 전환: 삭제 재처리 완료, Caffeine 점수 유지");
             }
         });
     }

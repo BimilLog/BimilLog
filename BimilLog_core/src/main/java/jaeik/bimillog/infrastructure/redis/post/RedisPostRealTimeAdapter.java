@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
@@ -99,6 +100,7 @@ public class RedisPostRealTimeAdapter {
         // 1. 모든 항목의 점수에 0.97 곱하기
         stringRedisTemplate.execute(
                 script,
+
                 List.of(REALTIME_SCORE_KEY),
                 String.valueOf(REALTIME_POST_SCORE_DECAY_RATE)
         );
@@ -134,17 +136,36 @@ public class RedisPostRealTimeAdapter {
     }
 
     /**
-     * <h3>Caffeine 폴백 데이터를 Redis에 동기화</h3>
-     * <p>서킷 CLOSED 전환 시 호출됩니다.</p>
-     * <p>OPEN 구간에 누락된 점수를 Redis에 합산하고, 삭제된 게시글을 Redis에서 제거합니다.</p>
-     * <p>서킷브레이커 없이 직접 호출하며, 실패 시 로그만 남기고 계속 진행합니다(best-effort).</p>
+     * <h3>Redis ZSet Top N 점수 조회</h3>
+     * <p>스케줄러가 Caffeine 웜업에 사용할 상위 N개 게시글의 점수를 반환합니다.</p>
      *
-     * @param scores     OPEN 구간에 Caffeine에 쌓인 postId → score 맵
+     * @param n 조회할 상위 개수
+     * @return postId → score 맵 (점수 내림차순)
+     */
+    public Map<Long, Double> getTopNWithScores(int n) {
+        Set<ZSetOperations.TypedTuple<String>> tuples =
+                stringRedisTemplate.opsForZSet().reverseRangeWithScores(REALTIME_SCORE_KEY, 0, n - 1);
+        if (tuples == null || tuples.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, Double> result = new LinkedHashMap<>();
+        for (ZSetOperations.TypedTuple<String> t : tuples) {
+            if (t.getValue() != null && t.getScore() != null) {
+                result.put(Long.parseLong(t.getValue()), t.getScore());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * <h3>OPEN 구간 삭제 로그를 Redis에 재처리</h3>
+     * <p>서킷 CLOSED 전환 시 호출됩니다.</p>
+     * <p>OPEN 구간에 삭제된 게시글을 Redis ZSet에서 제거합니다(best-effort).</p>
+     *
      * @param deletedIds OPEN 구간에 삭제된 게시글 ID 목록
      */
-    public void syncFallbackToRedis(Map<Long, Double> scores, Set<Long> deletedIds) {
+    public void replayDeletionsToRedis(Set<Long> deletedIds) {
         try {
-            // 1. 삭제 배치 파이프라인 (OPEN 구간 중 삭제된 게시글 Redis에서 제거)
             List<Long> deletedList = new ArrayList<>(deletedIds);
             for (int i = 0; i < deletedList.size(); i += SYNC_BATCH_SIZE) {
                 List<Long> batch = deletedList.subList(i, Math.min(i + SYNC_BATCH_SIZE, deletedList.size()));
@@ -156,26 +177,10 @@ public class RedisPostRealTimeAdapter {
                     return null;
                 });
             }
-
-            // 2. 점수 합산 배치 파이프라인 (OPEN 구간 누락 이벤트 Redis에 반영)
-            List<Map.Entry<Long, Double>> scoreList = new ArrayList<>(scores.entrySet());
-            for (int i = 0; i < scoreList.size(); i += SYNC_BATCH_SIZE) {
-                List<Map.Entry<Long, Double>> batch = scoreList.subList(i, Math.min(i + SYNC_BATCH_SIZE, scoreList.size()));
-                stringRedisTemplate.executePipelined((RedisCallback<Object>) conn -> {
-                    StringRedisConnection c = (StringRedisConnection) conn;
-                    for (Map.Entry<Long, Double> entry : batch) {
-                        c.zIncrBy(REALTIME_SCORE_KEY, entry.getValue(), String.valueOf(entry.getKey()));
-                    }
-                    return null;
-                });
-            }
-
-            int deleteBatches = (deletedList.size() + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
-            int scoreBatches  = (scoreList.size()   + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
-            log.info("[SYNC] Caffeine → Redis 파이프라인 동기화 완료: 삭제={}건({}배치), 점수합산={}건({}배치)",
-                    deletedIds.size(), deleteBatches, scores.size(), scoreBatches);
+            int batches = (deletedList.size() + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
+            log.info("[SYNC] 삭제 재처리 완료: {}건({}배치)", deletedIds.size(), batches);
         } catch (Exception e) {
-            log.warn("[SYNC] Caffeine → Redis 동기화 실패 (무시하고 초기화 진행): {}", e.getMessage());
+            log.warn("[SYNC] 삭제 재처리 실패 (무시하고 진행): {}", e.getMessage());
         }
     }
 }

@@ -10,11 +10,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 /**
- * <h2>실시간 인기글 점수 감쇠 스케줄러</h2>
- * <p>10분마다 실시간 인기글 점수에 지수감쇠를 적용합니다.</p>
- * <p>서킷브레이커 상태에 따라 Redis ZSet 또는 Caffeine 폴백 저장소에 감쇠를 적용합니다.</p>
- * <p>JSON LIST 재구축은 조회 시점에 ZSet과 비교하여 처리됩니다.</p>
+ * <h2>실시간 인기글 점수 감쇠 / Caffeine 웜업 스케줄러</h2>
+ * <p>10분마다 지수감쇠, 1분마다 Redis Top 100 → Caffeine 웜업을 수행합니다.</p>
+ * <p>서킷 CLOSED: Redis + Caffeine 둘 다 감쇠 / 웜업 적용</p>
+ * <p>서킷 OPEN: Caffeine만 감쇠, 웜업 스킵 (Redis 불가)</p>
  *
  * @author Jaeik
  * @version 2.8.0
@@ -30,6 +32,7 @@ public class RealTimePostScheduler {
     private final CircuitBreakerRegistry circuitBreakerRegistry;
 
     private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
+    private static final int CAFFEINE_WARM_UP_SIZE = 100;
 
     private boolean isRealtimeRedisCircuitOpen() {
         CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(REALTIME_REDIS_CIRCUIT);
@@ -39,8 +42,8 @@ public class RealTimePostScheduler {
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
-     * <p>서킷 닫힘(Redis 정상): Redis ZSet에 감쇠 적용</p>
-     * <p>서킷 열림(Redis 장애): Caffeine 폴백 저장소에 감쇠 적용</p>
+     * <p>서킷 CLOSED: Redis + Caffeine 둘 다 감쇠 (Caffeine을 항상 최신 상태로 유지)</p>
+     * <p>서킷 OPEN: Caffeine만 감쇠</p>
      */
     @Scheduled(fixedRate = 60000 * 10) // 10분마다
     public void applyRealtimeScoreDecay() {
@@ -56,6 +59,31 @@ public class RealTimePostScheduler {
             } catch (Exception e) {
                 log.error("Redis 실시간 인기글 점수 지수감쇠 적용 실패", e);
             }
+            try {
+                realtimeScoreFallbackStore.applyDecay();
+            } catch (Exception e) {
+                log.error("Caffeine 폴백 저장소 지수감쇠 적용 실패", e);
+            }
+        }
+    }
+
+    /**
+     * <h3>Redis Top 100 → Caffeine 웜업</h3>
+     * <p>1분마다 Redis 상위 100개 점수를 Caffeine에 반영하여 서킷 OPEN 시 콜드스타트를 방지합니다.</p>
+     * <p>서킷 OPEN 중에는 Redis에 접근할 수 없으므로 스킵합니다.</p>
+     */
+    @Scheduled(fixedRate = 60000) // 1분마다
+    public void syncRedisToCaffeine() {
+        if (isRealtimeRedisCircuitOpen()) {
+            return;
+        }
+        try {
+            Map<Long, Double> topScores = redisPostRealTimeAdapter.getTopNWithScores(CAFFEINE_WARM_UP_SIZE);
+            if (!topScores.isEmpty()) {
+                realtimeScoreFallbackStore.warmUp(topScores);
+            }
+        } catch (Exception e) {
+            log.warn("Redis → Caffeine 웜업 실패: {}", e.getMessage());
         }
     }
 }
