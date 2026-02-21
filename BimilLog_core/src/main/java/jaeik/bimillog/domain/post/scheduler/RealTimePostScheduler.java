@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * <h2>실시간 인기글 점수 감쇠 / Caffeine 웜업 스케줄러</h2>
  * <p>10분마다 지수감쇠, 1분마다 Redis Top 100 → Caffeine 웜업을 수행합니다.</p>
- * <p>서킷 CLOSED: Redis + Caffeine 둘 다 감쇠 / 웜업 적용</p>
+ * <p>서킷 CLOSED: Redis만 감쇠 (Caffeine은 1분 웜업으로 자동 반영) / 웜업 적용</p>
  * <p>서킷 OPEN: Caffeine만 감쇠, 웜업 스킵 (Redis 불가)</p>
  *
  * @author Jaeik
@@ -42,7 +42,7 @@ public class RealTimePostScheduler {
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
-     * <p>서킷 CLOSED: Redis + Caffeine 둘 다 감쇠 (Caffeine을 항상 최신 상태로 유지)</p>
+     * <p>서킷 CLOSED: Redis만 감쇠 (Caffeine은 1분마다 syncRedisToCaffeine이 덮어씀)</p>
      * <p>서킷 OPEN: Caffeine만 감쇠</p>
      */
     @Scheduled(fixedRate = 60000 * 10) // 10분마다
@@ -58,11 +58,6 @@ public class RealTimePostScheduler {
                 redisPostRealTimeAdapter.applyRealtimePopularScoreDecay();
             } catch (Exception e) {
                 log.error("Redis 실시간 인기글 점수 지수감쇠 적용 실패", e);
-            }
-            try {
-                realtimeScoreFallbackStore.applyDecay();
-            } catch (Exception e) {
-                log.error("Caffeine 폴백 저장소 지수감쇠 적용 실패", e);
             }
         }
     }

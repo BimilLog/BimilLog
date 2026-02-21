@@ -158,6 +158,32 @@ public class RedisPostRealTimeAdapter {
     }
 
     /**
+     * <h3>OPEN 구간 Caffeine 누적 점수를 Redis에 동기화</h3>
+     * <p>서킷 CLOSED 전환 시 호출됩니다.</p>
+     * <p>파이프라인 ZINCRBY로 Redis의 기존 점수에 Caffeine 누적 점수를 더합니다.</p>
+     *
+     * @param scores OPEN 구간에 Caffeine에 적립된 postId → score 맵
+     */
+    public void syncCaffeineScoresToRedis(Map<Long, Double> scores) {
+        if (scores.isEmpty()) {
+            return;
+        }
+        List<Map.Entry<Long, Double>> entries = new ArrayList<>(scores.entrySet());
+        for (int i = 0; i < entries.size(); i += SYNC_BATCH_SIZE) {
+            List<Map.Entry<Long, Double>> batch = entries.subList(i, Math.min(i + SYNC_BATCH_SIZE, entries.size()));
+            stringRedisTemplate.executePipelined((RedisCallback<Object>) conn -> {
+                StringRedisConnection c = (StringRedisConnection) conn;
+                for (Map.Entry<Long, Double> entry : batch) {
+                    c.zIncrBy(REALTIME_SCORE_KEY, entry.getValue(), String.valueOf(entry.getKey()));
+                }
+                return null;
+            });
+        }
+        int batches = (entries.size() + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
+        log.info("[SYNC] Caffeine → Redis 점수 동기화 완료: {}건({}배치)", scores.size(), batches);
+    }
+
+    /**
      * <h3>OPEN 구간 삭제 로그를 Redis에 재처리</h3>
      * <p>서킷 CLOSED 전환 시 호출됩니다.</p>
      * <p>OPEN 구간에 삭제된 게시글을 Redis ZSet에서 제거합니다(best-effort).</p>

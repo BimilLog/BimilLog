@@ -132,6 +132,16 @@ public class RealtimeScoreFallbackStore {
     }
 
     /**
+     * <h3>전체 점수 스냅샷 조회</h3>
+     * <p>CLOSED 전환 시 Redis에 동기화할 모든 postId → score 항목을 반환합니다.</p>
+     *
+     * @return postId → score 불변 복사본
+     */
+    public Map<Long, Double> getAllScores() {
+        return Map.copyOf(scoreCache.asMap());
+    }
+
+    /**
      * <h3>삭제 로그만 초기화</h3>
      * <p>CLOSED 전환 시 Redis 삭제 재처리 완료 후 호출합니다.</p>
      * <p>점수 캐시는 유지하여 다음 OPEN 구간에서 콜드스타트 없이 서빙합니다.</p>
