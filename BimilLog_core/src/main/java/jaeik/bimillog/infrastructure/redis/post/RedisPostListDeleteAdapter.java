@@ -114,19 +114,16 @@ public class RedisPostListDeleteAdapter {
      */
     public void appendPost(String key, PostSimpleDetail entry, int maxSize) {
         Long currentSize = stringRedisTemplate.opsForList().size(key);
+        String json;
         if (currentSize != null && currentSize < maxSize) {
-            String json = toJson(entry);
+            try {
+                json = objectMapper.writeValueAsString(entry);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException("[JSON_LIST] JSON 직렬화 실패: postId=" + entry.getId(), e);
+            }
             stringRedisTemplate.opsForList().rightPush(key, json);
 
             log.debug("[JSON_LIST] 보충 추가 (key={}): postId={}", key, entry.getId());
-        }
-    }
-
-    private String toJson(PostSimpleDetail entry) {
-        try {
-            return objectMapper.writeValueAsString(entry);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("[JSON_LIST] JSON 직렬화 실패: postId=" + entry.getId(), e);
         }
     }
 }

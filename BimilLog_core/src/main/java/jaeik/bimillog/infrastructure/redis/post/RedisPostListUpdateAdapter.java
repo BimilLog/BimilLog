@@ -11,10 +11,7 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Component
 @Slf4j
@@ -22,8 +19,6 @@ import java.util.Map;
 public class RedisPostListUpdateAdapter {
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
-
-    private static final String VIEW_COUNTS_KEY = RedisKey.VIEW_COUNTS_KEY;
 
     private static final List<String> ALL_JSON_KEYS = List.of(
             RedisKey.FIRST_PAGE_JSON_KEY,
@@ -37,7 +32,7 @@ public class RedisPostListUpdateAdapter {
      * <h3>특정 글의 리스트 전체 교체</h3>
      * <p>Lua 스크립트로 DEL → RPUSH(JSON들) → EXPIRE를 원자적으로 수행</p>
      */
-    public void replaceAll(String key, List<PostSimpleDetail> posts, Duration ttl) {
+    public void replaceList(String key, List<PostSimpleDetail> posts, Duration ttl) {
         final String REPLACE_ALL_SCRIPT =
                 "redis.call('DEL', KEYS[1]) " +
                         "for i = 2, #ARGV do " +
@@ -63,10 +58,10 @@ public class RedisPostListUpdateAdapter {
      * <p>공지사항 리스트와 첫 페이지 리스트에 추가</p>
      * <p>Lua 스크립트로 LPUSH → LTRIM을 원자적으로 수행합니다.</p>
      */
-    public void addNewPost(String key, PostSimpleDetail entry, int maxSize) {
+    public void addPostToList(String key, PostSimpleDetail entry, int maxSize) {
         final String ADD_NEW_POST_SCRIPT =
                 "redis.call('LPUSH', KEYS[1], ARGV[1]) " +
-                        "redis.call('LTRIM', KEYS[1], 0, tonumber(ARGV[2]) - 1)";
+                "redis.call('LTRIM', KEYS[1], 0, tonumber(ARGV[2]) - 1)";
         String json = toJson(entry);
         DefaultRedisScript<Long> script = new DefaultRedisScript<>(ADD_NEW_POST_SCRIPT, Long.class);
         stringRedisTemplate.execute(script, List.of(key), json, String.valueOf(maxSize));
@@ -98,15 +93,16 @@ public class RedisPostListUpdateAdapter {
     }
 
     /**
-     * <h3>모든 JSON LIST의 카운터 증분</h3>
+     * <h3>모든 LIST의 댓글 수 추천수 댓글수 증가</h3>
      * <p>5개 리스트 전체에서 해당 postId의 field 값을 delta만큼 증분합니다.</p>
      * <p>리스트에 없는 글은 무시됩니다.</p>
+     * <p>조회수는 1분마다 스케줄러에서 호출</p>
      *
      * @param postId 게시글 ID
      * @param field  JSON 필드명 ("viewCount", "likeCount", "commentCount")
-     * @param delta  증감값
+     * @param viewCount  증감값
      */
-    public void incrementCounterInAllLists(Long postId, String field, long delta) {
+    public void incrementCounterInAllLists(Long postId, String field, long viewCount) {
         final String INCREMENT_COUNTER_SCRIPT =
                 "local items = redis.call('LRANGE', KEYS[1], 0, -1) " +
                         "for i, item in ipairs(items) do " +
@@ -120,42 +116,10 @@ public class RedisPostListUpdateAdapter {
                         "return 0";
         DefaultRedisScript<Long> script = new DefaultRedisScript<>(INCREMENT_COUNTER_SCRIPT, Long.class);
         String postIdStr = postId.toString();
-        String deltaStr = String.valueOf(delta);
+        String viewCountStr = String.valueOf(viewCount);
         for (String key : ALL_JSON_KEYS) {
-            stringRedisTemplate.execute(script, List.of(key), postIdStr, field, deltaStr);
+            stringRedisTemplate.execute(script, List.of(key), postIdStr, field, viewCountStr);
         }
-    }
-
-    /**
-     * <h3>조회수 버퍼 조회 및 초기화 (원자적)</h3>
-     * <p>Lua 스크립트로 EXISTS → HGETALL → DEL을 원자적으로 처리합니다.</p>
-     *
-     * @return postId → 증가량 맵 (비어있으면 빈 맵)
-     */
-    @SuppressWarnings("unchecked")
-    public Map<Long, Long> getAndClearViewCounts() {
-        final String GET_AND_CLEAR_VIEW_COUNTS_SCRIPT =
-                "if redis.call('EXISTS', KEYS[1]) == 0 then " +
-                        "    return nil " +
-                        "end " +
-                        "local entries = redis.call('HGETALL', KEYS[1]) " +
-                        "redis.call('DEL', KEYS[1]) " +
-                        "return entries";
-        DefaultRedisScript<List> script = new DefaultRedisScript<>(GET_AND_CLEAR_VIEW_COUNTS_SCRIPT, List.class);
-        List<Object> result = stringRedisTemplate.execute(script, List.of(VIEW_COUNTS_KEY));
-
-        if (result == null || result.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        Map<Long, Long> counts = new HashMap<>();
-        for (int i = 0; i + 1 < result.size(); i += 2) {
-            Object keyObj = result.get(i);
-            Object valueObj = result.get(i + 1);
-            if (keyObj == null || valueObj == null) continue;
-            counts.put(Long.parseLong(keyObj.toString()), Long.parseLong(valueObj.toString()));
-        }
-        return counts;
     }
 
     private String toJson(PostSimpleDetail entry) {

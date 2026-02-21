@@ -92,6 +92,6 @@ public class CacheRealtimeSync {
             return;
         }
 
-        redisPostListUpdateAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, dbPosts, RedisKey.DEFAULT_CACHE_TTL);
+        redisPostListUpdateAdapter.replaceList(RedisKey.POST_REALTIME_JSON_KEY, dbPosts, RedisKey.DEFAULT_CACHE_TTL);
     }
 }

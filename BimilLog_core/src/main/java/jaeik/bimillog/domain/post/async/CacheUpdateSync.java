@@ -35,7 +35,7 @@ public class CacheUpdateSync {
      */
     @Async("cacheRefreshPool")
     public void asyncAddNewPost(PostSimpleDetail post) {
-        redisPostListUpdateAdapter.addNewPost(
+        redisPostListUpdateAdapter.addPostToList(
                 RedisKey.FIRST_PAGE_JSON_KEY, post, RedisKey.FIRST_PAGE_SIZE + 1);
     }
 

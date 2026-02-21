@@ -24,15 +24,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class RedisPostRealTimeAdapter {
-    private static final String REALTIME_SCORE_KEY = RedisKey.REALTIME_POST_SCORE_KEY;
-
     private final StringRedisTemplate stringRedisTemplate;
     private final RealtimeScoreFallbackStore fallbackStore;
 
+    private static final String REALTIME_SCORE_KEY = RedisKey.REALTIME_POST_SCORE_KEY;
     public static final double REALTIME_POST_SCORE_DECAY_RATE = 0.97;
     public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
-
-
 
     /**
      * <h3>실시간 인기글 조회</h3>
@@ -132,5 +129,4 @@ public class RedisPostRealTimeAdapter {
         log.warn("[CIRCUIT_FALLBACK] Redis 실패, 폴백 저장소에서 제거: postId={}, error={}", postId, t.getMessage());
         fallbackStore.removePost(postId);
     }
-
 }

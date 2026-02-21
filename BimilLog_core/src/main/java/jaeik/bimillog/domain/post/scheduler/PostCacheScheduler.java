@@ -87,7 +87,7 @@ public class PostCacheScheduler {
             return;
         }
 
-        redisPostListUpdateAdapter.replaceAll(RedisKey.FIRST_PAGE_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
+        redisPostListUpdateAdapter.replaceList(RedisKey.FIRST_PAGE_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
         log.info("첫 페이지 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
     }
 
@@ -104,7 +104,7 @@ public class PostCacheScheduler {
                 .map(PostSimpleDetail::from).toList();
 
         if (!posts.isEmpty()) {
-            redisPostListUpdateAdapter.replaceAll(RedisKey.POST_REALTIME_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
+            redisPostListUpdateAdapter.replaceList(RedisKey.POST_REALTIME_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
             log.info("실시간 인기글 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
         }
     }
@@ -130,7 +130,7 @@ public class PostCacheScheduler {
             setFlag.accept(ids);
         }
 
-        redisPostListUpdateAdapter.replaceAll(redisKey, posts, RedisKey.DEFAULT_CACHE_TTL);
+        redisPostListUpdateAdapter.replaceList(redisKey, posts, RedisKey.DEFAULT_CACHE_TTL);
         log.info("{} 캐시 업데이트 완료. {}개의 게시글이 처리됨", type, posts.size());
 
         if (eventMessage != null) {

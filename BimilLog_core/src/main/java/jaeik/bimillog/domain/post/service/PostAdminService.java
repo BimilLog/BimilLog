@@ -58,7 +58,7 @@ public class PostAdminService {
     private void registerNotice(Post post) {
         try {
             PostSimpleDetail detail = PostSimpleDetail.from(post);
-            redisPostListUpdateAdapter.addNewPost(
+            redisPostListUpdateAdapter.addPostToList(
                     RedisKey.POST_NOTICE_JSON_KEY, detail, NOTICE_MAX_SIZE);
         } catch (Exception e) {
             log.error("공지 설정 중 오류 발생: postId={}", post.getId(), e);

@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.scheduler;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,17 +25,18 @@ import java.util.Map;
 public class PostCacheViewScheduler {
     private final PostQueryRepository postQueryRepository;
     private final RedisPostListUpdateAdapter redisPostListUpdateAdapter;
+    private final RedisPostViewAdapter redisPostViewAdapter;
 
     @Transactional
     @Scheduled(fixedRate = 60000)
     public void flushAllCounts() {
         try {
-            Map<Long, Long> counts = redisPostListUpdateAdapter.getAndClearViewCounts();
+            Map<Long, Long> counts = redisPostViewAdapter.getAndClearViewCounts();
             if (counts.isEmpty()) return;
 
             postQueryRepository.bulkIncrementCount(counts, QPost.post.views);
-            counts.forEach((postId, delta) ->
-                    redisPostListUpdateAdapter.incrementCounterInAllLists(postId, "viewCount", delta));
+            counts.forEach((postId, viewCount) ->
+                    redisPostListUpdateAdapter.incrementCounterInAllLists(postId, "viewCount", viewCount));
             log.info("viewCount 플러시 완료: {}개 게시글 반영", counts.size());
         } catch (Exception e) {
             log.error("viewCount 플러시 실패", e);
