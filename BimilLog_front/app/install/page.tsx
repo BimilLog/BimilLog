@@ -287,41 +287,13 @@ export default function InstallPage() {
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 text-brand-primary">
           앱으로 설치하면 더 좋은 점
         </h2>
-        <p className="text-center text-brand-muted mb-16 text-lg max-w-2xl mx-auto">
+        <p className="text-center text-brand-muted mb-16 text-lg mx-auto">
           브라우저보다 훨씬 빠르고 편리한 앱 경험을 제공합니다
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {FEATURE_BENEFITS.map((benefit) => (
             <FeatureCard key={benefit.title} {...benefit} />
           ))}
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-brand-primary">
-            <span className="flex items-center gap-2 justify-center">
-              지금 바로 설치해보세요! <Rocket className="w-5 h-5 stroke-pink-500 fill-pink-100" />
-            </span>
-          </h2>
-          <p className="text-xl text-brand-muted mb-8">더 나은 비밀로그 경험이 기다리고 있습니다</p>
-
-          {/* 플랫폼별 버튼 분기 */}
-          {isIOSDevice ? (
-            <PWAInstallButton
-              size="lg"
-              className={`${GRADIENTS.button} px-12 py-4 text-lg font-bold shadow-brand-xl transform transition-all duration-300 hover:scale-105`}
-            />
-          ) : (
-            <Button
-              onClick={() => window.location.href = APP_LINKS.PLAY_STORE}
-              size="lg"
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-12 py-4 text-lg font-bold shadow-brand-xl transform transition-all duration-300 hover:scale-105"
-            >
-              플레이스토어에서 다운로드
-            </Button>
-          )}
         </div>
       </section>
     </CleanLayout>

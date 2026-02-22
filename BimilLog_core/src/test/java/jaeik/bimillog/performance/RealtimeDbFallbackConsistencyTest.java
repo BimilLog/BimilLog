@@ -4,8 +4,6 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.entity.jpa.PostLike;
-import jaeik.bimillog.domain.post.repository.PostLikeRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.repository.PostRepository;
@@ -64,9 +62,6 @@ class RealtimeDbFallbackConsistencyTest {
     private PostRepository postRepository;
 
     @Autowired
-    private PostLikeRepository postLikeRepository;
-
-    @Autowired
     private PostQueryRepository postQueryRepository;
 
     @Autowired
@@ -78,13 +73,12 @@ class RealtimeDbFallbackConsistencyTest {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private static final int POST_COUNT = 15;
+    private static final int POST_COUNT = 1000;
     private static final int TOTAL_ROUNDS = 100;
     private static final int COMPARE_INTERVAL = 10;
     private static final int TOP_N = 5;
     private static final double VIEW_SCORE = 2.0;
     private static final int MAX_INITIAL_VIEWS = 50;
-    private static final int MAX_INITIAL_LIKES = 5;
     private static final String SCORE_KEY = REALTIME_POST_SCORE_KEY;
     private static final double ZIPF_EXPONENT = 1.2;
 
@@ -100,7 +94,7 @@ class RealtimeDbFallbackConsistencyTest {
         Member testMember = TestMembers.createUniqueWithPrefix("dbfallback");
         TestFixtures.persistMemberWithDependencies(entityManager, testMember);
 
-        // 글 생성: 무작위 초기 조회수 + 추천수
+        // 글 생성: 무작위 초기 조회수 (1000개, 좋아요 없음)
         for (int i = 1; i <= POST_COUNT; i++) {
             int initialViews = ThreadLocalRandom.current().nextInt(0, MAX_INITIAL_VIEWS + 1);
             Post post = Post.builder()
@@ -110,17 +104,7 @@ class RealtimeDbFallbackConsistencyTest {
                     .views(initialViews)
                     .password(1234)
                     .build();
-            Post saved = postRepository.save(post);
-
-            // 무작위 추천수
-            int initialLikes = ThreadLocalRandom.current().nextInt(0, MAX_INITIAL_LIKES + 1);
-            for (int j = 0; j < initialLikes; j++) {
-                Member liker = TestMembers.createUniqueWithPrefix("liker");
-                TestFixtures.persistMemberWithDependencies(entityManager, liker);
-                postLikeRepository.save(PostLike.builder().post(saved).member(liker).build());
-            }
-
-            testPosts.add(saved);
+            testPosts.add(postRepository.save(post));
         }
         entityManager.flush();
         entityManager.clear();
@@ -131,6 +115,7 @@ class RealtimeDbFallbackConsistencyTest {
     void shouldMaintainAcceptableRankDivergence_BetweenRedisAndDbFallback() {
         // Given
         double[] weights = buildZipfSkewedWeights(POST_COUNT, ZIPF_EXPONENT);
+        List<Integer> measuredRounds = new ArrayList<>();
         List<Double> similarities = new ArrayList<>();
 
         // When: 100라운드 시뮬레이션 (조회 이벤트만)
@@ -149,12 +134,16 @@ class RealtimeDbFallbackConsistencyTest {
                 entityManager.clear();
 
                 List<Long> redisTop = getRedisTop(TOP_N);
-                Page<PostSimpleDetail> dbPage = postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), PageRequest.of(0, TOP_N), PostQueryType.REALTIME_FALLBACK.getOrders());
+                Page<PostSimpleDetail> dbPage = postQueryRepository.selectPostSimpleDetails(
+                        PostQueryType.REALTIME_FALLBACK.condition(),
+                        PageRequest.of(0, TOP_N),
+                        PostQueryType.REALTIME_FALLBACK.getOrders());
                 List<Long> dbTop = dbPage.getContent().stream()
                         .map(PostSimpleDetail::getId)
                         .toList();
 
                 double jaccard = jaccardSimilarity(redisTop, dbTop);
+                measuredRounds.add(round);
                 similarities.add(jaccard);
 
                 log.info("  라운드 {}: Redis={}, DB={}, 유사도={}",
@@ -169,9 +158,14 @@ class RealtimeDbFallbackConsistencyTest {
                 .orElse(0.0);
         double avgErrorRate = 1.0 - avgSimilarity;
 
-        log.info("[결과] 비교 횟수: {}, 평균 자카드 유사도: {}, 평균 오차율: {}",
-                similarities.size(), String.format("%.4f", avgSimilarity),
-                String.format("%.4f", avgErrorRate));
+        log.info("============================================================");
+        log.info("[Redis vs DB 폴백] 측정 라운드: {}", measuredRounds);
+        log.info("[Redis vs DB 폴백] 유사도 목록: {}", similarities.stream()
+                .map(s -> String.format("%.4f", s)).toList());
+        log.info("[Redis vs DB 폴백] 평균 유사도: {}, 평균 오차율: {}%",
+                String.format("%.4f", avgSimilarity),
+                String.format("%.1f", avgErrorRate * 100));
+        log.info("============================================================");
     }
 
     // ========== 유틸리티 메서드 ==========
