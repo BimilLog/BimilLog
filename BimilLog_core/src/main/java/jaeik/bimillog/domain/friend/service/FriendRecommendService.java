@@ -140,7 +140,7 @@ public class FriendRecommendService {
 
         // 2촌 결과 가져옴
         List<List<Long>> secondResults = useRedis
-                ? toListOfLists(redisFriendshipRepository.getFriendsBatch(myFriendList, SECOND_DEGREE_SAMPLE_SIZE))
+                ? redisFriendshipRepository.getFriendsBatch(myFriendList, SECOND_DEGREE_SAMPLE_SIZE)
                 : friendshipQueryRepository.getFriendIdsBatch(myFriendList);
         processDegreeSearch(myFriendList, secondResults, 2, memberId, myFriends, candidateMap);
 
@@ -151,7 +151,7 @@ public class FriendRecommendService {
 
             // 2촌의 ID로 3촌 친구들을 불러옴
             List<List<Long>> thirdResults = useRedis
-                    ? toListOfLists(redisFriendshipRepository.getFriendsBatch(secondDegreeList, THIRD_DEGREE_SAMPLE_SIZE))
+                    ? redisFriendshipRepository.getFriendsBatch(secondDegreeList, THIRD_DEGREE_SAMPLE_SIZE)
                     : friendshipQueryRepository.getFriendIdsBatch(secondDegreeList);
             processDegreeSearch(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
         }
@@ -274,20 +274,6 @@ public class FriendRecommendService {
         for (Long id : needMemberIds) {
             candidates.add(RecommendCandidate.initialCandidate(id, 0, 0, 0));
         }
-    }
-
-    /**
-     * <h3>Redis 파이프라인 결과를 변환</h3>
-     */
-    @SuppressWarnings("unchecked")
-    private List<List<Long>> toListOfLists(List<Object> results) {
-        List<List<Long>> converted = new ArrayList<>();
-        for (Object result : results) {
-            if (result instanceof List<?>) {
-                converted.add((List<Long>) result);
-            }
-        }
-        return converted;
     }
 
     /**

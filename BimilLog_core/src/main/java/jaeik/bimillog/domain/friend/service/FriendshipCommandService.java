@@ -32,7 +32,6 @@ public class FriendshipCommandService {
 
         // 친구가 실존하는지 확인
         Member friend = friendToMemberAdapter.findById(friendId);
-
         // 요청 받는 사람과 블랙리스트 관계인지 확인
         eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, friendId));
 
@@ -40,13 +39,11 @@ public class FriendshipCommandService {
         checkFriendship(memberId, friendId);
 
         Member member = friendToMemberAdapter.findById(memberId);
-
         Friendship friendship = Friendship.createFriendship(member, friend);
         friendshipRepository.save(friendship);
 
         // 요청 삭제
         friendRequestRepository.deleteById(friendRequestId);
-
         // 비동기 Redis 친구 관계 추가
         friendshipRedisUpdate.addFriendToRedis(memberId, friendId);
     }
@@ -79,14 +76,12 @@ public class FriendshipCommandService {
     private void checkFriendship(Long memberId, Long friendId) {
         // 이미 친구가 되어있다.
         boolean aSendB = friendshipRepository.existsByMemberIdAndFriendId(memberId, friendId);
-
         if (aSendB) {
             throw new CustomException(ErrorCode.FRIEND_SHIP_ALREADY_EXIST);
         }
 
         // 이미 상대의 친구가 되어있다.
         boolean bSendA = friendshipRepository.existsByMemberIdAndFriendId(friendId, memberId);
-
         if (bSendA) {
             throw new CustomException(ErrorCode.FRIEND_SHIP_ALREADY_EXIST);
         }

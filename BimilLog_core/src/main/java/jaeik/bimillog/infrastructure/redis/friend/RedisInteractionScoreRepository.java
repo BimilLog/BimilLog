@@ -1,9 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
-import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
@@ -18,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static jaeik.bimillog.infrastructure.redis.RedisKey.*;
 import static org.springframework.data.redis.core.ScanOptions.scanOptions;
 
 /**
@@ -34,9 +31,6 @@ public class RedisInteractionScoreRepository {
     private final RedisTemplate<String, Object> redisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
 
-    private static final String INTERACTION_PREFIX = RedisKey.INTERACTION_PREFIX;
-    private static final long IDEMPOTENCY_TTL_SECONDS = RedisKey.IDEMPOTENCY_TTL_SECONDS;
-    private static final int PIPELINE_BATCH_SIZE = 500;
     private static final RedisScript<Long> INTERACTION_SCORE_ADD_SCRIPT;
     private static final RedisScript<Long> INTERACTION_SCORE_DECAY_SCRIPT;
     private static final Double INTERACTION_SCORE_THRESHOLD = 0.2;
@@ -47,34 +41,34 @@ public class RedisInteractionScoreRepository {
 
     static {
         String luaScript = """
-            local key1 = KEYS[1]
-            local key2 = KEYS[2]
-            local idempotencyKey = KEYS[3]
-
-            local member1 = tostring(ARGV[1])
-            local member2 = tostring(ARGV[2])
-            local increment = tonumber(ARGV[3])
-            local maxScore = tonumber(ARGV[4])
-            local ttl = tonumber(ARGV[5])
-
-            -- 이미 처리된 이벤트인지 확인 (SET NX EX)
-            if redis.call('SET', idempotencyKey, 1, 'NX', 'EX', ttl) == false then
-                return 0
-            end
-
-            -- 점수 증가 (ZSet)
-            local current1 = redis.call('ZSCORE', key1, member1)
-            if not current1 or tonumber(current1) <= maxScore then
-                redis.call('ZINCRBY', key1, increment, member1)
-            end
-
-            local current2 = redis.call('ZSCORE', key2, member2)
-            if not current2 or tonumber(current2) <= maxScore then
-                redis.call('ZINCRBY', key2, increment, member2)
-            end
-
-            return 1
-        """;
+                    local key1 = KEYS[1]
+                    local key2 = KEYS[2]
+                    local idempotencyKey = KEYS[3]
+                
+                    local member1 = tostring(ARGV[1])
+                    local member2 = tostring(ARGV[2])
+                    local increment = tonumber(ARGV[3])
+                    local maxScore = tonumber(ARGV[4])
+                    local ttl = tonumber(ARGV[5])
+                
+                    -- 이미 처리된 이벤트인지 확인 (SET NX EX)
+                    if redis.call('SET', idempotencyKey, 1, 'NX', 'EX', ttl) == false then
+                        return 0
+                    end
+                
+                    -- 점수 증가 (ZSet)
+                    local current1 = redis.call('ZSCORE', key1, member1)
+                    if not current1 or tonumber(current1) <= maxScore then
+                        redis.call('ZINCRBY', key1, increment, member1)
+                    end
+                
+                    local current2 = redis.call('ZSCORE', key2, member2)
+                    if not current2 or tonumber(current2) <= maxScore then
+                        redis.call('ZINCRBY', key2, increment, member2)
+                    end
+                
+                    return 1
+                """;
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         script.setScriptText(luaScript);
         script.setResultType(Long.class);
@@ -82,21 +76,21 @@ public class RedisInteractionScoreRepository {
 
         // 지수 감쇠 Lua Script: ZSet의 모든 점수에 감쇠율을 곱하고 임계값 이하 제거
         String decayLuaScript = """
-            local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES')
-            local decayRate = tonumber(ARGV[1])
-            local threshold = tonumber(ARGV[2])
-            for i = 1, #members, 2 do
-                local member = members[i]
-                local score = tonumber(members[i + 1])
-                local newScore = score * decayRate
-                if newScore <= threshold then
-                    redis.call('ZREM', KEYS[1], member)
-                else
-                    redis.call('ZADD', KEYS[1], newScore, member)
+                local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES')
+                local decayRate = tonumber(ARGV[1])
+                local threshold = tonumber(ARGV[2])
+                for i = 1, #members, 2 do
+                    local member = members[i]
+                    local score = tonumber(members[i + 1])
+                    local newScore = score * decayRate
+                    if newScore <= threshold then
+                        redis.call('ZREM', KEYS[1], member)
+                    else
+                        redis.call('ZADD', KEYS[1], newScore, member)
+                    end
                 end
-            end
-            return 1
-            """;
+                return 1
+                """;
         DefaultRedisScript<Long> decayScript = new DefaultRedisScript<>();
         decayScript.setScriptText(decayLuaScript);
         decayScript.setResultType(Long.class);
@@ -108,28 +102,22 @@ public class RedisInteractionScoreRepository {
      * <p>비즈니스 키 기반 이벤트 ID를 사용하여 중복 처리를 방지합니다.</p>
      * <p>동일한 이벤트가 여러 번 호출되어도 점수는 한 번만 증가합니다.</p>
      *
-     * @param memberId 회원 ID
+     * @param memberId            회원 ID
      * @param interactionMemberId 상호작용 대상 회원 ID
-     * @param idempotencyKey 멱등성 보장을 위한 비즈니스 키 (예: POST_LIKE:postId:likerId)
+     * @param idempotencyKey      멱등성 보장을 위한 비즈니스 키 (예: POST_LIKE:postId:likerId)
      * @return true: 점수 증가됨, false: 이미 처리된 이벤트
      */
     public boolean addInteractionScore(Long memberId, Long interactionMemberId, String idempotencyKey) {
-        String key1 = INTERACTION_PREFIX + memberId;
-        String key2 = INTERACTION_PREFIX + interactionMemberId;
-        try {
-            Long result = stringRedisTemplate.execute(
-                    INTERACTION_SCORE_ADD_SCRIPT,
-                    List.of(key1, key2, idempotencyKey), // 각각 KEYS[1],[2],[3]
-                    interactionMemberId.toString(), // ARGV[1]
-                    memberId.toString(), // ARGV[2]
-                    String.valueOf(INTERACTION_SCORE_DEFAULT), // ARGV[3]
-                    String.valueOf(INTERACTION_SCORE_LIMIT), // ARGV[4]
-                    String.valueOf(IDEMPOTENCY_TTL_SECONDS) // ARGV[5]
-            );
-            return result == 1;
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_WRITE_ERROR, e);
-        }
+        Long result = stringRedisTemplate.execute(
+                INTERACTION_SCORE_ADD_SCRIPT,
+                List.of(createInteractionKey(memberId), createInteractionKey(interactionMemberId), idempotencyKey), // 각각 KEYS[1],[2],[3]
+                interactionMemberId.toString(), // ARGV[1]
+                memberId.toString(), // ARGV[2]
+                String.valueOf(INTERACTION_SCORE_DEFAULT), // ARGV[3]
+                String.valueOf(INTERACTION_SCORE_LIMIT), // ARGV[4]
+                String.valueOf(IDEMPOTENCY_TTL_SECONDS) // ARGV[5]
+        );
+        return result == 1;
     }
 
     /**
@@ -140,13 +128,12 @@ public class RedisInteractionScoreRepository {
      * @return 처리된 키 개수
      */
     public int applyInteractionScoreDecay() {
-        String pattern = INTERACTION_PREFIX + "*";
         List<String> keys = new ArrayList<>();
 
         // 1. SCAN으로 모든 interaction 키 수집
         redisTemplate.execute((RedisConnection connection) -> {
             connection.keyCommands().scan(scanOptions()
-                            .match(pattern)
+                            .match(createAllInteractionKey())
                             .count(100)
                             .build())
                     .forEachRemaining(key -> keys.add(new String(key, StandardCharsets.UTF_8)));
@@ -186,13 +173,8 @@ public class RedisInteractionScoreRepository {
      * @return Set of (targetId, score) tuples
      */
     public Set<TypedTuple<Object>> getTopInteractionScores(Long memberId, int limit) {
-        String key = INTERACTION_PREFIX + memberId;
-        try {
-            Set<TypedTuple<Object>> result = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, limit - 1);
-            return result != null ? result : Collections.emptySet();
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_QUERY_ERROR, e);
-        }
+        Set<TypedTuple<Object>> result = redisTemplate.opsForZSet().reverseRangeWithScores(createInteractionKey(memberId), 0, limit - 1);
+        return result != null ? result : Collections.emptySet();
     }
 
     /**
@@ -203,25 +185,21 @@ public class RedisInteractionScoreRepository {
      * @return 파이프라인 결과 (targetIds 순서와 동일, null 포함 가능)
      */
     public List<Object> getInteractionScoresBatch(Long memberId, List<Long> targetIds) {
-        String key = INTERACTION_PREFIX + memberId;
         List<Object> allResults = new ArrayList<>();
 
-        try {
-            for (int i = 0; i < targetIds.size(); i += PIPELINE_BATCH_SIZE) {
-                List<Long> batch = targetIds.subList(i, Math.min(i + PIPELINE_BATCH_SIZE, targetIds.size()));
+        for (int i = 0; i < targetIds.size(); i += PIPELINE_BATCH_SIZE) {
+            List<Long> batch = targetIds.subList(i, Math.min(i + PIPELINE_BATCH_SIZE, targetIds.size()));
 
-                List<Object> batchResults = redisTemplate.executePipelined((RedisConnection connection) -> {
-                    for (Long targetId : batch) {
-                        connection.zSetCommands().zScore(key.getBytes(StandardCharsets.UTF_8), targetId.toString().getBytes(StandardCharsets.UTF_8));
-                    }
-                    return null;
-                });
-                allResults.addAll(batchResults);
-            }
-            return allResults;
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_QUERY_ERROR, e);
+            List<Object> batchResults = stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+                for (Long targetId : batch) {
+                    stringRedisTemplate.opsForZSet().score(createInteractionKey(memberId), String.valueOf(targetId));
+                }
+                return null;
+            });
+
+            allResults.addAll(batchResults);
         }
+        return allResults;
     }
 
     /**
@@ -229,45 +207,19 @@ public class RedisInteractionScoreRepository {
      * <p>SCAN 패턴 매칭으로 모든 상호작용 ZSet에서 탈퇴 회원 제거</p>
      */
     public void deleteInteractionKeyByWithdraw(Long withdrawMemberId) {
-        try {
-            // 1. 탈퇴 회원의 상호작용 ZSet 삭제
-            String withdrawKey = INTERACTION_PREFIX + withdrawMemberId;
-            redisTemplate.delete(withdrawKey);
+        // 1. 탈퇴 회원의 상호작용 ZSet 삭제
+        redisTemplate.delete(createInteractionKey(withdrawMemberId));
 
-            // 2. SCAN으로 모든 interaction 키 조회 후, 탈퇴 회원 데이터 제거
-            String pattern = INTERACTION_PREFIX + "*";
+        // 2. SCAN으로 모든 interaction 키 조회 후, 탈퇴 회원 데이터 제거
+        redisTemplate.execute((RedisConnection connection) -> {
+            byte[] memberBytes = withdrawMemberId.toString().getBytes(StandardCharsets.UTF_8);
 
-            redisTemplate.execute((RedisConnection connection) -> {
-                byte[] memberBytes = withdrawMemberId.toString().getBytes(StandardCharsets.UTF_8);
-
-                connection.keyCommands().scan(scanOptions()
-                        .match(pattern)
-                        .count(100)
-                        .build())
-                        .forEachRemaining(key -> {
-                            connection.zSetCommands().zRem(key, memberBytes);
-                        });
-                return null;
-            });
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_DELETE_ERROR, e);
-        }
-    }
-
-
-
-    public void processScoreUp(RedisConnection connection, FriendEventDlq event) {
-        String key1 = INTERACTION_PREFIX + event.getMemberId();
-        String key2 = INTERACTION_PREFIX + event.getTargetId();
-        double increment = event.getScore() != null ? event.getScore() : INTERACTION_SCORE_DEFAULT;
-
-        connection.zSetCommands().zIncrBy(
-                key1.getBytes(StandardCharsets.UTF_8),
-                increment,
-                event.getTargetId().toString().getBytes(StandardCharsets.UTF_8));
-        connection.zSetCommands().zIncrBy(
-                key2.getBytes(StandardCharsets.UTF_8),
-                increment,
-                event.getMemberId().toString().getBytes(StandardCharsets.UTF_8));
+            connection.keyCommands().scan(scanOptions()
+                            .match(createAllInteractionKey())
+                            .count(100)
+                            .build())
+                    .forEachRemaining(key -> connection.zSetCommands().zRem(key, memberBytes));
+            return null;
+        });
     }
 }

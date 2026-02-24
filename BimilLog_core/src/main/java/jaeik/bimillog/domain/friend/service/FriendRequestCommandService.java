@@ -71,7 +71,6 @@ public class FriendRequestCommandService {
 
         // 요청 받는 사람이 실존하는지 확인
         Member receiver = friendToMemberAdapter.findById(receiveMemberId);
-
         // 요청 받는 사람과 블랙리스트 관계인지 확인
         eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, receiveMemberId));
 
@@ -79,9 +78,7 @@ public class FriendRequestCommandService {
         checkFriendRequest(memberId, receiveMemberId);
 
         Member sender = friendToMemberAdapter.findById(memberId);
-
         FriendRequest friendRequest = FriendRequest.createFriendRequest(sender, receiver);
-
         friendRequestRepository.save(friendRequest);
 
         // 비동기로 SSE와 FCM 발송, 알림DB 저장
@@ -95,14 +92,12 @@ public class FriendRequestCommandService {
     private void checkFriendRequest(Long memberId, Long receiveMemberId) {
         // 이미 요청이 존재한다.
         boolean aSendB = friendRequestRepository.existsBySenderIdAndReceiverId(memberId, receiveMemberId);
-
         if (aSendB) {
             throw new CustomException(ErrorCode.FRIEND_REQUEST_ALREADY_SEND);
         }
 
         // 이미 상대가 요청을 보냈다.
         boolean bSendA = friendRequestRepository.existsBySenderIdAndReceiverId(receiveMemberId, memberId);
-
         if (bSendA) {
             throw new CustomException(ErrorCode.FRIEND_REQUEST_ALREADY_RECEIVE);
         }
