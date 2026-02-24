@@ -41,6 +41,17 @@ public class RedisFriendshipRepository {
     }
 
     /**
+     * <h3>특정 회원의 1촌 친구 목록 전체 조회</h3>
+     */
+    public Set<Long> getFriendId(Long memberId) {
+        Set<String> members = stringRedisTemplate.opsForSet().members(createFriendKey(memberId));
+        if (members == null || members.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return members.stream().map(Long::parseLong).collect(Collectors.toSet());
+    }
+
+    /**
      * <h3>여러 회원의 친구 목록을 파이프라인으로 일괄 조회</h3>
      *
      * @param memberIdList 조회할 회원 ID 목록 (순서 유지)
@@ -59,7 +70,6 @@ public class RedisFriendshipRepository {
                 .map(this::convertToLongList)
                 .toList();
     }
-
 
     private List<Long> convertToLongList(Object result) {
         if (!(result instanceof Collection<?>)) {
@@ -93,15 +103,13 @@ public class RedisFriendshipRepository {
      * <p>탈퇴 회원의 친구 목록을 기반으로 타겟 키만 정리한다.</p>
      */
     public void deleteWithdrawFriendTargeted(List<Long> friendIdList, Long withdrawFriendId) {
-        String withdrawMemberIdStr = String.valueOf(withdrawFriendId);
-
         for (int i = 0; i < friendIdList.size(); i += PIPELINE_BATCH_SIZE) {
             int end = Math.min(i + PIPELINE_BATCH_SIZE, friendIdList.size());
             List<Long> batch = friendIdList.subList(i, end);
 
             stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
                 for (Long friendId : batch) {
-                    stringRedisTemplate.opsForSet().remove(createFriendKey(friendId), withdrawMemberIdStr);
+                    stringRedisTemplate.opsForSet().remove(createFriendKey(friendId), String.valueOf(withdrawFriendId));
                 }
                 return null;
             });

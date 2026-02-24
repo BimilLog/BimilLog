@@ -35,8 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
-
 /**
  * <h2>사용자 탈퇴 이벤트 리스너</h2>
  * <p>사용자 탈퇴 또는 강제 탈퇴 시 발생하는 {@link MemberWithdrawnEvent}를 비동기로 처리합니다.</p>
@@ -118,7 +116,7 @@ public class MemberWithdrawListener {
 
         // Redis 친구 관계 테이블 정리
         try {
-            Set<Long> friendIds = redisFriendshipRepository.getFriendIdRandom(memberId, PIPELINE_BATCH_SIZE);
+            Set<Long> friendIds = redisFriendshipRepository.getFriendId(memberId);
             List<Long> friendIdList = new ArrayList<>(friendIds);
             redisFriendshipRepository.deleteWithdrawFriendTargeted(friendIdList, memberId);
         } catch (Exception e) {
