@@ -1,21 +1,14 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static jaeik.bimillog.infrastructure.redis.RedisKey.*;
-import static org.springframework.data.redis.core.ScanOptions.scanOptions;
 
 /**
  * <h2>상호작용 점수 Redis 캐시 저장소 (ZSet 기반)</h2>
@@ -31,16 +24,23 @@ public class RedisInteractionScoreRepository {
     private final RedisTemplate<String, Object> redisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
 
-    private static final RedisScript<Long> INTERACTION_SCORE_ADD_SCRIPT;
-    private static final RedisScript<Long> INTERACTION_SCORE_DECAY_SCRIPT;
     private static final Double INTERACTION_SCORE_THRESHOLD = 0.2;
     private static final Double INTERACTION_SCORE_DEFAULT = 0.5;
     private static final Double INTERACTION_SCORE_LIMIT = 9.5;
     private static final Double INTERACTION_SCORE_DECAY_RATE = 0.95;
 
-
-    static {
-        String luaScript = """
+    /**
+     * 상호작용 점수 추가 (멱등성 보장)
+     * <p>비즈니스 키 기반 이벤트 ID를 사용하여 중복 처리를 방지합니다.</p>
+     * <p>동일한 이벤트가 여러 번 호출되어도 점수는 한 번만 증가합니다.</p>
+     *
+     * @param memberId            회원 ID
+     * @param interactionMemberId 상호작용 대상 회원 ID
+     * @param idempotencyKey      멱등성 보장을 위한 비즈니스 키 (예: POST_LIKE:postId:likerId)
+     * @return true: 점수 증가됨, false: 이미 처리된 이벤트
+     */
+    public boolean addInteractionScore(Long memberId, Long interactionMemberId, String idempotencyKey) {
+        final String INTERACTION_SCORE_ADD_SCRIPT = """
                     local key1 = KEYS[1]
                     local key2 = KEYS[2]
                     local idempotencyKey = KEYS[3]
@@ -69,47 +69,9 @@ public class RedisInteractionScoreRepository {
                 
                     return 1
                 """;
-        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
-        script.setScriptText(luaScript);
-        script.setResultType(Long.class);
-        INTERACTION_SCORE_ADD_SCRIPT = script;
-
-        // 지수 감쇠 Lua Script: ZSet의 모든 점수에 감쇠율을 곱하고 임계값 이하 제거
-        String decayLuaScript = """
-                local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES')
-                local decayRate = tonumber(ARGV[1])
-                local threshold = tonumber(ARGV[2])
-                for i = 1, #members, 2 do
-                    local member = members[i]
-                    local score = tonumber(members[i + 1])
-                    local newScore = score * decayRate
-                    if newScore <= threshold then
-                        redis.call('ZREM', KEYS[1], member)
-                    else
-                        redis.call('ZADD', KEYS[1], newScore, member)
-                    end
-                end
-                return 1
-                """;
-        DefaultRedisScript<Long> decayScript = new DefaultRedisScript<>();
-        decayScript.setScriptText(decayLuaScript);
-        decayScript.setResultType(Long.class);
-        INTERACTION_SCORE_DECAY_SCRIPT = decayScript;
-    }
-
-    /**
-     * 상호작용 점수 추가 (멱등성 보장)
-     * <p>비즈니스 키 기반 이벤트 ID를 사용하여 중복 처리를 방지합니다.</p>
-     * <p>동일한 이벤트가 여러 번 호출되어도 점수는 한 번만 증가합니다.</p>
-     *
-     * @param memberId            회원 ID
-     * @param interactionMemberId 상호작용 대상 회원 ID
-     * @param idempotencyKey      멱등성 보장을 위한 비즈니스 키 (예: POST_LIKE:postId:likerId)
-     * @return true: 점수 증가됨, false: 이미 처리된 이벤트
-     */
-    public boolean addInteractionScore(Long memberId, Long interactionMemberId, String idempotencyKey) {
+        DefaultRedisScript<Long> addScript = new DefaultRedisScript<>(INTERACTION_SCORE_ADD_SCRIPT, Long.class);
         Long result = stringRedisTemplate.execute(
-                INTERACTION_SCORE_ADD_SCRIPT,
+                addScript,
                 List.of(createInteractionKey(memberId), createInteractionKey(interactionMemberId), idempotencyKey), // 각각 KEYS[1],[2],[3]
                 interactionMemberId.toString(), // ARGV[1]
                 memberId.toString(), // ARGV[2]
@@ -128,40 +90,48 @@ public class RedisInteractionScoreRepository {
      * @return 처리된 키 개수
      */
     public int applyInteractionScoreDecay() {
+        final String INTERACTION_SCORE_DECAY_SCRIPT = """
+                local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES')
+                local decayRate = tonumber(ARGV[1])
+                local threshold = tonumber(ARGV[2])
+                for i = 1, #members, 2 do
+                    local member = members[i]
+                    local score = tonumber(members[i + 1])
+                    local newScore = score * decayRate
+                    if newScore <= threshold then
+                        redis.call('ZREM', KEYS[1], member)
+                    else
+                        redis.call('ZADD', KEYS[1], newScore, member)
+                    end
+                end
+                return 1
+                """;
+        DefaultRedisScript<Long> decayScript = new DefaultRedisScript<>(INTERACTION_SCORE_DECAY_SCRIPT, Long.class);
         List<String> keys = new ArrayList<>();
 
-        // 1. SCAN으로 모든 interaction 키 수집
-        redisTemplate.execute((RedisConnection connection) -> {
-            connection.keyCommands().scan(scanOptions()
-                            .match(createAllInteractionKey())
-                            .count(100)
-                            .build())
-                    .forEachRemaining(key -> keys.add(new String(key, StandardCharsets.UTF_8)));
-            return null;
-        });
+        Cursor<String> cursor = stringRedisTemplate.scan(
+                ScanOptions.scanOptions()
+                        .match(createAllInteractionKey())
+                        .count(100)
+                        .build());
+        cursor.forEachRemaining(keys::add);
 
         // 2. 파이프라인으로 일괄 감쇠 적용 (키당 Lua 스크립트 원자 실행)
-        byte[] scriptBytes = INTERACTION_SCORE_DECAY_SCRIPT.getScriptAsString().getBytes(StandardCharsets.UTF_8);
-        byte[] decayRateBytes = String.valueOf(INTERACTION_SCORE_DECAY_RATE).getBytes(StandardCharsets.UTF_8);
-        byte[] thresholdBytes = String.valueOf(INTERACTION_SCORE_THRESHOLD).getBytes(StandardCharsets.UTF_8);
-
         for (int i = 0; i < keys.size(); i += PIPELINE_BATCH_SIZE) {
             List<String> batch = keys.subList(i, Math.min(i + PIPELINE_BATCH_SIZE, keys.size()));
             stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+
                 for (String key : batch) {
-                    connection.scriptingCommands().eval(
-                            scriptBytes,
-                            ReturnType.INTEGER,
-                            1,
-                            key.getBytes(StandardCharsets.UTF_8),
-                            decayRateBytes,
-                            thresholdBytes
+                    stringRedisTemplate.execute(
+                            decayScript,
+                            Collections.singletonList(key), // KEY[1]
+                            String.valueOf(INTERACTION_SCORE_DECAY_RATE), // ARGV[1]
+                            String.valueOf(INTERACTION_SCORE_THRESHOLD)   // ARGV[2]
                     );
                 }
                 return null;
             });
         }
-
         return keys.size();
     }
 
@@ -208,18 +178,18 @@ public class RedisInteractionScoreRepository {
      */
     public void deleteInteractionKeyByWithdraw(Long withdrawMemberId) {
         // 1. 탈퇴 회원의 상호작용 ZSet 삭제
-        redisTemplate.delete(createInteractionKey(withdrawMemberId));
+        stringRedisTemplate.delete(createInteractionKey(withdrawMemberId));
 
         // 2. SCAN으로 모든 interaction 키 조회 후, 탈퇴 회원 데이터 제거
-        redisTemplate.execute((RedisConnection connection) -> {
-            byte[] memberBytes = withdrawMemberId.toString().getBytes(StandardCharsets.UTF_8);
+        Cursor<String> cursor = stringRedisTemplate.scan(
+                ScanOptions.scanOptions()
+                        .match(createAllInteractionKey())
+                        .count(100)
+                        .build());
 
-            connection.keyCommands().scan(scanOptions()
-                            .match(createAllInteractionKey())
-                            .count(100)
-                            .build())
-                    .forEachRemaining(key -> connection.zSetCommands().zRem(key, memberBytes));
-            return null;
-        });
+        while (cursor.hasNext()) {
+            String key = cursor.next();
+            stringRedisTemplate.opsForZSet().remove(key, String.valueOf(withdrawMemberId));
+        }
     }
 }
