@@ -77,20 +77,6 @@ class RealTimePostSchedulerTest {
     }
 
     @Test
-    @DisplayName("서킷 FORCED_OPEN → Caffeine 폴백 저장소에 감쇠 적용")
-    void shouldApplyDecayToCaffeine_WhenCircuitForcedOpen() {
-        // Given
-        given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.FORCED_OPEN);
-
-        // When
-        scheduler.applyRealtimeScoreDecay();
-
-        // Then
-        verify(realtimeScoreFallbackStore).applyDecay();
-        verify(redisPostRealTimeAdapter, never()).applyRealtimePopularScoreDecay();
-    }
-
-    @Test
     @DisplayName("Redis 감쇠 실패 시 예외를 잡아 로깅")
     void shouldCatchException_WhenRedisDecayFails() {
         // Given

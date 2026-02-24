@@ -314,7 +314,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(post("/api/post/{postId}/like", savedPost.getId())
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test

@@ -93,7 +93,7 @@ public class RedisPostRealTimeAdapter {
                 "    local newScore = score * tonumber(ARGV[1]) " +
                 "    redis.call('ZADD', KEYS[1], newScore, member) " +
                 "end " +
-                "return redis.call('ZCARD', KEYS[1])"
+                "return 1"
         );
         script.setResultType(Long.class);
 

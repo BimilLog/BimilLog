@@ -52,7 +52,6 @@ public class PostQueryRepository {
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findBoardPostsByCursor(Long cursor, int size) {
         BooleanExpression cursorCondition = cursor != null ? post.id.lt(cursor) : null;
-
         return jpaQueryFactory
                 .select(new QPostSimpleDetail(
                         post.id,
@@ -71,6 +70,40 @@ public class PostQueryRepository {
                 .orderBy(post.id.desc())
                 .limit(size + 1)
                 .fetch();
+    }
+
+    /**
+     * <h3>PostSimpleDetail 공통 조회</h3>
+     */
+    @Transactional(readOnly = true)
+    public Page<PostSimpleDetail> selectPostSimpleDetails(BooleanExpression condition, Pageable pageable, OrderSpecifier<?>... orders) {
+        List<PostSimpleDetail> content = jpaQueryFactory
+                .select(new QPostSimpleDetail(
+                        post.id,
+                        post.title,
+                        post.views,
+                        post.likeCount,
+                        post.createdAt,
+                        post.member.id,
+                        post.memberName,
+                        post.commentCount,
+                        post.isWeekly,
+                        post.isLegend,
+                        post.isNotice))
+                .from(post)
+                .where(condition)
+                .orderBy(orders)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = jpaQueryFactory
+                .select(post.countDistinct())
+                .from(post)
+                .where(condition)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     /**
@@ -108,40 +141,6 @@ public class PostQueryRepository {
                 .select(post.countDistinct())
                 .from(post)
                 .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
-                .fetchOne();
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
-    }
-
-    /**
-     * <h3>PostSimpleDetail 공통 조회</h3>
-     */
-    @Transactional(readOnly = true)
-    public Page<PostSimpleDetail> selectPostSimpleDetails(BooleanExpression condition, Pageable pageable, OrderSpecifier<?>... orders) {
-        List<PostSimpleDetail> content = jpaQueryFactory
-                .select(new QPostSimpleDetail(
-                        post.id,
-                        post.title,
-                        post.views,
-                        post.likeCount,
-                        post.createdAt,
-                        post.member.id,
-                        post.memberName,
-                        post.commentCount,
-                        post.isWeekly,
-                        post.isLegend,
-                        post.isNotice))
-                .from(post)
-                .where(condition)
-                .orderBy(orders)
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        Long total = jpaQueryFactory
-                .select(post.countDistinct())
-                .from(post)
-                .where(condition)
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);

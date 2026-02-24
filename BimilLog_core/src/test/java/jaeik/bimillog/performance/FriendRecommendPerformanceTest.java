@@ -24,6 +24,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.StopWatch;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -106,6 +108,7 @@ public class FriendRecommendPerformanceTest {
         totalStopWatch.start();
 
         // 10회 조회
+        long beforeTime = System.currentTimeMillis(); // 실행 전 시간
         for (int i = 0; i < TEST_COUNT; i++) {
             Long memberId = (long) (i + 1);
 
@@ -117,7 +120,8 @@ public class FriendRecommendPerformanceTest {
             stopWatch.stop();
             responseTimes.add(stopWatch.getTotalTimeMillis());
         }
-
+        long afterTime = System.currentTimeMillis(); // 실행 후 시간
+        log.info(String.valueOf(afterTime - beforeTime));
         totalStopWatch.stop();
 
         // 통계 계산

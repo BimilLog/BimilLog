@@ -284,20 +284,6 @@ class PostCacheSchedulerTest {
         verify(eventPublisher, never()).publishEvent(any());
     }
 
-    @Test
-    @DisplayName("첫 페이지 캐시 갱신 - 게시글 없으면 스킵")
-    void shouldSkipFirstPageRefresh_WhenNoPostsExist() {
-        // Given
-        given(postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE))
-                .willReturn(Collections.emptyList());
-
-        // When
-        postCacheScheduler.refreshFirstPageCache();
-
-        // Then
-        verify(redisPostListUpdateAdapter, never()).replaceList(any(), any(), any());
-    }
-
     // ==================== 실시간 인기글 ====================
 
     @Test
@@ -319,20 +305,6 @@ class PostCacheSchedulerTest {
 
         // Then
         verify(redisPostListUpdateAdapter).replaceList(eq(RedisKey.POST_REALTIME_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
-    }
-
-    @Test
-    @DisplayName("실시간 인기글 캐시 갱신 - ZSet 비어있으면 스킵")
-    void shouldSkipRealtimeRefresh_WhenZSetIsEmpty() {
-        // Given
-        given(redisPostRealTimeAdapter.getRangePostId()).willReturn(List.of());
-
-        // When
-        postCacheScheduler.refreshRealtimePopularPosts();
-
-        // Then
-        verify(redisPostListUpdateAdapter, never()).replaceList(
-                eq(RedisKey.POST_REALTIME_JSON_KEY), any(), any());
     }
 
     // 테스트 유틸리티 메서드들

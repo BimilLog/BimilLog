@@ -39,31 +39,39 @@ public class FriendEventDlqScheduler {
     private static final int MAX_RETRY = 3;
 
     /**
-     * 5분마다 DLQ 이벤트를 재처리합니다.
-     * <p>Redis가 정상 상태일 때만 실행되며, 파이프라인으로 일괄 처리합니다.</p>
+     * 10분마다 DLQ 이벤트를 재처리합니다.
+     * <p>Redis가 정상 상태일 때만 실행되며, PENDING 이벤트가 모두 소진될 때까지 배치 반복 처리합니다.</p>
      */
     @Scheduled(fixedRate = 600000)  // 10분마다
-    @Transactional
     public void processDlq() {
         if (!redisCheck.isRedisHealthy()) return;
 
-        List<FriendEventDlq> events = repository.findPendingEvents(FriendDlqStatus.PENDING, 3, BATCH_SIZE);
-        if (events.isEmpty()) return;
+        int totalProcessed = 0;
+        int totalFailed = 0;
 
-        log.info("[친구 DLQ] 재처리 시작: {}건", events.size());
-        List<FriendEventDlq> processedEvents = new ArrayList<>();
-        List<FriendEventDlq> failedEvents = new ArrayList<>();
+        while (true) {
+            List<FriendEventDlq> events = repository.findPendingEvents(FriendDlqStatus.PENDING, MAX_RETRY, BATCH_SIZE);
+            if (events.isEmpty()) break;
 
-        try {
-            pipelineRestore(events, processedEvents);
-        } catch (Exception e) {
-            log.error("[친구 DLQ] 파이프라인 처리 실패, 개별 재시도 진행", e);
-            singleRestore(events, processedEvents, failedEvents);
+            List<FriendEventDlq> processedEvents = new ArrayList<>();
+            List<FriendEventDlq> failedEvents = new ArrayList<>();
+
+            try {
+                pipelineRestore(events, processedEvents);
+            } catch (Exception e) {
+                log.error("[친구 DLQ] 파이프라인 처리 실패, 개별 재시도 진행", e);
+                singleRestore(events, processedEvents, failedEvents);
+            }
+
+            repository.saveAll(processedEvents);
+            repository.saveAll(failedEvents);
+            totalProcessed += processedEvents.size();
+            totalFailed += failedEvents.size();
         }
 
-        repository.saveAll(processedEvents);
-        repository.saveAll(failedEvents);
-        log.info("[친구 DLQ] 재처리 완료: 성공={}건, 실패={}건", processedEvents.size(), failedEvents.size());
+        if (totalProcessed > 0 || totalFailed > 0) {
+            log.info("[친구 DLQ] 전체 재처리 완료: 성공={}건, 실패={}건", totalProcessed, totalFailed);
+        }
     }
 
     private void pipelineRestore(List<FriendEventDlq> events, List<FriendEventDlq> processedEvents) {

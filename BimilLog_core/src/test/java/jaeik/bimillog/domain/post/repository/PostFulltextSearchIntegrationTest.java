@@ -245,30 +245,6 @@ class PostFulltextSearchIntegrationTest {
     }
 
     @Test
-    @DisplayName("비즈니스 로직 - 모든 게시글이 검색 결과에 포함됨")
-    void shouldIncludeAllPosts_WhenSearching() {
-        // Given: 검색어 "자바" (여러 게시글에 포함)
-        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
-        String query = "자바";
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When: 전문 검색
-        Page<PostSimpleDetail> result = searchFullText(searchType, query, pageable, null);
-
-        // Then: 검색어가 포함된 게시글이 결과에 포함됨
-        assertThat(result).isNotNull();
-
-        List<String> titles = result.getContent().stream()
-                .map(PostSimpleDetail::getTitle)
-                .toList();
-
-        // 검색 결과가 있다면 "자바"가 포함된 게시글이 있어야 함
-        if (!result.isEmpty()) {
-            assertThat(titles).anyMatch(title -> title.contains("자바"));
-        }
-    }
-
-    @Test
     @DisplayName("엣지 케이스 - 검색 결과 없음")
     void shouldReturnEmptyPage_WhenNoResultsFound() {
         // Given: 존재하지 않는 검색어
@@ -302,66 +278,20 @@ class PostFulltextSearchIntegrationTest {
     }
 
     @Test
-    @DisplayName("비즈니스 로직 - 최신순 정렬")
-    void shouldSortByCreatedAtDesc_WhenSearching() {
-        // Given: 여러 게시글에 포함된 검색어 "개발자" (3글자)
-        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
-        String query = "개발";
+    @DisplayName("엣지 케이스 - 2글자 검색어 (3글자 미만 → LIKE 부분검색 폴백)")
+    void shouldFallbackToPartialMatch_WhenTwoCharacterQuery() {
+        // Given: 2글자 검색어 (3글자 미만 → 전문검색 대신 LIKE 부분검색 적용)
+        PostQueryType searchType = PostQueryType.TITLE;
+        String query = "자바";
         Pageable pageable = PageRequest.of(0, 10);
 
-        // When: 전문 검색
+        // When: 부분검색 전략 수행
         Page<PostSimpleDetail> result = searchFullText(searchType, query, pageable, null);
 
-        // Then: 최신 게시글부터 정렬됨
-        if (result.getContent().size() > 1) {
-            List<java.time.Instant> createdAts = result.getContent().stream()
-                    .map(PostSimpleDetail::getCreatedAt)
-                    .toList();
-
-            for (int i = 1; i < createdAts.size(); i++) {
-                assertThat(createdAts.get(i - 1)).isAfterOrEqualTo(createdAts.get(i));
-            }
-        }
-    }
-
-    @Test
-    @DisplayName("비즈니스 로직 - 댓글 수와 추천 수 포함")
-    void shouldIncludeLikeAndCommentCounts_InSearchResults() {
-        // Given: 검색어 "프로그래밍" (3글자 이상)
-        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
-        String query = "프로그래밍";
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When: 전문 검색
-        Page<PostSimpleDetail> result = searchFullText(searchType, query, pageable, null);
-
-        // Then: 댓글 수와 추천 수가 설정되어 있음
-        if (!result.isEmpty()) {
-            assertThat(result.getContent()).allMatch(post -> post.getCommentCount() != null);
-            assertThat(result.getContent()).allMatch(post -> post.getLikeCount() != null);
-        }
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 한글 내용 전문 검색 (3글자)")
-    void shouldFindPosts_WhenLongerKoreanQueryProvided() {
-        // Given: 3글자 이상 한글 검색어
-        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
-        String query = "스프링";
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When: 전문 검색
-        Page<PostSimpleDetail> result = searchFullText(searchType, query, pageable, null);
-
-        // Then: "스프링"이 포함된 게시글 조회
+        // Then: "자바 프로그래밍 기초" 제목 매칭
         assertThat(result).isNotNull();
-
-        if (!result.isEmpty()) {
-            List<String> titles = result.getContent().stream()
-                    .map(PostSimpleDetail::getTitle)
-                    .toList();
-            assertThat(titles).anyMatch(title -> title.contains("스프링"));
-        }
+        assertThat(result.getContent()).isNotEmpty();
+        assertThat(result.getContent()).anyMatch(post -> post.getTitle().contains("자바"));
     }
 
     private Page<PostSimpleDetail> searchFullText(PostQueryType type, String query, Pageable pageable, Long viewerId) {
