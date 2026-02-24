@@ -33,7 +33,7 @@ public class CacheUpdateSync {
      * <h3>새 글 작성 캐시 반영</h3>
      * <p>첫 페이지 JSON LIST에 새 글을 LPUSH + LTRIM으로 추가합니다.</p>
      */
-    @Async("cacheRefreshPool")
+    @Async("cacheRefreshExecutor")
     public void asyncAddNewPost(PostSimpleDetail post) {
         redisPostListUpdateAdapter.addPostToList(
                 RedisKey.FIRST_PAGE_JSON_KEY, post, RedisKey.FIRST_PAGE_SIZE + 1);
@@ -43,7 +43,7 @@ public class CacheUpdateSync {
      * <h3>글 수정 캐시 반영</h3>
      * <p>모든 JSON LIST에서 해당 글의 제목을 업데이트합니다.</p>
      */
-    @Async("cacheRefreshPool")
+    @Async("cacheRefreshExecutor")
     public void asyncUpdatePost(Long postId, PostSimpleDetail updatedPost) {
         redisPostListUpdateAdapter.updateTitle(postId, updatedPost.getTitle());
     }
@@ -53,7 +53,7 @@ public class CacheUpdateSync {
      * <p>실시간 ZSet + 모든 JSON LIST를 정리합니다.</p>
      * <p>첫 페이지만 보충합니다. (주간/레전드/공지/실시간은 스케줄러가 재구축)</p>
      */
-    @Async("cacheRefreshPool")
+    @Async("cacheRefreshExecutor")
     public void asyncDeletePost(Long postId) {
         redisPostRealTimeAdapter.removePostIdFromRealtimeScore(postId);
         redisPostListDeleteAdapter.removePostFromCacheLists(postId);

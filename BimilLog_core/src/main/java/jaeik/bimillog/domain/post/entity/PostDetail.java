@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.entity;
 
-import com.querydsl.core.annotations.QueryProjection;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +21,9 @@ import java.time.Instant;
  */
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class PostDetail implements Serializable {
 
     @Serial
@@ -41,11 +43,6 @@ public class PostDetail implements Serializable {
     private boolean isLegend;
     private boolean isNotice;
 
-    /**
-     * <h3>생성자 - QueryDSL Projection용</h3>
-     * <p>QueryDSL @QueryProjection을 위한 전용 생성자입니다.</p>
-     * <p>PostQueryAdapter에서 게시글 상세 조회 시 QueryDSL을 통해 호출됩니다.</p>
-     */
     public static PostDetail from(Post post, boolean isLiked) {
         return PostDetail.builder()
                 .id(post.getId())
@@ -62,26 +59,5 @@ public class PostDetail implements Serializable {
                 .isLegend(post.isLegend())
                 .isNotice(post.isNotice())
                 .build();
-    }
-
-    @Builder
-    @QueryProjection
-    public PostDetail(Long id, String title, String content, Integer viewCount,
-                     Integer likeCount, Instant createdAt, Long memberId,
-                     String memberName, Integer commentCount, boolean isLiked,
-                     boolean isWeekly, boolean isLegend, boolean isNotice) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
-        this.viewCount = viewCount;
-        this.likeCount = likeCount;
-        this.createdAt = createdAt;
-        this.memberId = memberId;
-        this.memberName = memberName;
-        this.commentCount = commentCount;
-        this.isLiked = isLiked;
-        this.isWeekly = isWeekly;
-        this.isLegend = isLegend;
-        this.isNotice = isNotice;
     }
 }

@@ -95,7 +95,7 @@ public class RedisInteractionScoreRepository {
                     redis.call('ZADD', KEYS[1], newScore, member)
                 end
             end
-            return redis.call('ZCARD', KEYS[1])
+            return 1
             """;
         DefaultRedisScript<Long> decayScript = new DefaultRedisScript<>();
         decayScript.setScriptText(decayLuaScript);

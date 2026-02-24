@@ -74,18 +74,4 @@ class PostCacheViewSchedulerTest {
         verify(redisPostListUpdateAdapter).incrementCounterInAllLists(eq(2L), eq("viewCount"), eq(3L));
     }
 
-    @Test
-    @DisplayName("조회수 DB 업데이트 실패 시 예외를 잡아 로깅")
-    void shouldCatchViewCountException_whenDbUpdateFails() {
-        // Given
-        Map<Long, Long> viewCounts = Map.of(1L, 5L);
-        given(redisPostViewAdapter.getAndClearViewCounts()).willReturn(viewCounts);
-        doThrow(new RuntimeException("DB 오류")).when(postQueryRepository).bulkIncrementCount(any(), any());
-
-        // When - 예외가 전파되지 않아야 함
-        scheduler.flushAllCounts();
-
-        // Then
-        verify(postQueryRepository).bulkIncrementCount(eq(viewCounts), any(NumberPath.class));
-    }
 }

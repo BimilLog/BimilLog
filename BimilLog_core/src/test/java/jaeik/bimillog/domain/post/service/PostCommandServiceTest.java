@@ -79,6 +79,8 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         verify(postToMemberAdapter, times(1)).getMember(memberId);
         verify(postRepository, times(1)).save(any(Post.class));
+        // 새 글 작성 후 첫 페이지 캐시에 비동기 추가
+        verify(cacheUpdateSync, times(1)).asyncAddNewPost(any());
         verifyNoMoreInteractions(postToMemberAdapter, postRepository);
     }
 
