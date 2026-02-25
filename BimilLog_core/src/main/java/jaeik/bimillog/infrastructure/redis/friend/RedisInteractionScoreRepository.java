@@ -190,6 +190,50 @@ public class RedisInteractionScoreRepository {
     }
 
     /**
+     * <h3>전체 상호작용 점수 Redis 재구축</h3>
+     * <p>기존 interaction:* 키를 전체 삭제 후, DB 집계 데이터를 기반으로 파이프라인 배치로 재삽입합니다.</p>
+     *
+     * @param scoreMap key=memberId, inner key=targetId, value=score
+     */
+    public void rebuildAll(Map<Long, Map<Long, Double>> scoreMap) {
+        // 1. SCAN으로 interaction:* 키 전체 조회 후 삭제
+        List<String> keysToDelete = new ArrayList<>();
+        try (Cursor<String> cursor = stringRedisTemplate.scan(
+                ScanOptions.scanOptions()
+                        .match(createAllInteractionKey())
+                        .count(100)
+                        .build())) {
+            cursor.forEachRemaining(keysToDelete::add);
+        }
+        if (!keysToDelete.isEmpty()) {
+            for (int i = 0; i < keysToDelete.size(); i += PIPELINE_BATCH_SIZE) {
+                List<String> batch = keysToDelete.subList(i, Math.min(i + PIPELINE_BATCH_SIZE, keysToDelete.size()));
+                stringRedisTemplate.delete(batch);
+            }
+        }
+
+        // 2. 파이프라인 배치로 ZADD 재삽입
+        List<Map.Entry<Long, Map<Long, Double>>> entries = new ArrayList<>(scoreMap.entrySet());
+        for (int i = 0; i < entries.size(); i += PIPELINE_BATCH_SIZE) {
+            int end = Math.min(i + PIPELINE_BATCH_SIZE, entries.size());
+            List<Map.Entry<Long, Map<Long, Double>>> batch = entries.subList(i, end);
+
+            stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+                for (Map.Entry<Long, Map<Long, Double>> memberEntry : batch) {
+                    byte[] key = createInteractionKey(memberEntry.getKey()).getBytes(StandardCharsets.UTF_8);
+                    for (Map.Entry<Long, Double> scoreEntry : memberEntry.getValue().entrySet()) {
+                        connection.zSetCommands().zAdd(
+                                key,
+                                scoreEntry.getValue(),
+                                scoreEntry.getKey().toString().getBytes(StandardCharsets.UTF_8));
+                    }
+                }
+                return null;
+            });
+        }
+    }
+
+    /**
      * DLQ 파이프라인 복구 — 상호작용 점수 증가
      */
     public void processScoreUp(RedisConnection connection, FriendEventDlq event) {

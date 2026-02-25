@@ -3,7 +3,9 @@ package jaeik.bimillog.infrastructure.redis.friend;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static jaeik.bimillog.infrastructure.redis.RedisKey.FRIENDSHIP_PREFIX;
+import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
 import static jaeik.bimillog.infrastructure.redis.RedisKey.createFriendKey;
 
 /**
@@ -24,8 +28,6 @@ import static jaeik.bimillog.infrastructure.redis.RedisKey.createFriendKey;
 @RequiredArgsConstructor
 public class RedisFriendshipRepository {
     private final StringRedisTemplate stringRedisTemplate;
-    private static final int PIPELINE_BATCH_SIZE = 500;
-
     /**
      * <h3>특정 회원의 1촌 친구 목록 랜덤 조회</h3>
      */
@@ -116,6 +118,49 @@ public class RedisFriendshipRepository {
             });
         }
         stringRedisTemplate.delete(createFriendKey(withdrawFriendId));
+    }
+
+    /**
+     * <h3>전체 친구 관계 Redis 재구축</h3>
+     * <p>기존 friend:* 키를 전체 삭제 후, DB 데이터를 기반으로 파이프라인 배치로 재삽입합니다.</p>
+     * <p>양방향 친구 관계를 동시에 처리합니다.</p>
+     *
+     * @param pairs List of long[] — 각 요소: [memberId, friendId]
+     */
+    public void rebuildAll(List<long[]> pairs) {
+        // 1. SCAN으로 friend:* 키 전체 조회 후 삭제
+        List<String> keysToDelete = new ArrayList<>();
+        try (Cursor<String> cursor = stringRedisTemplate.scan(
+                ScanOptions.scanOptions()
+                        .match(FRIENDSHIP_PREFIX + "*")
+                        .count(100)
+                        .build())) {
+            cursor.forEachRemaining(keysToDelete::add);
+        }
+        if (!keysToDelete.isEmpty()) {
+            for (int i = 0; i < keysToDelete.size(); i += PIPELINE_BATCH_SIZE) {
+                List<String> batch = keysToDelete.subList(i, Math.min(i + PIPELINE_BATCH_SIZE, keysToDelete.size()));
+                stringRedisTemplate.delete(batch);
+            }
+        }
+
+        // 2. 파이프라인 배치로 SADD 재삽입 (양방향)
+        for (int i = 0; i < pairs.size(); i += PIPELINE_BATCH_SIZE) {
+            int end = Math.min(i + PIPELINE_BATCH_SIZE, pairs.size());
+            List<long[]> batch = pairs.subList(i, end);
+
+            stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+                for (long[] pair : batch) {
+                    byte[] memberKey = createFriendKey(pair[0]).getBytes(StandardCharsets.UTF_8);
+                    byte[] friendKey = createFriendKey(pair[1]).getBytes(StandardCharsets.UTF_8);
+                    byte[] memberIdBytes = String.valueOf(pair[0]).getBytes(StandardCharsets.UTF_8);
+                    byte[] friendIdBytes = String.valueOf(pair[1]).getBytes(StandardCharsets.UTF_8);
+                    connection.setCommands().sAdd(memberKey, friendIdBytes);
+                    connection.setCommands().sAdd(friendKey, memberIdBytes);
+                }
+                return null;
+            });
+        }
     }
 
     /**
