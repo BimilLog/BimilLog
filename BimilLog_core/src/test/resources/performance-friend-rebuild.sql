@@ -8,7 +8,7 @@
 --   member    :  100,000 rows (provider=KAKAO, member_name=PerfUser_N)
 --   post      :  100,000 rows (회원당 1개 — post_like FK 대상)
 --   friendship:   15,000,000 rows (100K × 300 / 2)
---   post_like :   30,000,000 rows (100K × 300 = 각 회원이 300명의 글에 좋아요)
+--   post_like :   10,000,000 rows (100K × 100 = 각 회원이 100명의 글에 좋아요)
 --
 -- 사용 방법:
 --   이 파일의 Step1~3 SQL은 FriendRedisRebuildPerformanceTest의 @BeforeAll에서
@@ -96,8 +96,8 @@ COMMIT;
 -- =============================================================
 
 -- =============================================================
--- Step 5: post_like 30,000,000 rows (Java JDBC 배치로 생성)
--- 로직: member i 가 member (i + j + 300) % 100000 의 post 에 좋아요, j in 1..300
+-- Step 5: post_like 10,000,000 rows (Java JDBC 배치로 생성)
+-- 로직: member i 가 member (i + j + 300) % 100000 의 post 에 좋아요, j in 1..100
 --       (friendship 대상과 범위를 다르게 하여 상호작용 다양성 확보)
 -- INSERT IGNORE INTO post_like (member_id, post_id) VALUES (?, ?)
 -- =============================================================
