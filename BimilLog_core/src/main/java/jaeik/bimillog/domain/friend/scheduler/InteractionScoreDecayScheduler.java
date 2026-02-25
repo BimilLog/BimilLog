@@ -28,8 +28,7 @@ public class InteractionScoreDecayScheduler {
     @Scheduled(cron = "0 0 3 * * *") // 매일 새벽 3시
     public void applyInteractionScoreDecay() {
         try {
-            int processedKeys = redisInteractionScoreRepository.applyInteractionScoreDecay();
-            log.info("[상호작용 점수 감쇠] 완료: {}개 키 처리", processedKeys);
+            redisInteractionScoreRepository.applyInteractionScoreDecay();
         } catch (Exception e) {
             log.error("[상호작용 점수 감쇠] 실패", e);
         }

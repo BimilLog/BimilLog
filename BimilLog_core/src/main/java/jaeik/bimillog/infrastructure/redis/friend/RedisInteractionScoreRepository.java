@@ -87,9 +87,8 @@ public class RedisInteractionScoreRepository {
      * <p>SCAN으로 모든 interaction:* 키를 찾아 Lua 스크립트로 점수 감쇠 적용</p>
      * <p>임계값(0.1) 이하의 점수는 삭제</p>
      *
-     * @return 처리된 키 개수
      */
-    public int applyInteractionScoreDecay() {
+    public void applyInteractionScoreDecay() {
         final String INTERACTION_SCORE_DECAY_SCRIPT = """
                 local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES')
                 local decayRate = tonumber(ARGV[1])
@@ -132,7 +131,6 @@ public class RedisInteractionScoreRepository {
                 return null;
             });
         }
-        return keys.size();
     }
 
     /**
