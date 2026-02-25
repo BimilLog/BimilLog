@@ -73,7 +73,11 @@ public class FriendEventDlqScheduler {
     private void pipelineRestore(List<FriendEventDlq> events, List<FriendEventDlq> processedEvents) {
         stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             for (FriendEventDlq event : events) {
-                dispatchEvent(event);
+                switch (event.getType()) {
+                    case FRIEND_ADD -> redisFriendshipRepository.processFriendAdd(connection, event);
+                    case FRIEND_REMOVE -> redisFriendshipRepository.processFriendRemove(connection, event);
+                    case SCORE_UP -> redisInteractionScoreRepository.processScoreUp(connection, event);
+                }
             }
             return null;
         });

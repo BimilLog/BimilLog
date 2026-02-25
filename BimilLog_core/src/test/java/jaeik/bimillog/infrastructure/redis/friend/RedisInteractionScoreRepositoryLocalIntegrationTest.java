@@ -200,11 +200,9 @@ class RedisInteractionScoreRepositoryLocalIntegrationTest {
         redisTemplate.opsForZSet().add(key2, MEMBER_1, 3.0);
 
         // When
-        int processedKeys = repository.applyInteractionScoreDecay();
+        repository.applyInteractionScoreDecay();
 
         // Then
-        assertThat(processedKeys).isEqualTo(2); // 2개 키 처리
-
         // 점수가 0.95 곱해졌는지 확인
         Double score1 = redisTemplate.opsForZSet().score(key1, MEMBER_2);
         Double score2 = redisTemplate.opsForZSet().score(key1, MEMBER_3);

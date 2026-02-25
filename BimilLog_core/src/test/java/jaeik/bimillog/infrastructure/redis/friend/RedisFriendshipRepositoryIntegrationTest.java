@@ -49,7 +49,8 @@ class RedisFriendshipRepositoryIntegrationTest {
         redisFriendshipRepository.addFriend(withdrawMemberId, friendB);
         redisFriendshipRepository.addFriend(unrelatedA, unrelatedB);
 
-        redisFriendshipRepository.deleteWithdrawFriendTargeted(withdrawMemberId);
+        List<Long> friendIdList = List.of(friendA, friendB);
+        redisFriendshipRepository.deleteWithdrawFriendTargeted(friendIdList, withdrawMemberId);
 
         assertThat(redisTemplate.hasKey(FRIEND_SHIP_PREFIX + withdrawMemberId)).isFalse();
         Set<Object> friendASet = redisTemplate.opsForSet().members(FRIEND_SHIP_PREFIX + friendA);
@@ -75,13 +76,12 @@ class RedisFriendshipRepositoryIntegrationTest {
             redisFriendshipRepository.addFriend(i, commonFriend);
         }
 
-        List<Object> results = redisFriendshipRepository.getFriendsBatch(memberIdList, 30);
+        List<List<Long>> results = redisFriendshipRepository.getFriendsBatch(memberIdList, 30);
 
         assertThat(results).hasSize(totalMembers);
         for (int i = 0; i < memberIdList.size(); i++) {
-            assertThat(results.get(i)).isInstanceOf(List.class);
-            List<?> friendList = (List<?>) results.get(i);
-            assertThat(friendList).anyMatch(f -> f.toString().equals(commonFriend.toString()));
+            List<Long> friendList = results.get(i);
+            assertThat(friendList).anyMatch(f -> f.equals(commonFriend));
         }
     }
 }

@@ -1,7 +1,11 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
+import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.*;
+
+import java.nio.charset.StandardCharsets;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Repository;
@@ -103,33 +107,25 @@ public class RedisInteractionScoreRepository {
                         redis.call('ZADD', KEYS[1], newScore, member)
                     end
                 end
-                return 1
                 """;
-        DefaultRedisScript<Long> decayScript = new DefaultRedisScript<>(INTERACTION_SCORE_DECAY_SCRIPT, Long.class);
+        DefaultRedisScript<Void> decayScript = new DefaultRedisScript<>(INTERACTION_SCORE_DECAY_SCRIPT, Void.class);
         List<String> keys = new ArrayList<>();
 
-        Cursor<String> cursor = stringRedisTemplate.scan(
+        try (Cursor<String> cursor = stringRedisTemplate.scan(
                 ScanOptions.scanOptions()
                         .match(createAllInteractionKey())
                         .count(100)
-                        .build());
-        cursor.forEachRemaining(keys::add);
+                        .build())) {
+            cursor.forEachRemaining(keys::add);
+        }
 
-        // 2. 파이프라인으로 일괄 감쇠 적용 (키당 Lua 스크립트 원자 실행)
-        for (int i = 0; i < keys.size(); i += PIPELINE_BATCH_SIZE) {
-            List<String> batch = keys.subList(i, Math.min(i + PIPELINE_BATCH_SIZE, keys.size()));
-            stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-
-                for (String key : batch) {
-                    stringRedisTemplate.execute(
-                            decayScript,
-                            Collections.singletonList(key), // KEY[1]
-                            String.valueOf(INTERACTION_SCORE_DECAY_RATE), // ARGV[1]
-                            String.valueOf(INTERACTION_SCORE_THRESHOLD)   // ARGV[2]
-                    );
-                }
-                return null;
-            });
+        for (String key : keys) {
+            stringRedisTemplate.execute(
+                    decayScript,
+                    Collections.singletonList(key),
+                    String.valueOf(INTERACTION_SCORE_DECAY_RATE),
+                    String.valueOf(INTERACTION_SCORE_THRESHOLD)
+            );
         }
     }
 
@@ -160,7 +156,9 @@ public class RedisInteractionScoreRepository {
 
             List<Object> batchResults = stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
                 for (Long targetId : batch) {
-                    stringRedisTemplate.opsForZSet().score(createInteractionKey(memberId), String.valueOf(targetId));
+                    connection.zSetCommands().zScore(
+                            createInteractionKey(memberId).getBytes(StandardCharsets.UTF_8),
+                            String.valueOf(targetId).getBytes(StandardCharsets.UTF_8));
                 }
                 return null;
             });
@@ -179,15 +177,31 @@ public class RedisInteractionScoreRepository {
         stringRedisTemplate.delete(createInteractionKey(withdrawMemberId));
 
         // 2. SCAN으로 모든 interaction 키 조회 후, 탈퇴 회원 데이터 제거
-        Cursor<String> cursor = stringRedisTemplate.scan(
+        try (Cursor<String> cursor = stringRedisTemplate.scan(
                 ScanOptions.scanOptions()
                         .match(createAllInteractionKey())
                         .count(100)
-                        .build());
-
-        while (cursor.hasNext()) {
-            String key = cursor.next();
-            stringRedisTemplate.opsForZSet().remove(key, String.valueOf(withdrawMemberId));
+                        .build())) {
+            while (cursor.hasNext()) {
+                String key = cursor.next();
+                stringRedisTemplate.opsForZSet().remove(key, String.valueOf(withdrawMemberId));
+            }
         }
+    }
+
+    /**
+     * DLQ 파이프라인 복구 — 상호작용 점수 증가
+     */
+    public void processScoreUp(RedisConnection connection, FriendEventDlq event) {
+        double increment = event.getScore() != null ? event.getScore() : INTERACTION_SCORE_DEFAULT;
+
+        connection.zSetCommands().zIncrBy(
+                createInteractionKey(event.getMemberId()).getBytes(StandardCharsets.UTF_8),
+                increment,
+                event.getTargetId().toString().getBytes(StandardCharsets.UTF_8));
+        connection.zSetCommands().zIncrBy(
+                createInteractionKey(event.getTargetId()).getBytes(StandardCharsets.UTF_8),
+                increment,
+                event.getMemberId().toString().getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -1,9 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.RedisKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
@@ -59,9 +56,10 @@ public class RedisFriendshipRepository {
      * @return 파이프라인 결과 (memberIdList 순서와 동일)
      */
     public List<List<Long>> getFriendsBatch(List<Long> memberIdList, int sampleSize) {
-        List<Object> rawResults =  stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+        List<Object> rawResults = stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             for (Long memberId : memberIdList) {
-                stringRedisTemplate.opsForSet().distinctRandomMembers(createFriendKey(memberId), sampleSize);
+                connection.setCommands().sRandMember(
+                        createFriendKey(memberId).getBytes(StandardCharsets.UTF_8), sampleSize);
             }
             return null;
         });
@@ -103,17 +101,44 @@ public class RedisFriendshipRepository {
      * <p>탈퇴 회원의 친구 목록을 기반으로 타겟 키만 정리한다.</p>
      */
     public void deleteWithdrawFriendTargeted(List<Long> friendIdList, Long withdrawFriendId) {
+        byte[] withdrawMemberIdBytes = String.valueOf(withdrawFriendId).getBytes(StandardCharsets.UTF_8);
+
         for (int i = 0; i < friendIdList.size(); i += PIPELINE_BATCH_SIZE) {
             int end = Math.min(i + PIPELINE_BATCH_SIZE, friendIdList.size());
             List<Long> batch = friendIdList.subList(i, end);
 
             stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
                 for (Long friendId : batch) {
-                    stringRedisTemplate.opsForSet().remove(createFriendKey(friendId), String.valueOf(withdrawFriendId));
+                    connection.setCommands().sRem(
+                            createFriendKey(friendId).getBytes(StandardCharsets.UTF_8), withdrawMemberIdBytes);
                 }
                 return null;
             });
         }
         stringRedisTemplate.delete(createFriendKey(withdrawFriendId));
+    }
+
+    /**
+     * DLQ 파이프라인 복구 — 친구 추가
+     */
+    public void processFriendAdd(RedisConnection connection, FriendEventDlq event) {
+        connection.setCommands().sAdd(
+                createFriendKey(event.getMemberId()).getBytes(StandardCharsets.UTF_8),
+                String.valueOf(event.getTargetId()).getBytes(StandardCharsets.UTF_8));
+        connection.setCommands().sAdd(
+                createFriendKey(event.getTargetId()).getBytes(StandardCharsets.UTF_8),
+                String.valueOf(event.getMemberId()).getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * DLQ 파이프라인 복구 — 친구 삭제
+     */
+    public void processFriendRemove(RedisConnection connection, FriendEventDlq event) {
+        connection.setCommands().sRem(
+                createFriendKey(event.getMemberId()).getBytes(StandardCharsets.UTF_8),
+                String.valueOf(event.getTargetId()).getBytes(StandardCharsets.UTF_8));
+        connection.setCommands().sRem(
+                createFriendKey(event.getTargetId()).getBytes(StandardCharsets.UTF_8),
+                String.valueOf(event.getMemberId()).getBytes(StandardCharsets.UTF_8));
     }
 }
