@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.function.LongFunction;
+import java.util.function.BiFunction;
 
 import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
 
@@ -68,33 +68,36 @@ public class FriendAdminService {
 
         long totalRows = 0L;
         totalRows += streamInteractionToRedis(
-                afterId -> friendAdminQueryRepository.getPostLikeInteractionsChunk(afterId, PIPELINE_BATCH_SIZE));
+                (driveId, joinId) -> friendAdminQueryRepository.getPostLikeInteractionsChunk(driveId, joinId, PIPELINE_BATCH_SIZE));
         totalRows += streamInteractionToRedis(
-                afterId -> friendAdminQueryRepository.getCommentInteractionsChunk(afterId, PIPELINE_BATCH_SIZE));
+                (driveId, joinId) -> friendAdminQueryRepository.getCommentInteractionsChunk(driveId, joinId, PIPELINE_BATCH_SIZE));
         totalRows += streamInteractionToRedis(
-                afterId -> friendAdminQueryRepository.getCommentLikeInteractionsChunk(afterId, PIPELINE_BATCH_SIZE));
+                (driveId, joinId) -> friendAdminQueryRepository.getCommentLikeInteractionsChunk(driveId, joinId, PIPELINE_BATCH_SIZE));
 
         return String.format("상호작용 점수 Redis 재구축 완료. 처리된 행: %d개", totalRows);
     }
 
     /**
      * <h3>상호작용 소스 스트리밍 공통 처리</h3>
-     * <p>PK id 기준 keyset으로 순차 스캔하며 각 청크를 Redis에 ZINCRBY합니다.</p>
-     * <p>반환된 chunk 원소: [id, memberId, targetId]</p>
+     * <p>복합 keyset (driveId, joinId)으로 순차 스캔하며 각 청크를 Redis에 ZINCRBY합니다.</p>
+     * <p>반환된 chunk 원소: [driveId, joinId, memberId, targetId]</p>
      *
-     * @param fetcher afterId → 청크를 반환하는 함수
+     * @param fetcher (afterDriveId, afterJoinId) → 청크를 반환하는 함수
      * @return 처리된 총 행 수
      */
-    private long streamInteractionToRedis(LongFunction<List<long[]>> fetcher) {
-        long afterId = 0L;
+    private long streamInteractionToRedis(BiFunction<Long, Long, List<long[]>> fetcher) {
+        long afterDriveId = 0L;
+        long afterJoinId = 0L;
         long count = 0L;
         List<long[]> chunk;
 
         do {
-            chunk = fetcher.apply(afterId);
+            chunk = fetcher.apply(afterDriveId, afterJoinId);
             if (!chunk.isEmpty()) {
                 redisFriendRestore.incrementInteractionBatch(chunk);
-                afterId = chunk.get(chunk.size() - 1)[0];
+                long[] last = chunk.get(chunk.size() - 1);
+                afterDriveId = last[0];
+                afterJoinId = last[1];
                 count += chunk.size();
             }
         } while (chunk.size() == PIPELINE_BATCH_SIZE);

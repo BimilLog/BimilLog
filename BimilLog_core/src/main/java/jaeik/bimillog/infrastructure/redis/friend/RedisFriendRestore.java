@@ -152,12 +152,12 @@ public class RedisFriendRestore {
         }
         stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             for (long[] row : batch) {
-                // row[0] = PK id (keyset용, 여기선 사용 안 함)
-                // row[1] = memberId, row[2] = targetId
+                // row[0] = driveId (keyset), row[1] = joinId (keyset)
+                // row[2] = memberId, row[3] = targetId
                 connection.zSetCommands().zIncrBy(
-                        createInteractionKey(row[1]).getBytes(StandardCharsets.UTF_8),
+                        createInteractionKey(row[2]).getBytes(StandardCharsets.UTF_8),
                         INTERACTION_SCORE_DEFAULT,
-                        String.valueOf(row[2]).getBytes(StandardCharsets.UTF_8));
+                        String.valueOf(row[3]).getBytes(StandardCharsets.UTF_8));
             }
             return null;
         });
