@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.friend.entity.jpa.FriendDlqStatus;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.domain.friend.repository.FriendEventDlqRepository;
 import jaeik.bimillog.infrastructure.redis.RedisCheck;
+import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class FriendEventDlqScheduler {
     private final RedisCheck redisCheck;
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
+    private final RedisFriendRestore redisFriendRestore;
 
     private static final int MAX_RETRY = 3;
 
@@ -74,9 +76,9 @@ public class FriendEventDlqScheduler {
         stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             for (FriendEventDlq event : events) {
                 switch (event.getType()) {
-                    case FRIEND_ADD -> redisFriendshipRepository.processFriendAdd(connection, event);
-                    case FRIEND_REMOVE -> redisFriendshipRepository.processFriendRemove(connection, event);
-                    case SCORE_UP -> redisInteractionScoreRepository.processScoreUp(connection, event);
+                    case FRIEND_ADD -> redisFriendRestore.processFriendAdd(connection, event);
+                    case FRIEND_REMOVE -> redisFriendRestore.processFriendRemove(connection, event);
+                    case SCORE_UP -> redisFriendRestore.processScoreUp(connection, event);
                 }
             }
             return null;

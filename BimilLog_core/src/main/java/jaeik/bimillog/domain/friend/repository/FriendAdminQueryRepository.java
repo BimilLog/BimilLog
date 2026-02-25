@@ -1,11 +1,9 @@
 package jaeik.bimillog.domain.friend.repository;
 
-import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.comment.entity.QCommentLike;
 import jaeik.bimillog.domain.friend.entity.jpa.QFriendship;
-import jaeik.bimillog.domain.friend.service.FriendAdminService;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.entity.jpa.QPostLike;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +13,12 @@ import java.util.List;
 
 /**
  * <h2>친구 도메인 어드민 복구용 쿼리 레포지터리</h2>
- * <p>Redis 재구축 시 DB 데이터를 조회합니다.</p>
+ * <p>Redis 재구축 시 DB 데이터를 청크 단위로 조회합니다.</p>
+ * <p>friendship은 PK 단일 keyset, 상호작용 3개는 익명 행 스캔을 피하기 위해
+ * 비익명 테이블(post/comment)을 드라이빙으로 삼고 (driveId, joinId) 복합 keyset을 사용합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.8.0
  */
 @Repository
 @RequiredArgsConstructor
@@ -33,106 +33,135 @@ public class FriendAdminQueryRepository {
     private static final QCommentLike commentLike = QCommentLike.commentLike;
 
     /**
-     * <h3>전체 친구 관계 쌍 조회</h3>
-     * <p>friendship 테이블에서 모든 (memberId, friendId) 쌍을 조회합니다.</p>
+     * <h3>친구 관계 쌍 청크 조회</h3>
+     * <p>friendship.id 기준 PK 순차 스캔입니다.</p>
+     * <p>반환 배열: [friendship.id, memberId, friendId]</p>
      *
-     * @return List of long[] — 각 요소: [memberId, friendId]
+     * @param afterId 마지막으로 처리한 friendship.id (첫 호출 시 0)
+     * @param size    한 번에 조회할 최대 행 수
      */
-    public List<long[]> getAllFriendshipPairs() {
-        List<Tuple> results = jpaQueryFactory
-                .select(friendship.member.id, friendship.friend.id)
+    public List<long[]> getFriendshipPairsChunk(long afterId, int size) {
+        return jpaQueryFactory
+                .select(friendship.id, friendship.member.id, friendship.friend.id)
                 .from(friendship)
-                .fetch();
-
-        return results.stream()
-                .map(t -> new long[]{t.get(friendship.member.id), t.get(friendship.friend.id)})
+                .where(friendship.id.gt(afterId))
+                .orderBy(friendship.id.asc())
+                .limit(size)
+                .fetch()
+                .stream()
+                .map(t -> new long[]{
+                        t.get(friendship.id),
+                        t.get(friendship.member.id),
+                        t.get(friendship.friend.id)
+                })
                 .toList();
     }
 
     /**
-     * <h3>게시글 좋아요 상호작용 집계 조회</h3>
-     * <p>post_like → post 조인 후, 좋아요 누른 사람과 게시글 작성자 간 상호작용 횟수를 집계합니다.</p>
-     * <p>익명 게시글(post.member IS NULL) 및 자기자신 상호작용은 제외합니다.</p>
+     * <h3>게시글 좋아요 상호작용 청크 조회</h3>
+     * <p>드라이빙: post (member_id IS NOT NULL) → post_like 조인.</p>
+     * <p>익명 게시글 행을 드라이빙 단계에서 제외하므로 post_like의 불필요한 조인을 피합니다.</p>
+     * <p>복합 keyset (post.id, postLike.id)으로 청크 경계의 누락 없이 순회합니다.</p>
+     * <p>반환 배열: [post.id, postLike.id, likerId, postAuthorId]</p>
      *
-     * @return List of long[] — 각 요소: [likerId, authorId, count]
+     * @param afterDriveId 마지막으로 처리한 post.id (첫 호출 시 0)
+     * @param afterJoinId  마지막으로 처리한 postLike.id (첫 호출 시 0)
+     * @param size         한 번에 조회할 최대 행 수
      */
-    public List<FriendAdminService.InteractionData> getPostLikeInteractions() {
-        List<Tuple> results = jpaQueryFactory
-                .select(postLike.member.id, post.member.id, postLike.count())
-                .from(postLike)
-                .join(postLike.post, post)
+    public List<long[]> getPostLikeInteractionsChunk(long afterDriveId, long afterJoinId, int size) {
+        return jpaQueryFactory
+                .select(post.id, postLike.id, postLike.member.id, post.member.id)
+                .from(post)
+                .join(postLike).on(postLike.post.eq(post))
                 .where(
                         post.member.id.isNotNull(),
                         postLike.member.id.isNotNull(),
-                        postLike.member.id.ne(post.member.id)
+                        postLike.member.id.ne(post.member.id),
+                        post.id.gt(afterDriveId)
+                                .or(post.id.eq(afterDriveId).and(postLike.id.gt(afterJoinId)))
                 )
-                .groupBy(postLike.member.id, post.member.id)
-                .fetch();
-
-        return results.stream()
-                .map(t -> new FriendAdminService.InteractionData(
+                .orderBy(post.id.asc(), postLike.id.asc())
+                .limit(size)
+                .fetch()
+                .stream()
+                .map(t -> new long[]{
+                        t.get(post.id),
+                        t.get(postLike.id),
                         t.get(postLike.member.id),
-                        t.get(post.member.id),
-                        t.get(postLike.count())
-                ))
+                        t.get(post.member.id)
+                })
                 .toList();
     }
 
     /**
-     * <h3>댓글 작성 상호작용 집계 조회</h3>
-     * <p>comment → post 조인 후, 댓글 작성자와 게시글 작성자 간 상호작용 횟수를 집계합니다.</p>
-     * <p>익명 댓글/게시글 및 자기자신 상호작용은 제외합니다.</p>
+     * <h3>댓글 작성 상호작용 청크 조회</h3>
+     * <p>드라이빙: post (member_id IS NOT NULL) → comment 조인.</p>
+     * <p>익명 게시글 행을 드라이빙 단계에서 제외하므로 comment의 불필요한 조인을 피합니다.</p>
+     * <p>복합 keyset (post.id, comment.id)으로 청크 경계의 누락 없이 순회합니다.</p>
+     * <p>반환 배열: [post.id, comment.id, commenterId, postAuthorId]</p>
      *
-     * @return List of long[] — 각 요소: [commenterId, postAuthorId, count]
+     * @param afterDriveId 마지막으로 처리한 post.id (첫 호출 시 0)
+     * @param afterJoinId  마지막으로 처리한 comment.id (첫 호출 시 0)
+     * @param size         한 번에 조회할 최대 행 수
      */
-    public List<FriendAdminService.InteractionData> getCommentInteractions() {
-        List<Tuple> results = jpaQueryFactory
-                .select(comment.member.id, post.member.id, comment.count())
-                .from(comment)
-                .join(comment.post, post)
+    public List<long[]> getCommentInteractionsChunk(long afterDriveId, long afterJoinId, int size) {
+        return jpaQueryFactory
+                .select(post.id, comment.id, comment.member.id, post.member.id)
+                .from(post)
+                .join(comment).on(comment.post.eq(post))
                 .where(
-                        comment.member.id.isNotNull(),
                         post.member.id.isNotNull(),
-                        comment.member.id.ne(post.member.id)
+                        comment.member.id.isNotNull(),
+                        comment.member.id.ne(post.member.id),
+                        post.id.gt(afterDriveId)
+                                .or(post.id.eq(afterDriveId).and(comment.id.gt(afterJoinId)))
                 )
-                .groupBy(comment.member.id, post.member.id)
-                .fetch();
-
-        return results.stream()
-                .map(t -> new FriendAdminService.InteractionData(
+                .orderBy(post.id.asc(), comment.id.asc())
+                .limit(size)
+                .fetch()
+                .stream()
+                .map(t -> new long[]{
+                        t.get(post.id),
+                        t.get(comment.id),
                         t.get(comment.member.id),
-                        t.get(post.member.id),
-                        t.get(comment.count())
-                ))
+                        t.get(post.member.id)
+                })
                 .toList();
     }
 
     /**
-     * <h3>댓글 좋아요 상호작용 집계 조회</h3>
-     * <p>comment_like → comment 조인 후, 좋아요 누른 사람과 댓글 작성자 간 상호작용 횟수를 집계합니다.</p>
-     * <p>익명 댓글 및 자기자신 상호작용은 제외합니다.</p>
+     * <h3>댓글 좋아요 상호작용 청크 조회</h3>
+     * <p>드라이빙: comment (member_id IS NOT NULL) → comment_like 조인.</p>
+     * <p>익명 댓글 행을 드라이빙 단계에서 제외하므로 comment_like의 불필요한 조인을 피합니다.</p>
+     * <p>복합 keyset (comment.id, commentLike.id)으로 청크 경계의 누락 없이 순회합니다.</p>
+     * <p>반환 배열: [comment.id, commentLike.id, likerId, commentAuthorId]</p>
      *
-     * @return List of long[] — 각 요소: [likerId, commentAuthorId, count]
+     * @param afterDriveId 마지막으로 처리한 comment.id (첫 호출 시 0)
+     * @param afterJoinId  마지막으로 처리한 commentLike.id (첫 호출 시 0)
+     * @param size         한 번에 조회할 최대 행 수
      */
-    public List<FriendAdminService.InteractionData> getCommentLikeInteractions() {
-        List<Tuple> results = jpaQueryFactory
-                .select(commentLike.member.id, comment.member.id, commentLike.count())
-                .from(commentLike)
-                .join(commentLike.comment, comment)
+    public List<long[]> getCommentLikeInteractionsChunk(long afterDriveId, long afterJoinId, int size) {
+        return jpaQueryFactory
+                .select(comment.id, commentLike.id, commentLike.member.id, comment.member.id)
+                .from(comment)
+                .join(commentLike).on(commentLike.comment.eq(comment))
                 .where(
                         comment.member.id.isNotNull(),
                         commentLike.member.id.isNotNull(),
-                        commentLike.member.id.ne(comment.member.id)
+                        commentLike.member.id.ne(comment.member.id),
+                        comment.id.gt(afterDriveId)
+                                .or(comment.id.eq(afterDriveId).and(commentLike.id.gt(afterJoinId)))
                 )
-                .groupBy(commentLike.member.id, comment.member.id)
-                .fetch();
-
-        return results.stream()
-                .map(t -> new FriendAdminService.InteractionData(
+                .orderBy(comment.id.asc(), commentLike.id.asc())
+                .limit(size)
+                .fetch()
+                .stream()
+                .map(t -> new long[]{
+                        t.get(comment.id),
+                        t.get(commentLike.id),
                         t.get(commentLike.member.id),
-                        t.get(comment.member.id),
-                        t.get(commentLike.count())
-                ))
+                        t.get(comment.member.id)
+                })
                 .toList();
     }
 }
