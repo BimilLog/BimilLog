@@ -9,6 +9,8 @@ import java.time.Duration;
  * @version 2.7.0
  */
 public final class RedisKey {
+    public static final int PIPELINE_BATCH_SIZE = 500;
+
 
     private RedisKey() {
     }
@@ -67,4 +69,16 @@ public final class RedisKey {
 
     public static final String INTERACTION_PREFIX = "interaction:";
     public static final long IDEMPOTENCY_TTL_SECONDS = 60 * 60L;
+
+    public static String createFriendKey(Long memberId) {
+        return FRIENDSHIP_PREFIX + memberId;
+    }
+
+    public static String createInteractionKey(Long memberId) {
+        return INTERACTION_PREFIX + memberId;
+    }
+
+    public static String createAllInteractionKey() {
+        return INTERACTION_PREFIX + "*";
+    }
 }

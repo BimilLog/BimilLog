@@ -8,14 +8,16 @@ import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
 
 /**
  * <h2>친구 이벤트 DLQ 재처리 스케줄러</h2>
@@ -30,27 +32,24 @@ import java.util.List;
 @Slf4j
 public class FriendEventDlqScheduler {
     private final FriendEventDlqRepository repository;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
     private final RedisCheck redisCheck;
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
 
-    private static final int BATCH_SIZE = 500;
     private static final int MAX_RETRY = 3;
 
     /**
-     * 10분마다 DLQ 이벤트를 재처리합니다.
+     * 5분마다 DLQ 이벤트를 재처리합니다.
      * <p>Redis가 정상 상태일 때만 실행되며, PENDING 이벤트가 모두 소진될 때까지 배치 반복 처리합니다.</p>
      */
-    @Scheduled(fixedRate = 600000)  // 10분마다
+    @Scheduled(fixedRate = 300000)  // 5분마다
+    @Transactional
     public void processDlq() {
         if (!redisCheck.isRedisHealthy()) return;
 
-        int totalProcessed = 0;
-        int totalFailed = 0;
-
         while (true) {
-            List<FriendEventDlq> events = repository.findPendingEvents(FriendDlqStatus.PENDING, MAX_RETRY, BATCH_SIZE);
+            List<FriendEventDlq> events = repository.findPendingEvents(FriendDlqStatus.PENDING, MAX_RETRY, PIPELINE_BATCH_SIZE);
             if (events.isEmpty()) break;
 
             List<FriendEventDlq> processedEvents = new ArrayList<>();
@@ -65,17 +64,14 @@ public class FriendEventDlqScheduler {
 
             repository.saveAll(processedEvents);
             repository.saveAll(failedEvents);
-            totalProcessed += processedEvents.size();
-            totalFailed += failedEvents.size();
-        }
-
-        if (totalProcessed > 0 || totalFailed > 0) {
-            log.info("[친구 DLQ] 전체 재처리 완료: 성공={}건, 실패={}건", totalProcessed, totalFailed);
         }
     }
 
+    /**
+     * 파이프라인 복구
+     */
     private void pipelineRestore(List<FriendEventDlq> events, List<FriendEventDlq> processedEvents) {
-        redisTemplate.executePipelined((RedisConnection connection) -> {
+        stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             for (FriendEventDlq event : events) {
                 switch (event.getType()) {
                     case FRIEND_ADD -> redisFriendshipRepository.processFriendAdd(connection, event);
@@ -93,15 +89,13 @@ public class FriendEventDlqScheduler {
         }
     }
 
+    /**
+     * 파이프라인 실패시 개별처리
+     */
     private void singleRestore(List<FriendEventDlq> events, List<FriendEventDlq> processedEvents, List<FriendEventDlq> failedEvents) {
-        // 파이프라인 실패 시 개별 처리
         for (FriendEventDlq event : events) {
             try {
-                switch (event.getType()) {
-                    case FRIEND_ADD -> redisFriendshipRepository.addFriend(event.getMemberId(), event.getTargetId());
-                    case FRIEND_REMOVE -> redisFriendshipRepository.deleteFriend(event.getMemberId(), event.getTargetId());
-                    case SCORE_UP -> redisInteractionScoreRepository.addInteractionScore(event.getMemberId(), event.getTargetId(), event.getEventId());
-                }
+                dispatchEvent(event);
                 event.markAsProcessed();
                 processedEvents.add(event);
             } catch (Exception ex) {
@@ -112,6 +106,20 @@ public class FriendEventDlqScheduler {
                 }
                 failedEvents.add(event);
             }
+        }
+    }
+
+    /**
+     * 레디스 복구 로직
+     */
+    private void dispatchEvent(FriendEventDlq event) {
+        Long memberId = event.getMemberId();
+        Long friendId = event.getTargetId();
+
+        switch (event.getType()) {
+            case FRIEND_ADD -> redisFriendshipRepository.addFriend(memberId, friendId);
+            case FRIEND_REMOVE -> redisFriendshipRepository.deleteFriend(memberId, friendId);
+            case SCORE_UP -> redisInteractionScoreRepository.addInteractionScore(memberId, friendId, event.getEventId());
         }
     }
 }
