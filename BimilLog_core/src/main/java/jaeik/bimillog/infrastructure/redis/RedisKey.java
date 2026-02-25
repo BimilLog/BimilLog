@@ -10,6 +10,10 @@ import java.time.Duration;
  */
 public final class RedisKey {
     public static final int PIPELINE_BATCH_SIZE = 500;
+    public static final Double INTERACTION_SCORE_THRESHOLD = 0.2;
+    public static final Double INTERACTION_SCORE_DEFAULT = 0.5;
+    public static final Double INTERACTION_SCORE_LIMIT = 9.5;
+    public static final Double INTERACTION_SCORE_DECAY_RATE = 0.95;
 
 
     private RedisKey() {

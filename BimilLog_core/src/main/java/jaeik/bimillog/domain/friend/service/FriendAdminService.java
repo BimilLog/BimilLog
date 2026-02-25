@@ -1,89 +1,104 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.repository.FriendAdminQueryRepository;
-import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
-import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
+import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.LongFunction;
 
-import static jaeik.bimillog.domain.friend.listener.FriendInteractionListener.INTERACTION_SCORE_DEFAULT;
+import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
 
 /**
  * <h2>친구 도메인 Redis 복구 어드민 서비스</h2>
  * <p>Redis 데이터 유실 시 DB 데이터를 기반으로 친구 관계 및 상호작용 점수를 재구축합니다.</p>
+ * <p>각 테이블을 PK 기준으로 순차 스캔하며 청크마다 Redis에 즉시 기록합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
+ * @version 2.8.0
  */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class FriendAdminService {
 
-    private static final double INTERACTION_SCORE_LIMIT = 9.5;
-
     private final FriendAdminQueryRepository friendAdminQueryRepository;
-    private final RedisFriendshipRepository redisFriendshipRepository;
-    private final RedisInteractionScoreRepository redisInteractionScoreRepository;
-
-    public record InteractionData(Long memberId, Long targetId, Long count) {
-    }
-
+    private final RedisFriendRestore redisFriendRestore;
 
     /**
-     * <h3>친구 관계 Redis 전체 재구축</h3>
-     * <p>DB의 friendship 테이블을 기반으로 Redis friend:* Set을 재구축합니다.</p>
+     * <h3>친구 관계 Redis 스트리밍 재구축</h3>
+     * <p>friendship 테이블을 id 기준 순차 스캔하며 청크마다 SADD합니다.</p>
      *
      * @return 처리 결과 메시지
      */
     public String rebuildFriendshipRedis() {
-        List<long[]> pairs = friendAdminQueryRepository.getAllFriendshipPairs();
-        redisFriendshipRepository.rebuildAll(pairs);
-        return String.format("친구 관계 Redis 재구축 완료. 처리된 친구 쌍: %d개", pairs.size());
+        redisFriendRestore.deleteAllFriendshipKeys();
+
+        long afterId = 0L;
+        long totalPairs = 0L;
+        List<long[]> chunk;
+
+        do {
+            chunk = friendAdminQueryRepository.getFriendshipPairsChunk(afterId, PIPELINE_BATCH_SIZE);
+            if (!chunk.isEmpty()) {
+                // chunk 원소: [id, memberId, friendId] — Redis에는 [memberId, friendId]만 전달
+                List<long[]> pairs = chunk.stream()
+                        .map(arr -> new long[]{arr[1], arr[2]})
+                        .toList();
+                redisFriendRestore.rebuildBatch(pairs);
+                afterId = chunk.get(chunk.size() - 1)[0];
+                totalPairs += chunk.size();
+            }
+        } while (chunk.size() == PIPELINE_BATCH_SIZE);
+
+        return String.format("친구 관계 Redis 재구축 완료. 처리된 친구 쌍: %d개", totalPairs);
     }
 
     /**
-     * <h3>상호작용 점수 Redis 전체 재구축</h3>
-     * <p>DB의 post_like, comment, comment_like 집계를 기반으로 Redis interaction:* ZSet을 재구축합니다.</p>
-     * <p>점수 계산: min(totalCount * 0.5, 9.5)</p>
+     * <h3>상호작용 점수 Redis 스트리밍 재구축</h3>
+     * <p>post_like, comment, comment_like 테이블을 각각 PK 기준 순차 스캔하며 행마다 ZINCRBY합니다.</p>
+     * <p>점수 상한(10점)은 재구축 중 적용하지 않으며 조회 시점에 자연스럽게 간주합니다.</p>
      *
      * @return 처리 결과 메시지
      */
     public String rebuildInteractionScoreRedis() {
-        // 2. 여러 저장소 결과를 하나의 Stream으로 합칩니다.
-        List<InteractionData> allInteractions = Stream.of(
-                friendAdminQueryRepository.getPostLikeInteractions(),
-                friendAdminQueryRepository.getCommentInteractions(),
-                friendAdminQueryRepository.getCommentLikeInteractions()
-        ).flatMap(List::stream).toList();
+        redisFriendRestore.deleteAllInteractionKeys();
 
-        Map<Long, Map<Long, Double>> scoreMap = allInteractions.stream()
-                .collect(Collectors.groupingBy(
-                        InteractionData::memberId,
-                        Collectors.groupingBy(
-                                InteractionData::targetId,
-                                Collectors.collectingAndThen(
-                                        // targetId 별로 count를 모두 합산한 뒤
-                                        Collectors.summingLong(InteractionData::count),
-                                        // 합산된 totalCount를 기반으로 점수 계산 (min 처리)
-                                        totalCount -> Math.min(totalCount * INTERACTION_SCORE_DEFAULT, INTERACTION_SCORE_LIMIT)
-                                )
-                        )
-                ));
+        long totalRows = 0L;
+        totalRows += streamInteractionToRedis(
+                afterId -> friendAdminQueryRepository.getPostLikeInteractionsChunk(afterId, PIPELINE_BATCH_SIZE));
+        totalRows += streamInteractionToRedis(
+                afterId -> friendAdminQueryRepository.getCommentInteractionsChunk(afterId, PIPELINE_BATCH_SIZE));
+        totalRows += streamInteractionToRedis(
+                afterId -> friendAdminQueryRepository.getCommentLikeInteractionsChunk(afterId, PIPELINE_BATCH_SIZE));
 
-        redisInteractionScoreRepository.rebuildAll(scoreMap);
+        return String.format("상호작용 점수 Redis 재구축 완료. 처리된 행: %d개", totalRows);
+    }
 
-        long totalMembers = scoreMap.size();
-        long totalEntries = scoreMap.values().stream().mapToLong(Map::size).sum();
+    /**
+     * <h3>상호작용 소스 스트리밍 공통 처리</h3>
+     * <p>PK id 기준 keyset으로 순차 스캔하며 각 청크를 Redis에 ZINCRBY합니다.</p>
+     * <p>반환된 chunk 원소: [id, memberId, targetId]</p>
+     *
+     * @param fetcher afterId → 청크를 반환하는 함수
+     * @return 처리된 총 행 수
+     */
+    private long streamInteractionToRedis(LongFunction<List<long[]>> fetcher) {
+        long afterId = 0L;
+        long count = 0L;
+        List<long[]> chunk;
 
-        return String.format("상호작용 점수 Redis 재구축 완료. 대상 회원: %d명, 총 점수 항목: %d개", totalMembers, totalEntries);
+        do {
+            chunk = fetcher.apply(afterId);
+            if (!chunk.isEmpty()) {
+                redisFriendRestore.incrementInteractionBatch(chunk);
+                afterId = chunk.get(chunk.size() - 1)[0];
+                count += chunk.size();
+            }
+        } while (chunk.size() == PIPELINE_BATCH_SIZE);
+
+        return count;
     }
 }
-

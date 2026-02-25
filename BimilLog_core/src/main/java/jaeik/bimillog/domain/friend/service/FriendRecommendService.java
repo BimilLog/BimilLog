@@ -256,7 +256,7 @@ public class FriendRecommendService {
             }
             Long id = Long.valueOf(tuple.getValue().toString());
             if (!excludeIds.contains(id)) {
-                candidates.add(RecommendCandidate.initialCandidate(id, 0, 0, tuple.getScore()));
+                candidates.add(RecommendCandidate.initialCandidate(id, 0, 0, Math.min(tuple.getScore(), 10.0)));
                 excludeIds.add(id);
             }
         }
