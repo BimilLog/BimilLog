@@ -23,6 +23,7 @@ import org.springframework.util.StopWatch;
 })
 @ActiveProfiles("local-integration")
 @Tag("local-integration")
+@Tag("performance")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LikeCommentQueryTest {
 

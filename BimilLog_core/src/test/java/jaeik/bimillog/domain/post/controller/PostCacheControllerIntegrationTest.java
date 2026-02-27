@@ -8,12 +8,14 @@ import jaeik.bimillog.domain.post.repository.PostLikeRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
-import jaeik.bimillog.testutil.annotation.IntegrationTest;
+import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @version 2.0.0
  */
-@IntegrationTest
-@Import(TestSocialLoginAdapterConfig.class)
+@Tag("integration")
+@ActiveProfiles("h2test")
+@Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
 @DisplayName("게시글 Cache 컨트롤러 통합 테스트")
 class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 

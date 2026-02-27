@@ -171,18 +171,33 @@ tasks.register('integrationTest', Test) {
 
 tasks.register('localIntegrationTest', Test) {
     group = 'verification'
-    description = '로컬 MySQL/Redis 기반 통합 테스트를 실행합니다.'
+    description = '로컬 MySQL/Redis 기반 통합 테스트를 실행합니다. (퍼포먼스 테스트 제외)'
 
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
 
     useJUnitPlatform {
         includeTags 'local-integration'
+        excludeTags 'performance'
     }
 
     maxParallelForks = 1
     shouldRunAfter tasks.named('integrationTest')
     shouldRunAfter tasks.named('unitTest')
+}
+
+tasks.register('performanceTest', Test) {
+    group = 'verification'
+    description = '퍼포먼스 테스트를 실행합니다. (로컬 MySQL/Redis 필요)'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform {
+        includeTags 'performance'
+    }
+
+    maxParallelForks = 1
 }
 
 tasks.named('check') {

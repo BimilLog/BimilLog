@@ -28,6 +28,7 @@ import org.springframework.util.StopWatch;
 })
 @ActiveProfiles("local-integration")
 @Tag("local-integration")
+@Tag("performance")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Sql(scripts = "/bimillogTest-seed.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class PostBoardQueryTest {

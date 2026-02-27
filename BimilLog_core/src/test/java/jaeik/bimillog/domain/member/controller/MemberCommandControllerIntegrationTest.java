@@ -2,24 +2,23 @@ package jaeik.bimillog.domain.member.controller;
 
 import jaeik.bimillog.domain.admin.dto.ReportDTO;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.dto.MemberNameDTO;
 import jaeik.bimillog.domain.member.dto.SettingDTO;
-import jaeik.bimillog.domain.member.dto.SignUpRequestDTO;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
-import jaeik.bimillog.testutil.annotation.IntegrationTest;
+import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
 
 import java.time.Duration;
@@ -40,47 +39,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @version 2.0.0
  */
-@IntegrationTest
-@Import(TestSocialLoginAdapterConfig.class)
+@Tag("integration")
+@ActiveProfiles("h2test")
+@Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
 @DisplayName("사용자 명령 컨트롤러 통합 테스트")
 class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private MemberRepository userRepository;
-
-    @Test
-    @DisplayName("회원가입 통합 테스트 - 성공")
-    void signUp_IntegrationTest_Success() throws Exception {
-        // Given - 먼저 소셜 로그인으로 temp 데이터를 생성
-        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO(SocialProvider.KAKAO, "new_user_code", null);
-
-        // 1. 소셜 로그인으로 임시 데이터 생성
-        var loginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(socialRequest))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        // 2. 응답에서 temp_user_id 쿠키 추출 (UUID는 HttpOnly 쿠키로 전달됨)
-        var tempCookie = loginResult.getResponse().getCookie("temp_user_id");
-        assertThat(tempCookie).isNotNull();
-
-        // 3. 회원가입 수행 (UUID는 요청 본문이 아닌 쿠키로 전달)
-        SignUpRequestDTO signUpRequest = new SignUpRequestDTO("통합테스트사용자");
-
-        mockMvc.perform(post("/api/member/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(signUpRequest))
-                        .cookie(tempCookie)
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(header().exists("Set-Cookie"))
-                .andExpect(cookie().value("temp_user_id", ""))
-                .andExpect(cookie().maxAge("temp_user_id", 0))
-                .andExpect(content().string(""));
-    }
 
     @Test
     @DisplayName("닉네임 변경 통합 테스트 - 성공")

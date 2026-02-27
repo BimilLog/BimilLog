@@ -15,6 +15,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -56,6 +58,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @Transactional
 @Tag("integration")
 public abstract class BaseIntegrationTest {
+
+    @MockitoBean
+    @SuppressWarnings("unused")
+    private ScheduledAnnotationBeanPostProcessor scheduledAnnotationBeanPostProcessor;
 
     @Autowired
     protected WebApplicationContext context;

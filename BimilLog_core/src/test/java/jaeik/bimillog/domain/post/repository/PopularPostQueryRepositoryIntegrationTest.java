@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
-import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -15,17 +15,18 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -33,16 +34,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * <h2>PostQueryAdapter 인기 게시글 조회 통합 테스트</h2>
  * <p>주간/전설 인기 게시글 DB 조회 기능을 정확히 수행하는지 테스트합니다.</p>
- * <p>로컬 MySQL과 Redis 환경에서 통합 테스트를 수행합니다.</p>
+ * <p>H2 인메모리 DB 환경에서 통합 테스트를 수행합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ActiveProfiles("local-integration")
+@DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Transactional
-@Tag("local-integration")
+@ActiveProfiles("h2test")
+@Import(H2TestConfiguration.class)
+@Tag("integration")
 class PopularPostQueryRepositoryIntegrationTest {
 
     @Autowired
@@ -57,29 +58,26 @@ class PopularPostQueryRepositoryIntegrationTest {
     @Autowired
     private PostLikeRepository postLikeRepository;
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    // 최대 좋아요 수(30) + 여유분
+    private static final int MEMBER_POOL_SIZE = 35;
 
     private Member testMember;
+    private final List<Member> memberPool = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
-        // Redis 초기화
-        RedisTestHelper.flushRedis(redisTemplate);
+        testMember = TestMembers.createUniqueWithPrefix("popular");
+        TestFixtures.persistMemberWithDependencies(entityManager, testMember);
 
-        // DB 초기화 (배치 삭제로 OptimisticLockException 방지)
-        try {
-            postLikeRepository.deleteAllInBatch();
-            postRepository.deleteAllInBatch();
-            entityManager.flush();
-            entityManager.clear(); // 영속성 컨텍스트 초기화
-        } catch (Exception e) {
-            System.err.println("데이터베이스 초기화 경고: " + e.getMessage());
+        // 좋아요용 회원 풀 사전 생성 (UUID 기반 고유 ID로 충돌 방지)
+        memberPool.clear();
+        String poolKey = UUID.randomUUID().toString().substring(0, 8);
+        for (int i = 0; i < MEMBER_POOL_SIZE; i++) {
+            Member m = TestMembers.withSocialId("pool_" + poolKey + "_" + i);
+            TestFixtures.persistMemberWithDependencies(entityManager, m);
+            memberPool.add(m);
         }
 
-        // 테스트 사용자 준비 (KakaoToken과 Setting을 포함하여 영속화)
-        testMember = TestMembers.createUniqueWithPrefix("redis");
-        TestFixtures.persistMemberWithDependencies(entityManager, testMember);
         entityManager.flush();
     }
 
@@ -91,38 +89,33 @@ class PopularPostQueryRepositoryIntegrationTest {
                 .views(views)
                 .password(1234)
                 .memberName(testMember.getMemberName())
-                .createdAt(createdAt)
-                .modifiedAt(Instant.now())
                 .build();
-        
+
         Post savedPost = postRepository.save(post);
-        
-        try {
-            java.lang.reflect.Field createdAtField = savedPost.getClass().getSuperclass().getDeclaredField("createdAt");
-            createdAtField.setAccessible(true);
-            createdAtField.set(savedPost, createdAt);
-            entityManager.flush();
-        } catch (Exception e) {
-            System.err.println("createdAt 설정 실패: " + e.getMessage());
-        }
-        
-        return savedPost;
+
+        // JPA Auditing이 createdAt을 현재 시간으로 설정하므로, JPQL로 덮어씀
+        entityManager.createQuery("UPDATE Post p SET p.createdAt = :date WHERE p.id = :id")
+                .setParameter("date", createdAt)
+                .setParameter("id", savedPost.getId())
+                .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+
+        return postRepository.findById(savedPost.getId()).orElseThrow();
     }
 
     private void addLikesToPost(Post post, int count) {
+        List<PostLike> likes = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            Member liker = TestMembers.withSocialId("social_" + post.getId() + "_" + i + "_" + System.currentTimeMillis());
-            TestFixtures.persistMemberWithDependencies(entityManager, liker);
-            entityManager.flush();
-
-            PostLike postLike = PostLike.builder()
+            likes.add(PostLike.builder()
                     .post(post)
-                    .member(liker)
-                    .build();
-            postLikeRepository.save(postLike);
+                    .member(memberPool.get(i))
+                    .build());
         }
-        // 비정규화 컬럼 likeCount 동기화
-        entityManager.createQuery("UPDATE Post p SET p.likeCount = :count WHERE p.id = :id")
+        postLikeRepository.saveAll(likes);
+
+        // 프로덕션 코드(postRepository.incrementLikeCount)와 동일한 방식으로 likeCount 동기화
+        entityManager.createQuery("UPDATE Post p SET p.likeCount = p.likeCount + :count WHERE p.id = :id")
                 .setParameter("count", count)
                 .setParameter("id", post.getId())
                 .executeUpdate();
@@ -144,7 +137,11 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> popularPosts = postQueryRepository.selectPostSimpleDetails(PostQueryType.WEEKLY_SCHEDULER.condition(), PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit()), PostQueryType.WEEKLY_SCHEDULER.getOrders()).getContent();
+        List<PostSimpleDetail> popularPosts = postQueryRepository.selectPostSimpleDetails(
+                PostQueryType.WEEKLY_SCHEDULER.condition(),
+                PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit()),
+                PostQueryType.WEEKLY_SCHEDULER.getOrders()
+        ).getContent();
 
         // Then
         assertThat(popularPosts).hasSize(2);
@@ -172,7 +169,11 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> legendaryPosts = postQueryRepository.selectPostSimpleDetails(PostQueryType.LEGEND_SCHEDULER.condition(), PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit()), PostQueryType.LEGEND_SCHEDULER.getOrders()).getContent();
+        List<PostSimpleDetail> legendaryPosts = postQueryRepository.selectPostSimpleDetails(
+                PostQueryType.LEGEND_SCHEDULER.condition(),
+                PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit()),
+                PostQueryType.LEGEND_SCHEDULER.getOrders()
+        ).getContent();
 
         // Then
         assertThat(legendaryPosts).hasSize(2);
@@ -202,7 +203,11 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        Page<PostSimpleDetail> result = postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), PageRequest.of(0, 5), PostQueryType.REALTIME_FALLBACK.getOrders());
+        Page<PostSimpleDetail> result = postQueryRepository.selectPostSimpleDetails(
+                PostQueryType.REALTIME_FALLBACK.condition(),
+                PageRequest.of(0, 5),
+                PostQueryType.REALTIME_FALLBACK.getOrders()
+        );
 
         // Then
         assertThat(result.getContent()).hasSize(3);
@@ -238,7 +243,7 @@ class PopularPostQueryRepositoryIntegrationTest {
     @DisplayName("경계값 - 존재하지 않는 게시글 ID로 상세 조회 시 null 반환")
     void shouldReturnNull_WhenNonExistentPostIdProvidedForDetail() {
         // Given
-        Long nonExistentPostId = 999999L; // 확실히 존재하지 않는 큰 ID 사용
+        Long nonExistentPostId = 999999L;
 
         // When
         Post postEntity = postRepository.findById(nonExistentPostId).orElse(null);
