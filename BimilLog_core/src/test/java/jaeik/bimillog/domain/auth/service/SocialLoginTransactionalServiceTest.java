@@ -1,12 +1,11 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.dto.LoginResultDTO;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.adapter.AuthToJwtAdapter;
 import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
-import jaeik.bimillog.domain.auth.event.NewMemberLoginEvent;
 import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.repository.BlackListRepository;
 import jaeik.bimillog.domain.auth.repository.SocialTokenRepository;
@@ -16,7 +15,6 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -25,7 +23,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -50,13 +47,40 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     @Mock private AuthToJwtAdapter authToJwtAdapter;
     @Mock private SocialTokenRepository socialTokenRepository;
     @Mock private AuthTokenRepository authTokenRepository;
-    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private SocialLoginTransactionalService socialLoginTransactionalService;
 
+    // ==================== 공통 헬퍼 ====================
+
+    private SocialMemberProfile getTestMemberProfile() {
+        return SocialMemberProfile.of(
+                TEST_SOCIAL_ID, TEST_EMAIL, TEST_PROVIDER,
+                TEST_SOCIAL_NICKNAME, TEST_PROFILE_IMAGE,
+                TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN
+        );
+    }
+
+    private AuthToken stubAuthToken(Member member) {
+        AuthToken token = AuthToken.builder()
+                .id(99L)
+                .refreshToken("")
+                .member(member)
+                .useCount(0)
+                .build();
+        given(authTokenRepository.save(any(AuthToken.class))).willReturn(token);
+        return token;
+    }
+
+    private void stubJwtAdapters() {
+        given(authToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
+        given(authToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
+    }
+
+    // ==================== 기존 회원 ====================
+
     @Test
-    @DisplayName("기존 회원 로그인 처리 성공 - 소셜 토큰이 있는 경우")
+    @DisplayName("기존 회원 로그인 - 소셜 토큰이 있는 경우 JWT 발급 성공")
     void shouldFinishLoginForExistingMemberWithSocialToken() {
         // Given
         SocialMemberProfile profile = getTestMemberProfile();
@@ -66,44 +90,31 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
             TestFixtures.setFieldValue(existingMember.getSetting(), "id", 10L);
         }
 
-        // 기존 소셜 토큰 설정
         SocialToken existingSocialToken = SocialToken.createSocialToken("old-access-token", "old-refresh-token");
         TestFixtures.setFieldValue(existingMember, "socialToken", existingSocialToken);
-
-        CustomUserDetails userDetails = CustomUserDetails.ofExisting(existingMember, 99L);
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
         given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(existingSocialToken)))
                 .willReturn(existingMember);
-
-        AuthToken persistedAuthToken = AuthToken.builder()
-                .id(userDetails.getAuthTokenId())
-                .refreshToken("")
-                .member(existingMember)
-                .useCount(0)
-                .build();
-        given(authTokenRepository.save(any(AuthToken.class))).willReturn(persistedAuthToken);
-
-        given(authToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
-        given(authToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
+        stubAuthToken(existingMember);
+        stubJwtAdapters();
 
         // When
-        LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
+        LoginResultDTO result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
 
         // Then
-        assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
-        LoginResult.ExistingUser existingUser = (LoginResult.ExistingUser) result;
-        assertThat(existingUser.tokens().accessToken()).isEqualTo("generated-access-token");
-        assertThat(existingUser.tokens().refreshToken()).isEqualTo("generated-refresh-token");
+        assertThat(result.getJwtAccessToken()).isEqualTo("generated-access-token");
+        assertThat(result.getJwtRefreshToken()).isEqualTo("generated-refresh-token");
 
         verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
-        verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(existingSocialToken));
+        verify(authToMemberAdapter).handleExistingMember(
+                eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(existingSocialToken));
     }
 
     @Test
-    @DisplayName("기존 회원 로그인 처리 성공 - 소셜 토큰이 없는 경우 (이전 버전에서 로그아웃)")
+    @DisplayName("기존 회원 로그인 - 소셜 토큰이 없는 경우(이전 버전 로그아웃) 신규 토큰 생성 후 JWT 발급")
     void shouldFinishLoginForExistingMemberWithoutSocialToken() {
         // Given
         SocialMemberProfile profile = getTestMemberProfile();
@@ -112,64 +123,61 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         if (existingMember.getSetting() != null) {
             TestFixtures.setFieldValue(existingMember.getSetting(), "id", 10L);
         }
-
-        // 소셜 토큰이 null인 상태 (이전 버전에서 로그아웃으로 삭제된 경우)
         TestFixtures.setFieldValue(existingMember, "socialToken", null);
 
         SocialToken newSocialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-        CustomUserDetails userDetails = CustomUserDetails.ofExisting(existingMember, 99L);
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
         given(socialTokenRepository.save(any(SocialToken.class))).willReturn(newSocialToken);
         given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(newSocialToken)))
                 .willReturn(existingMember);
-
-        AuthToken persistedAuthToken = AuthToken.builder()
-                .id(userDetails.getAuthTokenId())
-                .refreshToken("")
-                .member(existingMember)
-                .useCount(0)
-                .build();
-        given(authTokenRepository.save(any(AuthToken.class))).willReturn(persistedAuthToken);
-
-        given(authToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
-        given(authToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
+        stubAuthToken(existingMember);
+        stubJwtAdapters();
 
         // When
-        LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
+        LoginResultDTO result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
 
         // Then
-        assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
-        LoginResult.ExistingUser existingUser = (LoginResult.ExistingUser) result;
-        assertThat(existingUser.tokens().accessToken()).isEqualTo("generated-access-token");
-        assertThat(existingUser.tokens().refreshToken()).isEqualTo("generated-refresh-token");
+        assertThat(result.getJwtAccessToken()).isEqualTo("generated-access-token");
+        assertThat(result.getJwtRefreshToken()).isEqualTo("generated-refresh-token");
 
-        verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
-        verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(socialTokenRepository).save(any(SocialToken.class));
-        verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(newSocialToken));
+        verify(authToMemberAdapter).handleExistingMember(
+                eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(newSocialToken));
     }
 
+    // ==================== 신규 회원 ====================
+
     @Test
-    @DisplayName("신규 회원 로그인 처리 성공")
+    @DisplayName("신규 회원 로그인 - 즉시 가입 후 JWT 발급 성공")
     void shouldFinishLoginForNewMember() {
         // Given
         SocialMemberProfile profile = getTestMemberProfile();
+        SocialToken persistedSocialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        Member newMember = TestMembers.createMember(TEST_SOCIAL_ID, "냥_a3f8c2", TEST_SOCIAL_NICKNAME);
+        TestFixtures.setFieldValue(newMember, "id", 2L);
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.empty());
+        given(socialTokenRepository.save(any(SocialToken.class))).willReturn(persistedSocialToken);
+        given(authToMemberAdapter.handleNewMember(any(SocialMemberProfile.class), eq(persistedSocialToken))).willReturn(newMember);
+        stubAuthToken(newMember);
+        stubJwtAdapters();
 
         // When
-        LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
+        LoginResultDTO result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
 
         // Then
-        assertThat(result).isInstanceOf(LoginResult.NewUser.class);
-        LoginResult.NewUser newUser = (LoginResult.NewUser) result;
-        assertThat(newUser.tempUserId()).isNotBlank();
+        assertThat(result.getJwtAccessToken()).isEqualTo("generated-access-token");
+        assertThat(result.getJwtRefreshToken()).isEqualTo("generated-refresh-token");
 
-        verify(eventPublisher).publishEvent(any(NewMemberLoginEvent.class));
+        verify(socialTokenRepository).save(any(SocialToken.class));
+        verify(authToMemberAdapter).handleNewMember(any(SocialMemberProfile.class), eq(persistedSocialToken));
+        verify(authTokenRepository).save(any(AuthToken.class));
     }
+
+    // ==================== 블랙리스트 ====================
 
     @Test
     @DisplayName("블랙리스트 사용자는 예외 발생")
@@ -182,18 +190,5 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         assertThatThrownBy(() -> socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_BLACKLIST_USER);
-    }
-
-
-    private SocialMemberProfile getTestMemberProfile() {
-        return SocialMemberProfile.of(
-                AuthTestFixtures.TEST_SOCIAL_ID,
-                AuthTestFixtures.TEST_EMAIL,
-                AuthTestFixtures.TEST_PROVIDER,
-                AuthTestFixtures.TEST_SOCIAL_NICKNAME,
-                AuthTestFixtures.TEST_PROFILE_IMAGE,
-                AuthTestFixtures.TEST_ACCESS_TOKEN,
-                AuthTestFixtures.TEST_REFRESH_TOKEN
-        );
     }
 }

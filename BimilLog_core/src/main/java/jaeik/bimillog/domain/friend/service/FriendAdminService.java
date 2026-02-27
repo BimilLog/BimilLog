@@ -48,7 +48,7 @@ public class FriendAdminService {
                         .map(arr -> new long[]{arr[1], arr[2]})
                         .toList();
                 redisFriendRestore.rebuildBatch(pairs);
-                afterId = chunk.get(chunk.size() - 1)[0];
+                afterId = chunk.getLast()[0];
                 totalPairs += chunk.size();
             }
         } while (chunk.size() == PIPELINE_BATCH_SIZE);
@@ -95,7 +95,7 @@ public class FriendAdminService {
             chunk = fetcher.apply(afterDriveId, afterJoinId);
             if (!chunk.isEmpty()) {
                 redisFriendRestore.incrementInteractionBatch(chunk);
-                long[] last = chunk.get(chunk.size() - 1);
+                long[] last = chunk.getLast();
                 afterDriveId = last[0];
                 afterJoinId = last[1];
                 count += chunk.size();

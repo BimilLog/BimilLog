@@ -20,7 +20,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberToAuthAdapter {
     private final SocialTokenService socialTokenService;
-    private final AuthTokenService authTokenService;
 
     /**
      * <h3>멤버 ID로 소셜토큰 조회</h3>
@@ -28,21 +27,5 @@ public class MemberToAuthAdapter {
      */
     public Optional<SocialToken> getSocialToken(Long memberId) {
         return socialTokenService.getSocialToken(memberId);
-    }
-
-    /**
-     * <h3>세션토큰 저장</h3>
-     * <p>신규회원 가입 시 호출</p>
-     */
-    public AuthToken saveAuthToken(AuthToken authToken) {
-        return authTokenService.save(authToken);
-    }
-
-    /**
-     * <h3>소셜토큰 저장</h3>
-     * <p>신규회원 가입 시 호출</p>
-     */
-    public SocialToken saveSocialToken(SocialToken socialToken) {
-        return socialTokenService.save(socialToken);
     }
 }

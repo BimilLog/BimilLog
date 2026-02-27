@@ -15,9 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +41,7 @@ class FriendEventDlqSchedulerTest {
     private FriendEventDlqRepository repository;
 
     @Mock
-    private RedisTemplate<String, Object> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Mock
     private RedisCheck redisCheck;
@@ -71,7 +69,7 @@ class FriendEventDlqSchedulerTest {
 
         // Then - 이벤트 조회도 안함
         verify(repository, never()).findPendingEvents(any(), anyInt(), anyInt());
-        verify(redisTemplate, never()).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
+        verify(stringRedisTemplate, never()).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
     }
 
     @Test
@@ -85,7 +83,7 @@ class FriendEventDlqSchedulerTest {
         scheduler.processDlq();
 
         // Then - 파이프라인 실행 안함
-        verify(redisTemplate, never()).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
+        verify(stringRedisTemplate, never()).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
     }
 
     @Test
@@ -94,15 +92,16 @@ class FriendEventDlqSchedulerTest {
         // Given
         FriendEventDlq event = FriendEventDlq.createFriendAdd(1L, 2L);
         given(repository.findPendingEvents(eq(FriendDlqStatus.PENDING), eq(3), anyInt()))
-                .willReturn(List.of(event));
-        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
+                .willReturn(List.of(event))
+                .willReturn(Collections.emptyList());
+        given(stringRedisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
                 .willReturn(Collections.emptyList());
 
         // When
         scheduler.processDlq();
 
         // Then
-        verify(redisTemplate).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
+        verify(stringRedisTemplate).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
         verify(repository, atLeast(1)).saveAll(anyList());
         assertThat(event.getStatus()).isEqualTo(FriendDlqStatus.PROCESSED);
     }
@@ -113,15 +112,16 @@ class FriendEventDlqSchedulerTest {
         // Given
         FriendEventDlq event = FriendEventDlq.createFriendRemove(1L, 2L);
         given(repository.findPendingEvents(eq(FriendDlqStatus.PENDING), eq(3), anyInt()))
-                .willReturn(List.of(event));
-        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
+                .willReturn(List.of(event))
+                .willReturn(Collections.emptyList());
+        given(stringRedisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
                 .willReturn(Collections.emptyList());
 
         // When
         scheduler.processDlq();
 
         // Then
-        verify(redisTemplate).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
+        verify(stringRedisTemplate).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
         verify(repository, atLeast(1)).saveAll(anyList());
         assertThat(event.getStatus()).isEqualTo(FriendDlqStatus.PROCESSED);
     }
@@ -132,15 +132,16 @@ class FriendEventDlqSchedulerTest {
         // Given
         FriendEventDlq event = FriendEventDlq.createScoreUp("test-score-event-id", 1L, 2L, 0.5);
         given(repository.findPendingEvents(eq(FriendDlqStatus.PENDING), eq(3), anyInt()))
-                .willReturn(List.of(event));
-        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
+                .willReturn(List.of(event))
+                .willReturn(Collections.emptyList());
+        given(stringRedisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
                 .willReturn(Collections.emptyList());
 
         // When
         scheduler.processDlq();
 
         // Then
-        verify(redisTemplate).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
+        verify(stringRedisTemplate).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
         verify(repository, atLeast(1)).saveAll(anyList());
         assertThat(event.getStatus()).isEqualTo(FriendDlqStatus.PROCESSED);
     }
@@ -152,8 +153,9 @@ class FriendEventDlqSchedulerTest {
         // Given
         FriendEventDlq event = FriendEventDlq.createFriendAdd(1L, 2L);
         given(repository.findPendingEvents(eq(FriendDlqStatus.PENDING), eq(3), anyInt()))
-                .willReturn(List.of(event));
-        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
+                .willReturn(List.of(event))
+                .willReturn(Collections.emptyList());
+        given(stringRedisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
                 .willThrow(new RedisConnectionFailureException("파이프라인 실패"));
 
         // 개별 처리도 실패하도록 설정
@@ -179,8 +181,9 @@ class FriendEventDlqSchedulerTest {
         event.incrementRetryCount();
 
         given(repository.findPendingEvents(eq(FriendDlqStatus.PENDING), eq(3), anyInt()))
-                .willReturn(List.of(event));
-        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
+                .willReturn(List.of(event))
+                .willReturn(Collections.emptyList());
+        given(stringRedisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
                 .willThrow(new RedisConnectionFailureException("파이프라인 실패"));
 
         // 개별 처리도 실패하도록 설정
@@ -204,15 +207,16 @@ class FriendEventDlqSchedulerTest {
         FriendEventDlq scoreEvent = FriendEventDlq.createScoreUp("test-score-event-id-2", 5L, 6L, 0.5);
 
         given(repository.findPendingEvents(eq(FriendDlqStatus.PENDING), eq(3), anyInt()))
-                .willReturn(List.of(addEvent, removeEvent, scoreEvent));
-        given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
+                .willReturn(List.of(addEvent, removeEvent, scoreEvent))
+                .willReturn(Collections.emptyList());
+        given(stringRedisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class)))
                 .willReturn(Collections.emptyList());
 
         // When
         scheduler.processDlq();
 
         // Then
-        verify(redisTemplate).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
+        verify(stringRedisTemplate).executePipelined(any(org.springframework.data.redis.core.RedisCallback.class));
         verify(repository, atLeast(1)).saveAll(anyList());
         assertThat(addEvent.getStatus()).isEqualTo(FriendDlqStatus.PROCESSED);
         assertThat(removeEvent.getStatus()).isEqualTo(FriendDlqStatus.PROCESSED);

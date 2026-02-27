@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.member.controller;
 
 import jaeik.bimillog.domain.admin.dto.ReportDTO;
-import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.web.HTTPCookie;
 import jaeik.bimillog.domain.member.dto.MemberNameDTO;
@@ -37,48 +36,8 @@ import java.util.List;
 @RequestMapping("/api/member")
 public class MemberCommandController {
     private final MemberProfileCommandService memberProfileCommandService;
-    private final MemberOnboardingService memberOnboardingService;
     private final ApplicationEventPublisher eventPublisher;
     private final HTTPCookie HTTPCookie;
-
-    /**
-     * <h3>회원가입</h3>
-     * <p>사용자의 회원가입 요청을 처리합니다.</p>
-     * <p>UUID는 HttpOnly 쿠키를 통해 전달받아 서버에서 추출합니다.</p>
-     *
-     * @param request 회원가입 요청 DTO (memberName)
-     * @param uuid HttpOnly 쿠키로 전달된 임시 UUID
-     * @return 회원 가입 성공 응답
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @PostMapping("/signup")
-    @Log(level = Log.LogLevel.INFO,
-            logExecutionTime = true,
-            excludeParams = {"uuid"},
-            message = "회원가입 요청")
-    public ResponseEntity<Void> signUp(
-            @Valid @RequestBody SignUpRequestDTO request,
-            @CookieValue(name = "temp_user_id") String uuid) {
-
-        // 회원가입 로직 실행 후 토큰 값 받기
-        AuthTokens tokens = memberOnboardingService.signup(request.getMemberName(), uuid);
-        List<ResponseCookie> cookies = HTTPCookie.generateJwtCookie(tokens.accessToken(), tokens.refreshToken());
-
-        // ResponseEntity builder 생성
-        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
-
-        // 쿠키를 하나씩 헤더에 추가
-        for (ResponseCookie cookie : cookies) {
-            responseBuilder.header("Set-Cookie", cookie.toString());
-        }
-
-        ResponseCookie expiredTempCookie = HTTPCookie.expireTempCookie();
-        responseBuilder.header("Set-Cookie", expiredTempCookie.toString());
-
-        // Body 설정 후 ResponseEntity 반환
-        return responseBuilder.build();
-    }
 
     /**
      * <h3>닉네임 변경 API</h3>

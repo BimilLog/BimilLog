@@ -1,18 +1,10 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
-import jaeik.bimillog.domain.member.adapter.MemberToAuthAdapter;
-import jaeik.bimillog.domain.member.adapter.MemberToJwtAdapter;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
@@ -23,35 +15,32 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationEventPublisher;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-@DisplayName("회원 온보딩 서비스 가입 흐름")
+/**
+ * <h2>MemberOnboardingService 단위 테스트</h2>
+ * <p>신규/기존 회원 온보딩 흐름을 검증합니다.</p>
+ */
+@DisplayName("MemberOnboardingService 단위 테스트")
 @Tag("unit")
 class MemberOnboardingServiceTest extends BaseUnitTest {
 
-    @Mock private RedisMemberDataAdapter redisMemberDataAdapter;
     @Mock private MemberRepository memberRepository;
-    @Mock private MemberToJwtAdapter memberToJwtAdapter;
-    @Mock private MemberToAuthAdapter memberToAuthAdapter;
-    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks private MemberOnboardingService onboardingService;
 
     private SocialMemberProfile socialProfile;
+    private SocialToken socialToken;
     private Member persistedMember;
-    private AuthToken persistedAuthToken;
 
     @BeforeEach
     void setUp() {
-        socialProfile = new SocialMemberProfile(
+        socialProfile = SocialMemberProfile.of(
                 "kakao123",
                 "signup@example.com",
                 SocialProvider.KAKAO,
@@ -61,92 +50,109 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
                 "refresh-token"
         );
 
-        persistedMember = TestMembers.createMember("kakao123", "tester", "signupNickname");
+        socialToken = SocialToken.createSocialToken("access-token", "refresh-token");
+
+        persistedMember = TestMembers.createMember("kakao123", "냥_a3f8c2", "signupNickname");
         TestFixtures.setFieldValue(persistedMember, "id", 1L);
         if (persistedMember.getSetting() != null) {
             TestFixtures.setFieldValue(persistedMember.getSetting(), "id", 10L);
         }
-
-        persistedAuthToken = AuthToken.builder()
-                .id(99L)
-                .member(persistedMember)
-                .refreshToken("")
-                .useCount(0)
-                .build();
-
     }
 
+    // ==================== signup ====================
+
     @Test
-    @DisplayName("유효한 임시 데이터로 가입 성공") // "signup succeeds with valid temporary data"
-    void shouldSignupWithValidTemporaryData() {
-        given(redisMemberDataAdapter.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
-        given(memberToAuthAdapter.saveSocialToken(any(SocialToken.class)))
-                .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
+    @DisplayName("signup - 이름 충돌 없으면 첫 시도에 가입 성공")
+    void shouldSignupSuccessOnFirstAttempt() {
+        // Given
+        given(memberRepository.existsByMemberName(anyString())).willReturn(false);
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
-        given(memberToAuthAdapter.saveAuthToken(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(memberToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
-        given(memberToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
 
-        AuthTokens result = onboardingService.signup("tester", "uuid-123");
+        // When
+        Member result = onboardingService.signup(socialProfile, socialToken);
 
-        assertThat(result.accessToken()).isEqualTo("access-jwt");
-        assertThat(result.refreshToken()).isEqualTo("refresh-jwt");
-        verify(redisMemberDataAdapter).getTempData("uuid-123");
-        verify(memberToAuthAdapter).saveSocialToken(any(SocialToken.class));
+        // Then
+        assertThat(result).isNotNull();
+        verify(memberRepository, times(1)).existsByMemberName(anyString());
         verify(memberRepository).save(any(Member.class));
-        verify(memberToAuthAdapter).saveAuthToken(any(AuthToken.class));
-
-        ArgumentCaptor<CustomUserDetails> detailCaptor = ArgumentCaptor.forClass(CustomUserDetails.class);
-        verify(memberToJwtAdapter).generateAccessToken(detailCaptor.capture());
-        verify(memberToJwtAdapter).generateRefreshToken(detailCaptor.getValue());
-
-        // MemberTokenUpdateEvent 발행 검증
-        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
-        verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
-
-        boolean foundEvent = eventCaptor.getAllValues().stream()
-                .anyMatch(event -> event instanceof jaeik.bimillog.domain.member.event.MemberTokenUpdateEvent);
-        assertThat(foundEvent).isTrue();
-        verify(redisMemberDataAdapter).removeTempData("uuid-123");
-
-        CustomUserDetails capturedDetail = detailCaptor.getValue();
-        assertThat(capturedDetail.getAuthTokenId()).isEqualTo(persistedAuthToken.getId());
     }
 
     @Test
-    @DisplayName("임시 데이터가 없을 때 가입 실패") // "signup fails when temp data is missing"
-    void shouldThrowExceptionWhenTempDataMissing() {
-        given(redisMemberDataAdapter.getTempData("missing-uuid")).willReturn(Optional.empty());
-
-        assertThatThrownBy(() -> onboardingService.signup("tester", "missing-uuid"))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_INVALID_TEMP_DATA);
-
-        verify(redisMemberDataAdapter).getTempData("missing-uuid");
-        verify(memberRepository, never()).save(any(Member.class));
-    }
-
-    @Test
-    @DisplayName("가입 시 JWT 토큰 발급") // "signup issues jwt tokens"
-    void shouldGenerateJwtTokensAndCookiesOnSignup() {
-        given(redisMemberDataAdapter.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
-        given(memberToAuthAdapter.saveSocialToken(any(SocialToken.class)))
-                .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
+    @DisplayName("signup - 이름 충돌 시 재시도하여 가입 성공")
+    void shouldRetryWhenTempNameCollides() {
+        // Given: 첫 번째는 충돌, 두 번째는 통과
+        given(memberRepository.existsByMemberName(anyString()))
+                .willReturn(true)
+                .willReturn(false);
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
-        given(memberToAuthAdapter.saveAuthToken(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(memberToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
-        given(memberToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
 
-        AuthTokens result = onboardingService.signup("tester", "uuid-123");
+        // When
+        Member result = onboardingService.signup(socialProfile, socialToken);
 
-        assertThat(result.accessToken()).isEqualTo("access-jwt");
-        assertThat(result.refreshToken()).isEqualTo("refresh-jwt");
+        // Then
+        assertThat(result).isNotNull();
+        verify(memberRepository, times(2)).existsByMemberName(anyString());
+        verify(memberRepository).save(any(Member.class));
+    }
 
-        ArgumentCaptor<CustomUserDetails> detailCaptor = ArgumentCaptor.forClass(CustomUserDetails.class);
-        verify(memberToJwtAdapter).generateAccessToken(detailCaptor.capture());
-        verify(memberToJwtAdapter).generateRefreshToken(detailCaptor.getValue());
+    @Test
+    @DisplayName("signup - 생성된 임시 이름은 '냥_' 접두어로 시작하고 총 8자이다")
+    void shouldGenerateTempNameWithCorrectFormat() {
+        // Given
+        given(memberRepository.existsByMemberName(anyString())).willReturn(false);
 
-        CustomUserDetails capturedDetail = detailCaptor.getValue();
-        assertThat(capturedDetail.getAuthTokenId()).isEqualTo(persistedAuthToken.getId());
+        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
+        given(memberRepository.save(memberCaptor.capture())).willReturn(persistedMember);
+
+        // When
+        onboardingService.signup(socialProfile, socialToken);
+
+        // Then
+        String generatedName = memberCaptor.getValue().getMemberName();
+        assertThat(generatedName).startsWith("냥_");
+        assertThat(generatedName).hasSize(8);
+    }
+
+    @Test
+    @DisplayName("signup - 소셜 프로필 정보가 Member에 올바르게 반영된다")
+    void shouldMapSocialProfileToMember() {
+        // Given
+        given(memberRepository.existsByMemberName(anyString())).willReturn(false);
+
+        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
+        given(memberRepository.save(memberCaptor.capture())).willReturn(persistedMember);
+
+        // When
+        onboardingService.signup(socialProfile, socialToken);
+
+        // Then
+        Member saved = memberCaptor.getValue();
+        assertThat(saved.getSocialId()).isEqualTo(socialProfile.getSocialId());
+        assertThat(saved.getProvider()).isEqualTo(socialProfile.getProvider());
+        assertThat(saved.getSocialNickname()).isEqualTo(socialProfile.getNickname());
+        assertThat(saved.getThumbnailImage()).isEqualTo(socialProfile.getProfileImageUrl());
+        assertThat(saved.getSocialToken()).isEqualTo(socialToken);
+    }
+
+    // ==================== syncExistingMember ====================
+
+    @Test
+    @DisplayName("syncExistingMember - 닉네임·프로필·소셜토큰이 업데이트된다")
+    void shouldSyncExistingMember() {
+        // Given
+        Member member = TestMembers.createMember("kakao-1", "tester", "oldNickname");
+        TestFixtures.setFieldValue(member, "id", 1L);
+        SocialToken newToken = SocialToken.createSocialToken("new-access", "new-refresh");
+
+        // When
+        Member result = onboardingService.syncExistingMember(member, "newNickname", "http://img/new.jpg", newToken);
+
+        // Then
+        assertThat(result).isSameAs(member);
+        assertThat(member.getSocialNickname()).isEqualTo("newNickname");
+        assertThat(member.getThumbnailImage()).isEqualTo("http://img/new.jpg");
+        assertThat(member.getSocialToken()).isEqualTo(newToken);
+
+        verifyNoInteractions(memberRepository);
     }
 }

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.contoller;
 
 import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.dto.LoginResultDTO;
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLoginService;
@@ -42,26 +42,20 @@ public class AuthCommandController {
 
     /**
      * <h3>소셜 로그인</h3>
-     * <p>소셜 로그인 요청을 처리하고, 새로운 사용자라면 임시 UUID를 반환합니다.</p>
+     * <p>소셜 로그인 요청을 처리합니다. 신규/기존 회원 모두 즉시 JWT 토큰을 발급합니다.</p>
      *
      * @param request 소셜 로그인 요청 DTO (provider, code)
      * @return 로그인 응답
      */
     @Log(level = LogLevel.INFO, logExecutionTime = true, excludeParams = {"code", "state"}, message = "소셜 로그인 요청")
     @PostMapping("/login")
-    public ResponseEntity<String> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
-        LoginResult loginResult = socialLoginService.processSocialLogin(request.getProvider(), request.getCode(), request.getState());
+    public ResponseEntity<Void> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
+        LoginResultDTO loginResultDTO = socialLoginService.processSocialLogin(request.getProvider(), request.getCode(), request.getState());
 
-        return switch (loginResult) {
-            case LoginResult.NewUser(var tempUserId) -> ResponseEntity.ok()
-                    .header("Set-Cookie", HTTPCookie.createTempCookie(tempUserId).toString())
-                    .body("NEW_USER");
-            case LoginResult.ExistingUser(var tokens) -> ResponseEntity.ok()
-                    .headers(headers -> HTTPCookie
-                            .generateJwtCookie(tokens.accessToken(), tokens.refreshToken())
-                            .forEach(cookie -> headers.add("Set-Cookie", cookie.toString())))
-                    .body("EXISTING_USER");
-        };
+        return ResponseEntity.ok()
+                .headers(headers -> HTTPCookie
+                        .generateJwtCookie(loginResultDTO.getJwtAccessToken(), loginResultDTO.getJwtRefreshToken())
+                        .forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).build();
     }
 
     /**

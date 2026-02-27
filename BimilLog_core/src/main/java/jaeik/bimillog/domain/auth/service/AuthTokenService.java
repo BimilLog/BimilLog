@@ -67,15 +67,6 @@ public class AuthTokenService {
     }
 
     /**
-     * <h3>AuthToken 저장</h3>
-     * <p>회원 가입시 호출 됨.</p>
-     */
-    @Transactional
-    public AuthToken save(AuthToken authToken) {
-        return authTokenRepository.save(authToken);
-    }
-
-    /**
      * <h3>JWT 리프레시 토큰 업데이트</h3>
      * <p>JWT 리프레시 토큰을 갱신합니다.</p>
      *

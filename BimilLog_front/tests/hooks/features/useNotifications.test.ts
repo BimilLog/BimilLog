@@ -83,7 +83,6 @@ describe("useNotifications", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
-      signUp: vi.fn(),
       updateUserName: vi.fn(),
       refreshUser: vi.fn(),
     });
@@ -111,7 +110,6 @@ describe("useNotifications", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
-      signUp: vi.fn(),
       updateUserName: vi.fn(),
       refreshUser: vi.fn(),
     });
@@ -139,7 +137,6 @@ describe("useNotifications", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
-      signUp: vi.fn(),
       updateUserName: vi.fn(),
       refreshUser: vi.fn(),
     });
@@ -186,7 +183,6 @@ describe("useNotifications", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
-      signUp: vi.fn(),
       updateUserName: vi.fn(),
       refreshUser: vi.fn(),
     });
@@ -234,7 +230,6 @@ describe("useNotifications", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
-      signUp: vi.fn(),
       updateUserName: vi.fn(),
       refreshUser: vi.fn(),
     });
@@ -280,7 +275,6 @@ describe("useNotifications", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
-      signUp: vi.fn(),
       updateUserName: vi.fn(),
       refreshUser: vi.fn(),
     });
@@ -319,7 +313,6 @@ describe("useNotifications", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
-      signUp: vi.fn(),
       updateUserName: vi.fn(),
       refreshUser: vi.fn(),
     });
@@ -338,7 +331,6 @@ describe("useNotifications", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
-      signUp: vi.fn(),
       updateUserName: vi.fn(),
       refreshUser: vi.fn(),
     });
@@ -375,7 +367,6 @@ describe("useNotifications", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
-      signUp: vi.fn(),
       updateUserName: vi.fn(),
       refreshUser: vi.fn(),
     });

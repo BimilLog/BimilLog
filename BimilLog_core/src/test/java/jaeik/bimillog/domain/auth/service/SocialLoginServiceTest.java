@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.dto.LoginResultDTO;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
 import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
@@ -49,7 +49,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
     void shouldDelegateToTransactionalServiceAfterFetchingProfile() {
         // Given
         SocialMemberProfile testMemberProfile = getTestMemberProfile();
-        LoginResult expectedResult = mock(LoginResult.ExistingUser.class);
+        LoginResultDTO expectedResult = mock(LoginResultDTO.class);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
@@ -60,7 +60,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
                     .willReturn(expectedResult);
 
             // When
-            LoginResult result = socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, null);
+            LoginResultDTO result = socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, null);
 
             // Then
             assertThat(result).isSameAs(expectedResult);

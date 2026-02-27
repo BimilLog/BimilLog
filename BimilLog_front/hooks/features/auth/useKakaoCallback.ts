@@ -10,8 +10,7 @@ import { registerFcmTokenAction } from "@/lib/actions/notification";
 /**
  * Kakao OAuth callback 처리 훅
  * 카카오 로그인 후 리다이렉트된 인가 코드를 백엔드로 전송
- *
- * FCM 토큰은 로그인 성공 후 별도로 등록하도록 변경됨 (UX 개선)
+ * 신규/기존 회원 모두 즉시 JWT 토큰이 발급되어 동일하게 처리됨
  */
 export const useKakaoCallback = () => {
   const [isProcessing, setIsProcessing] = useState(true);
@@ -32,7 +31,6 @@ export const useKakaoCallback = () => {
 
       // 카카오에서 에러가 발생한 경우 (사용자 취소 등)
       if (error) {
-        // 친구 동의 플로우 중이었다면 sessionStorage 정리
         if (isFriendsConsentFlow && typeof window !== 'undefined') {
           sessionStorage.removeItem('friendsConsentFlow');
           sessionStorage.removeItem('returnUrl');
@@ -54,15 +52,11 @@ export const useKakaoCallback = () => {
       try {
         setLoadingStep(isFriendsConsentFlow ? "친구 목록 권한 업데이트 중..." : "사용자 정보 확인 중...");
 
-        // localStorage에서 이전에 저장된 FCM 토큰 확인
         const savedFcmToken = typeof window !== "undefined" ? localStorage.getItem("fcm_token") : null;
 
-        // Authorization Code를 백엔드로 전송하여 JWT 토큰 받기
-        // 저장된 FCM 토큰이 있으면 함께 전달
         const response = await authCommand.kakaoLogin(code);
 
-        if (response.success && response.data) {
-          // 카카오 로그인 성공 시 provider 설정
+        if (response.success) {
           setProvider('KAKAO');
 
           if (savedFcmToken) {
@@ -80,25 +74,14 @@ export const useKakaoCallback = () => {
           // 친구 동의 플로우인 경우
           if (isFriendsConsentFlow && typeof window !== 'undefined') {
             const returnUrl = sessionStorage.getItem('returnUrl') || '/';
-
-            // sessionStorage 정리
             sessionStorage.removeItem('friendsConsentFlow');
             sessionStorage.removeItem('returnUrl');
-
-            // 원래 페이지로 복귀
             router.push(returnUrl);
             return;
           }
 
-          // 일반 로그인 플로우
-          // 신규 사용자인 경우 회원가입 페이지로 이동
-          // UUID는 HttpOnly 쿠키로 전달되어 프론트엔드에서 직접 접근 불가
-          if (response.data === "NEW_USER") {
-            router.push("/signup?required=true");
-          } else {
-            // 기존 사용자인 경우 메인 페이지로 이동
-            router.push("/");
-          }
+          // 신규/기존 구분 없이 메인 페이지로 이동
+          router.push("/");
         } else {
           if (isFriendsConsentFlow && typeof window !== 'undefined') {
             sessionStorage.removeItem('friendsConsentFlow');

@@ -1,5 +1,5 @@
 import { apiClient } from '../client'
-import { AuthResponse, SocialLoginRequest, SignUpRequest } from '@/types/domains/auth'
+import { SocialLoginRequest } from '@/types/domains/auth'
 
 export const authCommand = {
   kakaoLogin: (code: string) => {
@@ -7,7 +7,7 @@ export const authCommand = {
       provider: 'KAKAO',
       code,
     }
-    return apiClient.post<AuthResponse>("/api/auth/login", requestBody)
+    return apiClient.post<void>("/api/auth/login", requestBody)
   },
 
   naverLogin: (code: string) => {
@@ -15,7 +15,7 @@ export const authCommand = {
       provider: 'NAVER',
       code,
     }
-    return apiClient.post<AuthResponse>("/api/auth/login", requestBody)
+    return apiClient.post<void>("/api/auth/login", requestBody)
   },
 
   googleLogin: (code: string) => {
@@ -23,14 +23,7 @@ export const authCommand = {
       provider: 'GOOGLE',
       code,
     }
-    return apiClient.post<AuthResponse>("/api/auth/login", requestBody)
-  },
-
-  signUp: (memberName: string) => {
-    const requestBody: SignUpRequest = {
-      memberName
-    }
-    return apiClient.post<AuthResponse>("/api/member/signup", requestBody)
+    return apiClient.post<void>("/api/auth/login", requestBody)
   },
 
   logout: () => apiClient.post("/api/auth/logout"),
