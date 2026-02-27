@@ -1,7 +1,6 @@
 package jaeik.bimillog.unit.domain.member;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
-import jaeik.bimillog.domain.member.listener.CheckBlacklistListener;
 import jaeik.bimillog.domain.member.service.MemberBlacklistService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
