@@ -30,16 +30,16 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * 실행: LOCAL_MYSQL_PASSWORD 변수 gradlew localIntegrationTest --tests "*.friendPerformanceSeedRunner"
  */
+@DisplayName("친구 성능 테스트 시드 러너")
 @SpringBootTest(properties = {
         "spring.task.scheduling.enabled=false",
         "spring.scheduling.enabled=false"
 })
-@ActiveProfiles("local-integration")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
 @Tag("performance")
+@ActiveProfiles("local-integration")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@DisplayName("친구 성능 테스트 시드 러너")
 public class friendPerformanceSeedRunner {
 
     private static final int MEMBER_COUNT             = 100_000;

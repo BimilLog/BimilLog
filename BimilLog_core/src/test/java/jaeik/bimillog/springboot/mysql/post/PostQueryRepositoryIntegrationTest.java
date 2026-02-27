@@ -39,8 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ActiveProfiles("local-integration")
 @Tag("local-integration")
+@ActiveProfiles("local-integration")
 @Import(LocalIntegrationTestSupportConfig.class)
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

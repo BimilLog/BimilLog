@@ -44,10 +44,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * @version 2.0.0
  */
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ActiveProfiles("h2test")
-@Import(H2TestConfiguration.class)
 @Tag("datajpa-h2")
+@ActiveProfiles("h2test")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(H2TestConfiguration.class)
 class PopularPostQueryRepositoryIntegrationTest {
 
     @Autowired

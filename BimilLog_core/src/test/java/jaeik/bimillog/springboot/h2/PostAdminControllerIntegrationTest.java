@@ -30,11 +30,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @version 2.7.0
  */
+@DisplayName("게시글 Admin 컨트롤러 통합 테스트")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Tag("springboot-h2")
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
-@DisplayName("게시글 Admin 컨트롤러 통합 테스트")
-@Tag("springboot-h2")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

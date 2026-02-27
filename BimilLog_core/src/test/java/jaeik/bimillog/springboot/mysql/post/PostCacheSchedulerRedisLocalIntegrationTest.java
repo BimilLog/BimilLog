@@ -34,9 +34,9 @@ import static org.mockito.BDDMockito.given;
  * </ul>
  * <p>DB 의존성은 Mock으로 대체하여 Redis 연동 부분만 실제 동작을 검증합니다.</p>
  */
-@Tag("local-integration")
 @DisplayName("PostCacheScheduler Redis 연동 로컬 통합 테스트")
 @SpringBootTest
+@Tag("local-integration")
 @ActiveProfiles("local-integration")
 class PostCacheSchedulerRedisLocalIntegrationTest {
 

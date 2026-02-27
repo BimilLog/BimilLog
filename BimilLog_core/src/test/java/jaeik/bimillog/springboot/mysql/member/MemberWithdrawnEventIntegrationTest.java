@@ -42,12 +42,12 @@ import static org.mockito.Mockito.doReturn;
  * @author Jaeik
  * @version 2.0.0
  */
+@DisplayName("사용자 탈퇴 이벤트 워크플로우 로컬 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Tag("local-integration")
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Transactional
-@Tag("local-integration")
-@DisplayName("사용자 탈퇴 이벤트 워크플로우 로컬 통합 테스트")
 class MemberWithdrawnEventIntegrationTest {
 
     @Autowired

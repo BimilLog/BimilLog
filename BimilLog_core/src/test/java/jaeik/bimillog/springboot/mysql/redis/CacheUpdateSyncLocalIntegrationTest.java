@@ -23,9 +23,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>실제 Redis에서 글 작성/수정/삭제 시 JSON LIST 캐시가 올바르게 갱신되는지 검증합니다.</p>
  * <p>실행 전 MySQL(bimillogTest) + Redis(6379) 필요</p>
  */
-@Tag("local-integration")
 @DisplayName("CacheUpdateSync 로컬 통합 테스트")
 @SpringBootTest
+@Tag("local-integration")
 @ActiveProfiles("local-integration")
 class CacheUpdateSyncLocalIntegrationTest {
 

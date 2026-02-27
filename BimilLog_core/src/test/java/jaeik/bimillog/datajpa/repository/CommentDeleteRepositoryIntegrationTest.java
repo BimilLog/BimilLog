@@ -34,10 +34,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @DataJpaTest
+@Tag("datajpa-h2")
 @ActiveProfiles("h2test")
 @Import({CommentDeleteRepository.class, H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Tag("datajpa-h2")
 class CommentDeleteRepositoryIntegrationTest {
 
     @Autowired

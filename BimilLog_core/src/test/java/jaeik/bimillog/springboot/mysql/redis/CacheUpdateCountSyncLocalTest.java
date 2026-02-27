@@ -23,9 +23,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>MySQL + Redis 환경에서 조회수 캐시 버퍼링과 실시간 점수 업데이트를 검증합니다.</p>
  * <p>실행 전 MySQL(bimillogTest) + Redis(6380) 필요</p>
  */
-@Tag("local-integration")
 @DisplayName("CacheUpdateCountSync + CacheRealtimeSync 로컬 통합 테스트")
 @SpringBootTest
+@Tag("local-integration")
 @ActiveProfiles("local-integration")
 class CacheUpdateCountSyncLocalTest {
 

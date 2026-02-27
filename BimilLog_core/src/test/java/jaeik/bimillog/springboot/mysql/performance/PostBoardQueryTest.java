@@ -26,9 +26,9 @@ import org.springframework.util.StopWatch;
     "spring.task.scheduling.enabled=false",
     "spring.scheduling.enabled=false"
 })
-@ActiveProfiles("local-integration")
 @Tag("local-integration")
 @Tag("performance")
+@ActiveProfiles("local-integration")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Sql(scripts = "/bimillogTest-seed.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class PostBoardQueryTest {

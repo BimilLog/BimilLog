@@ -15,14 +15,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.StopWatch;
 
-// bimillogTest-seed.sql의 상황을 기반으로한다
 @SpringBootTest(properties = {
     "spring.task.scheduling.enabled=false",
     "spring.scheduling.enabled=false"
 })
-@ActiveProfiles("local-integration")
 @Tag("local-integration")
 @Tag("performance")
+@ActiveProfiles("local-integration")
+// bimillogTest-seed.sql의 상황을 기반으로한다
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LikeCommentQueryTest {
 

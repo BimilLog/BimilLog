@@ -20,17 +20,17 @@ import java.util.List;
  * 사전 조건: performance-friend-rebuild.sql 시드 데이터가 DB에 삽입되어 있어야 합니다.
  * 실행: LOCAL_MYSQL_PASSWORD=변수 gradlew localIntegrationTest --tests "*.FriendRedisRebuildPerformanceTest"
  */
+@DisplayName("FriendAdminService Redis 재구축 성능 테스트")
 @SpringBootTest(properties = {
         "spring.task.scheduling.enabled=false",
         "spring.scheduling.enabled=false"
 })
-@ActiveProfiles("local-integration")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
 @Tag("performance")
+@ActiveProfiles("local-integration")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DisplayName("FriendAdminService Redis 재구축 성능 테스트")
 class FriendRedisRebuildPerformanceTest {
 
     private static final Logger log = LoggerFactory.getLogger(FriendRedisRebuildPerformanceTest.class);

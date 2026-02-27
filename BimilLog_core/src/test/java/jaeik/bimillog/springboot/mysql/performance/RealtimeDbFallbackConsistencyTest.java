@@ -48,10 +48,10 @@ import static jaeik.bimillog.infrastructure.redis.RedisKey.REALTIME_POST_SCORE_K
  * @version 1.0.0
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ActiveProfiles("local-integration")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
 @Tag("performance")
+@ActiveProfiles("local-integration")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Transactional
 class RealtimeDbFallbackConsistencyTest {
     private static final Logger log = LoggerFactory.getLogger(RealtimeDbFallbackConsistencyTest.class);

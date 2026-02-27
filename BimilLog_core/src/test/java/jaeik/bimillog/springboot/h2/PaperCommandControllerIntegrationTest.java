@@ -30,10 +30,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @since 2.0.0
  */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Tag("springboot-h2")
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
-@Tag("springboot-h2")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

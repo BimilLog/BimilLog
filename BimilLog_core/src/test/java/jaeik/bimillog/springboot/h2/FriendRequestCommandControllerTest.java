@@ -32,10 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @version 2.0.0
  */
 @DisplayName("FriendRequestCommandController 통합 테스트")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Tag("springboot-h2")
 @ActiveProfiles("h2test")
 @Import(H2TestConfiguration.class)
-@Tag("springboot-h2")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class FriendRequestCommandControllerTest extends BaseIntegrationTest {
 
     @Autowired

@@ -40,10 +40,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ActiveProfiles("local-integration")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
 @Tag("performance")
+@ActiveProfiles("local-integration")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class RealtimeCacheConsistencyTest {
     private static final Logger log = LoggerFactory.getLogger(RealtimeCacheConsistencyTest.class);
 

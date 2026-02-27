@@ -35,10 +35,10 @@ import static org.assertj.core.api.Assertions.assertThatCode;
                 classes = jaeik.bimillog.BimilLogApplication.class
         )
 )
+@Tag("datajpa-h2")
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Tag("datajpa-h2")
 class MemberCommandRepositoryTest {
 
     @Autowired

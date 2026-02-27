@@ -31,11 +31,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @version 2.7.0
  */
+@DisplayName("댓글 Query 컨트롤러 통합 테스트")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Tag("springboot-h2")
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
-@DisplayName("댓글 Query 컨트롤러 통합 테스트")
-@Tag("springboot-h2")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

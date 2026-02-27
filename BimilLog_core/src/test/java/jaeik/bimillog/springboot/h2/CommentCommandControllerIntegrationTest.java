@@ -45,11 +45,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @version 2.0.0
  */
+@DisplayName("댓글 Command 컨트롤러 통합 테스트 (H2)")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Tag("springboot-h2")
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
-@DisplayName("댓글 Command 컨트롤러 통합 테스트 (H2)")
-@Tag("springboot-h2")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

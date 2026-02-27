@@ -41,6 +41,7 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
+@DisplayName("FcmPushService 통합 테스트")
 @DataJpaTest(
         excludeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
@@ -56,11 +57,10 @@ import static org.mockito.Mockito.*;
                 }
         )
 )
+@Tag("datajpa-h2")
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Tag("datajpa-h2")
-@DisplayName("FcmPushService 통합 테스트")
 class FcmPushServiceIntegrationTest {
 
     @Autowired

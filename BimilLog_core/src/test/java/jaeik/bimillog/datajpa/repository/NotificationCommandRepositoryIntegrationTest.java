@@ -41,10 +41,10 @@ import static org.assertj.core.api.Assertions.assertThat;
                 classes = BimilLogApplication.class
         )
 )
+@Tag("datajpa-h2")
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Tag("datajpa-h2")
 class NotificationCommandRepositoryIntegrationTest {
 
     @Autowired

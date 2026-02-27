@@ -42,8 +42,8 @@ import static org.mockito.BDDMockito.given;
  * @version 2.0.0
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ActiveProfiles("local-integration")
 @Tag("local-integration")
+@ActiveProfiles("local-integration")
 @Import(LocalIntegrationTestSupportConfig.class)
 @Transactional
 class PostFulltextSearchIntegrationTest {

@@ -22,15 +22,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Jaeik
  * @version 2.6.0
  */
+@DisplayName("RedisInteractionScoreRepository ZSet 로컬 통합 테스트")
 @SpringBootTest(properties = {
         "spring.task.scheduling.enabled=false",
         "spring.scheduling.enabled=false"
 })
+@Tag("local-integration")
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Tag("local-integration")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@DisplayName("RedisInteractionScoreRepository ZSet 로컬 통합 테스트")
 class RedisInteractionScoreRepositoryLocalIntegrationTest {
 
     @Autowired
