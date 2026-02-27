@@ -1,7 +1,6 @@
 package jaeik.bimillog.springboot.mysql.post;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
