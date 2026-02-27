@@ -37,7 +37,7 @@ import static org.mockito.Mockito.*;
  * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
  */
 @DisplayName("NotificationSendListener 재시도 테스트")
-@Tag("integration")
+@Tag("springboot-nodb")
 @SpringBootTest(classes = {NotificationSendListener.class, RetryConfig.class, AsyncConfig.class})
 @TestPropertySource(properties = {
         "retry.max-attempts=3",

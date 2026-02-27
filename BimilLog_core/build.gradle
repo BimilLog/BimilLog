@@ -141,7 +141,7 @@ tasks.register('unitTest', Test) {
 
     useJUnitPlatform {
         includeTags 'unit'
-        excludeTags 'integration', 'local-integration'
+        excludeTags 'springboot-h2', 'springboot-nodb', 'datajpa-h2', 'local-integration'
     }
 
     def cpuCount = Runtime.runtime.availableProcessors()
@@ -155,13 +155,13 @@ tasks.register('unitTest', Test) {
 
 tasks.register('integrationTest', Test) {
     group = 'verification'
-    description = 'H2 기반 통합 테스트를 실행합니다.'
+    description = 'H2/NoDB 기반 통합 테스트를 실행합니다. (springboot-h2, springboot-nodb, datajpa-h2)'
 
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
 
     useJUnitPlatform {
-        includeTags 'integration'
+        includeTags 'springboot-h2', 'springboot-nodb', 'datajpa-h2'
         excludeTags 'local-integration'
     }
 

@@ -38,7 +38,7 @@ import static org.mockito.Mockito.*;
  * <p>Redis 연결 실패 시 재시도 로직이 정상 동작하는지 검증</p>
  */
 @DisplayName("FriendshipRedisUpdate 재시도 테스트")
-@Tag("integration")
+@Tag("springboot-nodb")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest(classes = {

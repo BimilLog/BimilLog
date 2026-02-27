@@ -15,7 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @ActiveProfiles("h2test")
 @SpringBootTest
-@Tag("integration")
+@Tag("springboot-h2")
 class BimilLogApplicationTests {
 
     @Test

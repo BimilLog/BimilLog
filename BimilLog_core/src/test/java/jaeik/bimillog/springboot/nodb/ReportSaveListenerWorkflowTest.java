@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
  * <p>다양한 신고 유형 및 예외 처리 시나리오를 검증하는 리스너 기반 테스트</p>
  */
 @DisplayName("ReportSaveListener 워크플로우 테스트")
-@Tag("integration")
+@Tag("springboot-nodb")
 @SpringBootTest(classes = {ReportSaveListener.class, RetryConfig.class, AsyncConfig.class})
 @TestPropertySource(properties = {
         "retry.max-attempts=3",

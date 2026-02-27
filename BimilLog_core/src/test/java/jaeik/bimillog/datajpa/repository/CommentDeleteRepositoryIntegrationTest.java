@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("h2test")
 @Import({CommentDeleteRepository.class, H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Tag("integration")
+@Tag("datajpa-h2")
 class CommentDeleteRepositoryIntegrationTest {
 
     @Autowired

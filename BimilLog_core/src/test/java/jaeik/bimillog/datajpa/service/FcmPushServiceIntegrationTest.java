@@ -59,7 +59,7 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Tag("integration")
+@Tag("datajpa-h2")
 @DisplayName("FcmPushService 통합 테스트")
 class FcmPushServiceIntegrationTest {
 

@@ -56,7 +56,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc
 @Transactional
-@Tag("integration")
 public abstract class BaseIntegrationTest {
 
     @MockitoBean

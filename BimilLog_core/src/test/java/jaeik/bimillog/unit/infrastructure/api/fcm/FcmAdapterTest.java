@@ -2,6 +2,8 @@ package jaeik.bimillog.unit.infrastructure.api.fcm;
 
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
+import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
+import jaeik.bimillog.infrastructure.api.fcm.FcmApiClient;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
