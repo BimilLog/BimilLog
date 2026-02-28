@@ -123,8 +123,7 @@ public class NotificationSaveListener {
      */
     @Recover
     public void recoverHandleCommentCreatedEvent(Exception e, CommentCreatedEvent event) {
-        log.error("댓글 알림 저장 최종 실패: postUserId={}, postId={}",
-                event.getPostUserId(), event.getPostId(), e);
+        log.error("댓글 알림 저장 최종 실패: postUserId={}, postId={}", event.getPostUserId(), event.getPostId(), e);
     }
 
     /**
@@ -135,8 +134,7 @@ public class NotificationSaveListener {
      */
     @Recover
     public void recoverHandleRollingPaperEvent(Exception e, RollingPaperEvent event) {
-        log.error("롤링페이퍼 알림 저장 최종 실패: paperOwnerId={}",
-                event.paperOwnerId(), e);
+        log.error("롤링페이퍼 알림 저장 최종 실패: paperOwnerId={}", event.paperOwnerId(), e);
     }
 
     /**
@@ -147,8 +145,7 @@ public class NotificationSaveListener {
      */
     @Recover
     public void recoverHandlePostFeaturedEvent(Exception e, PostFeaturedEvent event) {
-        log.error("인기글 알림 저장 최종 실패: memberId={}, postId={}",
-                event.memberId(), event.postId(), e);
+        log.error("인기글 알림 저장 최종 실패: memberId={}, postId={}", event.memberId(), event.postId(), e);
     }
 
     /**
@@ -159,7 +156,6 @@ public class NotificationSaveListener {
      */
     @Recover
     public void recoverHandleFriendEvent(Exception e, FriendEvent event) {
-        log.error("친구 알림 저장 최종 실패: receiveMemberId={}",
-                event.getReceiveMemberId(), e);
+        log.error("친구 알림 저장 최종 실패: receiveMemberId={}", event.getReceiveMemberId(), e);
     }
 }

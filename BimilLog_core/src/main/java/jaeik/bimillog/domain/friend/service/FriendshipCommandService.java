@@ -29,7 +29,6 @@ public class FriendshipCommandService {
      */
     @Transactional
     public void createFriendship(Long memberId, Long friendId, Long friendRequestId) {
-
         // 친구가 실존하는지 확인
         Member friend = friendToMemberAdapter.findById(friendId);
         // 요청 받는 사람과 블랙리스트 관계인지 확인
