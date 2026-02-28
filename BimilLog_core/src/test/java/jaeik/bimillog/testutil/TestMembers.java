@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
 
 import java.util.UUID;
 

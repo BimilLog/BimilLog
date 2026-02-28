@@ -1,7 +1,7 @@
 
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.dto.LoginResultDTO;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -34,9 +34,8 @@ public class SocialLoginService {
      * @param provider 소셜 플랫폼 제공자 (KAKAO, NAVER 등)
      * @param code     OAuth 인가 코드
      * @param state    OAuth state 파라미터 (CSRF 방지용, 일부 제공자에서 필수)
-     * @return 기존 회원은 {@link LoginResult.ExistingUser}, 신규 회원은 {@link LoginResult.NewUser}
      */
-    public LoginResult processSocialLogin(SocialProvider provider, String code, String state) {
+    public LoginResultDTO processSocialLogin(SocialProvider provider, String code, String state) {
         SocialStrategy strategy = socialStrategyAdapter.getStrategy(provider);
         SocialMemberProfile socialUserProfile = strategy.getSocialToken(code, state);
         return socialLoginTransactionalService.finishLogin(provider, socialUserProfile);

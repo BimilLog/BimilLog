@@ -1,26 +1,15 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.member.adapter.MemberToJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.event.MemberTokenUpdateEvent;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
-import jaeik.bimillog.domain.member.adapter.MemberToAuthAdapter;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.UUID;
 
 /**
  * <h2>회원 온보딩 서비스</h2>
@@ -29,19 +18,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class MemberOnboardingService {
-    private final RedisMemberDataAdapter redisMemberDataAdapter;
     private final MemberRepository memberRepository;
-    private final MemberToAuthAdapter memberToAuthAdapter;
-    private final MemberToJwtAdapter memberToJwtAdapter;
-    private final ApplicationEventPublisher eventPublisher;
-
-    /**
-     * <h3>온보딩 대기 데이터 저장</h3>
-     */
-    @Transactional
-    public void storePendingMember(SocialMemberProfile memberProfile, String uuid) {
-        redisMemberDataAdapter.saveTempData(uuid, memberProfile);
-    }
 
     /**
      * <h3>기존 회원 정보 동기화</h3>
@@ -55,46 +32,30 @@ public class MemberOnboardingService {
 
     /**
      * <h3>신규 가입 처리</h3>
+     * <p>임시 이름(냥_XXXXXX)을 자동 생성하여 회원을 등록합니다.</p>
      */
     @Transactional
-    public AuthTokens signup(String memberName, String uuid) {
-        try {
-            Optional<SocialMemberProfile> socialMemberProfile = redisMemberDataAdapter.getTempData(uuid);
-            if (socialMemberProfile.isEmpty()) {
-                throw new CustomException(ErrorCode.AUTH_INVALID_TEMP_DATA);
-            }
+    public Member signup(SocialMemberProfile socialMemberProfile, SocialToken socialToken) {
+        String memberName = generateUniqueTempName();
+        Setting setting = Setting.createSetting();
+        Member member = Member.createMember(
+                socialMemberProfile.getSocialId(),
+                socialMemberProfile.getProvider(),
+                socialMemberProfile.getNickname(),
+                socialMemberProfile.getProfileImageUrl(),
+                memberName,
+                setting,
+                socialToken
+        );
+        return memberRepository.save(member);
+    }
 
-            SocialMemberProfile memberProfile = socialMemberProfile.get();
-            SocialToken initialSocialToken = SocialToken.createSocialToken(
-                    memberProfile.getAccessToken(),
-                    memberProfile.getRefreshToken()
-            );
-            SocialToken persistedSocialToken = memberToAuthAdapter.saveSocialToken(initialSocialToken);
-
-            Setting setting = Setting.createSetting();
-            Member member = Member.createMember(
-                    memberProfile.getSocialId(),
-                    memberProfile.getProvider(),
-                    memberProfile.getNickname(),
-                    memberProfile.getProfileImageUrl(),
-                    memberName,
-                    setting,
-                    persistedSocialToken
-            );
-
-            Member persistedMember = memberRepository.save(member);
-
-            AuthToken initialAuthToken = AuthToken.createToken("", persistedMember);
-            AuthToken persistedAuthToken = memberToAuthAdapter.saveAuthToken(initialAuthToken);
-
-            CustomUserDetails userDetails = CustomUserDetails.ofExisting(persistedMember, persistedAuthToken.getId());
-            String accessToken = memberToJwtAdapter.generateAccessToken(userDetails);
-            String refreshToken = memberToJwtAdapter.generateRefreshToken(userDetails);
-            eventPublisher.publishEvent(new MemberTokenUpdateEvent(persistedAuthToken.getId(), refreshToken));
-            redisMemberDataAdapter.removeTempData(uuid);
-            return new AuthTokens(accessToken, refreshToken);
-        } catch (DataIntegrityViolationException e) {
-            throw new CustomException(ErrorCode.MEMBER_EXISTED_NICKNAME, e);
-        }
+    private String generateUniqueTempName() {
+        String name;
+        do {
+            String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 6);
+            name = "냥_" + suffix;
+        } while (memberRepository.existsByMemberName(name));
+        return name;
     }
 }

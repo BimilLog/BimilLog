@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -83,20 +82,5 @@ public class CommentQueryService {
         Page<MemberActivityComment.SimpleCommentInfo> writeComments = commentQueryRepository.findCommentsByMemberId(memberId, pageable);
         Page<MemberActivityComment.SimpleCommentInfo> likedComments = commentQueryRepository.findLikedCommentsByMemberId(memberId, pageable);
         return new MemberActivityComment(writeComments, likedComments);
-    }
-
-    /**
-     * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
-     * <p>여러 게시글의 댓글 수를 배치로 조회합니다.</p>
-     * <p>게시글 ID 목록을 한 번에 처리하여 각 게시글별 댓글 수를 반환합니다.</p>
-     * <p>{@link PostToCommentAdapter}에서 게시글별 댓글 수 배치 조회 시 호출됩니다.</p>
-     *
-     * @param postIds 게시글 ID 목록
-     * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
-        return commentQueryRepository.findCommentCountsByPostIds(postIds);
     }
 }

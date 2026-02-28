@@ -30,15 +30,4 @@ public class SocialTokenService {
         socialTokenRepository.deleteByMemberId(memberId);
     }
 
-    /**
-     * <h3>소셜 토큰 저장</h3>
-     * <p>새로운 소셜 토큰을 저장합니다.</p>
-     * <p>SocialTokenRepository를 통해 데이터베이스에 저장합니다.</p>
-     *
-     * @param socialToken 저장할 소셜 토큰 엔티티
-     * @return SocialToken 저장된 소셜 토큰 엔티티
-     */
-    public SocialToken save(SocialToken socialToken) {
-        return socialTokenRepository.save(socialToken);
-    }
 }

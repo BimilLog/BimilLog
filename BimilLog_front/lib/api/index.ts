@@ -53,9 +53,7 @@ export type {
 } from '@/types/common'
 
 export type {
-  AuthResponse,
   SocialLoginRequest,
-  SignUpRequest,
   LoginStatus
 } from '@/types/domains/auth'
 

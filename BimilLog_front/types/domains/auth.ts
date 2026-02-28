@@ -1,24 +1,10 @@
-// 카카오 OAuth 로그인 결과 상태
-// NEW_USER: 첫 로그인, 회원가입 필요 | EXISTING_USER: 기존 회원, 로그인 완료
-export type AuthStatus = "NEW_USER" | "EXISTING_USER";
-
-// 백엔드 AuthController에서 반환하는 응답 (문자열 직접 반환)
-export type AuthResponse = AuthStatus;
-
-// 지원하는 소셜 로그인 제공자 (현재는 KAKAO만 구현됨)
+// 지원하는 소셜 로그인 제공자
 export type SocialProvider = "KAKAO" | "GOOGLE" | "NAVER";
 
 export interface SocialLoginRequest {
   provider: SocialProvider;
   code: string;
   redirectUri?: string;
-}
-
-export interface SignUpRequest {
-  memberName: string;
-  marketingConsent?: boolean;
-  privacyConsent?: boolean;
-  // UUID는 HttpOnly 쿠키로 전달되어 요청 본문에 포함하지 않음
 }
 
 export interface LoginStatus {

@@ -1,7 +1,7 @@
 package jaeik.bimillog.testutil.builder;
 
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 
 import java.util.List;
 

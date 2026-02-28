@@ -94,7 +94,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers("/.well-known/**").permitAll() // TWA Digital Asset Links
                         .requestMatchers("/api/member/search", "/api/member/all").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/global/health", "/api/member/signup", "/api/global/client-error").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/global/health", "/api/global/client-error").permitAll()
                         .requestMatchers("/api/mypage").authenticated()
                         .requestMatchers("/api/comment/like").authenticated()
                         .requestMatchers("/api/comment/**").permitAll()

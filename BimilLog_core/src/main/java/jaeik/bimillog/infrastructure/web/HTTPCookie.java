@@ -19,29 +19,8 @@ import java.util.List;
 public class HTTPCookie {
     public static final String ACCESS_TOKEN_COOKIE = "jwt_access_token";
     public static final String REFRESH_TOKEN_COOKIE = "jwt_refresh_token";
-    public static final String TEMP_USER_ID_COOKIE = "temp_user_id";
     public static final boolean SECURE = true;
     private static final int MAX_AGE = 3600;
-
-    /**
-     * <h3>임시 사용자 ID 쿠키 생성</h3>
-     *
-     * <p>신규 회원가입 시 사용자의 임시 UUID를 담는 쿠키를 생성합니다.</p>
-     *
-     * @param uuid 임시 사용자 UUID
-     * @return 임시 사용자 ID 쿠키
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public ResponseCookie createTempCookie(String uuid) {
-        return ResponseCookie.from(TEMP_USER_ID_COOKIE, uuid)
-                .path("/")
-                .maxAge(600) // 10분
-                .httpOnly(true)
-                .sameSite("Lax")
-                .secure(SECURE)
-                .build();
-    }
 
     /**
      * <h3>JWT 토큰 쿠키 생성</h3>
@@ -125,19 +104,4 @@ public class HTTPCookie {
                 .build();
     }
 
-    /**
-     * <h3>임시 사용자 ID 쿠키 만료</h3>
-     * <p>temp_user_id 쿠키를 즉시 만료시키는 ResponseCookie를 생성합니다.</p>
-     *
-     * @return 만료 처리된 임시 쿠키 ResponseCookie
-     */
-    public ResponseCookie expireTempCookie() {
-        return ResponseCookie.from(TEMP_USER_ID_COOKIE, "")
-                .path("/")
-                .maxAge(0)
-                .httpOnly(true)
-                .sameSite("Lax")
-                .secure(SECURE)
-                .build();
-    }
 }

@@ -276,32 +276,6 @@ public class CommentQueryRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
-
-
-    /**
-     * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
-     * <p>여러 게시글의 댓글 수를 배치로 조회합니다.</p>
-     *
-     * @param postIds 게시글 ID 목록
-     * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
-        List<Tuple> results = jpaQueryFactory
-                .select(comment.post.id, comment.count())
-                .from(comment)
-                .where(comment.post.id.in(postIds))
-                .groupBy(comment.post.id)
-                .fetch();
-
-        return results.stream()
-                .collect(Collectors.toMap(
-                        tuple -> tuple.get(comment.post.id),
-                        tuple -> Objects.requireNonNull(tuple.get(comment.count())).intValue()
-                ));
-    }
-
     /**
      * <h3>루트 댓글 수 조회</h3>
      * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>

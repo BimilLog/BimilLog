@@ -9,7 +9,6 @@ vi.mock('@/lib/api', async () => {
     },
     authCommand: {
       logout: vi.fn(),
-      signUp: vi.fn(),
     },
     userCommand: {
       updateUserName: vi.fn(),

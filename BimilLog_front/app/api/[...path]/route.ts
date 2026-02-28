@@ -12,7 +12,7 @@ const getInternalApiUrl = () => {
 }
 
 // 전달할 쿠키 이름들
-const COOKIE_NAMES = ['jwt_access_token', 'jwt_refresh_token', 'XSRF-TOKEN', 'SCOUTER', 'temp_user_id']
+const COOKIE_NAMES = ['jwt_access_token', 'jwt_refresh_token', 'XSRF-TOKEN', 'SCOUTER']
 
 async function proxyRequest(request: NextRequest, method: string) {
   const url = new URL(request.url)

@@ -26,7 +26,7 @@ interface ReportData {
 
 async function getAuthHeaders() {
   const cookieStore = await cookies()
-  const cookieNames = ['jwt_access_token', 'jwt_refresh_token', 'XSRF-TOKEN', 'SCOUTER', 'temp_user_id']
+  const cookieNames = ['jwt_access_token', 'jwt_refresh_token', 'XSRF-TOKEN', 'SCOUTER']
   const cookieParts: string[] = []
 
   for (const name of cookieNames) {

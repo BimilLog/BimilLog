@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.auth.adapter;
 
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -35,6 +36,10 @@ public class AuthToMemberAdapter {
      */
     public Member handleExistingMember(Member member, String newNickname, String newProfileImage, SocialToken savedSocialToken) {
         return memberOnboardingService.syncExistingMember(member, newNickname, newProfileImage, savedSocialToken);
+    }
+
+    public Member handleNewMember(SocialMemberProfile socialMemberProfile, SocialToken socialToken) {
+        return memberOnboardingService.signup(socialMemberProfile, socialToken);
     }
 
     /**

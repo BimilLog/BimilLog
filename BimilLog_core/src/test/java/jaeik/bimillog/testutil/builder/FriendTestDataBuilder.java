@@ -2,7 +2,7 @@ package jaeik.bimillog.testutil.builder;
 
 import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 
 /**
  * Friend 도메인 테스트 데이터 빌더
