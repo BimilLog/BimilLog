@@ -7,9 +7,12 @@ import jaeik.bimillog.domain.friend.entity.jpa.QFriendship;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.entity.jpa.QPostLike;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <h2>친구 도메인 어드민 복구용 쿼리 레포지터리</h2>
@@ -22,6 +25,7 @@ import java.util.List;
  */
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class FriendAdminQueryRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
@@ -41,7 +45,7 @@ public class FriendAdminQueryRepository {
      * @param size    한 번에 조회할 최대 행 수
      */
     public List<long[]> getFriendshipPairsChunk(long afterId, int size) {
-        return jpaQueryFactory
+        List<long[]> list = jpaQueryFactory
                 .select(friendship.id, friendship.member.id, friendship.friend.id)
                 .from(friendship)
                 .where(friendship.id.gt(afterId))
@@ -55,7 +59,27 @@ public class FriendAdminQueryRepository {
                         t.get(friendship.friend.id)
                 })
                 .toList();
+        return list;
     }
+
+
+//    public Set<Long> getMemberFriend(Long memberId) {
+//        List<Long> memberAsMain = jpaQueryFactory
+//                .select(friendship.friend.id)
+//                .from(friendship)
+//                .where(friendship.member.id.eq(memberId))
+//                .fetch();
+//
+//        List<Long> memberAsFriend = jpaQueryFactory
+//                .select(friendship.member.id)
+//                .from(friendship)
+//                .where(friendship.friend.id.eq(memberId))
+//                .fetch();
+//
+//        Set<Long> mainSet = new HashSet<>(memberAsMain);
+//        mainSet.addAll(memberAsFriend);
+//        return mainSet;
+//    }
 
     /**
      * <h3>게시글 좋아요 상호작용 청크 조회</h3>
@@ -69,7 +93,7 @@ public class FriendAdminQueryRepository {
      * @param size         한 번에 조회할 최대 행 수
      */
     public List<long[]> getPostLikeInteractionsChunk(long afterDriveId, long afterJoinId, int size) {
-        return jpaQueryFactory
+        List<long[]> list = jpaQueryFactory
                 .select(post.id, postLike.id, postLike.member.id, post.member.id)
                 .from(post)
                 .join(postLike).on(postLike.post.eq(post))
@@ -91,6 +115,8 @@ public class FriendAdminQueryRepository {
                         t.get(post.member.id)
                 })
                 .toList();
+        log.info("DB 게시글 추천 조회 : {}이후 {}개 조회 완료", afterJoinId, size);
+        return list;
     }
 
     /**
@@ -105,7 +131,7 @@ public class FriendAdminQueryRepository {
      * @param size         한 번에 조회할 최대 행 수
      */
     public List<long[]> getCommentInteractionsChunk(long afterDriveId, long afterJoinId, int size) {
-        return jpaQueryFactory
+        List<long[]> list = jpaQueryFactory
                 .select(post.id, comment.id, comment.member.id, post.member.id)
                 .from(post)
                 .join(comment).on(comment.post.eq(post))
@@ -127,6 +153,8 @@ public class FriendAdminQueryRepository {
                         t.get(post.member.id)
                 })
                 .toList();
+        log.info("DB 댓글 조회 : {}이후 {}개 조회 완료", afterJoinId, size);
+        return list;
     }
 
     /**
@@ -141,7 +169,7 @@ public class FriendAdminQueryRepository {
      * @param size         한 번에 조회할 최대 행 수
      */
     public List<long[]> getCommentLikeInteractionsChunk(long afterDriveId, long afterJoinId, int size) {
-        return jpaQueryFactory
+        List<long[]> list = jpaQueryFactory
                 .select(comment.id, commentLike.id, commentLike.member.id, comment.member.id)
                 .from(comment)
                 .join(commentLike).on(commentLike.comment.eq(comment))
@@ -163,5 +191,7 @@ public class FriendAdminQueryRepository {
                         t.get(comment.member.id)
                 })
                 .toList();
+        log.info("DB 댓글 추천 조회 : {}이후 {}개 조회 완료", afterJoinId, size);
+        return list;
     }
 }

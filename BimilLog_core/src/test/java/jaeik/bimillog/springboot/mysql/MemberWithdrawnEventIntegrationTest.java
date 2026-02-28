@@ -1,4 +1,4 @@
-package jaeik.bimillog.springboot.mysql.member;
+package jaeik.bimillog.springboot.mysql;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;

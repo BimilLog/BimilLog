@@ -1,4 +1,4 @@
-package jaeik.bimillog.springboot.mysql.post;
+package jaeik.bimillog.springboot.mysql;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;

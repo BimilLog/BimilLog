@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.friend.service;
 import jaeik.bimillog.domain.friend.repository.FriendAdminQueryRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class FriendAdminService {
 
     private final FriendAdminQueryRepository friendAdminQueryRepository;
@@ -41,18 +43,21 @@ public class FriendAdminService {
         List<long[]> chunk;
 
         do {
+            log.info("DB 친구관계 요청");
             chunk = friendAdminQueryRepository.getFriendshipPairsChunk(afterId, PIPELINE_BATCH_SIZE);
+            log.info("DB 친구관계 조회 : {}이후 {}개 조회 완료", afterId, PIPELINE_BATCH_SIZE);
             if (!chunk.isEmpty()) {
                 // chunk 원소: [id, memberId, friendId] — Redis에는 [memberId, friendId]만 전달
                 List<long[]> pairs = chunk.stream()
                         .map(arr -> new long[]{arr[1], arr[2]})
                         .toList();
+                log.info("레디스 친구관계 삽입 시작");
                 redisFriendRestore.rebuildBatch(pairs);
+                log.info("레디스 친구 관계 삽입 1000개 완료");
                 afterId = chunk.getLast()[0];
                 totalPairs += chunk.size();
             }
         } while (chunk.size() == PIPELINE_BATCH_SIZE);
-
         return String.format("친구 관계 Redis 재구축 완료. 처리된 친구 쌍: %d개", totalPairs);
     }
 
@@ -67,12 +72,22 @@ public class FriendAdminService {
         redisFriendRestore.deleteAllInteractionKeys();
 
         long totalRows = 0L;
-        totalRows += streamInteractionToRedis(
-                (driveId, joinId) -> friendAdminQueryRepository.getPostLikeInteractionsChunk(driveId, joinId, PIPELINE_BATCH_SIZE));
-        totalRows += streamInteractionToRedis(
-                (driveId, joinId) -> friendAdminQueryRepository.getCommentInteractionsChunk(driveId, joinId, PIPELINE_BATCH_SIZE));
-        totalRows += streamInteractionToRedis(
-                (driveId, joinId) -> friendAdminQueryRepository.getCommentLikeInteractionsChunk(driveId, joinId, PIPELINE_BATCH_SIZE));
+
+        log.info("DB 게시글 추천 조회 요청");
+        BiFunction<Long, Long, List<long[]>> postLikeFetcher =
+                (driveId, joinId) -> friendAdminQueryRepository.getPostLikeInteractionsChunk(driveId, joinId, PIPELINE_BATCH_SIZE);
+
+        log.info("DB 댓글 조회 요청");
+        BiFunction<Long, Long, List<long[]>> commentFetcher =
+                (driveId, joinId) -> friendAdminQueryRepository.getCommentInteractionsChunk(driveId, joinId, PIPELINE_BATCH_SIZE);
+
+        log.info("DB 댓글 추천 조회 요청");
+        BiFunction<Long, Long, List<long[]>> commentLikeFetcher =
+                (driveId, joinId) -> friendAdminQueryRepository.getCommentLikeInteractionsChunk(driveId, joinId, PIPELINE_BATCH_SIZE);
+
+        totalRows += streamInteractionToRedis(postLikeFetcher);
+        totalRows += streamInteractionToRedis(commentFetcher);
+        totalRows += streamInteractionToRedis(commentLikeFetcher);
 
         return String.format("상호작용 점수 Redis 재구축 완료. 처리된 행: %d개", totalRows);
     }
@@ -94,7 +109,9 @@ public class FriendAdminService {
         do {
             chunk = fetcher.apply(afterDriveId, afterJoinId);
             if (!chunk.isEmpty()) {
+                log.info("레디스 상호관계점수 삽입 시작");
                 redisFriendRestore.incrementInteractionBatch(chunk);
+                log.info("레디스 상호관계점수 삽입 1000개 완료");
                 long[] last = chunk.getLast();
                 afterDriveId = last[0];
                 afterJoinId = last[1];
