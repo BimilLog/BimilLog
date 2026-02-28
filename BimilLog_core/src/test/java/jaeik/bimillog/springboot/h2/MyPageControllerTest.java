@@ -28,7 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>H2 데이터베이스를 사용하여 실제 HTTP 요청/응답 검증</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("MyPageController 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

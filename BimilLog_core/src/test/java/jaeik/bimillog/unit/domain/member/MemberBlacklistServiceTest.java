@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.member.service.MemberBlacklistService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -28,6 +28,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
+/**
+ * MemberBlacklistService 단위 테스트
+ * <p>회원 차단 목록(블랙리스트) 삭제, 차단 여부 확인 등의 비즈니스 로직을 검증합니다.</p>
+ * <p>블랙리스트 미존재 예외, 소유자 권한 검증, 양방향 차단 감지 시나리오를 포함합니다.</p>
+ */
 @DisplayName("MemberBlacklistService 테스트")
 @Tag("unit")
 class MemberBlacklistServiceTest extends BaseUnitTest {

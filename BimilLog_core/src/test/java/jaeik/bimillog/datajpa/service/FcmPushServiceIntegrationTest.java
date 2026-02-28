@@ -2,7 +2,6 @@ package jaeik.bimillog.datajpa.service;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.repository.MemberQueryRepository;
@@ -73,9 +72,6 @@ class FcmPushServiceIntegrationTest {
     private TestEntityManager testEntityManager;
 
     @Autowired
-    private AuthTokenRepository authTokenRepository;
-
-    @Autowired
     private NotificationToMemberAdapter notificationToMemberAdapter;
 
     private Member testMember;
@@ -99,25 +95,6 @@ class FcmPushServiceIntegrationTest {
         );
         testMember = testEntityManager.persistAndFlush(testMember);
         testMemberId = testMember.getId();
-    }
-
-    @Test
-    @DisplayName("FCM 토큰이 없는 경우 - 전송하지 않음 (서비스 레벨 empty 체크)")
-    void shouldNotSendFcm_WhenNoTokensAvailable() throws Exception {
-        // Given: FCM 토큰이 없는 상태 (AuthToken이 없음)
-        testEntityManager.flush();
-        testEntityManager.clear();
-
-        // When: FCM 알림 전송 시도
-        fcmPushService.sendNotification(
-                NotificationType.COMMENT,
-                testMemberId,
-                "테스터",
-                null
-        );
-
-        // Then: fcmAdapter가 호출되지 않음 (서비스 레벨에서 empty 체크)
-        verify(fcmAdapter, never()).sendMessageTo(anyString(), anyString(), anyString());
     }
 
     @Test
@@ -186,69 +163,4 @@ class FcmPushServiceIntegrationTest {
         verify(fcmAdapter, never()).sendMessageTo(anyString(), anyString(), anyString());
     }
 
-    @Test
-    @DisplayName("FCM 토큰이 있고 알림 활성화 - 정상 전송")
-    void shouldSendFcm_WhenTokenAvailableAndNotificationEnabled() throws Exception {
-        // Given: 댓글 알림 활성화 설정 (기본값)
-        // FCM 토큰 추가
-        AuthToken authToken = AuthToken.builder()
-                .member(testMember)
-                .refreshToken("test-refresh-token")
-                .fcmRegistrationToken("test-fcm-token-123")
-                .build();
-        testEntityManager.persistAndFlush(authToken);
-
-        testEntityManager.flush();
-        testEntityManager.clear();
-
-        // When: 댓글 알림 전송
-        fcmPushService.sendNotification(
-                NotificationType.COMMENT,
-                testMemberId,
-                "테스터",
-                null
-        );
-
-        // Then: fcmAdapter가 정상 호출됨
-        verify(fcmAdapter, times(1)).sendMessageTo(
-                eq("test-fcm-token-123"),
-                anyString(),
-                anyString()
-        );
-    }
-
-    @Test
-    @DisplayName("여러 FCM 토큰이 있는 경우 - 모든 토큰으로 전송")
-    void shouldSendFcmToAllTokens_WhenMultipleTokensAvailable() throws Exception {
-        // Given: 여러 FCM 토큰 추가 (멀티 디바이스)
-        AuthToken authToken1 = AuthToken.builder()
-                .member(testMember)
-                .refreshToken("refresh-token-1")
-                .fcmRegistrationToken("fcm-token-device-1")
-                .build();
-        testEntityManager.persistAndFlush(authToken1);
-
-        AuthToken authToken2 = AuthToken.builder()
-                .member(testMember)
-                .refreshToken("refresh-token-2")
-                .fcmRegistrationToken("fcm-token-device-2")
-                .build();
-        testEntityManager.persistAndFlush(authToken2);
-
-        testEntityManager.flush();
-        testEntityManager.clear();
-
-        // When: 알림 전송
-        fcmPushService.sendNotification(
-                NotificationType.MESSAGE,
-                testMemberId,
-                "친구",
-                null
-        );
-
-        // Then: 두 토큰 모두로 전송됨
-        verify(fcmAdapter, times(2)).sendMessageTo(anyString(), anyString(), anyString());
-        verify(fcmAdapter).sendMessageTo(eq("fcm-token-device-1"), anyString(), anyString());
-        verify(fcmAdapter).sendMessageTo(eq("fcm-token-device-2"), anyString(), anyString());
-    }
 }

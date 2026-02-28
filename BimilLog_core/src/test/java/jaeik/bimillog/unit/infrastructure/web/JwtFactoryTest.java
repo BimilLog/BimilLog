@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>JWT 생성과 파싱, 해시 생성 로직을 검증한다.</p>
  */
 @Tag("unit")
+@DisplayName("JwtFactory 단위 테스트")
 class JwtFactoryTest {
 
     private static final String RAW_SECRET = "0123456789abcdef0123456789abcdef";

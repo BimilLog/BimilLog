@@ -23,9 +23,12 @@ import static org.mockito.Mockito.*;
 
 /**
  * <h2>FcmPushService 단위 테스트</h2>
- * <p>FCM 알림 전송 위임 로직을 검증합니다.</p>
+ * <p>FCM 푸시 알림 전송 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
+ * <p>FCM 토큰 조회, 알림 메시지 구성, 전송 위임 및 예외 처리 흐름을 검증합니다.</p>
+ * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayName("FcmPushService 단위 테스트")
 @Tag("unit")
 class FcmPushServiceTest {
 

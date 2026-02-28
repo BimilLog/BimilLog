@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,6 @@ import static org.mockito.Mockito.*;
  * <p>롤링페이퍼 명령 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("PaperCommandService 테스트")
 @Tag("unit")

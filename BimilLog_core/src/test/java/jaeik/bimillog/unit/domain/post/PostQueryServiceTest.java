@@ -14,6 +14,7 @@ import jaeik.bimillog.infrastructure.redis.post.RedisPostListQueryAdapter;
 
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,6 @@ import static org.mockito.Mockito.*;
  * <p>모든 상세 조회는 DB에서 직접 수행</p>
  *
  * @author Jaeik
- * @version 3.1.0
  */
 @DisplayName("PostQueryService 테스트")
 @Tag("unit")
@@ -179,9 +179,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long memberId = 100L;
 
         List<PostSimpleDetail> cached = List.of(
-                PostTestDataBuilder.createPostSearchResultWithMemberId(1L, "게시글1", 1L),
-                PostTestDataBuilder.createPostSearchResultWithMemberId(2L, "블랙게시글", 2L),
-                PostTestDataBuilder.createPostSearchResultWithMemberId(3L, "게시글3", 3L)
+                postResult(1L, "게시글1", 1L),
+                postResult(2L, "블랙게시글", 2L),
+                postResult(3L, "게시글3", 3L)
         );
 
         given(redisPostListQueryAdapter.getAll(RedisKey.FIRST_PAGE_JSON_KEY)).willReturn(cached);
@@ -317,6 +317,19 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.getWritePosts().getContent()).hasSize(1);
 
         verify(postQueryRepository).selectPostSimpleDetails(any(), eq(pageable), any());
+    }
+
+    private static PostSimpleDetail postResult(Long id, String title, Long memberId) {
+        return PostSimpleDetail.builder()
+                .id(id)
+                .title(title)
+                .viewCount(0)
+                .likeCount(0)
+                .memberId(memberId)
+                .memberName("작성자" + memberId)
+                .commentCount(0)
+                .createdAt(Instant.now())
+                .build();
     }
 
     @Test

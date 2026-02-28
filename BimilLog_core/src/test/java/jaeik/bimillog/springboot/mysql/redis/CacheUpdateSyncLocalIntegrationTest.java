@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * <h2>CacheUpdateSync 로컬 통합 테스트</h2>
  * <p>실제 Redis에서 글 작성/수정/삭제 시 JSON LIST 캐시가 올바르게 갱신되는지 검증합니다.</p>
- * <p>실행 전 MySQL(bimillogTest) + Redis(6379) 필요</p>
+ * <p>실행 전 Redis(6379) 필요 (MySQL 연결은 SpringBootTest 컨텍스트에 의해 요구됨)</p>
  */
 @DisplayName("CacheUpdateSync 로컬 통합 테스트")
 @SpringBootTest

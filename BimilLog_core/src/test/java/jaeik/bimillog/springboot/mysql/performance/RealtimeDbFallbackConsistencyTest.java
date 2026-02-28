@@ -11,7 +11,7 @@
 //import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 //import jaeik.bimillog.testutil.RedisTestHelper;
 //import jaeik.bimillog.testutil.TestMembers;
-//import jaeik.bimillog.testutil.fixtures.TestFixtures;
+//import jaeik.bimillog.testutil.TestFixtures;
 //import jakarta.persistence.EntityManager;
 //import jakarta.persistence.PersistenceContext;
 //import org.junit.jupiter.api.BeforeEach;

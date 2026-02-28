@@ -22,11 +22,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * <h2>알림 컨트롤러 통합 테스트</h2>
- * <p>@SpringBootTest + H2 인메모리 데이터베이스 환경에서 알림 조회 API를 검증합니다.</p>
+ * <h2>알림 Query 컨트롤러 통합 테스트</h2>
+ * <p>@SpringBootTest + H2 인메모리 데이터베이스 환경에서 알림 목록 조회 API를 검증합니다.</p>
  *
  * @author Jaeik
- * @since 2.0.0
  */
 @DisplayName("알림 Query 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

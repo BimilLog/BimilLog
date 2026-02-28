@@ -5,11 +5,9 @@ import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
@@ -22,6 +20,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.List;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -166,7 +166,7 @@ public abstract class BaseIntegrationTest {
      * Member의 연관 엔티티(Setting, SocialToken)만 먼저 persist (Member는 제외)
      * Member는 이후 memberRepository.save()로 저장됩니다.
      */
-    private void persistMemberDependencies(Member member) {
+    protected void persistMemberDependencies(Member member) {
         if (member.getSetting() != null) {
             entityManagerDelegate.persist(member.getSetting());
         }
@@ -187,17 +187,6 @@ public abstract class BaseIntegrationTest {
         return memberRepository.save(member);
     }
 
-    /**
-     * 여러 Member를 안전하게 저장하는 헬퍼 메서드
-     * 각 Member의 연관 엔티티(Setting, SocialToken)를 자동으로 persist한 후 Member들을 저장
-     *
-     * @param members 저장할 Member 엔티티들
-     * @return 저장된 Member 엔티티들
-     */
-    protected java.util.List<Member> saveMembers(java.util.List<Member> members) {
-        members.forEach(this::persistMemberDependencies);
-        return memberRepository.saveAll(members);
-    }
 
     /**
      * 하위 클래스에서 추가 설정이 필요한 경우 오버라이드

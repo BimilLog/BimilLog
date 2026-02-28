@@ -29,7 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>BFF 방식으로 인기 댓글 + 일반 댓글을 통합 조회</p>
  *
  * @author Jaeik
- * @version 2.7.0
  */
 @DisplayName("댓글 Query 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

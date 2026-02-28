@@ -29,21 +29,6 @@ public class CommentTestDataBuilder {
     }
 
     /**
-     * <h3>테스트용 댓글 요청 DTO 생성</h3>
-     * <p>API 호출에 사용할 댓글 요청 DTO를 생성합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param content 댓글 내용
-     * @return CommentReqDTO 테스트용 댓글 요청 DTO
-     */
-    public static CommentReqDTO createCommentReqDTO(Long postId, String content) {
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setPostId(postId);
-        requestDto.setContent(content);
-        return requestDto;
-    }
-
-    /**
      * <h3>테스트용 댓글 삭제 요청 DTO 생성</h3>
      * <p>댓글 삭제에 사용할 요청 DTO를 생성합니다.</p>
      *
@@ -56,17 +41,4 @@ public class CommentTestDataBuilder {
         return requestDto;
     }
 
-    /**
-     * <h3>테스트용 익명 댓글 삭제 요청 DTO 생성</h3>
-     * <p>비밀번호가 필요한 익명 댓글 삭제 요청 DTO를 생성합니다.</p>
-     *
-     * @param commentId 삭제할 댓글 ID
-     * @param password 댓글 비밀번호
-     * @return CommentReqDTO 테스트용 익명 댓글 삭제 요청 DTO
-     */
-    public static CommentReqDTO createAnonymousDeleteCommentReqDTO(Long commentId, Integer password) {
-        CommentReqDTO requestDto = createDeleteCommentReqDTO(commentId);
-        requestDto.setPassword(password);
-        return requestDto;
-    }
 }

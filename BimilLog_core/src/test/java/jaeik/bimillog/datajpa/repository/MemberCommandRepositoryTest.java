@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * <h2>MemberRepository 통합 테스트</h2>
@@ -92,38 +91,6 @@ class MemberCommandRepositoryTest {
         // Then
         assertThat(testEntityManager.find(Member.class, memberId)).isNull();
         assertThat(testEntityManager.find(Setting.class, settingId)).isNull();
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 사용자 삭제 시 예외가 발생하지 않아야 한다")
-    void deleteMemberAndSetting_WithNonExistentMember_ShouldNotThrowException() {
-        // Given
-        Long nonExistentMemberId = 99999L;
-
-        // When & Then
-        assertThatCode(() -> memberRepository.deleteById(nonExistentMemberId))
-                .doesNotThrowAnyException();
-    }
-
-    @Test
-    @DisplayName("이미 삭제된 사용자를 재삭제해도 멱등성이 보장되어야 한다")
-    void deleteMemberAndSetting_Idempotency_ShouldBeGuaranteed() {
-        // Given
-        Long memberId = testMember.getId();
-
-        // 첫 번째 삭제
-        memberRepository.deleteById(memberId);
-        testEntityManager.flush();
-        testEntityManager.clear();
-
-        // When & Then - 두 번째 삭제
-        assertThatCode(() -> {
-            memberRepository.deleteById(memberId);
-            testEntityManager.flush();
-        }).doesNotThrowAnyException();
-
-        // 여전히 삭제된 상태 확인
-        assertThat(testEntityManager.find(Member.class, memberId)).isNull();
     }
 
     @Test

@@ -29,10 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * <h2>게시글 Cache 컨트롤러 통합 테스트</h2>
- * <p>TestContainers 환경(MySQL + Redis)에서 캐시 기반 API를 검증합니다.</p>
+ * <p>H2 인메모리 데이터베이스 환경에서 실시간/주간/레전드/공지사항 캐시 기반 API를 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("게시글 Cache 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -60,7 +59,8 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
         for (int i = 0; i < 200; i++) {
             members.add(TestMembers.withSocialId("like_user_" + i));
         }
-        return saveMembers(members);
+        members.forEach(this::persistMemberDependencies);
+        return memberRepository.saveAll(members);
     }
 
     private void createTestPosts() {

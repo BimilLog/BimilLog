@@ -45,7 +45,6 @@ import static org.mockito.Mockito.*;
  * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("AdminCommandService 단위 테스트")
 @Tag("unit")

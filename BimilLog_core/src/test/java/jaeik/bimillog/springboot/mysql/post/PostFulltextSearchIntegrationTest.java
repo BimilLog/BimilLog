@@ -24,13 +24,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 
 /**
  * <h2>MySQL FULLTEXT 전문 검색 통합 테스트</h2>
@@ -54,9 +50,6 @@ class PostFulltextSearchIntegrationTest {
     private EntityManager entityManager;
 
     @MockitoBean
-    private PostToCommentAdapter postToCommentAdapter;
-
-    @MockitoBean
     private PostToMemberAdapter postToMemberAdapter;
 
     private Member testMember;
@@ -76,14 +69,6 @@ class PostFulltextSearchIntegrationTest {
 
         createTestPosts();
 
-        Map<Long, Integer> commentCounts = new HashMap<>();
-        commentCounts.put(koreanPost1.getId(), 2);
-        commentCounts.put(koreanPost2.getId(), 1);
-        commentCounts.put(koreanPost3.getId(), 0);
-        commentCounts.put(englishPost.getId(), 1);
-
-        given(postToCommentAdapter.findCommentCountsByPostIds(any(List.class)))
-                .willReturn(commentCounts);
     }
 
     private void createTestPosts() {

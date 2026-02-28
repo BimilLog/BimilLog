@@ -1,7 +1,6 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.entity.Setting;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,7 +24,6 @@ import static org.mockito.Mockito.mock;
  * <ul>
  *   <li>MockitoExtension 자동 적용</li>
  *   <li>공통 테스트 회원 (testMember, otherMember) - lazy 초기화</li>
- *   <li>공통 테스트 설정 (defaultSetting, customSetting) - lazy 초기화</li>
  *   <li>필요한 데이터만 생성하여 테스트 성능 향상</li>
  * </ul>
  *
@@ -38,7 +36,6 @@ public abstract class BaseUnitTest {
     // Lazy 초기화를 위한 필드들 (실제 사용 시점에 초기화)
     private Member cachedTestMember;
     private Member cachedOtherMember;
-    private Setting cachedDefaultSetting;
 
     /**
      * 기본 테스트 회원 획득 (일반 권한)
@@ -63,17 +60,6 @@ public abstract class BaseUnitTest {
     }
 
     /**
-     * 기본 설정 객체 획득 (모든 알림 활성화)
-     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
-     */
-    protected Setting getDefaultSetting() {
-        if (cachedDefaultSetting == null) {
-            cachedDefaultSetting = TestMembers.createAllEnabledSetting();
-        }
-        return cachedDefaultSetting;
-    }
-
-    /**
      * ID가 포함된 테스트 회원 생성 헬퍼 메서드
      * @param memberId 회원 ID
      * @return ID가 설정된 테스트 회원
@@ -82,50 +68,4 @@ public abstract class BaseUnitTest {
         return TestMembers.copyWithId(getTestMember(), memberId);
     }
 
-    /**
-     * 커스텀 설정 생성 헬퍼 메서드
-     * @param messageNotification 메시지 알림 활성화 여부
-     * @param commentNotification 댓글 알림 활성화 여부
-     * @param postFeaturedNotification 게시글 추천 알림 활성화 여부
-     * @return 커스터마이징된 설정 객체
-     */
-    protected Setting createCustomSetting(boolean messageNotification,
-                                         boolean commentNotification,
-                                         boolean postFeaturedNotification) {
-        return TestMembers.createSetting(messageNotification, commentNotification, postFeaturedNotification);
-    }
-
-    /**
-     * ID가 포함된 설정 생성 헬퍼 메서드
-     * @param setting 원본 설정
-     * @param settingId 설정 ID
-     * @return ID가 설정된 설정 객체
-     */
-    protected Setting createSettingWithId(Setting setting, Long settingId) {
-        return Setting.builder()
-                .id(settingId)
-                .messageNotification(setting.isMessageNotification())
-                .commentNotification(setting.isCommentNotification())
-                .postFeaturedNotification(setting.isPostFeaturedNotification())
-                .build();
-    }
-
-    // ==================== SecurityContext Mock 헬퍼 메서드 ====================
-
-    /**
-     * 익명 회원으로 SecurityContext를 Mock 설정
-     * <p>인증되지 않은 회원 테스트 시 사용</p>
-     * @param mockedSecurityContext MockedStatic SecurityContextHolder
-     */
-    protected void mockAnonymousAuthentication(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
-        SecurityContext securityContext = mock(SecurityContext.class);
-        Authentication authentication = new AnonymousAuthenticationToken(
-            "anonymous",
-            "anonymous",
-            List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))
-        );
-
-        mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-        given(securityContext.getAuthentication()).willReturn(authentication);
-    }
 }

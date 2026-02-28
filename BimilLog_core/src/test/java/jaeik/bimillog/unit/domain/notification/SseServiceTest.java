@@ -24,8 +24,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>SseService 테스트</h2>
- * <p>SSE 알림 서비스의 메시지 구성 및 포트 위임을 검증합니다.</p>
+ * <h2>SseService 단위 테스트</h2>
+ * <p>SSE 실시간 알림 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
+ * <p>SSE 구독, Emitter 삭제, 알림 메시지 구성 및 SseRepository 위임을 검증합니다.</p>
+ * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SseService 테스트")

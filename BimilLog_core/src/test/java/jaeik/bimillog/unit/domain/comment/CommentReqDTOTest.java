@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Bean Validation과 @AssertTrue 어노테이션 기반 검증 메서드들을 테스트</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("CommentReqDTO 단위 테스트")
 @Tag("unit")

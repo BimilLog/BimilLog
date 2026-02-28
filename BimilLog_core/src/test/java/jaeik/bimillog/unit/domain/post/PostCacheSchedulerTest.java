@@ -39,7 +39,6 @@ import static org.mockito.Mockito.*;
  * <p>DB 조회 → 플래그 업데이트 → JSON LIST 전체 교체 → 이벤트 발행 흐름을 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.7.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostCacheScheduler 테스트")

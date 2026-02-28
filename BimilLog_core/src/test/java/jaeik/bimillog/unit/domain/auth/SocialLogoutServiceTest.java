@@ -18,12 +18,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import static jaeik.bimillog.testutil.fixtures.AuthTestFixtures.TEST_PROVIDER;
+import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_PROVIDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
+/**
+ * SocialLogoutService 단위 테스트
+ * <p>회원 ID와 소셜 제공자를 통해 소셜 플랫폼 로그아웃을 처리하는 흐름을 검증합니다.</p>
+ * <p>회원 미존재 시 예외 발생, 소셜 전략 위임, 로그아웃 실패 시 예외 전파 등의 시나리오를 검증합니다.</p>
+ */
 @DisplayName("SocialLogoutService 단위 테스트")
 @MockitoSettings(strictness = Strictness.LENIENT)
 @Tag("unit")

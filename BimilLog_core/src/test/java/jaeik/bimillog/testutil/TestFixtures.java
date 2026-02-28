@@ -1,10 +1,8 @@
-package jaeik.bimillog.testutil.fixtures;
+package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.paper.dto.MessageDeleteDTO;
 import jaeik.bimillog.domain.paper.dto.MessageWriteDTO;
 import jaeik.bimillog.domain.paper.entity.DecoType;
-import jaeik.bimillog.domain.post.dto.PostCreateDTO;
 import jakarta.persistence.EntityManager;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -26,31 +24,6 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @version 2.0.0
  */
 public class TestFixtures {
-
-    /**
-     * 게시글 작성 요청 DTO 생성
-     * @param title 제목
-     * @param content 내용
-     * @return PostCreateDTO
-     */
-    public static PostCreateDTO createPostRequest(String title, String content) {
-        return PostCreateDTO.builder()
-                .title(title)
-                .content(content)
-                .password(1234)
-                .build();
-    }
-
-    /**
-     * 롤링페이퍼 메시지 삭제 요청 DTO 생성
-     * @param messageId 삭제할 메시지 ID
-     * @return MessageDeleteDTO
-     */
-    public static MessageDeleteDTO createMessageDeleteDTO(Long messageId) {
-        MessageDeleteDTO dto = new MessageDeleteDTO();
-        dto.setMessageId(messageId);
-        return dto;
-    }
 
     /**
      * 롤링페이퍼 메시지 작성 요청 DTO 생성

@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @since 2.0.0
  */
+@DisplayName("페이퍼 Query 컨트롤러 통합 테스트 (H2)")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Tag("springboot-h2")
 @ActiveProfiles("h2test")

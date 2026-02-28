@@ -17,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>도메인 규칙이 개입되는 핵심 동작만 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Message 엔티티 테스트")

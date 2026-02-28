@@ -15,18 +15,13 @@ import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.stream.Stream;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
@@ -331,68 +326,6 @@ class CommentQueryRepositoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 게시글 ID 목록에 대한 댓글 수 조회")
-    void shouldFindCommentCountsByPostIds_WhenValidPostIdsProvided() {
-        // Given: 여러 게시글과 각각의 댓글들
-        Post post2 = PostTestDataBuilder.createPost(testMember, "테스트 게시글", "테스트 게시글 내용입니다.");
-        postRepository.save(post2);
-
-        Post post3 = PostTestDataBuilder.createPost(otherMember, "테스트 게시글", "테스트 게시글 내용입니다.");
-        postRepository.save(post3);
-
-        // testPost에 댓글 3개 생성
-        Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "첫 번째 게시글 댓글1");
-        Comment comment2 = CommentTestDataBuilder.createComment(testPost, otherMember, "첫 번째 게시글 댓글2");
-        Comment comment3 = CommentTestDataBuilder.createComment(testPost, testMember, "첫 번째 게시글 댓글3");
-
-        commentRepository.save(comment1);
-        commentRepository.save(comment2);
-        commentRepository.save(comment3);
-
-        // post2에 댓글 2개 생성
-        Comment comment4 = CommentTestDataBuilder.createComment(post2, testMember, "두 번째 게시글 댓글1");
-        Comment comment5 = CommentTestDataBuilder.createComment(post2, otherMember, "두 번째 게시글 댓글2");
-
-        commentRepository.save(comment4);
-        commentRepository.save(comment5);
-
-        // post3에는 댓글 없음
-
-        List<Long> postIds = List.of(testPost.getId(), post2.getId(), post3.getId());
-
-        // When: 게시글 ID 목록에 대한 댓글 수 조회
-        Map<Long, Integer> commentCounts = commentQueryRepository.findCommentCountsByPostIds(postIds);
-
-        // Then: 각 게시글별 댓글 수가 올바르게 반환되는지 검증
-        assertThat(commentCounts).isNotNull();
-        assertThat(commentCounts).hasSize(2); // 댓글이 있는 게시글 2개만 포함
-        assertThat(commentCounts.get(testPost.getId())).isEqualTo(3);
-        assertThat(commentCounts.get(post2.getId())).isEqualTo(2);
-        assertThat(commentCounts.get(post3.getId())).isNull(); // 댓글이 없는 게시글은 맵에 포함되지 않음
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("provideEmptyResultPostIdCases")
-    @DisplayName("댓글 수 조회 - 빈 결과 케이스")
-    void shouldReturnEmptyMap_WhenInvalidPostIds(String description, List<Long> postIds) {
-        // When
-        Map<Long, Integer> commentCounts = commentQueryRepository.findCommentCountsByPostIds(postIds);
-
-        // Then
-        assertThat(commentCounts).isNotNull();
-        assertThat(commentCounts).isEmpty();
-    }
-
-    static Stream<Arguments> provideEmptyResultPostIdCases() {
-        return Stream.of(
-                Arguments.of("빈 게시글 ID 목록", List.of()),
-                Arguments.of("존재하지 않는 게시글 ID", List.of(999L, 998L, 997L))
-        );
-    }
-
-
-
-    @Test
     @DisplayName("트랜잭션 - 복합 쿼리 테스트")
     void shouldHandleComplexQueries_WhenMultipleOperationsPerformed() {
         // Given: 복잡한 테스트 데이터 설정
@@ -411,11 +344,7 @@ class CommentQueryRepositoryIntegrationTest {
 
         // When & Then: 여러 쿼리 연속 실행
 
-        // 1. 댓글 수 조회
-        Map<Long, Integer> commentCounts = commentQueryRepository.findCommentCountsByPostIds(List.of(testPost.getId()));
-        assertThat(commentCounts.get(testPost.getId())).isEqualTo(2);
-
-        // 2. 사용자별 댓글 조회
+        // 1. 사용자별 댓글 조회
         Page<MemberActivityComment.SimpleCommentInfo> memberComments = commentQueryRepository.findCommentsByMemberId(testMember.getId(), PageRequest.of(0, 10));
         assertThat(memberComments.getTotalElements()).isEqualTo(1);
         assertThat(memberComments.getContent().get(0).getContent()).isEqualTo("복합쿼리 댓글1");

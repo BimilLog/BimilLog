@@ -11,7 +11,7 @@ import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -35,10 +35,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * <h2>사용자 명령 컨트롤러 통합 테스트</h2>
  * <p>@SpringBootTest를 사용한 실제 Member Command API 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
+ * <p>H2 인메모리 데이터베이스를 사용하여 빠른 테스트 실행</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("사용자 명령 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

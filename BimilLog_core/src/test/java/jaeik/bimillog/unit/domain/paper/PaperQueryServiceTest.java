@@ -31,7 +31,6 @@ import static org.mockito.Mockito.*;
  * <p>롤링페이퍼 조회 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("PaperQueryService 테스트")
 @Tag("unit")

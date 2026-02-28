@@ -10,7 +10,7 @@ import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,6 @@ import static org.mockito.Mockito.verify;
  * <p>공지 해제: Post.isNotice false + JSON LIST에서 LREM</p>
  *
  * @author Jaeik
- * @version 4.0.0
  */
 @DisplayName("PostAdminService 테스트")
 @Tag("unit")

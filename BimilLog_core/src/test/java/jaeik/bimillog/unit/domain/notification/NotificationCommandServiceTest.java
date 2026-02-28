@@ -28,7 +28,6 @@ import static org.mockito.Mockito.*;
  * <p>알림 명령 서비스의 핵심 비즈니스 규칙을 검증하는 단위 테스트</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("NotificationCommandService 테스트")

@@ -21,6 +21,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+/**
+ * MemberProfileCommandService 단위 테스트
+ * <p>회원 설정 업데이트와 회원 이름 변경 비즈니스 로직을 검증합니다.</p>
+ * <p>회원이 존재할 때 정상 처리, 회원 미존재 시 예외 발생 시나리오를 포함합니다.</p>
+ */
 @DisplayName("회원 프로필 명령 서비스")
 @Tag("unit")
 class MemberProfileCommandServiceTest extends BaseUnitTest {

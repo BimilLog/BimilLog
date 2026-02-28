@@ -7,7 +7,7 @@ import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>H2 인메모리 데이터베이스를 사용한 실제 Auth Query API 통합 테스트</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("인증 조회 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

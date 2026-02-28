@@ -16,7 +16,7 @@ import org.mockito.Mock;
 
 import java.util.Map;
 
-import static jaeik.bimillog.testutil.fixtures.AuthTestFixtures.*;
+import static jaeik.bimillog.testutil.AuthTestFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;

@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>DTO 계층에서 수행하는 ID 검증, 중복 제거, 삭제 우선 정책을 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("UpdateNotificationDTO 테스트")
 @Tag("unit")

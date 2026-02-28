@@ -28,7 +28,6 @@ import static org.mockito.Mockito.verify;
  * <p>단순 위임 메서드들은 테스트에서 제외 (테스트 불필요 카테고리)</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("MemberQueryService 테스트")
 @Tag("unit")
@@ -51,7 +50,12 @@ class MemberQueryServiceTest extends BaseUnitTest {
     void shouldFindSetting_WhenValidSettingId() {
         // Given
         Long settingId = 1L;
-        Setting expectedSetting = createSettingWithId(createCustomSetting(true, false, true), settingId);
+        Setting expectedSetting = Setting.builder()
+                .id(settingId)
+                .messageNotification(true)
+                .commentNotification(false)
+                .postFeaturedNotification(true)
+                .build();
 
         given(settingRepository.findById(settingId)).willReturn(Optional.of(expectedSetting));
 

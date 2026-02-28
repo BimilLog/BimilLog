@@ -32,6 +32,12 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+/**
+ * MemberFriendService 단위 테스트 (카카오 친구 조회)
+ * <p>카카오 친구 목록 조회 및 비밀로그 회원 이름 매핑 비즈니스 로직을 검증합니다.</p>
+ * <p>친구 목록 매핑, 빈 목록 처리, 기본 페이징, 미지원 제공자 예외, 소셜 토큰 없음 예외, 동의 오류 변환 시나리오를 포함합니다.</p>
+ */
+@DisplayName("MemberFriendService 단위 테스트 (카카오 친구 조회)")
 @Tag("unit")
 class MemberKakaoFriendServiceTest extends BaseUnitTest {
 

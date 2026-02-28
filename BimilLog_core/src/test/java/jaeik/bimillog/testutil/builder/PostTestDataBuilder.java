@@ -3,7 +3,7 @@ package jaeik.bimillog.testutil.builder;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 
 import java.time.Instant;
 
@@ -49,22 +49,6 @@ public class PostTestDataBuilder {
                 .likeCount(0)
                 .memberId(1L)
                 .memberName("작성자")
-                .commentCount(0)
-                .createdAt(Instant.now())
-                .build();
-    }
-
-    /**
-     * PostSimpleDetail 생성 (memberId 지정)
-     */
-    public static PostSimpleDetail createPostSearchResultWithMemberId(Long id, String title, Long memberId) {
-        return PostSimpleDetail.builder()
-                .id(id)
-                .title(title)
-                .viewCount(0)
-                .likeCount(0)
-                .memberId(memberId)
-                .memberName("작성자" + memberId)
                 .commentCount(0)
                 .createdAt(Instant.now())
                 .build();

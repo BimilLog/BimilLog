@@ -28,7 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>공지 상태는 Post.isNotice 플래그로 관리됨</p>
  *
  * @author Jaeik
- * @version 2.7.0
  */
 @DisplayName("게시글 Admin 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

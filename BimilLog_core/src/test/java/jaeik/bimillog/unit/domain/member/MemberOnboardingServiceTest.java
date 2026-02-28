@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.domain.member.service.MemberOnboardingService;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

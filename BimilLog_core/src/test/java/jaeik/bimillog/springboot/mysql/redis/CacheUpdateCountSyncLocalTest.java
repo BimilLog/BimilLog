@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * <h2>CacheUpdateCountSync + CacheRealtimeSync 로컬 통합 테스트</h2>
  * <p>MySQL + Redis 환경에서 조회수 캐시 버퍼링과 실시간 점수 업데이트를 검증합니다.</p>
- * <p>실행 전 MySQL(bimillogTest) + Redis(6380) 필요</p>
+ * <p>실행 전 Redis(6379) 필요 (MySQL 연결은 SpringBootTest 컨텍스트에 의해 요구됨)</p>
  */
 @DisplayName("CacheUpdateCountSync + CacheRealtimeSync 로컬 통합 테스트")
 @SpringBootTest

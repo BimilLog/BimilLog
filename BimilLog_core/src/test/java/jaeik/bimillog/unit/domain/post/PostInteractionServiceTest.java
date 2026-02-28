@@ -38,7 +38,6 @@ import static org.mockito.Mockito.verify;
  * <p>추천/추천취소 등의 다양한 시나리오를 테스트합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("PostInteractionService 테스트")
 @Tag("unit")

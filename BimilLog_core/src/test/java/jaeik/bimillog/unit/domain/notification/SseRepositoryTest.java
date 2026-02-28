@@ -26,7 +26,6 @@ import static org.mockito.Mockito.*;
  * <p>리팩토링 후: DB 저장은 NotificationSaveListener에서 수행하므로, SSE 전송만 테스트</p>
  *
  * @author Jaeik
- * @version 2.0.0
  * @see SseRepository
  */
 @Tag("unit")

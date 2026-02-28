@@ -1,4 +1,4 @@
-package jaeik.bimillog.testutil.fixtures;
+package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -24,11 +24,6 @@ public final class AuthTestFixtures {
     }
 
     public static CustomUserDetails createCustomUserDetails(Member member, Long tokenId) {
-        return CustomUserDetails.ofExisting(member, tokenId != null ? tokenId : 1L);
-    }
-
-    // Backward compatibility: fcmTokenId parameter is ignored (no longer used)
-    public static CustomUserDetails createCustomUserDetails(Member member, Long tokenId, Long fcmTokenId) {
         return CustomUserDetails.ofExisting(member, tokenId != null ? tokenId : 1L);
     }
 

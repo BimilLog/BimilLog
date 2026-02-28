@@ -28,8 +28,11 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>FriendEventDlqScheduler 테스트</h2>
- * <p>DLQ 스케줄러의 재처리 로직을 검증합니다.</p>
+ * <h2>FriendEventDlqScheduler 단위 테스트</h2>
+ * <p>친구 이벤트 DLQ 재처리 스케줄러의 비즈니스 로직을 검증하는 단위 테스트</p>
+ * <p>Redis 상태 확인, PENDING 이벤트 일괄 파이프라인 처리, 파이프라인 실패 시 개별 재시도,
+ * 최대 재시도 초과 시 FAILED 처리 흐름을 검증합니다.</p>
+ * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
  */
 @DisplayName("FriendEventDlqScheduler 테스트")
 @Tag("unit")

@@ -15,7 +15,7 @@ import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -43,7 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>댓글 작성, 수정, 삭제, 추천 API 동작을 검증</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("댓글 Command 컨트롤러 통합 테스트 (H2)")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -93,8 +92,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("댓글 작성 통합 테스트 - 로그인 사용자")
     void writeComment_LoggedInUser_IntegrationTest() throws Exception {
         // Given
-        CommentReqDTO requestDto = CommentTestDataBuilder.createCommentReqDTO(
-                testPost.getId(), "통합 테스트용 댓글입니다.");
+        CommentReqDTO requestDto = commentReqDTO(testPost.getId(), "통합 테스트용 댓글입니다.");
 
         // When & Then
         performPost("/api/comment/write", requestDto, testUserDetails)
@@ -244,8 +242,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("댓글 작성 실패 - 잘못된 요청 데이터")
     void writeComment_InvalidRequest_IntegrationTest() throws Exception {
         // Given - 내용이 너무 긴 요청
-        CommentReqDTO requestDto = CommentTestDataBuilder.createCommentReqDTO(
-                testPost.getId(), "A".repeat(1001)); // 1000자 초과
+        CommentReqDTO requestDto = commentReqDTO(testPost.getId(), "A".repeat(1001)); // 1000자 초과
         
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
         
@@ -272,9 +269,8 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .findFirst()
                 .orElseThrow();
         
-        CommentReqDTO requestDto = CommentTestDataBuilder.createAnonymousDeleteCommentReqDTO(
-                anonymousComment.getId(), 1234);
-        
+        CommentReqDTO requestDto = anonymousDeleteCommentReqDTO(anonymousComment.getId(), 1234);
+
         // When & Then
         mockMvc.perform(post("/api/comment/delete")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -305,8 +301,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .findFirst()
                 .orElseThrow();
         
-        CommentReqDTO requestDto = CommentTestDataBuilder.createAnonymousDeleteCommentReqDTO(
-                anonymousComment.getId(), 9999); // 잘못된 패스워드
+        CommentReqDTO requestDto = anonymousDeleteCommentReqDTO(anonymousComment.getId(), 9999); // 잘못된 패스워드
         
         // When & Then
         mockMvc.perform(post("/api/comment/delete")
@@ -348,6 +343,19 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         // 댓글이 여전히 존재하는지 확인
         Optional<Comment> comment = commentRepository.findById(otherUserComment.getId());
         assertThat(comment).isPresent();
+    }
+
+    private CommentReqDTO commentReqDTO(Long postId, String content) {
+        CommentReqDTO requestDto = new CommentReqDTO();
+        requestDto.setPostId(postId);
+        requestDto.setContent(content);
+        return requestDto;
+    }
+
+    private CommentReqDTO anonymousDeleteCommentReqDTO(Long commentId, Integer password) {
+        CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(commentId);
+        requestDto.setPassword(password);
+        return requestDto;
     }
 
     private void flushAndClearPersistenceContext() {

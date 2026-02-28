@@ -10,7 +10,6 @@ import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -32,10 +31,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * <h2>게시글 Command 컨트롤러 통합 테스트</h2>
- * <p>Redis 동기화가 포함된 게시글 명령 API를 TestContainers 환경에서 검증합니다.</p>
+ * <p>H2 인메모리 데이터베이스 환경에서 게시글 작성, 수정, 삭제, 추천 명령 API를 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("게시글 Command 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -93,10 +91,11 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 작성 성공 - 비로그인 사용자 (익명 작성)")
     void writePost_Success_Anonymous() throws Exception {
-        PostCreateDTO postCreateDTO = TestFixtures.createPostRequest(
-                "익명 게시글",
-                "비로그인 사용자의 익명 게시글 작성"
-        );
+        PostCreateDTO postCreateDTO = PostCreateDTO.builder()
+                .title("익명 게시글")
+                .content("비로그인 사용자의 익명 게시글 작성")
+                .password(1234)
+                .build();
 
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)

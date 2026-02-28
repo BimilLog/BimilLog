@@ -10,7 +10,7 @@ import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>@SpringBootTest + H2 인메모리 데이터베이스 환경에서 사용자 조회 API를 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("사용자 조회 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -101,7 +100,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
         AuthToken authToken = AuthToken.createToken("test-refresh-TemporaryToken", savedMember);
         AuthToken savedAuthToken = authTokenRepository.save(authToken);
         
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedMember, savedAuthToken.getId(), null);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedMember, savedAuthToken.getId());
 
         // When & Then
         mockMvc.perform(get("/api/member/friendlist")
@@ -122,7 +121,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
 
         AuthToken authToken = AuthToken.createToken("test-refresh-TemporaryToken", savedMember);
         AuthToken savedAuthToken = authTokenRepository.save(authToken);
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedMember, savedAuthToken.getId(), null);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedMember, savedAuthToken.getId());
 
         TestSocialLoginAdapterConfig.setFriendConsentRequired(true);
         try {

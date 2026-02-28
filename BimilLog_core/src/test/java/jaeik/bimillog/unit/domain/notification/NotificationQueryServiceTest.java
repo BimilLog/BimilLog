@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.repository.NotificationRepository;
 import jaeik.bimillog.domain.notification.service.NotificationQueryService;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
  * <p>CLAUDE.md 가이드라인: 단순 위임이 아닌 null 처리 로직만 테스트</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("NotificationQueryService 테스트")
 @Tag("unit")

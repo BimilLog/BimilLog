@@ -25,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Bean Validation 어노테이션과 사용자 정의 검증 메서드를 검증</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("ReportDTO 검증 테스트")
 @Tag("unit")

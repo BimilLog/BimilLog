@@ -8,7 +8,7 @@ import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -31,10 +31,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * <h2>게시글 Query 컨트롤러 통합 테스트</h2>
- * <p>MySQL Full-Text + Redis 연동을 포함한 조회 API를 검증합니다.</p>
+ * <p>H2 인메모리 데이터베이스 환경에서 게시글 목록 조회, 상세 조회, 검색 API를 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("게시글 Query 컨트롤러 통합 테스트")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

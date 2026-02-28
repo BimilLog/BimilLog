@@ -9,7 +9,7 @@ import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @since 2.0.0
  */
+@DisplayName("페이퍼 Command 컨트롤러 통합 테스트 (H2)")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Tag("springboot-h2")
 @ActiveProfiles("h2test")
@@ -105,7 +106,8 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
                 testMember, "삭제될 메시지", 1, 1);
         Message savedMessage = paperRepository.save(message);
 
-        MessageDeleteDTO messageDeleteDTO = TestFixtures.createMessageDeleteDTO(savedMessage.getId());
+        MessageDeleteDTO messageDeleteDTO = new MessageDeleteDTO();
+        messageDeleteDTO.setMessageId(savedMessage.getId());
 
         // When & Then
         performPost("/api/paper/delete", messageDeleteDTO, testUserDetails)
@@ -118,7 +120,8 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("인증되지 않은 사용자의 메시지 삭제 - 실패 (500 Internal Server Error)")
     void deleteMessage_Unauthenticated_InternalServerError() throws Exception {
         // Given
-        MessageDeleteDTO messageDeleteDTO = TestFixtures.createMessageDeleteDTO(1L);
+        MessageDeleteDTO messageDeleteDTO = new MessageDeleteDTO();
+        messageDeleteDTO.setMessageId(1L);
 
         // When & Then
         performPost("/api/paper/delete", messageDeleteDTO)
@@ -130,7 +133,8 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("존재하지 않는 메시지 삭제 - 실패")
     void deleteMessage_NonExistentMessage_NotFound() throws Exception {
         // Given
-        MessageDeleteDTO messageDeleteDTO = TestFixtures.createMessageDeleteDTO(99999L);
+        MessageDeleteDTO messageDeleteDTO = new MessageDeleteDTO();
+        messageDeleteDTO.setMessageId(99999L);
 
         // When & Then
         performPost("/api/paper/delete", messageDeleteDTO, testUserDetails)

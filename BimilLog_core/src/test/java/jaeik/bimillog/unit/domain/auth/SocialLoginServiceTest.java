@@ -9,15 +9,15 @@ import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static jaeik.bimillog.testutil.fixtures.AuthTestFixtures.TEST_AUTH_CODE;
-import static jaeik.bimillog.testutil.fixtures.AuthTestFixtures.TEST_PROVIDER;
+import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_AUTH_CODE;
+import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_PROVIDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -28,7 +28,6 @@ import static org.mockito.Mockito.*;
  * <p>외부 OAuth 호출 및 트랜잭션 위임 흐름 검증</p>
  *
  * @author Jaeik
- * @version 2.1.0
  */
 @DisplayName("SocialLoginService 단위 테스트")
 @Tag("unit")

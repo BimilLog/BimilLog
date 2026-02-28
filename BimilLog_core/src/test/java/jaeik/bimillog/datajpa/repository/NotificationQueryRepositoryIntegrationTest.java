@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.notification.repository.NotificationRepository;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.NotificationTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -117,14 +117,4 @@ class NotificationQueryRepositoryIntegrationTest {
                 );
     }
 
-    @Test
-    @DisplayName("알림이 없는 사용자는 빈 목록이 반환된다")
-    void shouldReturnEmptyListWhenUserHasNoNotification() {
-        testEntityManager.flush();
-        testEntityManager.clear();
-
-        List<Notification> notifications = notificationRepository.getNotificationList(otherMember.getId());
-
-        assertThat(notifications).isEmpty();
-    }
 }

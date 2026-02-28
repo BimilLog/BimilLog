@@ -33,8 +33,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * <h2>NotificationSendListener 재시도 테스트</h2>
- * <p>DB 관련 예외 발생 시 재시도 로직이 정상 동작하는지 검증</p>
- * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
+ * <p>SSE/FCM 알림 전송 시 DB 예외 발생 시 재시도 로직이 정상 동작하는지 검증</p>
+ * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 SSE 및 FCM 알림 전송 재시도를 검증</p>
  */
 @DisplayName("NotificationSendListener 재시도 테스트")
 @SpringBootTest(classes = {NotificationSendListener.class, RetryConfig.class, AsyncConfig.class})

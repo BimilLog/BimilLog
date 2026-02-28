@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -38,7 +38,6 @@ import static org.mockito.Mockito.*;
  * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("FriendshipCommandService 단위 테스트")
 @Tag("unit")

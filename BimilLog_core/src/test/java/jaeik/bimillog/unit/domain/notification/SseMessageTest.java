@@ -17,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>SSE 메시지 값 객체의 생성과 기능을 검증하는 단위 테스트</p>
  *
  * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("SseMessage 도메인 값 객체 테스트")
 @Tag("unit")
