@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.friend.service;
 import jaeik.bimillog.domain.friend.repository.FriendAdminQueryRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class FriendAdminService {
 
     private final FriendAdminQueryRepository friendAdminQueryRepository;
@@ -52,7 +54,6 @@ public class FriendAdminService {
                 totalPairs += chunk.size();
             }
         } while (chunk.size() == PIPELINE_BATCH_SIZE);
-
         return String.format("친구 관계 Redis 재구축 완료. 처리된 친구 쌍: %d개", totalPairs);
     }
 

@@ -1,4 +1,4 @@
-package jaeik.bimillog.springboot.mysql.friend;
+package jaeik.bimillog.springboot.mysql;
 
 import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO;
 import jaeik.bimillog.domain.friend.service.FriendRecommendService;

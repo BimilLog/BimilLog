@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.redis.friend;
 
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
@@ -25,6 +26,7 @@ import static jaeik.bimillog.infrastructure.redis.RedisKey.createInteractionKey;
  */
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class RedisFriendRestore {
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -135,6 +137,7 @@ public class RedisFriendRestore {
             }
             return null;
         });
+        log.info("레디스 친구 관계 삽입 1000개 완료");
     }
 
     /**
@@ -161,6 +164,6 @@ public class RedisFriendRestore {
             }
             return null;
         });
+        log.info("레디스 친구 관계 삽입 1000개 완료");
     }
-
 }
