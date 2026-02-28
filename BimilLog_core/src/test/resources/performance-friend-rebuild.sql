@@ -291,30 +291,43 @@ SELECT 'Step 6: comment 삽입 시작...' AS progress;
 CALL insert_comments(@member_start, @post_start);
 SELECT 'Step 6: comment 삽입 완료' AS progress;
 
--- comment_start 캡처 (comment_like에서 사용)
-SET @comment_start = (SELECT MIN(comment_id) FROM comment WHERE member_id = @member_start);
-SELECT @comment_start AS comment_start;
+-- comment_like용 매핑 테이블 생성 (member_idx → 해당 member의 첫 번째 comment_id)
+-- auto_increment gap 때문에 산술 계산이 불가하므로 실제 데이터에서 조회
+DROP TABLE IF EXISTS member_first_comment;
+CREATE TABLE member_first_comment (
+    member_idx INT NOT NULL PRIMARY KEY,
+    first_comment_id BIGINT NOT NULL
+) ENGINE=InnoDB;
+
+INSERT INTO member_first_comment (member_idx, first_comment_id)
+SELECT m.member_id - @member_start AS member_idx, MIN(c.comment_id) AS first_comment_id
+FROM comment c
+JOIN member m ON c.member_id = m.member_id
+WHERE m.member_name LIKE 'PerfUser_%'
+  AND c.content = 'perf'
+GROUP BY m.member_id;
+COMMIT;
+
+SELECT 'member_first_comment 매핑 테이블 생성 완료' AS progress;
+SELECT COUNT(*) AS mapping_count FROM member_first_comment;
 
 -- =============================================================
 -- Step 7: comment_like 10,000,000 rows (저장 프로시저 배치 삽입)
 -- 로직: member i → 댓글 작성자 member k = (i + j + 500) % 100000, j in 1..100
---       해당 member k의 첫 번째 댓글: comment_start + k * 100
+--       해당 member k의 첫 번째 댓글: member_first_comment 매핑 테이블에서 조회
 -- =============================================================
 DROP PROCEDURE IF EXISTS insert_comment_likes;
 
 DELIMITER $$
-CREATE PROCEDURE insert_comment_likes(
-    IN p_member_start BIGINT,
-    IN p_comment_start BIGINT
-)
+CREATE PROCEDURE insert_comment_likes(IN p_member_start BIGINT)
 BEGIN
     DECLARE v_i INT DEFAULT 0;
     DECLARE v_j INT;
     DECLARE v_comment_author_idx INT;
+    DECLARE v_target_comment_id BIGINT;
     DECLARE v_batch_count INT DEFAULT 0;
     DECLARE v_member_count INT DEFAULT 100000;
     DECLARE v_comment_like_per_member INT DEFAULT 100;
-    DECLARE v_comment_per_member INT DEFAULT 100;
 
     DROP TEMPORARY TABLE IF EXISTS tmp_comment_like;
     CREATE TEMPORARY TABLE tmp_comment_like (
@@ -326,11 +339,16 @@ BEGIN
         SET v_j = 1;
         WHILE v_j <= v_comment_like_per_member DO
             SET v_comment_author_idx = (v_i + v_j + 500) % v_member_count;
-            INSERT INTO tmp_comment_like (member_id, comment_id)
-            VALUES (
-                p_member_start + v_i,
-                p_comment_start + CAST(v_comment_author_idx AS SIGNED) * v_comment_per_member
-            );
+
+            SELECT first_comment_id INTO v_target_comment_id
+            FROM member_first_comment
+            WHERE member_idx = v_comment_author_idx;
+
+            IF v_target_comment_id IS NOT NULL THEN
+                INSERT INTO tmp_comment_like (member_id, comment_id)
+                VALUES (p_member_start + v_i, v_target_comment_id);
+            END IF;
+
             SET v_batch_count = v_batch_count + 1;
 
             IF v_batch_count % 10000 = 0 THEN
@@ -343,6 +361,7 @@ BEGIN
                 END IF;
             END IF;
 
+            SET v_target_comment_id = NULL;
             SET v_j = v_j + 1;
         END WHILE;
         SET v_i = v_i + 1;
@@ -358,8 +377,11 @@ END$$
 DELIMITER ;
 
 SELECT 'Step 7: comment_like 삽입 시작...' AS progress;
-CALL insert_comment_likes(@member_start, @comment_start);
+CALL insert_comment_likes(@member_start);
 SELECT 'Step 7: comment_like 삽입 완료' AS progress;
+
+-- 매핑 테이블 정리
+DROP TABLE IF EXISTS member_first_comment;
 
 -- =============================================================
 -- 정리: FK/Unique 체크 복원 및 프로시저 삭제

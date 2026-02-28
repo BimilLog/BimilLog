@@ -47,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @Tag("datajpa-h2")
 @ActiveProfiles("h2test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(H2TestConfiguration.class)
+@Import({PostQueryRepository.class, H2TestConfiguration.class})
 class PopularPostQueryRepositoryIntegrationTest {
 
     @Autowired

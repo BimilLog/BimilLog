@@ -9,7 +9,7 @@ import java.time.Duration;
  * @version 2.7.0
  */
 public final class RedisKey {
-    public static final int PIPELINE_BATCH_SIZE = 500;
+    public static final int PIPELINE_BATCH_SIZE = 1000;
     public static final Double INTERACTION_SCORE_THRESHOLD = 0.2;
     public static final Double INTERACTION_SCORE_DEFAULT = 0.5;
     public static final Double INTERACTION_SCORE_LIMIT = 9.5;
