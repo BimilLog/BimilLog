@@ -137,7 +137,6 @@ public class RedisFriendRestore {
             }
             return null;
         });
-        log.info("레디스 친구 관계 삽입 1000개 완료");
     }
 
     /**
@@ -164,6 +163,5 @@ public class RedisFriendRestore {
             }
             return null;
         });
-        log.info("레디스 친구 관계 삽입 1000개 완료");
     }
 }

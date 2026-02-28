@@ -28,7 +28,6 @@ import java.util.List;
  * </pre>
  *
  * @author jaeik
- * @version 2.6.0
  */
 @DisplayName("친구 성능 테스트 Redis 초기화")
 @SpringBootTest(properties = {

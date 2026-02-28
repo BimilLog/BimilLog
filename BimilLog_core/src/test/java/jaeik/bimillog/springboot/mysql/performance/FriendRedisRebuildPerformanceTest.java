@@ -46,7 +46,7 @@ class FriendRedisRebuildPerformanceTest {
     // ─────────────────────────────────────────────────────────────
 
     @Test
-    @Order(1)
+    @Order(2)
     @DisplayName("[성능] friendship Redis 재구축 — friend:* Set")
     void measureFriendshipRebuildTime() {
         flushFriendRedisKeys();
@@ -69,7 +69,7 @@ class FriendRedisRebuildPerformanceTest {
     }
 
     @Test
-    @Order(2)
+    @Order(1)
     @DisplayName("[성능] interaction-score Redis 재구축 — interaction:* ZSet")
     void measureInteractionScoreRebuildTime() {
         flushInteractionRedisKeys();
