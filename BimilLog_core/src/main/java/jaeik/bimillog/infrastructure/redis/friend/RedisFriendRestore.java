@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
+import jaeik.bimillog.domain.friend.dto.FriendshipRebuildDTO;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static jaeik.bimillog.infrastructure.redis.RedisKey.*;
 import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
@@ -116,24 +118,18 @@ public class RedisFriendRestore {
     }
 
     /**
-     * <h3>친구 관계 청크 Redis 삽입</h3>
-     * <p>전달된 pairs를 파이프라인 한 번으로 양방향 SADD 처리합니다.</p>
-     * <p>스트리밍 재구축에서 DB 청크마다 호출됩니다.</p>
-     *
-     * @param pairs List of long[] — 각 요소: [memberId, friendId]
+     * <h3>친구 관계 파이프라인 배치 Redis 삽입</h3>
+     * <p>여러 멤버의 친구 관계를 파이프라인 한 번으로 SADD 처리합니다.</p>
+     * <p>각 멤버별로 가변인자 SADD를 파이프라인 안에서 실행합니다.</p>
      */
-    public void rebuildBatch(List<long[]> pairs) {
-        if (pairs.isEmpty()) {
-            return;
-        }
+    public void rebuildPipelineBatch(List<FriendshipRebuildDTO> batch) {
         stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            for (long[] pair : pairs) {
-                byte[] memberKey = createFriendKey(pair[0]).getBytes(StandardCharsets.UTF_8);
-                byte[] friendKey = createFriendKey(pair[1]).getBytes(StandardCharsets.UTF_8);
-                byte[] memberIdBytes = String.valueOf(pair[0]).getBytes(StandardCharsets.UTF_8);
-                byte[] friendIdBytes = String.valueOf(pair[1]).getBytes(StandardCharsets.UTF_8);
-                connection.setCommands().sAdd(memberKey, friendIdBytes);
-                connection.setCommands().sAdd(friendKey, memberIdBytes);
+            for (FriendshipRebuildDTO dto : batch) {
+                byte[] key = createFriendKey(dto.getMemberId()).getBytes(StandardCharsets.UTF_8);
+                byte[][] members = dto.getFriendIds().stream()
+                        .map(id -> String.valueOf(id).getBytes(StandardCharsets.UTF_8))
+                        .toArray(byte[][]::new);
+                connection.setCommands().sAdd(key, members);
             }
             return null;
         });

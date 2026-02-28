@@ -35,8 +35,8 @@ public class FriendAdminController {
     @PostMapping("/friendship/rebuild")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> rebuildFriendship() {
-        String result = friendAdminService.rebuildFriendshipRedis();
-        return ResponseEntity.ok(result);
+        friendAdminService.getFriendshipDB();
+        return ResponseEntity.ok().build();
     }
 
     /**

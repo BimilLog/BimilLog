@@ -173,4 +173,38 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    /**
+     * 친구 관계 재구축 프로듀서 스레드 풀
+     * <p>DB 배치 조회를 병렬 수행합니다. (IO-bound)</p>
+     */
+    @Bean(name = "rebuildProducerExecutor")
+    public Executor rebuildProducerExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(8);
+        executor.setQueueCapacity(20);
+        executor.setThreadNamePrefix("rebuild-producer-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(120);
+        executor.initialize();
+        return executor;
+    }
+
+    /**
+     * 친구 관계 재구축 컨슈머 스레드 풀
+     * <p>Redis SADD 파이프라인 쓰기를 수행합니다.</p>
+     */
+    @Bean(name = "rebuildConsumerExecutor")
+    public Executor rebuildConsumerExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(10);
+        executor.setThreadNamePrefix("rebuild-consumer-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(120);
+        executor.initialize();
+        return executor;
+    }
 }
