@@ -47,12 +47,10 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PostLikeRepository postLikeRepository;
 
-    private Member savedMember;
     private List<Member> likeMembers;
 
     @Override
     protected void setUpChild() {
-        savedMember = testMember;
         likeMembers = createLikeUsers();
         createTestPosts();
     }
@@ -70,7 +68,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 
         for (int i = 1; i <= 3; i++) {
             Post realtimePost = Post.builder()
-                    .member(savedMember)
+                    .member(testMember)
                     .title("실시간 인기글 " + i)
                     .content("실시간 인기글 내용 " + i)
                     .password(123456)
@@ -81,7 +79,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 
         for (int i = 1; i <= 3; i++) {
             Post weeklyPost = Post.builder()
-                    .member(savedMember)
+                    .member(testMember)
                     .title("주간 인기글 " + i)
                     .content("주간 인기글 내용 " + i)
                     .password(123456)
@@ -92,7 +90,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 
         for (int i = 1; i <= 5; i++) {
             Post legendPost = Post.builder()
-                    .member(savedMember)
+                    .member(testMember)
                     .title("레전드 인기글 " + i)
                     .content("레전드 인기글 내용 " + i)
                     .password(123456)
@@ -106,7 +104,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
         // 공지사항 게시글 생성 - Post.isNotice 플래그로 직접 관리
         for (int i = 1; i <= 2; i++) {
             Post noticePost = Post.builder()
-                    .member(savedMember)
+                    .member(testMember)
                     .title("공지사항 " + i)
                     .content("공지사항 내용 " + i)
                     .password(123456)

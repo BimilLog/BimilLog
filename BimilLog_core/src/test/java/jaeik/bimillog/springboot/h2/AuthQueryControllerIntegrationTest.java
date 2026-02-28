@@ -85,7 +85,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("인증이 필요한 API에 비인증 접근 - 401 Unauthorized")
+    @DisplayName("인증이 필요한 API에 비인증 접근 - 403 Forbidden")
     void getCurrentUser_Unauthenticated_IntegrationTest() throws Exception {
         mockMvc.perform(get("/api/auth/me"))
                 .andDo(print())

@@ -204,7 +204,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long postId = 1L;
         Long memberId = 2L;
-        Long postAuthorId = 1L;
 
         Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "게시글 제목", "게시글 내용"));
         given(postRepository.findById(postId)).willReturn(Optional.of(mockPost));
@@ -228,7 +227,6 @@ class PostQueryServiceTest extends BaseUnitTest {
     void shouldGetPostDetail_WhenAnonymous() {
         // Given
         Long postId = 1L;
-        Long postAuthorId = 1L;
 
         Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "게시글 제목", "게시글 내용"));
         given(postRepository.findById(postId)).willReturn(Optional.of(mockPost));

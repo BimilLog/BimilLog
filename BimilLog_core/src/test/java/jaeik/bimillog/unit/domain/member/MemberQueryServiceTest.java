@@ -44,7 +44,7 @@ class MemberQueryServiceTest extends BaseUnitTest {
     private SettingRepository settingRepository;
 
     @InjectMocks
-    private MemberQueryService userQueryService;
+    private MemberQueryService memberQueryService;
 
     @Test
     @DisplayName("설정 ID로 설정 조회 - 정상 케이스")
@@ -56,7 +56,7 @@ class MemberQueryServiceTest extends BaseUnitTest {
         given(settingRepository.findById(settingId)).willReturn(Optional.of(expectedSetting));
 
         // When
-        Setting result = userQueryService.findBySettingId(settingId);
+        Setting result = memberQueryService.findBySettingId(settingId);
 
         // Then
         verify(settingRepository).findById(settingId);
@@ -76,7 +76,7 @@ class MemberQueryServiceTest extends BaseUnitTest {
         given(settingRepository.findById(settingId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userQueryService.findBySettingId(settingId))
+        assertThatThrownBy(() -> memberQueryService.findBySettingId(settingId))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_SETTINGS_NOT_FOUND.getMessage());
 

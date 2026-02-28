@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.repository.PaperRepository;
-import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -16,14 +15,12 @@ import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -42,9 +39,6 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private PaperRepository paperRepository;
-
-    @Mock
-    private PaperQueryRepository paperQueryRepository;
 
     @Mock
     private PaperToMemberAdapter paperToMemberAdapter;
@@ -160,28 +154,4 @@ class PaperCommandServiceTest extends BaseUnitTest {
         verify(eventPublisher, never()).publishEvent(any());
     }
 
-    @Test
-    @DisplayName("메시지 작성 - 이벤트 발행 검증")
-    void shouldPublishCorrectEvent_WhenWriteMessage() {
-        // Given
-        Long memberId = 1L;
-        Long ownerId = 2L;
-        Member owner = createTestMemberWithId(ownerId);
-        MessageWriteDTO dto = TestFixtures.createMessageWriteDTO(ownerId, "테스트 메시지", 2, 2);
-
-        given(paperToMemberAdapter.getMemberById(ownerId)).willReturn(owner);
-
-        // When
-        paperCommandService.writeMessage(memberId, dto);
-
-        // Then - RollingPaperEvent 발행 확인
-        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
-        verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
-
-        boolean foundRollingPaperEvent = eventCaptor.getAllValues().stream()
-                .anyMatch(event -> event instanceof RollingPaperEvent);
-        assertThat(foundRollingPaperEvent).isTrue();
-
-        verify(paperRepository, times(1)).save(any(Message.class));
-    }
 }

@@ -56,7 +56,6 @@ class FriendRequestQueryServiceTest extends BaseUnitTest {
     private Member sender;
     private Member receiver;
     private FriendRequest friendRequest;
-    private Pageable pageable;
 
     @BeforeEach
     void setUp() {
@@ -67,7 +66,6 @@ class FriendRequestQueryServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(receiver, "id", RECEIVER_ID);
 
         friendRequest = FriendTestDataBuilder.createFriendRequest(FRIEND_REQUEST_ID, sender, receiver);
-        pageable = PageRequest.of(0, 10);
     }
 
     // ==================== getFriendSendRequest ====================

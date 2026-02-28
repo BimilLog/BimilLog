@@ -208,7 +208,7 @@ class RealtimeScoreFallbackStoreTest {
         // When: 감쇠 적용
         fallbackStore.applyDecay();
 
-        // Then: 90점으로 감소 (100 * 0.9)
+        // Then: 97점으로 감소 (100 * 0.97)
         List<Long> topIds = fallbackStore.getTopPostIds(0, 1);
         assertThat(topIds).containsExactly(1L);
     }

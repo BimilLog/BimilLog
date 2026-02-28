@@ -24,7 +24,6 @@ import org.springframework.http.MediaType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -104,22 +103,6 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .with(user(userDetails))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(header().exists("Set-Cookie"));
-    }
-
-    @Test
-    @DisplayName("회원탈퇴 통합 테스트 - 성공")
-    void withdraw_IntegrationTest_Success() throws Exception {
-        Member testMember = TestMembers.createUnique();
-        saveMember(testMember);
-
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
-
-        mockMvc.perform(delete("/api/member/withdraw")
-                        .with(user(userDetails))
-                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"));

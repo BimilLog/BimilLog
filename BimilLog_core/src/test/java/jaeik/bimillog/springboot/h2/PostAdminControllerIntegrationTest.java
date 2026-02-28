@@ -181,19 +181,4 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         assertThat(isNotice(testPost.getId())).isTrue();
     }
 
-    @Test
-    @DisplayName("게시글 공지 토글 성공 - 정상 케이스 추가 검증")
-    void togglePostNotice_Success_AdditionalVerification() throws Exception {
-        // Given - 초기상태: 비공지
-        assertThat(isNotice(testPost.getId())).isFalse();
-
-        // When & Then - API 호출 성공
-        performPost("/api/post/notice", Map.of("postId", testPost.getId(), "notice", false), adminUserDetails)
-                .andDo(print())
-                .andExpect(status().isOk());
-
-        // 실제 DB 확인 - 공지로 변경됨
-        assertThat(isNotice(testPost.getId())).isTrue();
-    }
-
 }

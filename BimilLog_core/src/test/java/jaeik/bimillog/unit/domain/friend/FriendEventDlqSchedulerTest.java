@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.domain.friend.repository.FriendEventDlqRepository;
 import jaeik.bimillog.domain.friend.scheduler.FriendEventDlqScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisCheck;
+import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +47,9 @@ class FriendEventDlqSchedulerTest {
 
     @Mock
     private RedisCheck redisCheck;
+
+    @Mock
+    private RedisFriendRestore redisFriendRestore;
 
     @Mock
     private RedisFriendshipRepository redisFriendshipRepository;

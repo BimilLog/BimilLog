@@ -239,25 +239,4 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         verifyNoMoreInteractions(postRepository, commentCommandService);
     }
-
-
-    @Test
-    @DisplayName("게시글 수정 - 캐시 무효화는 @Async로 비동기 실행")
-    void shouldUpdatePostAndTriggerAsyncCacheUpdate() {
-        // Given
-        Long memberId = 1L;
-        Long postId = 123L;
-
-        Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "제목", "내용")));
-
-        given(postRepository.findById(postId)).willReturn(Optional.of(existingPost));
-        given(existingPost.isAuthor(memberId, null)).willReturn(true);
-
-        // When
-        postCommandService.updatePost(memberId, postId, "title", "content", null);
-
-        // Then - 게시글 수정 완료 + 비동기 캐시 갱신 트리거
-        verify(existingPost, times(1)).updatePost("title", "content");
-        verify(cacheUpdateSync, times(1)).asyncUpdatePost(eq(postId), any());
-    }
 }

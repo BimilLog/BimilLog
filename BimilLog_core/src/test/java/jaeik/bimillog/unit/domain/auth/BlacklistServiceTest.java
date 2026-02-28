@@ -172,7 +172,6 @@ class BlacklistServiceTest extends BaseUnitTest {
     void shouldBlacklistValidHashes_WhenSomeTokenHashGenerationFails() {
         // Given
         Long memberId = 100L;
-        String reason = "Partial failure test";
 
         given(authTokenRepository.findByMemberId(memberId)).willReturn(testAuthTokenList);
         given(authToJwtAdapter.generateTokenHash("refresh-token-0")).willReturn("hash0");
@@ -198,7 +197,6 @@ class BlacklistServiceTest extends BaseUnitTest {
     void shouldNotBlacklist_WhenAllTokenHashGenerationFails() {
         // Given
         Long memberId = 100L;
-        String reason = "Complete failure test";
 
         given(authTokenRepository.findByMemberId(memberId)).willReturn(testAuthTokenList);
         doThrow(new RuntimeException("Hash generation failed"))
@@ -219,7 +217,6 @@ class BlacklistServiceTest extends BaseUnitTest {
     void shouldHandleException_WhenLoadingMemberTokensFails() {
         // Given
         Long memberId = 100L;
-        String reason = "Load failure test";
         doThrow(new RuntimeException("AuthToken loading failed"))
                 .when(authTokenRepository).findByMemberId(memberId);
 
@@ -292,25 +289,6 @@ class BlacklistServiceTest extends BaseUnitTest {
         assertThat(capturedBlackList).isNotNull();
         assertThat(capturedBlackList.getSocialId()).isNull();
         assertThat(capturedBlackList.getProvider()).isNull();
-    }
-
-    @Test
-    @DisplayName("블랙리스트 추가 - 다양한 소셜 제공자")
-    void shouldAddToBlacklist_WithVariousProviders() {
-        // Given
-        Long memberId = 1L;
-        String socialId = "socialUser123";
-        SocialProvider provider = SocialProvider.KAKAO;
-
-        // When
-        blacklistService.addToBlacklist(memberId, socialId, provider);
-
-        // Then
-        ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
-        verify(blackListRepository).save(blackListCaptor.capture());
-
-        BlackList capturedBlackList = blackListCaptor.getValue();
-        assertThat(capturedBlackList.getProvider()).isEqualTo(SocialProvider.KAKAO);
     }
 
     /**

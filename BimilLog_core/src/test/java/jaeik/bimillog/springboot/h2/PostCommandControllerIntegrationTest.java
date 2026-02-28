@@ -1,6 +1,5 @@
 package jaeik.bimillog.springboot.h2;
 
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.dto.PostCreateDTO;
 import jaeik.bimillog.domain.post.dto.PostUpdateDTO;
@@ -48,15 +47,6 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PostRepository postRepository;
 
-    private Member savedMember;
-    private CustomUserDetails savedUserDetails;
-
-    @Override
-    protected void setUpChild() {
-        savedMember = testMember;
-        savedUserDetails = testUserDetails;
-    }
-
     @Test
     @DisplayName("게시글 작성 성공 - 유효한 데이터")
     void writePost_Success() throws Exception {
@@ -68,7 +58,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postCreateDTO))
-                        .with(user(savedUserDetails))
+                        .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated())
@@ -80,7 +70,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
 
         assertThat(savedPost).isPresent();
         assertThat(savedPost.get().getContent()).isEqualTo("게시글 작성 통합 테스트 내용입니다.");
-        assertThat(savedPost.get().getMember().getId()).isEqualTo(savedMember.getId());
+        assertThat(savedPost.get().getMember().getId()).isEqualTo(testMember.getId());
     }
 
     @Test
@@ -94,7 +84,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postCreateDTO))
-                        .with(user(savedUserDetails))
+                        .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -120,7 +110,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 수정 성공")
     void updatePost_Success() throws Exception {
-        Post existingPost = PostTestDataBuilder.createPost(savedMember, "수정 전 제목", "수정 전 내용");
+        Post existingPost = PostTestDataBuilder.createPost(testMember, "수정 전 제목", "수정 전 내용");
         Post savedPost = postRepository.save(existingPost);
 
         PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
@@ -131,7 +121,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateReqDTO))
-                        .with(user(savedUserDetails))
+                        .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -162,7 +152,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateReqDTO))
-                        .with(user(savedUserDetails))
+                        .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
@@ -172,14 +162,14 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 삭제 성공")
     void deletePost_Success() throws Exception {
         Post existingPost = PostTestDataBuilder.createPost(
-                savedMember,
+                testMember,
                 "삭제할 게시글",
                 "삭제할 게시글 내용"
         );
         Post savedPost = postRepository.save(existingPost);
 
         mockMvc.perform(delete("/api/post/{postId}", savedPost.getId())
-                        .with(user(savedUserDetails))
+                        .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
@@ -273,7 +263,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 삭제 실패 - 존재하지 않는 게시글")
     void deletePost_Fail_NotFound() throws Exception {
         mockMvc.perform(delete("/api/post/{postId}", Long.MAX_VALUE)
-                        .with(user(savedUserDetails))
+                        .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
@@ -283,14 +273,14 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 추천 성공")
     void likePost_Success() throws Exception {
         Post existingPost = PostTestDataBuilder.createPost(
-                savedMember,
+                testMember,
                 "추천할 게시글",
                 "추천할 게시글 내용"
         );
         Post savedPost = postRepository.save(existingPost);
 
         mockMvc.perform(post("/api/post/{postId}/like", savedPost.getId())
-                        .with(user(savedUserDetails))
+                        .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -300,7 +290,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 추천 실패 - 존재하지 않는 게시글")
     void likePost_Fail_NotFound() throws Exception {
         mockMvc.perform(post("/api/post/{postId}/like", Long.MAX_VALUE)
-                        .with(user(savedUserDetails))
+                        .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
@@ -310,7 +300,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 추천 실패 - 인증되지 않은 사용자")
     void likePost_Fail_Unauthenticated() throws Exception {
         Post existingPost = PostTestDataBuilder.createPost(
-                savedMember,
+                testMember,
                 "추천할 게시글",
                 "추천할 게시글 내용"
         );
@@ -336,7 +326,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postCreateDTO))
-                        .with(user(savedUserDetails))
+                        .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isCreated());
@@ -427,7 +417,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateReqDTO))
-                        .with(user(savedUserDetails))
+                        .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isForbidden());
@@ -436,7 +426,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("비회원이 회원 게시글 수정 실패")
     void updateMemberPost_Fail_WithAnonymousUser() throws Exception {
-        Post memberPost = PostTestDataBuilder.createPost(savedMember, "회원 게시글", "회원 게시글 내용");
+        Post memberPost = PostTestDataBuilder.createPost(testMember, "회원 게시글", "회원 게시글 내용");
         Post savedPost = postRepository.save(memberPost);
 
         PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()

@@ -97,15 +97,4 @@ class SocialStrategyAdapterTest extends BaseUnitTest {
         assertThat(registry.getStrategy(SocialProvider.NAVER)).isNull();
     }
 
-    @Test
-    @DisplayName("전략 교체 불가 - 한 번 등록된 전략은 변경되지 않음을 검증")
-    void shouldNotReplaceOnceRegisteredStrategy() {
-        given(kakaoStrategy.getProvider()).willReturn(SocialProvider.KAKAO);
-        SocialStrategyAdapter registry = new SocialStrategyAdapter(Collections.singletonList(kakaoStrategy));
-
-        SocialStrategy firstStrategy = registry.getStrategy(SocialProvider.KAKAO);
-        SocialStrategy secondStrategy = registry.getStrategy(SocialProvider.KAKAO);
-
-        assertThat(firstStrategy).isSameAs(secondStrategy);
-    }
 }

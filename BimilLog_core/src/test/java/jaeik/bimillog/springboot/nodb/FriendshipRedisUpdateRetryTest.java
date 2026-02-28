@@ -4,14 +4,10 @@ import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
 import jaeik.bimillog.domain.friend.service.FriendshipRedisUpdate;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,7 +39,6 @@ import static org.mockito.Mockito.*;
         FriendshipRedisUpdateRetryTest.TestConfig.class
 })
 @Tag("springboot-nodb")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class FriendshipRedisUpdateRetryTest {
 
@@ -83,13 +78,7 @@ class FriendshipRedisUpdateRetryTest {
         Mockito.clearInvocations(redisFriendshipRepository, friendEventDlqService);
     }
 
-    @AfterEach
-    void tearDown() throws InterruptedException {
-        Thread.sleep(500);
-    }
-
     @Test
-    @Order(1)
     @DisplayName("친구 관계 추가 - RedisConnectionFailureException 발생 시 3회 재시도")
     void addFriendToRedis_shouldRetryOnRedisConnectionFailure() {
         // Given
@@ -107,7 +96,6 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Test
-    @Order(2)
     @DisplayName("친구 관계 추가 - 3회 재시도 실패 후 DLQ 저장")
     void addFriendToRedis_shouldSaveToDlqAfterMaxRetries() {
         // Given
@@ -125,7 +113,6 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Test
-    @Order(3)
     @DisplayName("친구 관계 삭제 - RedisConnectionFailureException 발생 시 3회 재시도")
     void deleteFriendToRedis_shouldRetryOnRedisConnectionFailure() {
         // Given
@@ -143,7 +130,6 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Test
-    @Order(4)
     @DisplayName("친구 관계 삭제 - 3회 재시도 실패 후 DLQ 저장")
     void deleteFriendToRedis_shouldSaveToDlqAfterMaxRetries() {
         // Given
@@ -161,7 +147,6 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Test
-    @Order(5)
     @DisplayName("친구 관계 추가 - 2회 실패 후 3회차에 성공 - DLQ 저장 안함")
     void addFriendToRedis_shouldSucceedAfterTwoFailures_noDlqSave() {
         // Given
@@ -183,7 +168,6 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Test
-    @Order(6)
     @DisplayName("친구 관계 삭제 - 1회 성공 시 재시도 및 DLQ 저장 없음")
     void deleteFriendToRedis_shouldNotRetryOnSuccess() {
         // Given

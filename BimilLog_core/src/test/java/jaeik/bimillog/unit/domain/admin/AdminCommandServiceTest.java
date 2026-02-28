@@ -77,7 +77,6 @@ class AdminCommandServiceTest extends BaseUnitTest {
 
     private ReportType testReportType = ReportType.POST;
     private Long testTargetId = 200L;
-    private String testContent = "불쾌한 내용";
 
     @BeforeEach
     void setUp() {

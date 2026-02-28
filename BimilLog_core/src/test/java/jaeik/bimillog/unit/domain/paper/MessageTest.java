@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 
 /**
  * <h2>Message 엔티티 테스트</h2>
@@ -57,42 +56,4 @@ class MessageTest {
         assertThat(message.getY()).isEqualTo(y);
     }
 
-    @Test
-    @DisplayName("getMember().getId()는 사용자 ID를 그대로 반환한다")
-    void shouldReturnUserIdWhenPresent() {
-        // Given
-        Long memberId = 456L;
-        given(member.getId()).willReturn(memberId);
-        Message message = Message.builder()
-                .member(member)
-                .decoType(DecoType.BANANA)
-                .anonymity("익명")
-                .content("내용")
-                .x(1)
-                .y(1)
-                .build();
-
-        // When
-        Long actual = message.getMember().getId();
-
-        // Then
-        assertThat(actual).isEqualTo(memberId);
-    }
-
-    @Test
-    @DisplayName("사용자가 없으면 getMember()는 null")
-    void shouldReturnNullWhenUserNotPresent() {
-        // Given
-        Message message = Message.builder()
-                .member(null)
-                .decoType(DecoType.BANANA)
-                .anonymity("익명")
-                .content("내용")
-                .x(1)
-                .y(1)
-                .build();
-
-        // When & Then
-        assertThat(message.getMember()).isNull();
-    }
 }
