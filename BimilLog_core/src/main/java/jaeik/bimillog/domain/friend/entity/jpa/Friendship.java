@@ -19,7 +19,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Table(name = "friendship",
-        uniqueConstraints = {@UniqueConstraint(name = "unique_friend_pair", columnNames = {"member_id", "friend_id"})})
+        uniqueConstraints = {@UniqueConstraint(name = "unique_friend_pair", columnNames = {"member_id", "friend_id"})},
+        indexes = {@Index(name = "idx_friendship_friend_member", columnList = "friend_id, member_id")})
 public class Friendship extends BaseEntity {
 
     @Id

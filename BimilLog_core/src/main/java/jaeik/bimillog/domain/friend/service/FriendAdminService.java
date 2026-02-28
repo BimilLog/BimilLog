@@ -1,5 +1,8 @@
 package jaeik.bimillog.domain.friend.service;
 
+import jaeik.bimillog.domain.friend.async.FriendRebuildConsumer;
+import jaeik.bimillog.domain.friend.async.FriendRebuildProducer;
+import jaeik.bimillog.domain.friend.dto.FriendshipRebuildDTO;
 import jaeik.bimillog.domain.friend.repository.FriendAdminQueryRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.function.BiFunction;
 
 import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
@@ -15,50 +21,38 @@ import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
 /**
  * <h2>친구 도메인 Redis 복구 어드민 서비스</h2>
  * <p>Redis 데이터 유실 시 DB 데이터를 기반으로 친구 관계 및 상호작용 점수를 재구축합니다.</p>
- * <p>각 테이블을 PK 기준으로 순차 스캔하며 청크마다 Redis에 즉시 기록합니다.</p>
+ * <p>친구 관계 재구축은 프로듀서/컨슈머 CompletableFuture 병렬 구조로 동작합니다.</p>
  *
  * @author Jaeik
  * @version 2.8.0
  */
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 @Slf4j
 public class FriendAdminService {
 
+    private static final int QUEUE_CAPACITY = 10_000;
+
+    private static final FriendshipRebuildDTO POISON_PILL =
+            FriendshipRebuildDTO.createDTO(-1L, Set.of());
+
     private final FriendAdminQueryRepository friendAdminQueryRepository;
     private final RedisFriendRestore redisFriendRestore;
+    private final FriendRebuildProducer friendRebuildProducer;
+    private final FriendRebuildConsumer friendRebuildConsumer;
 
     /**
-     * <h3>친구 관계 Redis 스트리밍 재구축</h3>
-     * <p>friendship 테이블을 id 기준 순차 스캔하며 청크마다 SADD합니다.</p>
-     *
-     * @return 처리 결과 메시지
+     * <h3>친구 관계 Redis 프로듀서/컨슈머 병렬 재구축</h3>
+     * <p>프로듀서: DB에서 memberId를 500개씩 청크 조회 → 배치 친구 조회 → 큐에 삽입</p>
+     * <p>컨슈머: 큐에서 DTO를 꺼내 Redis SADD 수행</p>
+     * <p>POISON_PILL 패턴으로 종료 신호를 전달합니다.</p>
      */
-    public String rebuildFriendshipRedis() {
+    public void getFriendshipDB() {
         redisFriendRestore.deleteAllFriendshipKeys();
+        BlockingQueue<FriendshipRebuildDTO> queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
 
-        long afterId = 0L;
-        long totalPairs = 0L;
-        List<long[]> chunk;
-
-        do {
-            log.info("DB 친구관계 요청");
-            chunk = friendAdminQueryRepository.getFriendshipPairsChunk(afterId, PIPELINE_BATCH_SIZE);
-            log.info("DB 친구관계 조회 : {}이후 {}개 조회 완료", afterId, PIPELINE_BATCH_SIZE);
-            if (!chunk.isEmpty()) {
-                // chunk 원소: [id, memberId, friendId] — Redis에는 [memberId, friendId]만 전달
-                List<long[]> pairs = chunk.stream()
-                        .map(arr -> new long[]{arr[1], arr[2]})
-                        .toList();
-                log.info("레디스 친구관계 삽입 시작");
-                redisFriendRestore.rebuildBatch(pairs);
-                log.info("레디스 친구 관계 삽입 1000개 완료");
-                afterId = chunk.getLast()[0];
-                totalPairs += chunk.size();
-            }
-        } while (chunk.size() == PIPELINE_BATCH_SIZE);
-        return String.format("친구 관계 Redis 재구축 완료. 처리된 친구 쌍: %d개", totalPairs);
+        friendRebuildProducer.produce(queue, POISON_PILL);
+        friendRebuildConsumer.consume(queue, POISON_PILL);
     }
 
     /**
@@ -68,6 +62,7 @@ public class FriendAdminService {
      *
      * @return 처리 결과 메시지
      */
+    @Transactional(readOnly = true)
     public String rebuildInteractionScoreRedis() {
         redisFriendRestore.deleteAllInteractionKeys();
 
@@ -104,20 +99,20 @@ public class FriendAdminService {
         long afterDriveId = 0L;
         long afterJoinId = 0L;
         long count = 0L;
-        List<long[]> chunk;
 
-        do {
-            chunk = fetcher.apply(afterDriveId, afterJoinId);
-            if (!chunk.isEmpty()) {
-                log.info("레디스 상호관계점수 삽입 시작");
-                redisFriendRestore.incrementInteractionBatch(chunk);
-                log.info("레디스 상호관계점수 삽입 1000개 완료");
-                long[] last = chunk.getLast();
-                afterDriveId = last[0];
-                afterJoinId = last[1];
-                count += chunk.size();
-            }
-        } while (chunk.size() == PIPELINE_BATCH_SIZE);
+        while (true) {
+            List<long[]> chunk = fetcher.apply(afterDriveId, afterJoinId);
+            if (chunk.isEmpty()) break;
+
+            log.info("레디스 상호관계점수 삽입 시작");
+            redisFriendRestore.incrementInteractionBatch(chunk);
+            log.info("레디스 상호관계점수 삽입 1000개 완료");
+            long[] last = chunk.getLast();
+            afterDriveId = last[0];
+            afterJoinId = last[1];
+            count += chunk.size();
+            if (chunk.size() < PIPELINE_BATCH_SIZE) break;
+        }
 
         return count;
     }

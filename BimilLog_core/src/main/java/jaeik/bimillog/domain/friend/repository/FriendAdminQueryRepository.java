@@ -4,15 +4,17 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.comment.entity.QCommentLike;
 import jaeik.bimillog.domain.friend.entity.jpa.QFriendship;
+import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.entity.jpa.QPostLike;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.querydsl.core.Tuple;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <h2>친구 도메인 어드민 복구용 쿼리 레포지터리</h2>
@@ -35,50 +37,66 @@ public class FriendAdminQueryRepository {
     private static final QPost post = QPost.post;
     private static final QComment comment = QComment.comment;
     private static final QCommentLike commentLike = QCommentLike.commentLike;
+    private static final QMember member = QMember.member;
 
     /**
-     * <h3>친구 관계 쌍 청크 조회</h3>
-     * <p>friendship.id 기준 PK 순차 스캔입니다.</p>
-     * <p>반환 배열: [friendship.id, memberId, friendId]</p>
+     * <h3>memberId 청크 조회 (keyset 페이징)</h3>
+     * <p>afterId 이후의 memberId를 size개만큼 오름차순으로 조회합니다.</p>
      *
-     * @param afterId 마지막으로 처리한 friendship.id (첫 호출 시 0)
+     * @param afterId 마지막으로 처리한 memberId (첫 호출 시 0)
      * @param size    한 번에 조회할 최대 행 수
      */
-    public List<long[]> getFriendshipPairsChunk(long afterId, int size) {
-        List<long[]> list = jpaQueryFactory
-                .select(friendship.id, friendship.member.id, friendship.friend.id)
-                .from(friendship)
-                .where(friendship.id.gt(afterId))
-                .orderBy(friendship.id.asc())
+    public List<Long> getMemberIdChunk(long afterId, int size) {
+        return jpaQueryFactory
+                .select(member.id)
+                .from(member)
+                .where(member.id.gt(afterId))
+                .orderBy(member.id.asc())
                 .limit(size)
-                .fetch()
-                .stream()
-                .map(t -> new long[]{
-                        t.get(friendship.id),
-                        t.get(friendship.member.id),
-                        t.get(friendship.friend.id)
-                })
-                .toList();
-        return list;
+                .fetch();
     }
 
+    /**
+     * <h3>memberId 배치의 친구 관계 일괄 조회</h3>
+     * <p>friendship 테이블을 양방향으로 조회하여 Map&lt;memberId, Set&lt;friendId&gt;&gt;로 반환합니다.</p>
+     *
+     * @param memberIds 조회할 memberId 목록
+     */
+    public Map<Long, Set<Long>> getMemberFriendBatch(List<Long> memberIds) {
+        List<Tuple> memberAsMainRows = jpaQueryFactory
+                .select(friendship.member.id, friendship.friend.id)
+                .from(friendship)
+                .where(friendship.member.id.in(memberIds))
+                .fetch();
 
-//    public Set<Long> getMemberFriend(Long memberId) {
-//        List<Long> memberAsMain = jpaQueryFactory
-//                .select(friendship.friend.id)
-//                .from(friendship)
-//                .where(friendship.member.id.eq(memberId))
-//                .fetch();
+        List<Tuple> memberAsFriendRows = jpaQueryFactory
+                .select(friendship.friend.id, friendship.member.id)
+                .from(friendship)
+                .where(friendship.friend.id.in(memberIds))
+                .fetch();
+
+        Map<Long, Set<Long>> result = new HashMap<>();
+        for (Long memberId : memberIds) {
+            result.put(memberId, new HashSet<>());
+        }
+
+        for (Tuple tuple : memberAsMainRows) {
+            Long memberId = tuple.get(friendship.member.id);
+            Long friendId = tuple.get(friendship.friend.id);
+            result.computeIfAbsent(memberId, k -> new HashSet<>()).add(friendId);
+        }
+
+        for (Tuple tuple : memberAsFriendRows) {
+            Long memberId = tuple.get(friendship.friend.id);
+            Long friendId = tuple.get(friendship.member.id);
+            result.computeIfAbsent(memberId, k -> new HashSet<>()).add(friendId);
+        }
+
+        return result;
+    }
+
+//    public Map<Long, Set<Double>> getMemberScore() {
 //
-//        List<Long> memberAsFriend = jpaQueryFactory
-//                .select(friendship.member.id)
-//                .from(friendship)
-//                .where(friendship.friend.id.eq(memberId))
-//                .fetch();
-//
-//        Set<Long> mainSet = new HashSet<>(memberAsMain);
-//        mainSet.addAll(memberAsFriend);
-//        return mainSet;
 //    }
 
     /**

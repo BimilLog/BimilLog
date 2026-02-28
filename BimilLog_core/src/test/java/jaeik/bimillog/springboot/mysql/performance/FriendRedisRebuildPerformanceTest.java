@@ -46,7 +46,7 @@ class FriendRedisRebuildPerformanceTest {
     // ─────────────────────────────────────────────────────────────
 
     @Test
-    @Order(2)
+    @Order(1)
     @DisplayName("[성능] friendship Redis 재구축 — friend:* Set")
     void measureFriendshipRebuildTime() {
         flushFriendRedisKeys();
@@ -55,21 +55,12 @@ class FriendRedisRebuildPerformanceTest {
         log.info("║  friendship Redis 재구축 시작         ║");
         log.info("╚══════════════════════════════════════╝");
 
-        long start = System.currentTimeMillis();
-        String result = friendAdminService.rebuildFriendshipRedis();
-        long elapsed = System.currentTimeMillis() - start;
-
-        long redisKeys = countRedisKeys("friend:*");
-        log.info("▶ 결과  : {}", result);
-        log.info("▶ 소요  : {}ms  ({:.1f}초)", elapsed, elapsed / 1000.0);
-        log.info("▶ Redis : friend:* 키 {} 개 생성", format(redisKeys));
-
-        Assertions.assertNotNull(result);
-        Assertions.assertTrue(redisKeys > 0, "Redis friend:* 키가 생성되어야 함");
+        friendAdminService.getFriendshipDB();
+        log.info("▶ fire-and-forget 호출 완료 — 로그로 결과 확인");
     }
 
     @Test
-    @Order(1)
+    @Order(2)
     @DisplayName("[성능] interaction-score Redis 재구축 — interaction:* ZSet")
     void measureInteractionScoreRebuildTime() {
         flushInteractionRedisKeys();
