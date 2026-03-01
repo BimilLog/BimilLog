@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -28,6 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class FriendRebuildProducer {
 
     private static final int MEMBER_CHUNK_SIZE = 1000;
+    private static final int INTERACTION_CHUNK_SIZE = 500;
 
     private final FriendAdminQueryRepository friendAdminQueryRepository;
 
@@ -47,7 +49,7 @@ public class FriendRebuildProducer {
                 if (memberIds.isEmpty()) break;
 
                 Map<Long, Set<Long>> friendMap = friendAdminQueryRepository.getMemberFriendBatch(memberIds);
-                log.info("프로듀서: memberId {} 이후 {}명 처리 완료", memberIds.getLast(), memberIds.size());
+                log.info("친구 관계 생산자 : memberId {} 이후 {}명 처리 완료", memberIds.getLast(), memberIds.size());
 
                 for (Map.Entry<Long, Set<Long>> entry : friendMap.entrySet()) {
                     if (!entry.getValue().isEmpty()) {
@@ -61,31 +63,37 @@ public class FriendRebuildProducer {
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.error("프로듀서 인터럽트 발생", e);
+            log.error("친구관계 프로듀서 인터럽트 발생", e);
         } finally {
             try {
                 queue.put(poisonPill);
-                log.info("프로듀서: POISON_PILL 삽입, 종료");
+                log.info("친구관계 프로듀서: POISON_PILL 삽입, 종료");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                log.error("POISON_PILL 삽입 중 인터럽트", e);
+                log.error("친구관계 프로듀서 : POISON_PILL 삽입 중 인터럽트", e);
             }
         }
     }
 
+    /**
+     * <h3>상호작용 점수 DB 배치 조회 → 큐 삽입</h3>
+     * <p>여러 프로듀서가 동일한 memberQueue에서 경쟁적으로 drainTo하여 병렬 처리합니다.</p>
+     * <p>POISON_PILL은 호출측에서 allOf 완료 후 삽입합니다.</p>
+     */
     @Async("interactionProducerExecutor")
-    public void produceInteraction(LinkedBlockingQueue<Long> memberQueue, BlockingQueue<InteractionRebuildDTO> queue,
-                                   InteractionRebuildDTO poisonPill) {
-        List<Long> memberIds = new ArrayList<>(MEMBER_CHUNK_SIZE);
+    public CompletableFuture<Void> produceInteraction(LinkedBlockingQueue<Long> memberQueue,
+                                                      BlockingQueue<InteractionRebuildDTO> queue) {
+        String threadName = Thread.currentThread().getName();
+        List<Long> memberIds = new ArrayList<>(INTERACTION_CHUNK_SIZE);
 
         try {
             while (!memberQueue.isEmpty()) {
                 memberIds.clear();
-                memberQueue.drainTo(memberIds, MEMBER_CHUNK_SIZE);
+                memberQueue.drainTo(memberIds, INTERACTION_CHUNK_SIZE);
                 if (memberIds.isEmpty()) break;
 
                 Map<Long, Map<Long, Double>> scoreMap = friendAdminQueryRepository.getInteractionScore(memberIds);
-                log.info("프로듀서(상호작용): memberId {} 이후 {}명 처리 완료", memberIds.getLast(), memberIds.size());
+                log.info("상호작용 생산자 : memberId {} 이후 {}명 처리 완료", memberIds.getLast(), memberIds.size());
 
                 for (Map.Entry<Long, Map<Long, Double>> entry : scoreMap.entrySet()) {
                     if (!entry.getValue().isEmpty()) {
@@ -95,18 +103,12 @@ public class FriendRebuildProducer {
                     }
                 }
             }
-
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.error("프로듀서(상호작용) 인터럽트 발생", e);
-        } finally {
-            try {
-                queue.put(poisonPill);
-                log.info("프로듀서(상호작용): POISON_PILL 삽입, 종료");
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                log.error("POISON_PILL 삽입 중 인터럽트", e);
-            }
+            log.error("상호작용 프로듀서 : 인터럽트 발생", e);
         }
+
+        log.info("상호작용 프로듀서 : 종료");
+        return CompletableFuture.completedFuture(null);
     }
 }

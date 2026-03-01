@@ -12,7 +12,8 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import org.springframework.data.redis.connection.DefaultTuple;
+import org.springframework.data.redis.connection.zset.DefaultTuple;
+import org.springframework.data.redis.connection.zset.Tuple;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -149,8 +150,8 @@ public class RedisFriendRestore {
         stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             for (InteractionRebuildDTO dto : batch) {
                 byte[] key = createInteractionKey(dto.getMemberId()).getBytes(StandardCharsets.UTF_8);
-                Set<DefaultTuple> tuples = dto.getScores().entrySet().stream()
-                        .map(e -> new DefaultTuple(
+                Set<Tuple> tuples = dto.getScores().entrySet().stream()
+                        .map(e -> (Tuple) new DefaultTuple(
                                 String.valueOf(e.getKey()).getBytes(StandardCharsets.UTF_8),
                                 e.getValue()))
                         .collect(Collectors.toSet());
