@@ -14,7 +14,6 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.Tuple;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <h2>친구 도메인 어드민 복구용 쿼리 레포지터리</h2>
@@ -39,20 +38,10 @@ public class FriendAdminQueryRepository {
     private static final QCommentLike commentLike = QCommentLike.commentLike;
     private static final QMember member = QMember.member;
 
-    /**
-     * <h3>memberId 청크 조회 (keyset 페이징)</h3>
-     * <p>afterId 이후의 memberId를 size개만큼 오름차순으로 조회합니다.</p>
-     *
-     * @param afterId 마지막으로 처리한 memberId (첫 호출 시 0)
-     * @param size    한 번에 조회할 최대 행 수
-     */
-    public List<Long> getMemberIdChunk(long afterId, int size) {
+    public List<Long> getMemberId() {
         return jpaQueryFactory
                 .select(member.id)
                 .from(member)
-                .where(member.id.gt(afterId))
-                .orderBy(member.id.asc())
-                .limit(size)
                 .fetch();
     }
 
@@ -95,9 +84,11 @@ public class FriendAdminQueryRepository {
         return result;
     }
 
-//    public Map<Long, Set<Double>> getMemberScore() {
+//    public Map<Long, Map<Long, Double>> getInteractionScore(List<Long> memberIds) {
+//
 //
 //    }
+
 
     /**
      * <h3>게시글 좋아요 상호작용 청크 조회</h3>

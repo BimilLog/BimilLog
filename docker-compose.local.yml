@@ -46,7 +46,7 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - SPRING_PROFILES_ACTIVE=local
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/bimillog2?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/bimillogTest?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${LOCAL_MYSQL_PASSWORD}
       - SPRING_DATA_REDIS_HOST=redis
@@ -213,7 +213,7 @@ services:
     depends_on:
       - backend
     command: >
-      -n -t /tests/mixed-load-test.jmx -JBACKEND_HOST=backend -l /results/mixed-load.jtl -e -o /results/html-report
+      -n -t /tests/realtime-detail-load-test.jmx -JBACKEND_HOST=backend -l /results/realtime-detail-load.jtl -e -o /results/realtime-detail-report
 
 networks:
   bimillog-local:

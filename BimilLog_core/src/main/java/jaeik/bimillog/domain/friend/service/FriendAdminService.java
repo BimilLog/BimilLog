@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiFunction;
 
 import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
@@ -43,7 +44,8 @@ public class FriendAdminService {
 
     /**
      * <h3>친구 관계 Redis 프로듀서/컨슈머 병렬 재구축</h3>
-     * <p>프로듀서: DB에서 memberId를 500개씩 청크 조회 → 배치 친구 조회 → 큐에 삽입</p>
+     * <p>전체 memberId를 한 번에 조회하여 LinkedBlockingQueue에 적재한 뒤,
+     * 프로듀서가 drainTo로 청크 단위로 꺼내며 배치 친구 조회 → 결과 큐에 삽입합니다.</p>
      * <p>컨슈머: 큐에서 DTO를 꺼내 Redis SADD 수행</p>
      * <p>POISON_PILL 패턴으로 종료 신호를 전달합니다.</p>
      */
@@ -51,7 +53,10 @@ public class FriendAdminService {
         redisFriendRestore.deleteAllFriendshipKeys();
         BlockingQueue<FriendshipRebuildDTO> queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
 
-        friendRebuildProducer.produce(queue, POISON_PILL);
+        List<Long> allIds = friendAdminQueryRepository.getMemberId();
+        LinkedBlockingQueue<Long> memberQueue = new LinkedBlockingQueue<>(allIds);
+
+        friendRebuildProducer.produce(memberQueue, queue, POISON_PILL);
         friendRebuildConsumer.consume(queue, POISON_PILL);
     }
 
