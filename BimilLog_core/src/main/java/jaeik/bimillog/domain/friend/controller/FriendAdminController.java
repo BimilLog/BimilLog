@@ -48,7 +48,7 @@ public class FriendAdminController {
     @PostMapping("/interaction-score/rebuild")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> rebuildInteractionScore() {
-        String result = friendAdminService.rebuildInteractionScoreRedis();
-        return ResponseEntity.ok(result);
+        friendAdminService.rebuildInteractionScoreRedis();
+        return ResponseEntity.ok().build();
     }
 }

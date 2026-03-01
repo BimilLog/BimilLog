@@ -207,4 +207,38 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    /**
+     * 상호작용 점수 재구축 프로듀서 스레드 풀
+     * <p>DB GROUP BY 조회를 병렬 수행합니다. (IO-bound, 프로듀서 3개 동시 실행)</p>
+     */
+    @Bean(name = "interactionProducerExecutor")
+    public Executor interactionProducerExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(3);
+        executor.setMaxPoolSize(6);
+        executor.setQueueCapacity(10);
+        executor.setThreadNamePrefix("interaction-producer-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(120);
+        executor.initialize();
+        return executor;
+    }
+
+    /**
+     * 상호작용 점수 재구축 컨슈머 스레드 풀
+     * <p>Redis ZADD 파이프라인 쓰기를 수행합니다.</p>
+     */
+    @Bean(name = "interactionConsumerExecutor")
+    public Executor interactionConsumerExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(2);
+        executor.setQueueCapacity(5);
+        executor.setThreadNamePrefix("interaction-consumer-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(120);
+        executor.initialize();
+        return executor;
+    }
 }

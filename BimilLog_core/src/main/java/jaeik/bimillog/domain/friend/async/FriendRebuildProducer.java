@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.friend.async;
 
 import jaeik.bimillog.domain.friend.dto.FriendshipRebuildDTO;
+import jaeik.bimillog.domain.friend.dto.InteractionRebuildDTO;
 import jaeik.bimillog.domain.friend.repository.FriendAdminQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +66,43 @@ public class FriendRebuildProducer {
             try {
                 queue.put(poisonPill);
                 log.info("프로듀서: POISON_PILL 삽입, 종료");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("POISON_PILL 삽입 중 인터럽트", e);
+            }
+        }
+    }
+
+    @Async("interactionProducerExecutor")
+    public void produceInteraction(LinkedBlockingQueue<Long> memberQueue, BlockingQueue<InteractionRebuildDTO> queue,
+                                   InteractionRebuildDTO poisonPill) {
+        List<Long> memberIds = new ArrayList<>(MEMBER_CHUNK_SIZE);
+
+        try {
+            while (!memberQueue.isEmpty()) {
+                memberIds.clear();
+                memberQueue.drainTo(memberIds, MEMBER_CHUNK_SIZE);
+                if (memberIds.isEmpty()) break;
+
+                Map<Long, Map<Long, Double>> scoreMap = friendAdminQueryRepository.getInteractionScore(memberIds);
+                log.info("프로듀서(상호작용): memberId {} 이후 {}명 처리 완료", memberIds.getLast(), memberIds.size());
+
+                for (Map.Entry<Long, Map<Long, Double>> entry : scoreMap.entrySet()) {
+                    if (!entry.getValue().isEmpty()) {
+                        InteractionRebuildDTO dto = InteractionRebuildDTO.createDTO(
+                                entry.getKey(), entry.getValue());
+                        queue.put(dto);
+                    }
+                }
+            }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("프로듀서(상호작용) 인터럽트 발생", e);
+        } finally {
+            try {
+                queue.put(poisonPill);
+                log.info("프로듀서(상호작용): POISON_PILL 삽입, 종료");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 log.error("POISON_PILL 삽입 중 인터럽트", e);
