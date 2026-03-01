@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.friend.async;
 
 import jaeik.bimillog.domain.friend.dto.FriendshipRebuildDTO;
+import jaeik.bimillog.domain.friend.dto.InteractionRebuildDTO;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,5 +66,39 @@ public class FriendRebuildConsumer {
         }
 
         log.info("컨슈머: 종료. 총 {}명 처리", count);
+    }
+
+    @Async("interactionConsumerExecutor")
+    public void consumeInteraction(BlockingQueue<InteractionRebuildDTO> queue,
+                                   InteractionRebuildDTO poisonPill) {
+        long count = 0L;
+        List<InteractionRebuildDTO> batch = new ArrayList<>(PIPELINE_BATCH_SIZE);
+
+        try {
+            while (true) {
+                InteractionRebuildDTO first = queue.poll(5, TimeUnit.SECONDS);
+                if (first == null) continue;
+
+                batch.add(first);
+                queue.drainTo(batch, PIPELINE_BATCH_SIZE - 1);
+
+                boolean poisonReceived = batch.remove(poisonPill);
+
+                if (!batch.isEmpty()) {
+                    redisFriendRestore.rebuildInteractionPipelineBatch(batch);
+                    count += batch.size();
+                    log.info("컨슈머(상호작용): {}명 Redis 파이프라인 삽입 완료", count);
+                }
+
+                batch.clear();
+
+                if (poisonReceived) break;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("컨슈머(상호작용) 인터럽트 발생", e);
+        }
+
+        log.info("컨슈머(상호작용): 종료. 총 {}명 처리", count);
     }
 }

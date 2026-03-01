@@ -1,6 +1,7 @@
 package jaeik.bimillog.springboot.mysql.performance;
 
 import jaeik.bimillog.domain.friend.service.FriendAdminService;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +13,10 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 시나리오: 회원 100,000명 / 친구 300명 / 상호작용 300명
@@ -55,8 +58,15 @@ class FriendRedisRebuildPerformanceTest {
         log.info("║  friendship Redis 재구축 시작         ║");
         log.info("╚══════════════════════════════════════╝");
 
+        long start = System.currentTimeMillis();
         friendAdminService.getFriendshipDB();
-        log.info("▶ fire-and-forget 호출 완료 — 로그로 결과 확인");
+
+        awaitKeysStable("friend:*");
+
+        long elapsed = System.currentTimeMillis() - start;
+        long redisKeys = countRedisKeys("friend:*");
+        log.info("▶ 소요  : {}ms  ({}초)", elapsed, String.format("%.1f", elapsed / 1000.0));
+        log.info("▶ Redis : friend:* 키 {} 개 생성", format(redisKeys));
     }
 
     @Test
@@ -70,16 +80,14 @@ class FriendRedisRebuildPerformanceTest {
         log.info("╚══════════════════════════════════════╝");
 
         long start = System.currentTimeMillis();
-        String result = friendAdminService.rebuildInteractionScoreRedis();
+        friendAdminService.rebuildInteractionScoreRedis();
+
+        awaitKeysStable("interaction:*");
+
         long elapsed = System.currentTimeMillis() - start;
-
         long redisKeys = countRedisKeys("interaction:*");
-        log.info("▶ 결과  : {}", result);
-        log.info("▶ 소요  : {}ms  ({:.1f}초)", elapsed, elapsed / 1000.0);
+        log.info("▶ 소요  : {}ms  ({}초)", elapsed, String.format("%.1f", elapsed / 1000.0));
         log.info("▶ Redis : interaction:* 키 {} 개 생성", format(redisKeys));
-
-        Assertions.assertNotNull(result);
-        Assertions.assertTrue(redisKeys > 0, "Redis interaction:* 키가 생성되어야 함");
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -90,6 +98,35 @@ class FriendRedisRebuildPerformanceTest {
         log.info("=== Redis 정리 (friend:*, interaction:*) ===");
         flushFriendRedisKeys();
         flushInteractionRedisKeys();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  비동기 완료 대기
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Redis 키 수가 일정 시간 변동 없으면 비동기 작업 완료로 판단합니다.
+     */
+    private void awaitKeysStable(String pattern) {
+        awaitKeysStable(pattern, 15_000);
+    }
+
+    private void awaitKeysStable(String pattern, long stableMillis) {
+        AtomicLong lastCount = new AtomicLong(-1);
+        AtomicLong stableSince = new AtomicLong(System.currentTimeMillis());
+
+        Awaitility.await()
+                .atMost(Duration.ofMinutes(10))
+                .pollInterval(Duration.ofSeconds(2))
+                .until(() -> {
+                    long current = countRedisKeys(pattern);
+                    if (current != lastCount.get()) {
+                        lastCount.set(current);
+                        stableSince.set(System.currentTimeMillis());
+                        return false;
+                    }
+                    return current > 0 && (System.currentTimeMillis() - stableSince.get()) >= stableMillis;
+                });
     }
 
     // ─────────────────────────────────────────────────────────────

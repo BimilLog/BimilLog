@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
 import jaeik.bimillog.domain.friend.dto.FriendshipRebuildDTO;
+import jaeik.bimillog.domain.friend.dto.InteractionRebuildDTO;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,10 +12,15 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.redis.connection.zset.DefaultTuple;
+import org.springframework.data.redis.connection.zset.Tuple;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static jaeik.bimillog.infrastructure.redis.RedisKey.*;
 import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
@@ -136,26 +142,20 @@ public class RedisFriendRestore {
     }
 
     /**
-     * <h3>상호작용 점수 청크 Redis 증분 삽입</h3>
-     * <p>ZINCRBY로 원시 행 1건당 INTERACTION_SCORE_DEFAULT(0.5)씩 누적합니다.</p>
-     * <p>post_like, comment, comment_like 세 소스에서 순차적으로 호출되며,
-     * 동일 쌍의 점수는 Redis에서 자동 합산됩니다.</p>
-     * <p>점수 상한은 별도 처리 없이 조회 시점에 자연스럽게 간주합니다.</p>
-     *
-     * @param batch long[3][] — 각 요소: [rowId(무시), memberId, targetId]
+     * <h3>상호작용 점수 파이프라인 배치 Redis 삽입</h3>
+     * <p>여러 멤버의 상호작용 점수를 파이프라인 한 번으로 ZADD 처리합니다.</p>
+     * <p>각 멤버별로 (targetId, score) 쌍을 ZADD합니다.</p>
      */
-    public void incrementInteractionBatch(List<long[]> batch) {
-        if (batch.isEmpty()) {
-            return;
-        }
+    public void rebuildInteractionPipelineBatch(List<InteractionRebuildDTO> batch) {
         stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            for (long[] row : batch) {
-                // row[0] = driveId (keyset), row[1] = joinId (keyset)
-                // row[2] = memberId, row[3] = targetId
-                connection.zSetCommands().zIncrBy(
-                        createInteractionKey(row[2]).getBytes(StandardCharsets.UTF_8),
-                        INTERACTION_SCORE_DEFAULT,
-                        String.valueOf(row[3]).getBytes(StandardCharsets.UTF_8));
+            for (InteractionRebuildDTO dto : batch) {
+                byte[] key = createInteractionKey(dto.getMemberId()).getBytes(StandardCharsets.UTF_8);
+                Set<Tuple> tuples = dto.getScores().entrySet().stream()
+                        .map(e -> (Tuple) new DefaultTuple(
+                                String.valueOf(e.getKey()).getBytes(StandardCharsets.UTF_8),
+                                e.getValue()))
+                        .collect(Collectors.toSet());
+                connection.zSetCommands().zAdd(key, tuples);
             }
             return null;
         });
