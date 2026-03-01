@@ -7,10 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * <h2>친구 관계 재구축 프로듀서</h2>
@@ -33,15 +35,19 @@ public class FriendRebuildProducer {
      * <p>완료 시 POISON_PILL을 삽입하여 컨슈머에 종료 신호를 전달합니다.</p>
      */
     @Async("rebuildProducerExecutor")
-    public void produce(BlockingQueue<FriendshipRebuildDTO> queue, FriendshipRebuildDTO poisonPill) {
+    public void produce(LinkedBlockingQueue<Long> memberQueue, BlockingQueue<FriendshipRebuildDTO> queue,
+                        FriendshipRebuildDTO poisonPill) {
+        List<Long> memberIds = new ArrayList<>(MEMBER_CHUNK_SIZE);
+
         try {
-            long afterId = 0L;
+            while (!memberQueue.isEmpty()) {
+                memberIds.clear();
+                memberQueue.drainTo(memberIds, MEMBER_CHUNK_SIZE);
+                if (memberIds.isEmpty()) break;
 
-            while (true) {
-                List<Long> chunk = friendAdminQueryRepository.getMemberIdChunk(afterId, MEMBER_CHUNK_SIZE);
-                if (chunk.isEmpty()) break;
+                Map<Long, Set<Long>> friendMap = friendAdminQueryRepository.getMemberFriendBatch(memberIds);
+                log.info("프로듀서: memberId {} 이후 {}명 처리 완료", memberIds.getLast(), memberIds.size());
 
-                Map<Long, Set<Long>> friendMap = friendAdminQueryRepository.getMemberFriendBatch(chunk);
                 for (Map.Entry<Long, Set<Long>> entry : friendMap.entrySet()) {
                     if (!entry.getValue().isEmpty()) {
                         FriendshipRebuildDTO dto = FriendshipRebuildDTO.createDTO(
@@ -50,10 +56,6 @@ public class FriendRebuildProducer {
                         log.debug("DB 친구관계 큐 삽입 : 아이디 {}", entry.getKey());
                     }
                 }
-
-                afterId = chunk.getLast();
-                log.info("프로듀서: memberId {} 이후 {}명 처리 완료", afterId, chunk.size());
-                if (chunk.size() < MEMBER_CHUNK_SIZE) break;
             }
 
         } catch (InterruptedException e) {
