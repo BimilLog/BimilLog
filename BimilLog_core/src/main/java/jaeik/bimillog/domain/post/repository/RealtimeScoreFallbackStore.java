@@ -142,13 +142,25 @@ public class RealtimeScoreFallbackStore {
     }
 
     /**
-     * <h3>삭제 로그만 초기화</h3>
-     * <p>CLOSED 전환 시 Redis 삭제 재처리 완료 후 호출합니다.</p>
-     * <p>점수 캐시는 유지하여 다음 OPEN 구간에서 콜드스타트 없이 서빙합니다.</p>
+     * <h3>동기화 완료된 점수 항목 제거</h3>
+     * <p>배치 단위로 Redis 동기화 성공 후 해당 항목만 Caffeine에서 제거합니다.</p>
+     *
+     * @param postIds Redis에 성공적으로 반영된 게시글 ID 목록
      */
-    public void clearDeletedPostIds() {
-        deletedPostIds.clear();
-        log.debug("[FALLBACK_STORE] 삭제 로그 초기화");
+    public void removeSyncedScores(Collection<Long> postIds) {
+        scoreCache.invalidateAll(postIds);
+        log.debug("[FALLBACK_STORE] 동기화 완료 점수 제거: {}건", postIds.size());
+    }
+
+    /**
+     * <h3>동기화 완료된 삭제 로그 제거</h3>
+     * <p>배치 단위로 Redis 삭제 재처리 성공 후 해당 항목만 삭제 로그에서 제거합니다.</p>
+     *
+     * @param postIds Redis에서 성공적으로 제거된 게시글 ID 목록
+     */
+    public void removeSyncedDeletedPostIds(Collection<Long> postIds) {
+        deletedPostIds.removeAll(postIds);
+        log.debug("[FALLBACK_STORE] 동기화 완료 삭제 로그 제거: {}건", postIds.size());
     }
 
     /**

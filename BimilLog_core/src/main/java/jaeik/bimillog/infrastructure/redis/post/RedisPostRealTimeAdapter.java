@@ -169,6 +169,7 @@ public class RedisPostRealTimeAdapter {
             return;
         }
         List<Map.Entry<Long, Double>> entries = new ArrayList<>(scores.entrySet());
+        int syncedCount = 0;
         for (int i = 0; i < entries.size(); i += SYNC_BATCH_SIZE) {
             List<Map.Entry<Long, Double>> batch = entries.subList(i, Math.min(i + SYNC_BATCH_SIZE, entries.size()));
             stringRedisTemplate.executePipelined((RedisCallback<Object>) conn -> {
@@ -178,9 +179,13 @@ public class RedisPostRealTimeAdapter {
                 }
                 return null;
             });
+            // 배치 성공 시 해당 항목만 Caffeine에서 제거
+            List<Long> syncedIds = batch.stream().map(Map.Entry::getKey).toList();
+            fallbackStore.removeSyncedScores(syncedIds);
+            syncedCount += syncedIds.size();
         }
         int batches = (entries.size() + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
-        log.info("[SYNC] Caffeine → Redis 점수 동기화 완료: {}건({}배치)", scores.size(), batches);
+        log.info("[SYNC] Caffeine → Redis 점수 동기화 완료: {}건({}배치)", syncedCount, batches);
     }
 
     /**
@@ -191,22 +196,22 @@ public class RedisPostRealTimeAdapter {
      * @param deletedIds OPEN 구간에 삭제된 게시글 ID 목록
      */
     public void replayDeletionsToRedis(Set<Long> deletedIds) {
-        try {
-            List<Long> deletedList = new ArrayList<>(deletedIds);
-            for (int i = 0; i < deletedList.size(); i += SYNC_BATCH_SIZE) {
-                List<Long> batch = deletedList.subList(i, Math.min(i + SYNC_BATCH_SIZE, deletedList.size()));
-                stringRedisTemplate.executePipelined((RedisCallback<Object>) conn -> {
-                    StringRedisConnection c = (StringRedisConnection) conn;
-                    for (Long postId : batch) {
-                        c.zRem(REALTIME_SCORE_KEY, String.valueOf(postId));
-                    }
-                    return null;
-                });
-            }
-            int batches = (deletedList.size() + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
-            log.info("[SYNC] 삭제 재처리 완료: {}건({}배치)", deletedIds.size(), batches);
-        } catch (Exception e) {
-            log.warn("[SYNC] 삭제 재처리 실패 (무시하고 진행): {}", e.getMessage());
+        List<Long> deletedList = new ArrayList<>(deletedIds);
+        int syncedCount = 0;
+        for (int i = 0; i < deletedList.size(); i += SYNC_BATCH_SIZE) {
+            List<Long> batch = deletedList.subList(i, Math.min(i + SYNC_BATCH_SIZE, deletedList.size()));
+            stringRedisTemplate.executePipelined((RedisCallback<Object>) conn -> {
+                StringRedisConnection c = (StringRedisConnection) conn;
+                for (Long postId : batch) {
+                    c.zRem(REALTIME_SCORE_KEY, String.valueOf(postId));
+                }
+                return null;
+            });
+            // 배치 성공 시 해당 항목만 삭제 로그에서 제거
+            fallbackStore.removeSyncedDeletedPostIds(batch);
+            syncedCount += batch.size();
         }
+        int batches = (deletedList.size() + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
+        log.info("[SYNC] 삭제 재처리 완료: {}건({}배치)", syncedCount, batches);
     }
 }

@@ -57,7 +57,7 @@ public class FriendInteractionListener {
                     RedisCommandTimeoutException.class
             },
             maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 1.5))
+            backoff = @Backoff(delay = 100))
     public void handlePostLiked(FriendInteractionEvent event) {
         // 익명 사용자 또는 자기 자신과의 상호작용은 점수 반영하지 않음
         if (event.getMemberId() == null || event.getTargetMemberId() == null

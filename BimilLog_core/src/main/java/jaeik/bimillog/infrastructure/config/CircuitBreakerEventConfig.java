@@ -45,18 +45,19 @@ public class CircuitBreakerEventConfig {
 
             if (transition.getToState() == CircuitBreaker.State.CLOSED) {
                 // 1. Caffeine 누적 점수 → Redis 역반영 (ZINCRBY 파이프라인)
+                // 배치 성공 시마다 해당 항목을 Caffeine에서 즉시 제거
                 Map<Long, Double> caffeineScores = realtimeScoreFallbackStore.getAllScores();
                 if (!caffeineScores.isEmpty()) {
                     redisPostRealTimeAdapter.syncCaffeineScoresToRedis(caffeineScores);
                 }
 
                 // 2. OPEN 구간 삭제 게시글 → Redis에서 제거
+                // 배치 성공 시마다 해당 항목을 삭제 로그에서 즉시 제거
                 Set<Long> deletedIds = realtimeScoreFallbackStore.getDeletedPostIds();
                 if (!deletedIds.isEmpty()) {
                     redisPostRealTimeAdapter.replayDeletionsToRedis(deletedIds);
                 }
 
-                realtimeScoreFallbackStore.clearDeletedPostIds();
                 log.info("[CIRCUIT] CLOSED 전환: Caffeine 점수 동기화 및 삭제 재처리 완료");
             }
         });
