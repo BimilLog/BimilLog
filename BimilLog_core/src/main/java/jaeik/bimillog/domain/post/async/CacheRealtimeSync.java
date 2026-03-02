@@ -92,7 +92,7 @@ public class CacheRealtimeSync {
      * <p>OPEN 구간에 Caffeine에 쌓인 증분 점수를 Redis에 반영하고,
      * 삭제된 게시글을 Redis에서 제거합니다.</p>
      */
-    @Async("cacheRefreshExecutor")
+    @Async("circuitSyncExecutor")
     public void syncCaffeineToRedis() {
         try {
             Map<Long, Double> deltaScores = realtimeScoreFallbackStore.getDeltaScores();

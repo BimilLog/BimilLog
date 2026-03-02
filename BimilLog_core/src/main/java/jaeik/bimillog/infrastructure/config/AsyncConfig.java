@@ -157,6 +157,24 @@ public class AsyncConfig {
     }
 
     /**
+     * 서킷브레이커 동기화 전용 스레드 풀
+     * <p>서킷 CLOSED 전환 시 Caffeine → Redis 동기화에 사용됩니다.</p>
+     * <p>캐시 갱신 스레드 풀과 분리하여 동기화 작업이 일반 캐시 갱신을 블로킹하지 않습니다.</p>
+     */
+    @Bean(name = "circuitSyncExecutor")
+    public Executor circuitSyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(2);
+        executor.setQueueCapacity(5);
+        executor.setThreadNamePrefix("circuit-sync-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.initialize();
+        return executor;
+    }
+
+    /**
      * 신고 전용 스레드 풀
      * <p>신고 저장 이벤트를 처리합니다.</p>
      * <p>빈도는 낮지만 데이터 무결성이 중요합니다.</p>

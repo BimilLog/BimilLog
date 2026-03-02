@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
  *   <li>OPEN 구간에 Caffeine에 누적된 증분 점수를 파이프라인 ZINCRBY로 Redis에 더합니다.</li>
  *   <li>OPEN 구간에 삭제된 게시글을 Redis에서 제거합니다.</li>
  * </ol>
- * <p>동기화는 {@link CacheRealtimeSync#syncCaffeineToRedis()}에서 비동기(cacheRefreshExecutor)로 실행되어
+ * <p>동기화는 {@link CacheRealtimeSync#syncCaffeineToRedis()}에서 비동기(circuitSyncExecutor)로 실행되어
  * 상태 전환을 트리거한 스레드(톰캣 워커 or 비동기)를 블로킹하지 않습니다.</p>
  *
  * @author Jaeik
