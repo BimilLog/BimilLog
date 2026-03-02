@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.friend.listener.FriendInteractionListener;
 import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
-import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import org.awaitility.Awaitility;

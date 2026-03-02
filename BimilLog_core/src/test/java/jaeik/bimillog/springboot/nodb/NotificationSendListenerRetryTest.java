@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.notification.event.AlarmSendEvent;
 import jaeik.bimillog.domain.notification.listener.NotificationSendListener;
 import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
-import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;

@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.notification.listener.NotificationSaveListener;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
-import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
