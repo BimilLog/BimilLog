@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  */
 @Getter
 @Component
-public class GoogleKeyVO {
+public final class GoogleKeyVO {
 
     @Value("${spring.google.client-id}")
     private String CLIENT_ID;
@@ -21,19 +21,7 @@ public class GoogleKeyVO {
     @Value("${spring.google.redirect-uri}")
     private String REDIRECT_URI;
 
-    private static final String TOKEN_URL = "https://oauth2.googleapis.com/token";
-    private static final String REVOKE_URL = "https://oauth2.googleapis.com/revoke";
-    private static final String USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
-
-    public String getTokenUrl() {
-        return TOKEN_URL;
-    }
-
-    public String getRevokeUrl() {
-        return REVOKE_URL;
-    }
-
-    public String getUserInfoUrl() {
-        return USER_INFO_URL;
-    }
+    private final String tokenUrl = "https://oauth2.googleapis.com/token";
+    private final String revokeUrl = "https://oauth2.googleapis.com/revoke";
+    private final String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
 }
