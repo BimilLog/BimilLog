@@ -36,7 +36,7 @@ public class FriendshipRedisUpdate {
                     RedisCommandTimeoutException.class
             },
             maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 1.5),
+            backoff = @Backoff(delay = 100),
             recover = "recoverAddFriend"
     )
     public void addFriendToRedis(Long memberId, Long friendId) {
@@ -60,7 +60,7 @@ public class FriendshipRedisUpdate {
                     RedisCommandTimeoutException.class
             },
             maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 1.5),
+            backoff = @Backoff(delay = 100),
             recover = "recoverDeleteFriend"
     )
     public void deleteFriendToRedis(Long memberId1, Long memberId2) {

@@ -31,6 +31,9 @@ public class RealtimeScoreFallbackStore {
     // OPEN 구간 중 삭제된 게시글 ID 추적 (CLOSED 전환 시 Redis에서도 제거)
     private final Set<Long> deletedPostIds = ConcurrentHashMap.newKeySet();
 
+    // 웜업 기준점 (CLOSED 전환 시 증분 계산용)
+    private final Map<Long, Double> baseline = new HashMap<>();
+
     /**
      * <h3>점수 증가</h3>
      * <p>fallbackMethod에서 호출됩니다.</p>
@@ -117,7 +120,12 @@ public class RealtimeScoreFallbackStore {
      * @param redisScores Redis ZSet에서 가져온 postId → score 맵
      */
     public void warmUp(Map<Long, Double> redisScores) {
-        redisScores.forEach(scoreCache::put);
+        scoreCache.invalidateAll();
+        baseline.clear();
+        redisScores.forEach((postId, score) -> {
+            scoreCache.put(postId, score);
+            baseline.put(postId, score);
+        });
         log.debug("[FALLBACK_STORE] Redis Top{} 웜업 완료", redisScores.size());
     }
 
@@ -132,32 +140,45 @@ public class RealtimeScoreFallbackStore {
     }
 
     /**
-     * <h3>전체 점수 스냅샷 조회</h3>
-     * <p>CLOSED 전환 시 Redis에 동기화할 모든 postId → score 항목을 반환합니다.</p>
+     * <h3>OPEN 구간 증분만 조회</h3>
+     * <p>CLOSED 전환 시 Redis에 ZINCRBY할 증분 점수만 반환합니다.</p>
+     * <p>웜업 기준점(baseline)을 빼서 OPEN 구간에 실제 적립된 점수만 계산합니다.</p>
+     * <p>웜업 이후 새로 유입된 게시글(baseline에 없는)은 전체 점수가 증분입니다.</p>
      *
-     * @return postId → score 불변 복사본
+     * @return postId → 증분 점수 (양수/음수 모두 포함, 감쇠 보상 포함)
      */
-    public Map<Long, Double> getAllScores() {
-        return Map.copyOf(scoreCache.asMap());
+    public Map<Long, Double> getDeltaScores() {
+        Map<Long, Double> delta = new HashMap<>();
+        scoreCache.asMap().forEach((postId, totalScore) -> {
+            double base = baseline.getOrDefault(postId, 0.0);
+            double diff = totalScore - base;
+            if (diff != 0) {
+                delta.put(postId, diff);
+            }
+        });
+        return delta;
     }
 
     /**
-     * <h3>삭제 로그만 초기화</h3>
-     * <p>CLOSED 전환 시 Redis 삭제 재처리 완료 후 호출합니다.</p>
-     * <p>점수 캐시는 유지하여 다음 OPEN 구간에서 콜드스타트 없이 서빙합니다.</p>
+     * <h3>동기화 완료된 점수 항목 제거</h3>
+     * <p>배치 단위로 Redis 동기화 성공 후 해당 항목만 Caffeine에서 제거합니다.</p>
+     *
+     * @param postIds Redis에 성공적으로 반영된 게시글 ID 목록
      */
-    public void clearDeletedPostIds() {
-        deletedPostIds.clear();
-        log.debug("[FALLBACK_STORE] 삭제 로그 초기화");
+    public void removeSyncedScores(Collection<Long> postIds) {
+        scoreCache.invalidateAll(postIds);
+        log.debug("[FALLBACK_STORE] 동기화 완료 점수 제거: {}건", postIds.size());
     }
 
     /**
-     * <h3>저장소 초기화</h3>
-     * <p>Redis 복구 후 또는 테스트 시 저장소를 초기화합니다.</p>
+     * <h3>동기화 완료된 삭제 로그 제거</h3>
+     * <p>배치 단위로 Redis 삭제 재처리 성공 후 해당 항목만 삭제 로그에서 제거합니다.</p>
+     *
+     * @param postIds Redis에서 성공적으로 제거된 게시글 ID 목록
      */
-    public void clear() {
-        scoreCache.invalidateAll();
-        deletedPostIds.clear();
-        log.info("[FALLBACK_STORE] 저장소 초기화");
+    public void removeSyncedDeletedPostIds(Collection<Long> postIds) {
+        deletedPostIds.removeAll(postIds);
+        log.debug("[FALLBACK_STORE] 동기화 완료 삭제 로그 제거: {}건", postIds.size());
     }
+
 }

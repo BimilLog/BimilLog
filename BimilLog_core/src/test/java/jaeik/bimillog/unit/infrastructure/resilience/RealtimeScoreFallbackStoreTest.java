@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -122,20 +123,24 @@ class RealtimeScoreFallbackStoreTest {
     }
 
     @Test
-    @DisplayName("저장소 초기화 - clear 호출 후 비어있음")
-    void shouldClearAllData_WhenClearInvoked() {
+    @DisplayName("저장소 초기화 - warmUp(빈 맵)으로 점수/기준점 초기화, 삭제 로그 개별 제거")
+    void shouldResetStore_WhenWarmUpWithEmptyMapAndRemoveSyncedDeletedPostIds() {
         // Given
         fallbackStore.incrementScore(1L, 10.0);
         fallbackStore.incrementScore(2L, 20.0);
+        fallbackStore.removePost(3L);
         assertThat(fallbackStore.size()).isEqualTo(2);
+        assertThat(fallbackStore.getDeletedPostIds()).hasSize(1);
 
-        // When
-        fallbackStore.clear();
+        // When: 메인 로직 패턴 — warmUp(빈 맵) + 삭제 로그 제거
+        fallbackStore.warmUp(Map.of());
+        fallbackStore.removeSyncedDeletedPostIds(fallbackStore.getDeletedPostIds());
 
         // Then
         assertThat(fallbackStore.size()).isZero();
         assertThat(fallbackStore.hasData()).isFalse();
         assertThat(fallbackStore.getTopPostIds(0, 10)).isEmpty();
+        assertThat(fallbackStore.getDeletedPostIds()).isEmpty();
     }
 
     @Test

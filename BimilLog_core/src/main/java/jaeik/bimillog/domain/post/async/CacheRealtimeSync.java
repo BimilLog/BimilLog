@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostRepository;
+import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * <h2>실시간 인기글 점수 업데이트</h2>
@@ -34,6 +37,7 @@ public class CacheRealtimeSync {
     private final RedisPostListUpdateAdapter redisPostListUpdateAdapter;
     private final RedisPostViewAdapter redisPostViewAdapter;
     private final PostRepository postRepository;
+    private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
 
     private static final double COMMENT_SCORE = 3.0;
     private static final double VIEW_SCORE = 2.0;
@@ -75,6 +79,37 @@ public class CacheRealtimeSync {
     @Async("realtimeEventExecutor")
     public void handleCommentDeleted(CommentDeletedEvent event) {
         redisPostRealTimeAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);
+    }
+
+    /**
+     * <h3>실시간 인기글 JSON LIST 비동기 갱신</h3>
+     * <p>ZSet과 LIST의 ID 순서가 불일치할 때 호출됩니다.</p>
+     * <p>현재 LIST에서 oldIds를 추출하여 새로 들어온 글과 빠진 글을 판별합니다.</p>
+     *
+     */
+    /**
+     * <h3>서킷 CLOSED 전환 시 Caffeine → Redis 동기화</h3>
+     * <p>OPEN 구간에 Caffeine에 쌓인 증분 점수를 Redis에 반영하고,
+     * 삭제된 게시글을 Redis에서 제거합니다.</p>
+     */
+    @Async("cacheRefreshExecutor")
+    public void syncCaffeineToRedis() {
+        try {
+            Map<Long, Double> deltaScores = realtimeScoreFallbackStore.getDeltaScores();
+            if (!deltaScores.isEmpty()) {
+                redisPostRealTimeAdapter.syncCaffeineScoresToRedis(deltaScores);
+            }
+
+            Set<Long> deletedIds = realtimeScoreFallbackStore.getDeletedPostIds();
+            if (!deletedIds.isEmpty()) {
+                redisPostRealTimeAdapter.replayDeletionsToRedis(deletedIds);
+            }
+
+            log.info("[CIRCUIT] CLOSED 전환: Caffeine 점수 동기화 및 삭제 재처리 완료 (점수: {}건, 삭제: {}건)",
+                    deltaScores.size(), deletedIds.size());
+        } catch (Exception e) {
+            log.error("[CIRCUIT] Caffeine → Redis 동기화 실패 (다음 웜업 주기에 자연 보정)", e);
+        }
     }
 
     /**
