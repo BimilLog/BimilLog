@@ -62,13 +62,19 @@ class CaffeineFallbackStorePerformanceTest {
     @BeforeEach
     void setUp() {
         RedisTestHelper.flushRedis(redisTemplate);
-        realtimeScoreFallbackStore.clear();
+        resetFallbackStore();
     }
 
     @AfterEach
     void tearDown() {
         RedisTestHelper.flushRedis(redisTemplate);
-        realtimeScoreFallbackStore.clear();
+        resetFallbackStore();
+    }
+
+    private void resetFallbackStore() {
+        realtimeScoreFallbackStore.warmUp(Map.of());
+        realtimeScoreFallbackStore.removeSyncedDeletedPostIds(
+                realtimeScoreFallbackStore.getDeletedPostIds());
     }
 
     @Test
@@ -82,7 +88,7 @@ class CaffeineFallbackStorePerformanceTest {
         assertThat(realtimeScoreFallbackStore.size()).isEqualTo(POST_COUNT);
 
         // When: CircuitBreakerEventConfig의 CLOSED 전환 로직과 동일
-        Map<Long, Double> caffeineScores = realtimeScoreFallbackStore.getAllScores();
+        Map<Long, Double> caffeineScores = realtimeScoreFallbackStore.getDeltaScores();
 
         long start = System.currentTimeMillis();
         if (!caffeineScores.isEmpty()) {
@@ -112,7 +118,7 @@ class CaffeineFallbackStorePerformanceTest {
         for (long i = 1; i <= POST_COUNT; i++) {
             realtimeScoreFallbackStore.incrementScore(i, ThreadLocalRandom.current().nextDouble(2.0, 10.0));
         }
-        Map<Long, Double> caffeineScores = realtimeScoreFallbackStore.getAllScores();
+        Map<Long, Double> caffeineScores = realtimeScoreFallbackStore.getDeltaScores();
         redisPostRealTimeAdapter.syncCaffeineScoresToRedis(caffeineScores);
 
         // 서킷 OPEN 구간에 500건 삭제 시뮬레이션
@@ -158,7 +164,7 @@ class CaffeineFallbackStorePerformanceTest {
         // When: CircuitBreakerEventConfig.onStateTransition CLOSED 전환 전체 로직
         long start = System.currentTimeMillis();
 
-        Map<Long, Double> caffeineScores = realtimeScoreFallbackStore.getAllScores();
+        Map<Long, Double> caffeineScores = realtimeScoreFallbackStore.getDeltaScores();
         if (!caffeineScores.isEmpty()) {
             redisPostRealTimeAdapter.syncCaffeineScoresToRedis(caffeineScores);
         }

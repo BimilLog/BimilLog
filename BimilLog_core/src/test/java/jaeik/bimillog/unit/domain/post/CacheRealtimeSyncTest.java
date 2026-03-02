@@ -7,6 +7,7 @@ import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
 import jaeik.bimillog.domain.post.repository.PostRepository;
+import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -41,6 +42,9 @@ class CacheRealtimeSyncTest {
     @Mock
     private PostRepository postRepository;
 
+    @Mock
+    private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
+
     private CacheRealtimeSync listener;
 
     @BeforeEach
@@ -49,7 +53,8 @@ class CacheRealtimeSyncTest {
                 redisPostRealTimeAdapter,
                 redisPostListUpdateAdapter,
                 redisPostViewAdapter,
-                postRepository
+                postRepository,
+                realtimeScoreFallbackStore
         );
         reset(redisPostRealTimeAdapter);
     }
