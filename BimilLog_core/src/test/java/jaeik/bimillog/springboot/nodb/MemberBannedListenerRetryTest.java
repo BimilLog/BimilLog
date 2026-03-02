@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.global.listener.MemberBannedListener;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.SseService;
-import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;

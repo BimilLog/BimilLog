@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.post.service.PostCommandService;
-import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;

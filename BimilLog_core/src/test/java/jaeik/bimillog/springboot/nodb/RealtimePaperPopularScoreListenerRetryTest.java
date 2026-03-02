@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.listener.RealtimePaperPopularScoreListener;
-import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperUpdateAdapter;
 import org.awaitility.Awaitility;

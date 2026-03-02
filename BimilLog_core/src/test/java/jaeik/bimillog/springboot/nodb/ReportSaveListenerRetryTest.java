@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.listener.ReportSaveListener;
 import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
-import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
