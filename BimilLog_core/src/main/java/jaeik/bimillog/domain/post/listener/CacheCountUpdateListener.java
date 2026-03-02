@@ -1,11 +1,10 @@
 package jaeik.bimillog.domain.post.listener;
 
-import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
-import jaeik.bimillog.domain.post.event.PostLikedEvent;
-import jaeik.bimillog.domain.post.event.PostUnlikedEvent;
+import jaeik.bimillog.domain.global.event.CacheCountEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostDetailViewedEvent;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -25,40 +24,23 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class CacheCountUpdateListener {
     private final RedisPostListUpdateAdapter redisPostListUpdateAdapter;
+    private final RedisPostViewAdapter redisPostViewAdapter;
 
     /**
-     * <h3>게시글 추천 이벤트 처리 — 좋아요 카운터 +1</h3>
+     * <h3>게시글 상세 조회 이벤트 처리 — 조회수 버퍼 증가</h3>
      */
     @TransactionalEventListener
     @Async("cacheCountUpdateExecutor")
-    public void handlePostLiked(PostLikedEvent event) {
-        redisPostListUpdateAdapter.incrementCounterInAllLists(event.getPostId(), "likeCount", 1);
+    public void handlePostDetailViewed(PostDetailViewedEvent event) {
+        redisPostViewAdapter.markViewedAndIncrement(event.postId(), event.viewerKey());
     }
 
     /**
-     * <h3>게시글 추천취소 이벤트 처리 — 좋아요 카운터 -1</h3>
+     * <h3>카운터 증감 이벤트 처리 — 좋아요/댓글 카운터 증감</h3>
      */
     @TransactionalEventListener
     @Async("cacheCountUpdateExecutor")
-    public void handlePostUnliked(PostUnlikedEvent event) {
-        redisPostListUpdateAdapter.incrementCounterInAllLists(event.postId(), "likeCount", -1);
-    }
-
-    /**
-     * <h3>댓글 작성 이벤트 처리 — 댓글 카운터 +1</h3>
-     */
-    @TransactionalEventListener
-    @Async("cacheCountUpdateExecutor")
-    public void handleCommentCreated(CommentCreatedEvent event) {
-        redisPostListUpdateAdapter.incrementCounterInAllLists(event.getPostId(), "commentCount", 1);
-    }
-
-    /**
-     * <h3>댓글 삭제 이벤트 처리 — 댓글 카운터 -1</h3>
-     */
-    @TransactionalEventListener
-    @Async("cacheCountUpdateExecutor")
-    public void handleCommentDeleted(CommentDeletedEvent event) {
-        redisPostListUpdateAdapter.incrementCounterInAllLists(event.postId(), "commentCount", -1);
+    public void handleCacheCount(CacheCountEvent event) {
+        redisPostListUpdateAdapter.incrementCounterInAllLists(event.postId(), event.counterField(), event.counterDelta());
     }
 }

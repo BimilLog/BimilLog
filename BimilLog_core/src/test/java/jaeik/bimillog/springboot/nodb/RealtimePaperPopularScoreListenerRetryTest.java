@@ -1,8 +1,8 @@
 package jaeik.bimillog.springboot.nodb;
 
-import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
-import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
-import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
+import jaeik.bimillog.domain.paper.event.PaperEvent.MessageDeletedEvent;
+import jaeik.bimillog.domain.paper.event.PaperEvent.PaperViewedEvent;
+import jaeik.bimillog.domain.paper.event.PaperEvent.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.listener.RealtimePaperPopularScoreListener;
 import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.async.PostAsyncConfig;

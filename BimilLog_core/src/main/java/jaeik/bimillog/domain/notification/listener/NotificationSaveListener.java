@@ -1,10 +1,10 @@
 package jaeik.bimillog.domain.notification.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.friend.event.FriendEvent;
+import jaeik.bimillog.domain.friend.event.FriendEvent.FriendRequestEvent;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
-import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
-import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.paper.event.PaperEvent.RollingPaperEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostFeaturedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -47,13 +47,13 @@ public class NotificationSaveListener {
     )
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         // 익명 게시글 또는 자기 글 댓글이면 알림 불필요
-        if (event.getPostUserId() == null || event.getPostUserId().equals(event.getCommenterId())) {
+        if (event.postUserId() == null || event.postUserId().equals(event.commenterId())) {
             return;
         }
         notificationCommandService.saveCommentNotification(
-                event.getPostUserId(),
-                event.getCommenterName(),
-                event.getPostId()
+                event.postUserId(),
+                event.commenterName(),
+                event.postId()
         );
     }
 
@@ -97,7 +97,7 @@ public class NotificationSaveListener {
     }
 
     @Async("saveNotificationExecutor")
-    @TransactionalEventListener(value = FriendEvent.class, phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(value = FriendRequestEvent.class, phase = TransactionPhase.AFTER_COMMIT)
     @Retryable(
             retryFor = {
                     TransientDataAccessException.class,
@@ -107,11 +107,11 @@ public class NotificationSaveListener {
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000, multiplier = 1.5)
     )
-    public void handleFriendEvent(FriendEvent event) {
+    public void handleFriendEvent(FriendRequestEvent event) {
         notificationCommandService.saveFriendNotification(
-                event.getReceiveMemberId(),
-                event.getSseMessage(),
-                event.getSenderName()
+                event.receiveMemberId(),
+                event.sseMessage(),
+                event.senderName()
         );
     }
 
@@ -123,7 +123,7 @@ public class NotificationSaveListener {
      */
     @Recover
     public void recoverHandleCommentCreatedEvent(Exception e, CommentCreatedEvent event) {
-        log.error("댓글 알림 저장 최종 실패: postUserId={}, postId={}", event.getPostUserId(), event.getPostId(), e);
+        log.error("댓글 알림 저장 최종 실패: postUserId={}, postId={}", event.postUserId(), event.postId(), e);
     }
 
     /**
@@ -155,7 +155,7 @@ public class NotificationSaveListener {
      * @param event 친구 이벤트
      */
     @Recover
-    public void recoverHandleFriendEvent(Exception e, FriendEvent event) {
-        log.error("친구 알림 저장 최종 실패: receiveMemberId={}", event.getReceiveMemberId(), e);
+    public void recoverHandleFriendEvent(Exception e, FriendRequestEvent event) {
+        log.error("친구 알림 저장 최종 실패: receiveMemberId={}", event.receiveMemberId(), e);
     }
 }

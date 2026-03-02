@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikedEvent;
-import jaeik.bimillog.domain.post.event.PostUnlikedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostUnlikedEvent;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;

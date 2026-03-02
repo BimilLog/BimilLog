@@ -1,9 +1,6 @@
 package jaeik.bimillog.domain.comment.event;
 
 import jaeik.bimillog.domain.global.event.FriendInteractionEvent;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
@@ -19,46 +16,31 @@ import java.util.UUID;
  * @version 2.0.0
  */
 @Slf4j
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class CommentLikeEvent implements FriendInteractionEvent {
-    private String eventId;
-    private Long commentId;
-    private Long commentAuthorId;
-    private Long likerId;
+public record CommentLikeEvent(String eventId, Long commentId, Long commentAuthorId, Long likerId) implements FriendInteractionEvent {
 
-    public CommentLikeEvent(Long commentId, Long commentAuthorId, Long likerId) {
-        this.commentId = commentId;
-        this.commentAuthorId = commentAuthorId;
-        this.likerId = likerId;
-        this.eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+    public static CommentLikeEvent of(Long commentId, Long commentAuthorId, Long likerId) {
+        return new CommentLikeEvent(
+                UUID.randomUUID().toString().replace("-", "").substring(0, 16),
+                commentId, commentAuthorId, likerId
+        );
     }
 
     @Override
-    public Long getMemberId() {
-        return likerId;
-    }
+    public Long getMemberId() { return likerId; }
 
     @Override
-    public Long getTargetMemberId() {
-        return commentAuthorId;
-    }
+    public Long getTargetMemberId() { return commentAuthorId; }
 
     @Override
-    public String getIdempotencyKey() {
-        return eventId;
-    }
+    public String getIdempotencyKey() { return eventId; }
 
     @Override
     public void getAlreadyProcess() {
         log.info("이미 처리된 댓글 좋아요 이벤트: commentId={}, idempotencyKey={}", commentId, eventId);
-
     }
 
     @Override
     public void getDlqMessage(Exception e) {
         log.warn("댓글 좋아요 상호작용 점수 증가 실패 DLQ 진입: commentId={}, authorId={}, likerId={}", commentId, commentAuthorId, likerId, e);
-
     }
 }

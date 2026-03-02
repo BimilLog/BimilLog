@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.post.listener;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.event.PostModifiedEvent;
-import jaeik.bimillog.domain.post.event.PostRemovedEvent;
-import jaeik.bimillog.domain.post.event.PostWrittenEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostModifiedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostRemovedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostWrittenEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;

@@ -1,9 +1,8 @@
 package jaeik.bimillog.domain.post.event;
 
+import jaeik.bimillog.domain.global.event.CacheCountEvent;
 import jaeik.bimillog.domain.global.event.FriendInteractionEvent;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jaeik.bimillog.domain.global.event.RealtimeScoreEvent;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
@@ -18,29 +17,23 @@ import java.util.UUID;
  * @version 2.8.0
  */
 @Slf4j
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class PostLikedEvent implements FriendInteractionEvent {
-    private String eventId;
-    private Long postId;
-    private Long postAuthorId;
-    private Long likerId;
+public record PostLikedEvent(String eventId, Long postId, Long postAuthorId, Long likerId) implements FriendInteractionEvent, RealtimeScoreEvent, CacheCountEvent {
 
-    public PostLikedEvent(Long postId, Long postAuthorId, Long likerId) {
-        this.postId = postId;
-        this.postAuthorId = postAuthorId;
-        this.likerId = likerId;
-        this.eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+    public static PostLikedEvent of(Long postId, Long postAuthorId, Long likerId) {
+        return new PostLikedEvent(
+                UUID.randomUUID().toString().replace("-", "").substring(0, 16),
+                postId, postAuthorId, likerId
+        );
     }
 
-    /**
-     * <h3>캐시 전용 생성자</h3>
-     * <p>친구 상호작용이 불필요한 경우 (테스트, 캐시 리스너 직접 호출 등)</p>
-     */
-    public PostLikedEvent(Long postId) {
-        this(postId, null, null);
-    }
+    @Override
+    public double realtimeScore() { return 4.0; }
+
+    @Override
+    public String counterField() { return "likeCount"; }
+
+    @Override
+    public int counterDelta() { return 1; }
 
     @Override
     public Long getMemberId() {

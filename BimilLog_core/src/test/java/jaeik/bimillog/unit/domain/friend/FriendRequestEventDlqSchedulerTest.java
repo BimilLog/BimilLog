@@ -37,7 +37,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("FriendEventDlqScheduler 테스트")
 @Tag("unit")
 @ExtendWith(MockitoExtension.class)
-class FriendEventDlqSchedulerTest {
+class FriendRequestEventDlqSchedulerTest {
 
     @InjectMocks
     private FriendEventDlqScheduler scheduler;

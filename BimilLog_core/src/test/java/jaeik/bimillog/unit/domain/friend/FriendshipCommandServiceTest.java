@@ -1,8 +1,8 @@
 package jaeik.bimillog.unit.domain.friend;
 
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
-import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
-import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
+import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipCreatedEvent;
+import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;

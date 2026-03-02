@@ -178,7 +178,7 @@ class FriendRecommendServiceIntegrationTest {
     }
 
     private void publishPostLikeEvent(Member author, Member liker, Long postId) {
-        eventPublisher.publishEvent(new PostLikedEvent(postId, author.getId(), liker.getId()));
+        eventPublisher.publishEvent(PostLikedEvent.of(postId, author.getId(), liker.getId()));
     }
 
     @Test

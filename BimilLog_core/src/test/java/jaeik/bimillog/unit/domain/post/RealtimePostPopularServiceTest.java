@@ -1,7 +1,7 @@
 package jaeik.bimillog.unit.domain.post;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.event.RealtimeCacheRebuildEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.RealtimeCacheRebuildEvent;
 import jaeik.bimillog.domain.post.service.RealtimePostCacheService;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;

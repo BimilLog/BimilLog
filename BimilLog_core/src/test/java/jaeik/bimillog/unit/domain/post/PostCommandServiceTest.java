@@ -2,9 +2,9 @@ package jaeik.bimillog.unit.domain.post;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.event.PostModifiedEvent;
-import jaeik.bimillog.domain.post.event.PostRemovedEvent;
-import jaeik.bimillog.domain.post.event.PostWrittenEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostModifiedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostRemovedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostWrittenEvent;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.service.PostCommandService;

@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.event.RealtimeCacheRebuildEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.RealtimeCacheRebuildEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.util.PostUtil;

@@ -1,9 +1,10 @@
 package jaeik.bimillog.springboot.mysql.redis;
 
+import jaeik.bimillog.domain.post.listener.CacheCountUpdateListener;
 import jaeik.bimillog.domain.post.listener.RealtimeUpdateListener;
-import jaeik.bimillog.domain.post.event.PostDetailViewedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostDetailViewedEvent;
 import jaeik.bimillog.domain.post.event.PostLikedEvent;
-import jaeik.bimillog.domain.post.event.PostUnlikedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostUnlikedEvent;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
@@ -33,6 +34,9 @@ class CacheCountUpdateListenerLocalTest {
 
     @Autowired
     private RealtimeUpdateListener realtimeUpdateListener;
+
+    @Autowired
+    private CacheCountUpdateListener cacheCountUpdateListener;
 
     @Autowired
     private RedisPostViewAdapter redisPostViewAdapter;
@@ -65,13 +69,15 @@ class CacheCountUpdateListenerLocalTest {
         stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":test-accumulate");
     }
 
-    // ==================== 조회수 버퍼 (RealtimeUpdateListener.handlePostDetailViewed) ====================
+    // ==================== 조회수 버퍼 (CacheCountUpdateListener.handlePostDetailViewed) ====================
 
     @Test
     @DisplayName("조회수 - 첫 조회 시 SET NX EX 마킹 + 조회수 버퍼 증가 + 실시간 점수 증가")
     void postDetailCheck_firstView_shouldMarkAndIncrement() {
         // When
-        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, TEST_VIEWER_KEY));
+        PostDetailViewedEvent event = new PostDetailViewedEvent(TEST_POST_ID, TEST_VIEWER_KEY);
+        cacheCountUpdateListener.handlePostDetailViewed(event);
+        realtimeUpdateListener.handleRealtimeScore(event);
         waitForAsync();
 
         // Then - String 키로 viewer 마킹 확인
@@ -93,11 +99,11 @@ class CacheCountUpdateListenerLocalTest {
     @DisplayName("조회수 - 중복 조회 시 조회수 증가하지 않음 (실시간 점수는 증가)")
     void postDetailCheck_duplicateView_shouldNotIncrementViewCount() {
         // Given - 첫 조회
-        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, TEST_VIEWER_KEY));
+        cacheCountUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, TEST_VIEWER_KEY));
         waitForAsync();
 
         // When - 같은 viewerKey로 재조회
-        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, TEST_VIEWER_KEY));
+        cacheCountUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, TEST_VIEWER_KEY));
         waitForAsync();
 
         // Then - 조회수는 1만 증가 (중복 방지)
@@ -109,9 +115,9 @@ class CacheCountUpdateListenerLocalTest {
     @DisplayName("조회수 - 다른 viewerKey는 각각 조회수 증가")
     void postDetailCheck_differentViewers_shouldIncrementEach() {
         // When
-        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "ip:1.1.1.1"));
-        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "ip:2.2.2.2"));
-        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "m:100"));
+        cacheCountUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "ip:1.1.1.1"));
+        cacheCountUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "ip:2.2.2.2"));
+        cacheCountUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "m:100"));
         waitForAsync();
 
         // Then - 3명 각각 조회수 증가
@@ -144,7 +150,7 @@ class CacheCountUpdateListenerLocalTest {
     @DisplayName("실시간 점수 - 추천 시 점수 4.0 증가")
     void updateRealtimeScore_liked_shouldIncrementZSet() {
         // When
-        realtimeUpdateListener.handlePostLiked(new PostLikedEvent(TEST_POST_ID));
+        realtimeUpdateListener.handleRealtimeScore(PostLikedEvent.of(TEST_POST_ID, null, null));
         waitForAsync();
 
         // Then
@@ -157,8 +163,8 @@ class CacheCountUpdateListenerLocalTest {
     @DisplayName("실시간 점수 - 여러 이벤트 누적 (조회2 + 추천4 = 6)")
     void updateRealtimeScore_accumulated_shouldSumScores() {
         // When
-        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "test-accumulate"));  // 조회 +2
-        realtimeUpdateListener.handlePostLiked(new PostLikedEvent(TEST_POST_ID));  // 추천 +4
+        realtimeUpdateListener.handleRealtimeScore(new PostDetailViewedEvent(TEST_POST_ID, "test-accumulate"));  // 조회 +2
+        realtimeUpdateListener.handleRealtimeScore(PostLikedEvent.of(TEST_POST_ID, null, null));  // 추천 +4
         waitForAsync();
 
         // Then
@@ -171,11 +177,11 @@ class CacheCountUpdateListenerLocalTest {
     @DisplayName("실시간 점수 - 추천 취소 시 점수 감소")
     void updateRealtimeScore_unliked_shouldDecrementZSet() {
         // Given
-        realtimeUpdateListener.handlePostLiked(new PostLikedEvent(TEST_POST_ID));
+        realtimeUpdateListener.handleRealtimeScore(PostLikedEvent.of(TEST_POST_ID, null, null));
         waitForAsync();
 
         // When
-        realtimeUpdateListener.handlePostUnliked(new PostUnlikedEvent(TEST_POST_ID));
+        realtimeUpdateListener.handleRealtimeScore(new PostUnlikedEvent(TEST_POST_ID));
         waitForAsync();
 
         // Then

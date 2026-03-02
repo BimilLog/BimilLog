@@ -4,16 +4,15 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.event.PostDetailViewedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostDetailViewedEvent;
 import jaeik.bimillog.domain.post.event.PostLikedEvent;
-import jaeik.bimillog.domain.post.event.PostUnlikedEvent;
-import jaeik.bimillog.domain.post.event.RealtimeCacheRebuildEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostUnlikedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.RealtimeCacheRebuildEvent;
 import jaeik.bimillog.domain.post.listener.RealtimeUpdateListener;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -46,9 +45,6 @@ class RealtimeUpdateListenerTest {
     private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Mock
-    private RedisPostViewAdapter redisPostViewAdapter;
-
-    @Mock
     private RedisPostListUpdateAdapter redisPostListUpdateAdapter;
 
     @Mock
@@ -61,10 +57,10 @@ class RealtimeUpdateListenerTest {
     @DisplayName("댓글 작성 이벤트 - 점수 3점 증가")
     void handleCommentCreated_shouldIncrementScoreByThree() {
         // Given
-        CommentCreatedEvent event = new CommentCreatedEvent(1L, "작성자", 2L, 100L);
+        CommentCreatedEvent event = CommentCreatedEvent.of(1L, "작성자", 2L, 100L);
 
         // When
-        listener.handleCommentCreated(event);
+        listener.handleRealtimeScore(event);
 
         // Then
         verify(redisPostRealTimeAdapter, times(1)).incrementRealtimePopularScore(100L, 3.0);
@@ -74,10 +70,10 @@ class RealtimeUpdateListenerTest {
     @DisplayName("게시글 추천 이벤트 - 점수 4점 증가")
     void handlePostLiked_shouldIncrementScoreByFour() {
         // Given
-        PostLikedEvent event = new PostLikedEvent(1L);
+        PostLikedEvent event = PostLikedEvent.of(1L, null, null);
 
         // When
-        listener.handlePostLiked(event);
+        listener.handleRealtimeScore(event);
 
         // Then
         verify(redisPostRealTimeAdapter, times(1)).incrementRealtimePopularScore(1L, 4.0);
@@ -90,7 +86,7 @@ class RealtimeUpdateListenerTest {
         PostUnlikedEvent event = new PostUnlikedEvent(1L);
 
         // When
-        listener.handlePostUnliked(event);
+        listener.handleRealtimeScore(event);
 
         // Then
         verify(redisPostRealTimeAdapter, times(1)).incrementRealtimePopularScore(1L, -4.0);
@@ -103,40 +99,23 @@ class RealtimeUpdateListenerTest {
         CommentDeletedEvent event = new CommentDeletedEvent(100L);
 
         // When
-        listener.handleCommentDeleted(event);
+        listener.handleRealtimeScore(event);
 
         // Then
         verify(redisPostRealTimeAdapter, times(1)).incrementRealtimePopularScore(100L, -3.0);
     }
 
     @Test
-    @DisplayName("게시글 상세 조회 이벤트 - 조회수 + 점수 2점 증가")
-    void handlePostDetailViewed_shouldIncrementViewAndScore() {
+    @DisplayName("게시글 상세 조회 이벤트 - 점수 2점 증가")
+    void handlePostDetailViewed_shouldIncrementScore() {
         // Given
         PostDetailViewedEvent event = new PostDetailViewedEvent(1L, "test-viewer");
 
         // When
-        listener.handlePostDetailViewed(event);
+        listener.handleRealtimeScore(event);
 
         // Then
         verify(redisPostRealTimeAdapter, times(1)).incrementRealtimePopularScore(1L, 2.0);
-        verify(redisPostViewAdapter, times(1)).markViewedAndIncrement(1L, "test-viewer");
-    }
-
-    @Test
-    @DisplayName("게시글 상세 조회 이벤트 - 예외 발생 시 로그만 남기고 정상 종료")
-    void handlePostDetailViewed_shouldLogAndContinue_WhenExceptionOccurs() {
-        // Given
-        PostDetailViewedEvent event = new PostDetailViewedEvent(1L, "test-viewer");
-        doThrow(new RuntimeException("Redis 연결 실패"))
-                .when(redisPostRealTimeAdapter).incrementRealtimePopularScore(1L, 2.0);
-
-        // When - 예외가 전파되지 않아야 함
-        listener.handlePostDetailViewed(event);
-
-        // Then
-        verify(redisPostRealTimeAdapter).incrementRealtimePopularScore(1L, 2.0);
-        verify(redisPostViewAdapter, never()).markViewedAndIncrement(anyLong(), anyString());
     }
 
     @Test

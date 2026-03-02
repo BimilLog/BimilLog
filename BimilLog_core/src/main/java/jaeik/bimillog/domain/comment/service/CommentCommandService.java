@@ -93,7 +93,7 @@ public class CommentCommandService {
 
             // 댓글 작성 이벤트 발행 (실시간 인기글 점수, 알림, 친구 상호작용, 카운터 캐시 증가)
             Long postUserId = post.getMember() != null ? post.getMember().getId() : null;
-            eventPublisher.publishEvent(new CommentCreatedEvent(postUserId, memberName, memberId, postId));
+            eventPublisher.publishEvent(CommentCreatedEvent.of(postUserId, memberName, memberId, postId));
         } catch (Exception e) {
             throw new CustomException(ErrorCode.COMMENT_WRITE_FAILED, e);
         }
@@ -184,7 +184,7 @@ public class CommentCommandService {
             if (comment.getMember() != null) {
                 Long commentAuthorId = comment.getMember().getId();
                 if (!Objects.equals(commentAuthorId, memberId)) {
-                    eventPublisher.publishEvent(new CommentLikeEvent(commentId, commentAuthorId, memberId));
+                    eventPublisher.publishEvent(CommentLikeEvent.of(commentId, commentAuthorId, memberId));
                 }
             }
         }

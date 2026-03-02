@@ -1,7 +1,7 @@
 package jaeik.bimillog.unit.domain.friend;
 
 import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
-import jaeik.bimillog.domain.friend.event.FriendEvent;
+import jaeik.bimillog.domain.friend.event.FriendEvent.FriendRequestEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.service.FriendRequestCommandService;
@@ -86,11 +86,11 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(friendRequestRepository, times(1)).save(any(FriendRequest.class));
-        ArgumentCaptor<FriendEvent> eventCaptor = ArgumentCaptor.forClass(FriendEvent.class);
+        ArgumentCaptor<FriendRequestEvent> eventCaptor = ArgumentCaptor.forClass(FriendRequestEvent.class);
         verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
 
-        FriendEvent publishedEvent = eventCaptor.getValue();
-        assertThat(publishedEvent.getReceiveMemberId()).isEqualTo(RECEIVER_ID);
+        FriendRequestEvent publishedEvent = eventCaptor.getValue();
+        assertThat(publishedEvent.receiveMemberId()).isEqualTo(RECEIVER_ID);
     }
 
     @Test
@@ -102,7 +102,7 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELF_FRIEND_REQUEST_FORBIDDEN);
 
         verify(friendRequestRepository, never()).save(any(FriendRequest.class));
-        verify(eventPublisher, never()).publishEvent(any(FriendEvent.class));
+        verify(eventPublisher, never()).publishEvent(any(FriendRequestEvent.class));
     }
 
     @Test

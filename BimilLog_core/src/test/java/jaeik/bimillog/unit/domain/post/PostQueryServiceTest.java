@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
-import jaeik.bimillog.domain.post.event.PostDetailViewedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostDetailViewedEvent;
 import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
