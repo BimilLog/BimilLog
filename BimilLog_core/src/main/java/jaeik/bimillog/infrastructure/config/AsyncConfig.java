@@ -210,13 +210,13 @@ public class AsyncConfig {
 
     /**
      * 상호작용 점수 재구축 프로듀서 스레드 풀
-     * <p>DB GROUP BY 조회를 병렬 수행합니다. (IO-bound, 프로듀서 3개 동시 실행)</p>
+     * <p>DB GROUP BY 조회를 병렬 수행합니다. (IO-bound, 프로듀서 5개 동시 실행)</p>
      */
     @Bean(name = "interactionProducerExecutor")
     public Executor interactionProducerExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(3);
-        executor.setMaxPoolSize(6);
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(8);
         executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("interaction-producer-");
         executor.setWaitForTasksToCompleteOnShutdown(true);

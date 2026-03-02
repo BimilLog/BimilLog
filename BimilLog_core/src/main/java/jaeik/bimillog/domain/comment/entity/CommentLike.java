@@ -21,9 +21,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(indexes = {@Index(name = "idx_comment_like_member_comment", columnList = "comment_id, member_id")},
-        uniqueConstraints = {@UniqueConstraint(name = "uk_comment_like_member_comment", columnNames = {"comment_id", "member_id"})}
-)
+@Table(uniqueConstraints = {@UniqueConstraint(name = "uk_comment_like_member_comment", columnNames = {"member_id", "comment_id"})})
 public class CommentLike extends BaseEntity {
 
     @Id

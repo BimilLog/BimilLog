@@ -32,7 +32,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class FriendAdminService {
 
     private static final int QUEUE_CAPACITY = 10_000;
-    private static final int INTERACTION_PRODUCER_COUNT = 3;
+    private static final int INTERACTION_PRODUCER_COUNT = 5;
 
     private static final FriendshipRebuildDTO POISON_PILL =
             FriendshipRebuildDTO.createDTO(-1L, Set.of());
@@ -66,7 +66,7 @@ public class FriendAdminService {
     /**
      * <h3>상호작용 점수 Redis 프로듀서/컨슈머 병렬 재구축</h3>
      * <p>전체 memberId를 한 번에 조회하여 LinkedBlockingQueue에 적재한 뒤,
-     * 프로듀서 3개가 동일한 큐에서 경쟁적으로 drainTo하여 병렬 처리합니다.</p>
+     * 프로듀서 5개가 동일한 큐에서 경쟁적으로 drainTo하여 병렬 처리합니다.</p>
      * <p>모든 프로듀서가 완료되면 POISON_PILL을 삽입하여 컨슈머에 종료 신호를 전달합니다.</p>
      */
     public void rebuildInteractionScoreRedis() {

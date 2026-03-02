@@ -83,7 +83,6 @@ public class FriendRebuildProducer {
     @Async("interactionProducerExecutor")
     public CompletableFuture<Void> produceInteraction(LinkedBlockingQueue<Long> memberQueue,
                                                       BlockingQueue<InteractionRebuildDTO> queue) {
-        String threadName = Thread.currentThread().getName();
         List<Long> memberIds = new ArrayList<>(INTERACTION_CHUNK_SIZE);
 
         try {

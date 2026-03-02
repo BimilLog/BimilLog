@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 /**
  * <h2>게시글 추천 엔티티</h2>
  * <p>사용자와 게시글 간의 추천 관계를 나타내는 연결 엔티티입니다.</p>
- * <p>중복 추천 방지를 위해 member_id + post_id 묶음 인덱스를 사용합니다.</p>
+ * <p>중복 추천 방지를 위해 member_id + post_id UNIQUE 제약조건을 사용합니다.</p>
  * <p>DB CASCADE (V2.5): Post 삭제 시 자동 삭제, Member FK 제거로 통계 보존</p>
  *
  * @author Jaeik
@@ -22,8 +22,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(indexes = {@Index(name = "idx_postlike_member_post", columnList = "member_id, post_id")},
-    uniqueConstraints = {@UniqueConstraint(name = "uk_postlike_member_post", columnNames = {"member_id", "post_id"})})
+@Table(uniqueConstraints = {@UniqueConstraint(name = "uk_postlike_member_post", columnNames = {"member_id", "post_id"})})
 public class PostLike extends BaseEntity {
 
     @Id
