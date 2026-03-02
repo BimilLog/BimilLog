@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
 import jaeik.bimillog.domain.friend.service.FriendshipCommandService;
-import jaeik.bimillog.domain.friend.service.FriendshipRedisUpdate;
+import jaeik.bimillog.domain.friend.async.FriendshipRedisUpdateSync;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -52,7 +52,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     @Mock private FriendshipRepository friendshipRepository;
     @Mock private FriendRequestRepository friendRequestRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
-    @Mock private FriendshipRedisUpdate friendshipRedisUpdate;
+    @Mock private FriendshipRedisUpdateSync friendshipRedisUpdateSync;
 
     @InjectMocks
     private FriendshipCommandService friendshipCommandService;
@@ -100,7 +100,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
         // Then
         verify(friendshipRepository, times(1)).save(any(Friendship.class));
         verify(friendRequestRepository, times(1)).deleteById(FRIEND_REQUEST_ID);
-        verify(friendshipRedisUpdate, times(1)).addFriendToRedis(MEMBER_ID, FRIEND_ID);
+        verify(friendshipRedisUpdateSync, times(1)).addFriendToRedis(MEMBER_ID, FRIEND_ID);
     }
 
     @Test
@@ -199,7 +199,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(friendshipRepository, times(1)).delete(friendship);
-        verify(friendshipRedisUpdate, times(1)).deleteFriendToRedis(MEMBER_ID, FRIEND_ID);
+        verify(friendshipRedisUpdateSync, times(1)).deleteFriendToRedis(MEMBER_ID, FRIEND_ID);
     }
 
     @ParameterizedTest(name = "친구 관계 삭제 실패 - {0}")

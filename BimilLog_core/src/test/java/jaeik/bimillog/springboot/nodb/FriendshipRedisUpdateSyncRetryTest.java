@@ -1,7 +1,7 @@
 package jaeik.bimillog.springboot.nodb;
 
 import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
-import jaeik.bimillog.domain.friend.service.FriendshipRedisUpdate;
+import jaeik.bimillog.domain.friend.async.FriendshipRedisUpdateSync;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,17 +30,17 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>FriendshipRedisUpdate 재시도 테스트</h2>
+ * <h2>FriendshipRedisUpdateSync 재시도 테스트</h2>
  * <p>Redis 연결 실패 시 재시도 로직이 정상 동작하는지 검증</p>
  */
-@DisplayName("FriendshipRedisUpdate 재시도 테스트")
+@DisplayName("FriendshipRedisUpdateSync 재시도 테스트")
 @SpringBootTest(classes = {
-        FriendshipRedisUpdate.class,
-        FriendshipRedisUpdateRetryTest.TestConfig.class
+        FriendshipRedisUpdateSync.class,
+        FriendshipRedisUpdateSyncRetryTest.TestConfig.class
 })
 @Tag("springboot-nodb")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class FriendshipRedisUpdateRetryTest {
+class FriendshipRedisUpdateSyncRetryTest {
 
     @TestConfiguration
     @EnableAsync
@@ -62,7 +62,7 @@ class FriendshipRedisUpdateRetryTest {
     }
 
     @Autowired
-    private FriendshipRedisUpdate friendshipRedisUpdate;
+    private FriendshipRedisUpdateSync friendshipRedisUpdateSync;
 
     @MockitoBean
     private RedisFriendshipRepository redisFriendshipRepository;
@@ -86,7 +86,7 @@ class FriendshipRedisUpdateRetryTest {
                 .given(redisFriendshipRepository).addFriend(anyLong(), anyLong());
 
         // When
-        friendshipRedisUpdate.addFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.addFriendToRedis(1L, 2L);
 
         // Then
         Awaitility.await()
@@ -103,7 +103,7 @@ class FriendshipRedisUpdateRetryTest {
                 .given(redisFriendshipRepository).addFriend(anyLong(), anyLong());
 
         // When
-        friendshipRedisUpdate.addFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.addFriendToRedis(1L, 2L);
 
         // Then
         Awaitility.await()
@@ -120,7 +120,7 @@ class FriendshipRedisUpdateRetryTest {
                 .given(redisFriendshipRepository).deleteFriend(anyLong(), anyLong());
 
         // When
-        friendshipRedisUpdate.deleteFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.deleteFriendToRedis(1L, 2L);
 
         // Then
         Awaitility.await()
@@ -137,7 +137,7 @@ class FriendshipRedisUpdateRetryTest {
                 .given(redisFriendshipRepository).deleteFriend(anyLong(), anyLong());
 
         // When
-        friendshipRedisUpdate.deleteFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.deleteFriendToRedis(1L, 2L);
 
         // Then
         Awaitility.await()
@@ -156,7 +156,7 @@ class FriendshipRedisUpdateRetryTest {
                 .when(redisFriendshipRepository).addFriend(1L, 2L);
 
         // When
-        friendshipRedisUpdate.addFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.addFriendToRedis(1L, 2L);
 
         // Then
         Awaitility.await()
@@ -174,7 +174,7 @@ class FriendshipRedisUpdateRetryTest {
         doNothing().when(redisFriendshipRepository).deleteFriend(anyLong(), anyLong());
 
         // When
-        friendshipRedisUpdate.deleteFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.deleteFriendToRedis(1L, 2L);
 
         // Then
         Awaitility.await()

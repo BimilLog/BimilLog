@@ -1,6 +1,7 @@
-package jaeik.bimillog.domain.friend.service;
+package jaeik.bimillog.domain.friend.async;
 
 import io.lettuce.core.RedisCommandTimeoutException;
+import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FriendshipRedisUpdate {
+public class FriendshipRedisUpdateSync {
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final FriendEventDlqService friendEventDlqService;
 
