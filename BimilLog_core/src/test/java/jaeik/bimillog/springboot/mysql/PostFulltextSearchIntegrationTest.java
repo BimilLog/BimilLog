@@ -53,7 +53,6 @@ class PostFulltextSearchIntegrationTest {
     private PostToMemberAdapter postToMemberAdapter;
 
     private Member testMember;
-    private Post koreanPost1, koreanPost2, koreanPost3, englishPost;
 
     @BeforeEach
     void setUp() {
@@ -72,19 +71,19 @@ class PostFulltextSearchIntegrationTest {
     }
 
     private void createTestPosts() {
-        koreanPost1 = Post.createPost(testMember, "자바 프로그래밍 기초", "자바 언어로 프로그래밍하는 방법을 배웁니다.", 1234, testMember.getMemberName());
+        Post koreanPost1 = Post.createPost(testMember, "자바 프로그래밍 기초", "자바 언어로 프로그래밍하는 방법을 배웁니다.", 1234, testMember.getMemberName());
         entityManager.persist(koreanPost1);
         entityManager.flush();
 
-        koreanPost2 = Post.createPost(testMember, "스프링 부트 완벽 가이드", "Spring Boot를 사용한 웹 개발 튜토리얼입니다.", 1234, testMember.getMemberName());
+        Post koreanPost2 = Post.createPost(testMember, "스프링 부트 완벽 가이드", "Spring Boot를 사용한 웹 개발 튜토리얼입니다.", 1234, testMember.getMemberName());
         entityManager.persist(koreanPost2);
         entityManager.flush();
 
-        koreanPost3 = Post.createPost(testMember, "백엔드 개발 입문", "효율적인 데이터베이스 설계 및 최적화 기법을 다룹니다.", 1234, testMember.getMemberName());
+        Post koreanPost3 = Post.createPost(testMember, "백엔드 개발 입문", "효율적인 데이터베이스 설계 및 최적화 기법을 다룹니다.", 1234, testMember.getMemberName());
         entityManager.persist(koreanPost3);
         entityManager.flush();
 
-        englishPost = Post.createPost(testMember, "Java Programming Tutorial", "Learn advanced Java concepts and patterns.", 1234, testMember.getMemberName());
+        Post englishPost = Post.createPost(testMember, "Java Programming Tutorial", "Learn advanced Java concepts and patterns.", 1234, testMember.getMemberName());
         entityManager.persist(englishPost);
         entityManager.flush();
     }

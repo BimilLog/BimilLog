@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>공지 변경 시 JSON LIST에 추가/제거로 캐시를 반영합니다.</p>
  *
  * @author Jaeik
- * @version 3.1.0
+ * @version 2.8.0
  */
 @Service
 @RequiredArgsConstructor

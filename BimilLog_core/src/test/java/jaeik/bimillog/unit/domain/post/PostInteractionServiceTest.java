@@ -2,11 +2,10 @@ package jaeik.bimillog.unit.domain.post;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
-import jaeik.bimillog.domain.post.async.CacheUpdateCountSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
-import jaeik.bimillog.domain.post.event.PostLikeEvent;
+import jaeik.bimillog.domain.post.event.PostLikedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostUnlikedEvent;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
@@ -55,12 +54,6 @@ class PostInteractionServiceTest extends BaseUnitTest {
     @Mock
     private PostToMemberAdapter postToMemberAdapter;
 
-    @Mock
-    private CacheRealtimeSync cacheRealtimeSync;
-
-    @Mock
-    private CacheUpdateCountSync cacheUpdateCountSync;
-
     @InjectMocks
     private PostInteractionService postInteractionService;
 
@@ -91,38 +84,37 @@ class PostInteractionServiceTest extends BaseUnitTest {
         if (alreadyLiked) {
             verify(postLikeRepository).deleteByMemberAndPost(member, post);
             verify(postRepository).decrementLikeCount(postId);
-            verify(cacheUpdateCountSync).incrementLikeCounter(postId, -1);
+            verify(eventPublisher).publishEvent(any(PostUnlikedEvent.class));
             verify(postLikeRepository, never()).save(any(PostLike.class));
         } else {
             verify(postLikeRepository).save(any(PostLike.class));
             verify(postRepository).incrementLikeCount(postId);
-            verify(cacheUpdateCountSync).incrementLikeCounter(postId, 1);
+            verify(eventPublisher).publishEvent(any(PostLikedEvent.class));
             verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
-            // 자기 자신 게시글 추천이므로 PostLikeEvent 발행 안 함 (memberId == postAuthorId)
-            verify(eventPublisher, never()).publishEvent(any(PostLikeEvent.class));
         }
     }
 
     @Test
-    @DisplayName("게시글 추천 - 다른 사람 게시글 추천 시 PostLikeEvent 발행")
-    void shouldPublishPostLikeEvent_WhenLikingOtherMembersPost() {
+    @DisplayName("익명 게시글 추천 - CheckBlacklistEvent 미발행")
+    void shouldNotPublishCheckBlacklistEvent_WhenPostIsAnonymous() {
         // Given
         Long memberId = 1L;
         Long postId = 123L;
-        Member liker = getTestMember();   // id=1L
-        Member author = getOtherMember(); // id=2L (다른 사람)
-        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(author, "다른 사람 게시글", "내용"));
+        Member member = getTestMember();
+        Post anonymousPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(null, "익명 게시글", "내용"));
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
-        given(postToMemberAdapter.getMember(memberId)).willReturn(liker);
-        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+        given(postToMemberAdapter.getMember(memberId)).willReturn(member);
+        given(postRepository.findById(postId)).willReturn(Optional.of(anonymousPost));
 
         // When
         postInteractionService.likePost(memberId, postId);
 
-        // Then: 블랙리스트 확인 + 추천 알림 이벤트 모두 발행
-        verify(eventPublisher).publishEvent(any(CheckBlacklistEvent.class));
-        verify(eventPublisher).publishEvent(any(PostLikeEvent.class));
+        // Then
+        verify(eventPublisher, never()).publishEvent(any(CheckBlacklistEvent.class));
+        verify(postLikeRepository).save(any(PostLike.class));
+        verify(postRepository).incrementLikeCount(postId);
+        verify(eventPublisher).publishEvent(any(PostLikedEvent.class));
     }
 
     @Test

@@ -1,8 +1,10 @@
 package jaeik.bimillog.unit.domain.post;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.post.async.CacheUpdateSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.event.PostEvent.PostModifiedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostRemovedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostWrittenEvent;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.service.PostCommandService;
@@ -18,6 +20,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +54,7 @@ class PostCommandServiceTest extends BaseUnitTest {
     private CommentCommandService commentCommandService;
 
     @Mock
-    private CacheUpdateSync cacheUpdateSync;
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private PostCommandService postCommandService;
@@ -79,8 +82,8 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         verify(postToMemberAdapter, times(1)).getMember(memberId);
         verify(postRepository, times(1)).save(any(Post.class));
-        // 새 글 작성 후 첫 페이지 캐시에 비동기 추가
-        verify(cacheUpdateSync, times(1)).asyncAddNewPost(any());
+        // 새 글 작성 후 캐시 이벤트 발행
+        verify(eventPublisher, times(1)).publishEvent(any(PostWrittenEvent.class));
         verifyNoMoreInteractions(postToMemberAdapter, postRepository);
     }
 
@@ -94,17 +97,17 @@ class PostCommandServiceTest extends BaseUnitTest {
         Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "기존 제목", "기존 내용")));
 
         given(postRepository.findById(postId)).willReturn(Optional.of(existingPost));
-        given(existingPost.isAuthor(memberId, null)).willReturn(true);
+        doNothing().when(existingPost).validateAuthor(memberId, null);
 
         // When
         postCommandService.updatePost(memberId, postId, "수정된 제목", "수정된 내용", null);
 
         // Then
         verify(postRepository, times(1)).findById(postId);
-        verify(existingPost, times(1)).isAuthor(memberId, null);
+        verify(existingPost, times(1)).validateAuthor(memberId, null);
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
-        // Cache Invalidation: 비동기 캐시 업데이트
-        verify(cacheUpdateSync, times(1)).asyncUpdatePost(eq(postId), any());
+        // Cache Invalidation: 캐시 이벤트 발행
+        verify(eventPublisher, times(1)).publishEvent(any(PostModifiedEvent.class));
     }
 
     @ParameterizedTest(name = "게시글 {0} - 게시글 없음 예외")
@@ -142,7 +145,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         Post otherUserPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getOtherMember(), "다른 사용자 게시글", "내용")));
 
         given(postRepository.findById(postId)).willReturn(Optional.of(otherUserPost));
-        given(otherUserPost.isAuthor(memberId, null)).willReturn(false);
+        doThrow(new CustomException(ErrorCode.POST_FORBIDDEN)).when(otherUserPost).validateAuthor(memberId, null);
 
         // When & Then
         if ("수정".equals(operationType)) {
@@ -158,7 +161,53 @@ class PostCommandServiceTest extends BaseUnitTest {
         }
 
         verify(postRepository, times(1)).findById(postId);
-        verify(otherUserPost, times(1)).isAuthor(memberId, null);
+        verify(otherUserPost, times(1)).validateAuthor(memberId, null);
+    }
+
+    @Test
+    @DisplayName("익명 게시글 작성 - 성공")
+    void shouldWriteAnonymousPost_WhenValidInput() {
+        // Given
+        Long expectedPostId = 123L;
+        String title = "익명 게시글 제목";
+        String content = "익명 게시글 내용";
+        Integer password = 1234;
+
+        Post createdPost = PostTestDataBuilder.withId(expectedPostId, PostTestDataBuilder.createPost(null, title, content));
+
+        given(postRepository.save(any(Post.class))).willReturn(createdPost);
+
+        // When
+        Long result = postCommandService.writePost(null, title, content, password);
+
+        // Then
+        assertThat(result).isEqualTo(expectedPostId);
+
+        verify(postToMemberAdapter, never()).getMember(any());
+        verify(postRepository, times(1)).save(any(Post.class));
+        verify(eventPublisher, times(1)).publishEvent(any(PostWrittenEvent.class));
+    }
+
+    @Test
+    @DisplayName("게시글 작성 - memberId와 password 둘 다 null이면 예외")
+    void shouldThrowException_WhenBothMemberIdAndPasswordNull() {
+        // When & Then
+        assertThatThrownBy(() -> postCommandService.writePost(null, "제목", "내용", null))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_BLANK_PASSWORD);
+
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("게시글 작성 - memberId와 password 둘 다 있으면 예외")
+    void shouldThrowException_WhenBothMemberIdAndPasswordPresent() {
+        // When & Then
+        assertThatThrownBy(() -> postCommandService.writePost(1L, "제목", "내용", 1234))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_BLANK_PASSWORD);
+
+        verify(postRepository, never()).save(any());
     }
 
     private static Stream<Arguments> provideOperationTypes() {
@@ -179,18 +228,18 @@ class PostCommandServiceTest extends BaseUnitTest {
         Post postToDelete = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), postTitle, "내용")));
 
         given(postRepository.findById(postId)).willReturn(Optional.of(postToDelete));
-        given(postToDelete.isAuthor(memberId, null)).willReturn(true);
+        doNothing().when(postToDelete).validateAuthor(memberId, null);
 
         // When
         postCommandService.deletePost(memberId, postId, null);
 
         // Then
         verify(postRepository, times(1)).findById(postId);
-        verify(postToDelete, times(1)).isAuthor(memberId, null);
+        verify(postToDelete, times(1)).validateAuthor(memberId, null);
         // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
         verify(postRepository, times(1)).delete(postToDelete);
-        // 모든 캐시 비동기 삭제 처리
-        verify(cacheUpdateSync, times(1)).asyncDeletePost(postId);
+        // 모든 캐시 이벤트 발행
+        verify(eventPublisher, times(1)).publishEvent(any(PostRemovedEvent.class));
     }
 
     @Test
@@ -216,7 +265,8 @@ class PostCommandServiceTest extends BaseUnitTest {
         // 게시글 일괄 삭제 확인
         verify(postRepository, times(1)).deleteAllByMemberId(memberId);
 
-        verifyNoMoreInteractions(postRepository, commentCommandService);
+        // 각 게시글의 캐시 삭제 이벤트 발행 확인
+        verify(eventPublisher, times(2)).publishEvent(any(PostRemovedEvent.class));
     }
 
     @Test
@@ -233,9 +283,8 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(postRepository, times(1)).findIdsWithCacheFlagByMemberId(memberId);
         verify(postRepository, times(1)).deleteAllByMemberId(memberId);
 
-        // 게시글이 없으므로 댓글 삭제가 호출되지 않아야 함
+        // 게시글이 없으므로 댓글 삭제와 캐시 이벤트가 호출되지 않아야 함
         verify(commentCommandService, never()).deleteCommentsByPost(any());
-
-        verifyNoMoreInteractions(postRepository, commentCommandService);
+        verify(eventPublisher, never()).publishEvent(any(PostRemovedEvent.class));
     }
 }

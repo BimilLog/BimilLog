@@ -2,9 +2,7 @@ package jaeik.bimillog.unit.domain.member;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberBlacklist;
-import jaeik.bimillog.domain.member.repository.MemberBlacklistQueryRepository;
 import jaeik.bimillog.domain.member.repository.MemberBlacklistRepository;
-import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.domain.member.service.MemberBlacklistService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -42,13 +40,7 @@ class MemberBlacklistServiceTest extends BaseUnitTest {
     private static final Long OTHER_MEMBER_ID = 3L;
 
     @Mock
-    private MemberBlacklistQueryRepository memberBlacklistQueryRepository;
-
-    @Mock
     private MemberBlacklistRepository memberBlacklistRepository;
-
-    @Mock
-    private MemberRepository memberRepository;
 
     @InjectMocks
     private MemberBlacklistService memberBlacklistService;

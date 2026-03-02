@@ -2,9 +2,9 @@ package jaeik.bimillog.unit.domain.post;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
-import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.event.PostEvent.PostDetailViewedEvent;
 import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -65,9 +65,6 @@ class PostQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private RedisPostListQueryAdapter redisPostListQueryAdapter;
-
-    @Mock
-    private CacheRealtimeSync cacheRealtimeSync;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -218,7 +215,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(postRepository).findById(postId);
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(cacheRealtimeSync).postDetailCheck(postId, "test-viewer");
+        verify(eventPublisher).publishEvent(any(PostDetailViewedEvent.class));
         verify(eventPublisher).publishEvent(any(CheckBlacklistEvent.class));
     }
 
@@ -240,7 +237,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(postRepository).findById(postId);
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
-        verify(cacheRealtimeSync).postDetailCheck(postId, "test-viewer");
+        verify(eventPublisher).publishEvent(any(PostDetailViewedEvent.class));
         verify(eventPublisher, never()).publishEvent(any(CheckBlacklistEvent.class));
     }
 

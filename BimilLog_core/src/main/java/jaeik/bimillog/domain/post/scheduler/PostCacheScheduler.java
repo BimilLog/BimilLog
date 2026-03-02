@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.scheduler;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostFeaturedEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.repository.PostRepository;
@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  * <p>주간/레전드/공지/첫 페이지/실시간 인기글 JSON LIST 캐시를 24시간마다 재구축합니다.</p>
  *
  * @author Jaeik
- * @version 3.1.0
+ * @version 2.8.0
  */
 @Log(logResult = false, logExecutionTime = true, message = "스케줄 캐시 갱신")
 @Service

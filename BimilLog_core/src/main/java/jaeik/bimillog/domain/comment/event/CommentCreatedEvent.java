@@ -1,10 +1,9 @@
 package jaeik.bimillog.domain.comment.event;
 
+import jaeik.bimillog.domain.global.event.CacheCountEvent;
 import jaeik.bimillog.domain.global.event.FriendInteractionEvent;
+import jaeik.bimillog.domain.global.event.RealtimeScoreEvent;
 import jaeik.bimillog.domain.notification.listener.NotificationSendListener;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
@@ -19,39 +18,34 @@ import java.util.UUID;
  * @version 2.0.0
  * {@link NotificationSendListener} SSE/FCM 알림 발송
  */
-@Getter
 @Slf4j
-@NoArgsConstructor
-@AllArgsConstructor
-public class CommentCreatedEvent implements FriendInteractionEvent {
-    private String eventId;
-    private Long postUserId;
-    private String commenterName;
-    private Long commenterId;
-    private Long postId;
+public record CommentCreatedEvent(String eventId, Long postUserId, String commenterName, Long commenterId, Long postId)
+        implements FriendInteractionEvent, RealtimeScoreEvent, CacheCountEvent {
 
-    public CommentCreatedEvent(Long postUserId, String commenterName, Long commenterId, Long postId) {
-        this.postUserId = postUserId;
-        this.commenterName = commenterName;
-        this.commenterId = commenterId;
-        this.postId = postId;
-        this.eventId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+    public static CommentCreatedEvent of(Long postUserId, String commenterName, Long commenterId, Long postId) {
+        return new CommentCreatedEvent(
+                UUID.randomUUID().toString().replace("-", "").substring(0, 16),
+                postUserId, commenterName, commenterId, postId
+        );
     }
 
     @Override
-    public Long getMemberId() {
-        return commenterId;
-    }
+    public double realtimeScore() { return 3.0; }
 
     @Override
-    public Long getTargetMemberId() {
-        return postUserId;
-    }
+    public String counterField() { return "commentCount"; }
 
     @Override
-    public String getIdempotencyKey() {
-        return eventId;
-    }
+    public int counterDelta() { return 1; }
+
+    @Override
+    public Long getMemberId() { return commenterId; }
+
+    @Override
+    public Long getTargetMemberId() { return postUserId; }
+
+    @Override
+    public String getIdempotencyKey() { return eventId; }
 
     @Override
     public void getAlreadyProcess() {

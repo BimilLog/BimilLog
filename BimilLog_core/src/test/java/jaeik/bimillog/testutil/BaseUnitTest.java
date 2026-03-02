@@ -2,18 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.List;
-
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
 /**
  * <h2>단위 테스트 베이스 클래스</h2>

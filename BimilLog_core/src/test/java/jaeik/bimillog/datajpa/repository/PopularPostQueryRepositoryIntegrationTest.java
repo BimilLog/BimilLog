@@ -193,9 +193,9 @@ class PopularPostQueryRepositoryIntegrationTest {
     @DisplayName("정상 케이스 - 최근 인기 게시글 조회 (1시간 이내, 조회수+추천수*30 정렬)")
     void shouldFindRecentPopularPosts() {
         // Given: 1시간 이내 게시글 3개 (인기도 다르게 설정)
-        Post recentPost1 = createAndSavePost("최근 인기글1", "내용", 100, Instant.now().minus(30, ChronoUnit.MINUTES));
+        createAndSavePost("최근 인기글1", "내용", 100, Instant.now().minus(30, ChronoUnit.MINUTES));
         Post recentPost2 = createAndSavePost("최근 인기글2", "내용", 10, Instant.now().minus(20, ChronoUnit.MINUTES));
-        Post recentPost3 = createAndSavePost("최근 인기글3", "내용", 50, Instant.now().minus(10, ChronoUnit.MINUTES));
+        createAndSavePost("최근 인기글3", "내용", 50, Instant.now().minus(10, ChronoUnit.MINUTES));
         // 2시간 전 게시글 (조회되면 안 됨)
         createAndSavePost("오래된 게시글", "내용", 500, Instant.now().minus(2, ChronoUnit.HOURS));
 

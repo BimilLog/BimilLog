@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
-import jaeik.bimillog.domain.friend.event.FriendEvent;
+import jaeik.bimillog.domain.friend.event.FriendEvent.FriendRequestEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
@@ -82,7 +82,7 @@ public class FriendRequestCommandService {
         friendRequestRepository.save(friendRequest);
 
         // 비동기로 SSE와 FCM 발송, 알림DB 저장
-        eventPublisher.publishEvent(new FriendEvent(
+        eventPublisher.publishEvent(new FriendRequestEvent(
                 receiveMemberId,
                 sender.getMemberName() + "님 에게서 친구 요청이 도착했습니다.",
                 sender.getMemberName()

@@ -62,7 +62,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         );
     }
 
-    private AuthToken stubAuthToken(Member member) {
+    private void stubAuthToken(Member member) {
         AuthToken token = AuthToken.builder()
                 .id(99L)
                 .refreshToken("")
@@ -70,7 +70,6 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 .useCount(0)
                 .build();
         given(authTokenRepository.save(any(AuthToken.class))).willReturn(token);
-        return token;
     }
 
     private void stubJwtAdapters() {

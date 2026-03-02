@@ -1,13 +1,14 @@
 package jaeik.bimillog.springboot.nodb;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.friend.event.FriendEvent;
+import jaeik.bimillog.domain.friend.event.FriendEvent.FriendRequestEvent;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.listener.NotificationSaveListener;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
-import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
-import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.paper.event.PaperEvent.RollingPaperEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostFeaturedEvent;
 import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.async.NotificationAsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.*;
  * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
  */
 @DisplayName("NotificationSaveListener 재시도 테스트")
-@SpringBootTest(classes = {NotificationSaveListener.class, RetryConfig.class, AsyncConfig.class})
+@SpringBootTest(classes = {NotificationSaveListener.class, RetryConfig.class, AsyncConfig.class, NotificationAsyncConfig.class})
 @Tag("springboot-nodb")
 @TestPropertySource(properties = {
         "retry.max-attempts=3",
@@ -68,7 +69,7 @@ class NotificationSaveListenerRetryTest {
     @DisplayName("댓글 작성 알림 저장 - DB 예외 발생 시 재시도")
     void handleCommentCreatedEvent_shouldRetryOnDatabaseExceptions(String exceptionName, RuntimeException exception) {
         // Given
-        CommentCreatedEvent event = new CommentCreatedEvent(1L, "작성자", 2L, 100L);
+        CommentCreatedEvent event = CommentCreatedEvent.of(1L, "작성자", 2L, 100L);
         willThrow(exception)
                 .given(notificationCommandService).saveCommentNotification(anyLong(), anyString(), anyLong());
 
@@ -125,7 +126,7 @@ class NotificationSaveListenerRetryTest {
     @DisplayName("친구 알림 저장 - DB 예외 발생 시 재시도")
     void handleFriendEvent_shouldRetryOnDatabaseExceptions(String exceptionName, RuntimeException exception) {
         // Given
-        FriendEvent event = new FriendEvent(1L, "친구 요청이 도착했습니다!", "친구이름");
+        FriendRequestEvent event = new FriendRequestEvent(1L, "친구 요청이 도착했습니다!", "친구이름");
         willThrow(exception)
                 .given(notificationCommandService).saveFriendNotification(anyLong(), anyString(), anyString());
 
@@ -154,7 +155,7 @@ class NotificationSaveListenerRetryTest {
     @DisplayName("댓글 알림 - 2회 실패 후 3회차에 성공")
     void handleCommentCreatedEvent_shouldSucceedAfterTwoFailures() {
         // Given
-        CommentCreatedEvent event = new CommentCreatedEvent(1L, "작성자", 2L, 100L);
+        CommentCreatedEvent event = CommentCreatedEvent.of(1L, "작성자", 2L, 100L);
         willThrow(new DataAccessResourceFailureException("실패"))
                 .willThrow(new QueryTimeoutException("타임아웃"))
                 .willDoNothing()
@@ -174,7 +175,7 @@ class NotificationSaveListenerRetryTest {
     @DisplayName("댓글 알림 - 1회 성공 시 재시도 없음")
     void handleCommentCreatedEvent_shouldNotRetryOnSuccess() {
         // Given
-        CommentCreatedEvent event = new CommentCreatedEvent(1L, "작성자", 2L, 100L);
+        CommentCreatedEvent event = CommentCreatedEvent.of(1L, "작성자", 2L, 100L);
         doNothing().when(notificationCommandService).saveCommentNotification(anyLong(), anyString(), anyLong());
 
         // When

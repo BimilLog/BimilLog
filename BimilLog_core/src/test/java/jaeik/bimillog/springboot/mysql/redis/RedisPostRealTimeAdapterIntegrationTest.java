@@ -2,10 +2,7 @@ package jaeik.bimillog.springboot.mysql.redis;
 
 import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,10 +45,9 @@ class RedisPostRealTimeAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 ID 목록 조회 (상위 5개)")
     void shouldReturnTopPostIds() {
         // Given: 10개의 게시글에 점수 설정 (높은 점수부터)
-        String scoreKey = REALTIME_POST_SCORE_KEY;
         for (long i = 1; i <= 10; i++) {
             double score = 11.0 - i; // 높은 점수부터 (10, 9, 8, ...)
-            redisTemplate.opsForZSet().add(scoreKey, i, score);
+            redisTemplate.opsForZSet().add(REALTIME_POST_SCORE_KEY, i, score);
         }
 
         // When: 실시간 인기글 ID 조회 (항상 상위 5개)
@@ -98,13 +94,12 @@ class RedisPostRealTimeAdapterIntegrationTest {
         // Given
         Long postId = 1L;
         double score = 4.0; // 추천 점수
-        String scoreKey = REALTIME_POST_SCORE_KEY;
 
         // When: 점수 증가
         redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, score);
 
         // Then: Sorted Set에서 점수 확인
-        Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId);
+        Double currentScore = redisTemplate.opsForZSet().score(REALTIME_POST_SCORE_KEY, postId);
         assertThat(currentScore).isEqualTo(4.0);
     }
 
@@ -113,7 +108,6 @@ class RedisPostRealTimeAdapterIntegrationTest {
     void shouldAccumulateScore_WhenMultipleIncrementsOccur() {
         // Given
         Long postId = 1L;
-        String scoreKey = REALTIME_POST_SCORE_KEY;
 
         // When: 여러 번 점수 증가 (조회 2점 + 댓글 3점 + 추천 4점)
         redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, 2.0); // 조회
@@ -121,7 +115,7 @@ class RedisPostRealTimeAdapterIntegrationTest {
         redisPostRealTimeAdapter.incrementRealtimePopularScore(postId, 4.0); // 추천
 
         // Then: 누적 점수 확인
-        Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId);
+        Double currentScore = redisTemplate.opsForZSet().score(REALTIME_POST_SCORE_KEY, postId);
         assertThat(currentScore).isEqualTo(9.0); // 2 + 3 + 4
     }
 
@@ -170,6 +164,7 @@ class RedisPostRealTimeAdapterIntegrationTest {
 
         // 남아있는 게시글 확인 (Redis는 Integer로 역직렬화됨)
         Set<Object> remainingPosts = redisTemplate.opsForZSet().range(scoreKey, 0, -1);
+        Assertions.assertNotNull(remainingPosts);
         Set<Long> remainingPostIds = remainingPosts.stream()
                 .map(obj -> ((Number) obj).longValue())
                 .collect(java.util.stream.Collectors.toSet());

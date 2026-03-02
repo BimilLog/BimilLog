@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
+import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.comment.repository.CommentClosureRepository;
 import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
 import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
@@ -11,7 +12,6 @@ import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.comment.adapter.CommentToMemberAdapter;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.async.CacheUpdateCountSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -63,7 +63,6 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @Mock private CommentLikeRepository commentLikeRepository;
     @Mock private CommentToMemberAdapter commentToMemberAdapter;
     @Mock private PostRepository postRepository;
-    @Mock private CacheUpdateCountSync cacheUpdateCountSync;
     @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
@@ -299,6 +298,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Then
         verify(commentRepository).findById(200L);
         verify(commentDeleteRepository).deleteComment(200L);
+        verify(postRepository).decrementCommentCount(300L);
+        verify(eventPublisher).publishEvent(any(CommentDeletedEvent.class));
     }
 
     @Test
@@ -316,6 +317,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         verify(commentRepository).findById(200L);
         verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(200L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
+        verify(postRepository).decrementCommentCount(300L);
+        verify(eventPublisher).publishEvent(any(CommentDeletedEvent.class));
     }
 
 
@@ -386,6 +389,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Then
         verify(commentRepository).findById(300L);
         verify(commentDeleteRepository).deleteComment(300L);
+        verify(postRepository).decrementCommentCount(300L);
+        verify(eventPublisher).publishEvent(any(CommentDeletedEvent.class));
     }
 
     @Test
@@ -424,6 +429,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         verify(commentRepository).findById(400L);
         verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(400L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
+        verify(postRepository).decrementCommentCount(300L);
+        verify(eventPublisher).publishEvent(any(CommentDeletedEvent.class));
     }
 
     @Test
@@ -443,6 +450,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         verify(commentRepository).findById(500L);
         verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(500L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
+        verify(postRepository).decrementCommentCount(300L);
+        verify(eventPublisher).publishEvent(any(CommentDeletedEvent.class));
     }
 
     @Test
@@ -496,6 +505,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         assertThat(capturedComment.isDeleted()).isFalse();
 
         verify(commentClosureRepository).saveAll(any());
+        verify(postRepository).incrementCommentCount(postId);
         // 자기 게시글이 아닌 경우에만 이벤트 발행
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
@@ -528,6 +538,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         assertThat(capturedComment.isDeleted()).isFalse();
 
         verify(commentClosureRepository).saveAll(any());
+        verify(postRepository).incrementCommentCount(postId);
         // 익명 댓글도 CommentCreatedEvent 발행 (댓글수 증가, 실시간 점수 반영)
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
@@ -565,6 +576,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         List capturedClosures = closureCaptor.getValue();
         assertThat(capturedClosures).hasSize(2); // 자기 자신 + 부모와의 관계
 
+        verify(postRepository).incrementCommentCount(postId);
         // 자기 게시글이 아닌 경우에만 이벤트 발행
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
@@ -651,6 +663,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // depth가 2인 관계가 포함되어야 함 (조부모와의 관계)
         assertThat(capturedClosures).hasSize(3); // 자기 자신 + 부모와의 관계 + 조부모와의 관계
 
+        verify(postRepository).incrementCommentCount(postId);
         // 자기 게시글이 아닌 경우에만 이벤트 발행
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }

@@ -1,8 +1,12 @@
 package jaeik.bimillog.unit.domain.post;
 
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.repository.PostFulltextRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
-import jaeik.bimillog.domain.post.repository.PostSearchRepository;
 import jaeik.bimillog.domain.post.service.PostSearchService;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -30,7 +35,10 @@ import static org.mockito.Mockito.verify;
 class PostSearchServiceTest extends BaseUnitTest {
 
     @Mock
-    private PostSearchRepository postSearchRepository;
+    private PostFulltextRepository postFulltextRepository;
+
+    @Mock
+    private PostQueryRepository postQueryRepository;
 
     @Mock
     private PostToMemberAdapter postToMemberAdapter;
@@ -43,87 +51,87 @@ class PostSearchServiceTest extends BaseUnitTest {
     // ==================== 전략 1: 전문검색 ====================
 
     @Test
-    @DisplayName("3글자 이상 + TITLE → 전문검색 (findByFullTextSearch) 호출")
+    @DisplayName("3글자 이상 + TITLE → 전문검색 (findByTitleFullText) 호출")
     void shouldCallFullTextSearch_WhenQuery3CharsAndTypeTitle() {
         // Given
-        given(postSearchRepository.findByFullTextSearch(eq(PostQueryType.TITLE), eq("프로그래밍"), eq(pageable), isNull()))
-                .willReturn(Page.empty(pageable));
+        given(postFulltextRepository.findByTitleFullText(eq("프로그래밍*"), eq(pageable), isNull()))
+                .willReturn(List.of());
+        given(postFulltextRepository.countByTitleFullText(eq("프로그래밍*"), isNull()))
+                .willReturn(0L);
 
         // When
         postSearchService.searchPost(PostQueryType.TITLE, "프로그래밍", pageable, null);
 
         // Then
-        verify(postSearchRepository).findByFullTextSearch(eq(PostQueryType.TITLE), eq("프로그래밍"), eq(pageable), isNull());
-        verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
-        verify(postSearchRepository, never()).findByPartialMatch(any(), any(), any(), any());
+        verify(postFulltextRepository).findByTitleFullText(eq("프로그래밍*"), eq(pageable), isNull());
+        verify(postQueryRepository, never()).selectPostSimpleDetails(any(BooleanExpression.class), any(Pageable.class), any(OrderSpecifier[].class));
     }
 
     @Test
-    @DisplayName("3글자 이상 + TITLE_CONTENT → 전문검색 (findByFullTextSearch) 호출")
+    @DisplayName("3글자 이상 + TITLE_CONTENT → 전문검색 (findByTitleContentFullText) 호출")
     void shouldCallFullTextSearch_WhenQuery3CharsAndTypeTitleContent() {
         // Given
-        given(postSearchRepository.findByFullTextSearch(eq(PostQueryType.TITLE_CONTENT), eq("스프링"), eq(pageable), isNull()))
-                .willReturn(Page.empty(pageable));
+        given(postFulltextRepository.findByTitleContentFullText(eq("스프링*"), eq(pageable), isNull()))
+                .willReturn(List.of());
+        given(postFulltextRepository.countByTitleContentFullText(eq("스프링*"), isNull()))
+                .willReturn(0L);
 
         // When
         postSearchService.searchPost(PostQueryType.TITLE_CONTENT, "스프링", pageable, null);
 
         // Then
-        verify(postSearchRepository).findByFullTextSearch(eq(PostQueryType.TITLE_CONTENT), eq("스프링"), eq(pageable), isNull());
-        verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
-        verify(postSearchRepository, never()).findByPartialMatch(any(), any(), any(), any());
+        verify(postFulltextRepository).findByTitleContentFullText(eq("스프링*"), eq(pageable), isNull());
+        verify(postQueryRepository, never()).selectPostSimpleDetails(any(BooleanExpression.class), any(Pageable.class), any(OrderSpecifier[].class));
     }
 
     // ==================== 전략 2: 접두사 검색 ====================
 
     @Test
-    @DisplayName("WRITER + 4글자 이상 → 접두사 검색 (findByPrefixMatch) 호출")
+    @DisplayName("WRITER + 4글자 이상 → 접두사 검색 (selectPostSimpleDetails) 호출")
     void shouldCallPrefixMatch_WhenWriterTypeAndQuery4Chars() {
         // Given
-        given(postSearchRepository.findByPrefixMatch(eq(PostQueryType.WRITER), eq("작성자닉"), eq(pageable), isNull()))
+        given(postQueryRepository.selectPostSimpleDetails(any(BooleanExpression.class), eq(pageable), any(OrderSpecifier[].class)))
                 .willReturn(Page.empty(pageable));
 
         // When
         postSearchService.searchPost(PostQueryType.WRITER, "작성자닉", pageable, null);
 
         // Then
-        verify(postSearchRepository).findByPrefixMatch(eq(PostQueryType.WRITER), eq("작성자닉"), eq(pageable), isNull());
-        verify(postSearchRepository, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postSearchRepository, never()).findByPartialMatch(any(), any(), any(), any());
+        verify(postQueryRepository).selectPostSimpleDetails(any(BooleanExpression.class), eq(pageable), any(OrderSpecifier[].class));
+        verify(postFulltextRepository, never()).findByTitleFullText(anyString(), any(Pageable.class), any());
+        verify(postFulltextRepository, never()).findByTitleContentFullText(anyString(), any(Pageable.class), any());
     }
 
     // ==================== 전략 3: 부분검색 ====================
 
     @Test
-    @DisplayName("2글자 이하 → 부분검색 (findByPartialMatch) 호출")
+    @DisplayName("2글자 이하 → 부분검색 (selectPostSimpleDetails) 호출")
     void shouldCallPartialMatch_WhenQueryLessThan3Chars() {
         // Given
-        given(postSearchRepository.findByPartialMatch(eq(PostQueryType.TITLE), eq("자바"), eq(pageable), isNull()))
+        given(postQueryRepository.selectPostSimpleDetails(any(BooleanExpression.class), eq(pageable), any(OrderSpecifier[].class)))
                 .willReturn(Page.empty(pageable));
 
         // When
         postSearchService.searchPost(PostQueryType.TITLE, "자바", pageable, null);
 
         // Then
-        verify(postSearchRepository).findByPartialMatch(eq(PostQueryType.TITLE), eq("자바"), eq(pageable), isNull());
-        verify(postSearchRepository, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
+        verify(postQueryRepository).selectPostSimpleDetails(any(BooleanExpression.class), eq(pageable), any(OrderSpecifier[].class));
+        verify(postFulltextRepository, never()).findByTitleFullText(anyString(), any(Pageable.class), any());
     }
 
     @Test
-    @DisplayName("WRITER + 3글자 이하 → 부분검색 (findByPartialMatch) 호출")
+    @DisplayName("WRITER + 3글자 이하 → 부분검색 (selectPostSimpleDetails) 호출")
     void shouldCallPartialMatch_WhenWriterTypeAndQueryLessThan4Chars() {
         // Given
-        given(postSearchRepository.findByPartialMatch(eq(PostQueryType.WRITER), eq("닉네"), eq(pageable), isNull()))
+        given(postQueryRepository.selectPostSimpleDetails(any(BooleanExpression.class), eq(pageable), any(OrderSpecifier[].class)))
                 .willReturn(Page.empty(pageable));
 
         // When
         postSearchService.searchPost(PostQueryType.WRITER, "닉네", pageable, null);
 
         // Then
-        verify(postSearchRepository).findByPartialMatch(eq(PostQueryType.WRITER), eq("닉네"), eq(pageable), isNull());
-        verify(postSearchRepository, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
+        verify(postQueryRepository).selectPostSimpleDetails(any(BooleanExpression.class), eq(pageable), any(OrderSpecifier[].class));
+        verify(postFulltextRepository, never()).findByTitleFullText(anyString(), any(Pageable.class), any());
     }
 
     // ==================== 블랙리스트 필터링 ====================
@@ -132,7 +140,7 @@ class PostSearchServiceTest extends BaseUnitTest {
     @DisplayName("memberId 없음 → 블랙리스트 조회 안 함")
     void shouldNotFilterBlacklist_WhenMemberIdIsNull() {
         // Given
-        given(postSearchRepository.findByPartialMatch(any(), any(), any(), any()))
+        given(postQueryRepository.selectPostSimpleDetails(any(BooleanExpression.class), eq(pageable), any(OrderSpecifier[].class)))
                 .willReturn(Page.empty(pageable));
 
         // When
@@ -147,8 +155,9 @@ class PostSearchServiceTest extends BaseUnitTest {
     void shouldFilterBlacklist_WhenMemberIdProvided() {
         // Given
         Long memberId = 1L;
-        given(postSearchRepository.findByPartialMatch(any(), any(), any(), eq(memberId)))
-                .willReturn(Page.empty(pageable));
+        PostSimpleDetail post = PostSimpleDetail.builder().id(1L).title("테스트").memberId(2L).build();
+        given(postQueryRepository.selectPostSimpleDetails(any(BooleanExpression.class), eq(pageable), any(OrderSpecifier[].class)))
+                .willReturn(new PageImpl<>(List.of(post), pageable, 1));
         given(postToMemberAdapter.getInterActionBlacklist(memberId)).willReturn(List.of());
 
         // When

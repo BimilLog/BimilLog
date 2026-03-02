@@ -3,8 +3,8 @@ package jaeik.bimillog.unit.domain.paper;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.dto.MessageWriteDTO;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
-import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
+import jaeik.bimillog.domain.paper.event.PaperEvent.MessageDeletedEvent;
+import jaeik.bimillog.domain.paper.event.PaperEvent.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.repository.PaperRepository;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
@@ -44,9 +44,6 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
-
-    @Mock
-    private jaeik.bimillog.infrastructure.redis.paper.RedisPaperDeleteAdapter redisPaperDeleteAdapter;
 
     @InjectMocks
     private PaperCommandService paperCommandService;

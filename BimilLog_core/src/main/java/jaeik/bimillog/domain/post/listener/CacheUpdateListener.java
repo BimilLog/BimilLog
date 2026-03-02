@@ -1,6 +1,9 @@
-package jaeik.bimillog.domain.post.async;
+package jaeik.bimillog.domain.post.listener;
 
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.event.PostEvent.PostModifiedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostRemovedEvent;
+import jaeik.bimillog.domain.post.event.PostEvent.PostWrittenEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListDeleteAdapter;
@@ -10,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 
@@ -18,47 +22,49 @@ import java.util.List;
  * <p>글 작성/수정/삭제 시 모든 JSON LIST 캐시를 갱신합니다.</p>
  *
  * @author Jaeik
- * @version 3.1.0
+ * @version 2.8.0
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class CacheUpdateSync {
+public class CacheUpdateListener {
     private final PostQueryRepository postQueryRepository;
     private final RedisPostListUpdateAdapter redisPostListUpdateAdapter;
     private final RedisPostRealTimeAdapter redisPostRealTimeAdapter;
     private final RedisPostListDeleteAdapter redisPostListDeleteAdapter;
 
     /**
-     * <h3>새 글 작성 캐시 반영</h3>
+     * <h3>글 작성 이벤트 처리</h3>
      * <p>첫 페이지 JSON LIST에 새 글을 LPUSH + LTRIM으로 추가합니다.</p>
      */
+    @TransactionalEventListener
     @Async("cacheRefreshExecutor")
-    public void asyncAddNewPost(PostSimpleDetail post) {
-        redisPostListUpdateAdapter.addPostToList(
-                RedisKey.FIRST_PAGE_JSON_KEY, post, RedisKey.FIRST_PAGE_SIZE + 1);
+    public void handlePostWritten(PostWrittenEvent event) {
+        redisPostListUpdateAdapter.addPostToList(RedisKey.FIRST_PAGE_JSON_KEY, event.postDetail(),
+                RedisKey.FIRST_PAGE_SIZE + 1);
     }
 
     /**
-     * <h3>글 수정 캐시 반영</h3>
+     * <h3>글 수정 이벤트 처리</h3>
      * <p>모든 JSON LIST에서 해당 글의 제목을 업데이트합니다.</p>
      */
+    @TransactionalEventListener
     @Async("cacheRefreshExecutor")
-    public void asyncUpdatePost(Long postId, PostSimpleDetail updatedPost) {
-        redisPostListUpdateAdapter.updateTitle(postId, updatedPost.getTitle());
+    public void handlePostModified(PostModifiedEvent event) {
+        redisPostListUpdateAdapter.updateTitle(event.postId(), event.updatedPost().getTitle());
     }
 
     /**
-     * <h3>글 삭제 캐시 반영</h3>
+     * <h3>글 삭제 이벤트 처리</h3>
      * <p>실시간 ZSet + 모든 JSON LIST를 정리합니다.</p>
-     * <p>첫 페이지만 보충합니다. (주간/레전드/공지/실시간은 스케줄러가 재구축)</p>
      */
+    @TransactionalEventListener
     @Async("cacheRefreshExecutor")
-    public void asyncDeletePost(Long postId) {
-        redisPostRealTimeAdapter.removePostIdFromRealtimeScore(postId);
-        redisPostListDeleteAdapter.removePostFromCacheLists(postId);
+    public void handlePostRemoved(PostRemovedEvent event) {
+        redisPostRealTimeAdapter.removePostIdFromRealtimeScore(event.postId());
+        redisPostListDeleteAdapter.removePostFromCacheLists(event.postId());
 
-        Long lastPostId = redisPostListDeleteAdapter.removePostAndGetLastId(RedisKey.FIRST_PAGE_JSON_KEY, postId);
+        Long lastPostId = redisPostListDeleteAdapter.removePostAndGetLastId(RedisKey.FIRST_PAGE_JSON_KEY, event.postId());
         if (lastPostId != null) {
             List<PostSimpleDetail> nextPosts = postQueryRepository.findBoardPostsByCursor(lastPostId, 1);
             if (!nextPosts.isEmpty()) {

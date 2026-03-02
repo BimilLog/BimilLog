@@ -74,7 +74,6 @@ class FcmPushServiceIntegrationTest {
     @Autowired
     private NotificationToMemberAdapter notificationToMemberAdapter;
 
-    private Member testMember;
     private Long testMemberId;
 
     @BeforeEach
@@ -84,7 +83,7 @@ class FcmPushServiceIntegrationTest {
         testEntityManager.persistAndFlush(tempMember.getSetting());
         testEntityManager.persistAndFlush(tempMember.getSocialToken());
 
-        testMember = Member.createMember(
+        Member testMember = Member.createMember(
                 tempMember.getSocialId(),
                 tempMember.getProvider(),
                 tempMember.getSocialNickname(),

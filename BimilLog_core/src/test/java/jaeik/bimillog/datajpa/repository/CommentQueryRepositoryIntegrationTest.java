@@ -134,7 +134,7 @@ class CommentQueryRepositoryIntegrationTest {
     @DisplayName("정상 케이스 - 사용자 작성 댓글 목록 조회")
     void shouldFindCommentsByMemberId_WhenValidMemberIdProvided() {
         // Given: 특정 사용자의 여러 댓글
-        Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "사용자1 댓글1");;
+        Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "사용자1 댓글1");
 
         commentRepository.save(comment1);
 
@@ -157,7 +157,7 @@ class CommentQueryRepositoryIntegrationTest {
         Comment comment2 = CommentTestDataBuilder.createComment(testPost, testMember, "댓글2");
 
         comment1 = commentRepository.save(comment1);
-        comment2 = commentRepository.save(comment2);
+        commentRepository.save(comment2);
 
         // otherMember가 추천
         CommentLike like1 = CommentLike.builder()
@@ -332,7 +332,7 @@ class CommentQueryRepositoryIntegrationTest {
         Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "복합쿼리 댓글1");
         Comment comment2 = CommentTestDataBuilder.createComment(testPost, otherMember, "복합쿼리 댓글2");
 
-        comment1 = commentRepository.save(comment1);
+        commentRepository.save(comment1);
         comment2 = commentRepository.save(comment2);
 
         // testMember가 comment2에 추천
@@ -354,34 +354,6 @@ class CommentQueryRepositoryIntegrationTest {
         assertThat(likedComments.getTotalElements()).isEqualTo(1);
         assertThat(likedComments.getContent().get(0).getId()).isEqualTo(comment2.getId());
     }
-
-//    @Test
-//    @DisplayName("정상 케이스 - 자손 댓글 존재 여부 확인")
-//    void shouldCheckHasDescendants_WhenCommentHasChildComments() {
-//        // Given: 부모-자식 댓글 관계 설정
-//        Comment parentComment = CommentTestDataBuilder.createComment(testPost, testMember, "부모 댓글");
-//        parentComment = commentRepository.savePostLike(parentComment);
-//
-//        Comment childComment = CommentTestDataBuilder.createComment(testPost, testMember, "자식 댓글");
-//        childComment = commentRepository.savePostLike(childComment);
-//
-//        // 클로저 관계 설정 (자식 댓글이 있음을 나타냄)
-//        CommentClosure parentSelf = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
-//        CommentClosure parentToChild = CommentClosure.createCommentClosure(parentComment, childComment, 1);
-//        CommentClosure childSelf = CommentClosure.createCommentClosure(childComment, childComment, 0);
-//
-//        commentClosureRepository.savePostLike(parentSelf);
-//        commentClosureRepository.savePostLike(parentToChild);
-//        commentClosureRepository.savePostLike(childSelf);
-//
-//        // When: 자손 존재 여부 확인
-//        boolean parentHasDescendants = commentQueryAdapter.hasDescendants(parentComment.getId());
-//        boolean childHasDescendants = commentQueryAdapter.hasDescendants(childComment.getId());
-//
-//        // Then: 부모는 자손이 있고, 자식은 자손이 없음
-//        assertThat(parentHasDescendants).isTrue();
-//        assertThat(childHasDescendants).isFalse();
-//    }
 
     @Test
     @DisplayName("정상 케이스 - 특정 사용자의 모든 댓글 조회")

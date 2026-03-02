@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
 import jaeik.bimillog.domain.global.event.FriendInteractionEvent;
-import jaeik.bimillog.domain.post.event.PostLikeEvent;
+
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,10 +60,10 @@ public class FriendInteractionListener {
             backoff = @Backoff(delay = 100))
     public void handlePostLiked(FriendInteractionEvent event) {
         // 익명 사용자 또는 자기 자신과의 상호작용은 점수 반영하지 않음
-        if (event.getMemberId() == null || event.getTargetMemberId() == null
-                || event.getMemberId().equals(event.getTargetMemberId())) {
+        if (event.getMemberId() == null || event.getTargetMemberId() == null || event.getMemberId().equals(event.getTargetMemberId())) {
             return;
         }
+
         boolean processed = redisInteractionScoreRepository.addInteractionScore(event.getMemberId(), event.getTargetMemberId(), event.getIdempotencyKey());
         if (!processed) {
             event.getAlreadyProcess();

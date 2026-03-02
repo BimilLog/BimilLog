@@ -1,6 +1,8 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
+import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipCreatedEvent;
+import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
@@ -22,7 +24,6 @@ public class FriendshipCommandService {
     private final FriendRequestRepository friendRequestRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final FriendToMemberAdapter friendToMemberAdapter;
-    private final FriendshipRedisUpdate friendshipRedisUpdate;
 
     /**
      * 친구 생성
@@ -43,8 +44,8 @@ public class FriendshipCommandService {
 
         // 요청 삭제
         friendRequestRepository.deleteById(friendRequestId);
-        // 비동기 Redis 친구 관계 추가
-        friendshipRedisUpdate.addFriendToRedis(memberId, friendId);
+        // Redis 친구 관계 추가 이벤트 발행
+        eventPublisher.publishEvent(new FriendshipCreatedEvent(memberId, friendId));
     }
 
     /**
@@ -68,8 +69,8 @@ public class FriendshipCommandService {
 
         friendshipRepository.delete(friendship);
 
-        // 비동기 Redis 친구 관계 삭제
-        friendshipRedisUpdate.deleteFriendToRedis(memberId1, memberId2);
+        // Redis 친구 관계 삭제 이벤트 발행
+        eventPublisher.publishEvent(new FriendshipDeletedEvent(memberId1, memberId2));
     }
 
     private void checkFriendship(Long memberId, Long friendId) {

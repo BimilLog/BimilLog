@@ -2,12 +2,14 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
+import jaeik.bimillog.domain.post.repository.PostFulltextRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.repository.PostSearchRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +29,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Log
 public class PostSearchService {
-    private final PostSearchRepository postSearchRepository;
+    private final PostFulltextRepository postFulltextRepository;
+    private final PostQueryRepository postQueryRepository;
     private final PostToMemberAdapter postToMemberAdapter;
 
     /**
@@ -51,7 +54,7 @@ public class PostSearchService {
 
         // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
         if (query.length() >= 3 && type != PostQueryType.WRITER) {
-            Page<Object[]> rawResult = postSearchRepository.findByFullTextSearch(type, query, pageable, memberId);
+            Page<Object[]> rawResult = findByFullTextSearch(type, query, pageable, memberId);
             List<PostSimpleDetail> content = rawResult.stream()
                     .map(this::mapFullTextRow)
                     .collect(Collectors.toList());
@@ -60,11 +63,11 @@ public class PostSearchService {
         }
         // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
         else if (type == PostQueryType.WRITER && query.length() >= 4) {
-            posts = postSearchRepository.findByPrefixMatch(type, query, pageable, memberId);
+            posts = postQueryRepository.selectPostSimpleDetails(type.prefixCondition(query), pageable, type.getOrders());
         }
         // 전략 3: 그 외 → 부분 검색
         else {
-            posts = postSearchRepository.findByPartialMatch(type, query, pageable, memberId);
+            posts = postQueryRepository.selectPostSimpleDetails(type.partialCondition(query), pageable, type.getOrders());
         }
 
         if (memberId == null) {
@@ -77,6 +80,27 @@ public class PostSearchService {
 
         return new PageImpl<>(blackListFilterPosts, posts.getPageable(),
                 posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));
+    }
+
+    private Page<Object[]> findByFullTextSearch(PostQueryType type, String query, Pageable pageable, Long viewerId) {
+        String searchTerm = query + "*";
+        try {
+            List<Object[]> rows;
+            long total;
+            if (type == PostQueryType.TITLE) {
+                rows = postFulltextRepository.findByTitleFullText(searchTerm, pageable, viewerId);
+                total = postFulltextRepository.countByTitleFullText(searchTerm, viewerId);
+            } else if (type == PostQueryType.TITLE_CONTENT) {
+                rows = postFulltextRepository.findByTitleContentFullText(searchTerm, pageable, viewerId);
+                total = postFulltextRepository.countByTitleContentFullText(searchTerm, viewerId);
+            } else {
+                throw new IllegalArgumentException("지원하지 않는 검색 타입: " + type);
+            }
+            return new PageImpl<>(rows, pageable, total);
+        } catch (Exception e) {
+            log.error("전문검색 실패 - type: {}, query: {}, error: {}", type, query, e.getMessage());
+            return Page.empty(pageable);
+        }
     }
 
     /**

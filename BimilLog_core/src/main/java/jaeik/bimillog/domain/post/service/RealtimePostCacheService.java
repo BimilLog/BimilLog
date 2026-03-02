@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.post.service;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.event.PostEvent.RealtimeCacheRebuildEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.util.PostUtil;
@@ -14,6 +14,7 @@ import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -39,7 +40,7 @@ public class RealtimePostCacheService {
     private final RedisPostRealTimeAdapter redisPostRealTimeAdapter;
     private final RedisPostListQueryAdapter redisPostListQueryAdapter;
     private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
-    private final CacheRealtimeSync cacheRealtimeSync;
+    private final ApplicationEventPublisher eventPublisher;
     private final PostUtil postUtil;
 
     private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
@@ -63,7 +64,7 @@ public class RealtimePostCacheService {
         List<PostSimpleDetail> entries = redisPostListQueryAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY);
         List<Long> listIds = entries.stream().map(PostSimpleDetail::getId).toList();
         if (!realtimeTop5Id.equals(listIds)) {
-            cacheRealtimeSync.asyncRebuildRealtimeCache(realtimeTop5Id);
+            eventPublisher.publishEvent(new RealtimeCacheRebuildEvent(realtimeTop5Id));
         }
 
         return postUtil.paginate(entries, pageable);

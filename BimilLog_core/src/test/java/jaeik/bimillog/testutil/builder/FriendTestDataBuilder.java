@@ -16,8 +16,6 @@ import jaeik.bimillog.testutil.TestFixtures;
  */
 public class FriendTestDataBuilder {
 
-    // ==================== FriendRequest ====================
-
     /**
      * 친구 요청 엔티티 생성
      * @param id 친구 요청 ID (null이면 ID 설정 안함)
@@ -32,5 +30,4 @@ public class FriendTestDataBuilder {
         }
         return friendRequest;
     }
-
 }

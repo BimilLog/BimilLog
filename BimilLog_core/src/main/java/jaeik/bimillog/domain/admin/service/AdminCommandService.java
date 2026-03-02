@@ -128,10 +128,6 @@ public class AdminCommandService {
      * @since 2.0.0
      */
     private Member resolveUser(ReportType reportType, Long targetId) {
-        if (targetId == null) {
-            throw new CustomException(ErrorCode.ADMIN_INVALID_REPORT_TARGET);
-        }
-
         Member member = switch (reportType) {
             case POST -> {
                 try {

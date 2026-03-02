@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.paper.listener;
 
-import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
-import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
-import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
+import jaeik.bimillog.domain.paper.event.PaperEvent.MessageDeletedEvent;
+import jaeik.bimillog.domain.paper.event.PaperEvent.PaperViewedEvent;
+import jaeik.bimillog.domain.paper.event.PaperEvent.RollingPaperEvent;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

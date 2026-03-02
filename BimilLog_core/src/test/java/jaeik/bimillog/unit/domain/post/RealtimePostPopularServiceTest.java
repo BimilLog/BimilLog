@@ -1,14 +1,12 @@
 package jaeik.bimillog.unit.domain.post;
 
-import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.event.PostEvent.RealtimeCacheRebuildEvent;
 import jaeik.bimillog.domain.post.service.RealtimePostCacheService;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
-import jaeik.bimillog.domain.post.repository.RealtimeScoreFallbackStore;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -17,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -41,19 +40,13 @@ import static org.mockito.Mockito.*;
 class RealtimePostPopularServiceTest {
 
     @Mock
-    private PostQueryRepository postQueryRepository;
-
-    @Mock
     private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Mock
     private RedisPostListQueryAdapter redisPostListQueryAdapter;
 
     @Mock
-    private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
-
-    @Mock
-    private CacheRealtimeSync cacheRealtimeSync;
+    private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private PostUtil postUtil;
@@ -98,7 +91,7 @@ class RealtimePostPopularServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(2);
-        verify(cacheRealtimeSync, never()).asyncRebuildRealtimeCache(any());
+        verify(eventPublisher, never()).publishEvent(any(RealtimeCacheRebuildEvent.class));
     }
 
     @Test
@@ -121,7 +114,7 @@ class RealtimePostPopularServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(2);
-        verify(cacheRealtimeSync).asyncRebuildRealtimeCache(zsetIds);
+        verify(eventPublisher).publishEvent(any(RealtimeCacheRebuildEvent.class));
     }
 
     @Test
@@ -141,6 +134,6 @@ class RealtimePostPopularServiceTest {
 
         // Then
         assertThat(result.getContent()).isEmpty();
-        verify(cacheRealtimeSync).asyncRebuildRealtimeCache(zsetIds);
+        verify(eventPublisher).publishEvent(any(RealtimeCacheRebuildEvent.class));
     }
 }

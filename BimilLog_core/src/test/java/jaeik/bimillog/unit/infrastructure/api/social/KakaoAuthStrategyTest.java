@@ -42,7 +42,6 @@ class KakaoAuthStrategyTest extends BaseUnitTest {
     @Mock private KakaoApiClient kakaoApiClient;
 
     private KakaoStrategy kakaoAuthStrategy;
-    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -52,7 +51,7 @@ class KakaoAuthStrategyTest extends BaseUnitTest {
         lenient().when(kakaoKeyVO.getREDIRECT_URI()).thenReturn(KAKAO_REDIRECT_URI);
         lenient().when(kakaoKeyVO.getADMIN_KEY()).thenReturn(KAKAO_ADMIN_KEY);
 
-        objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         kakaoAuthStrategy = new KakaoStrategy(kakaoKeyVO, kakaoAuthClient, kakaoApiClient, objectMapper);
     }
 

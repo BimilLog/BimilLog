@@ -19,9 +19,6 @@ import static jaeik.bimillog.infrastructure.redis.RedisKey.INTERACTION_SCORE_DEF
 
 /**
  * <h2>친구 도메인 어드민 복구용 쿼리 레포지터리</h2>
- * <p>Redis 재구축 시 DB 데이터를 청크 단위로 조회합니다.</p>
- * <p>friendship은 PK 단일 keyset, 상호작용 3개는 익명 행 스캔을 피하기 위해
- * 비익명 테이블(post/comment)을 드라이빙으로 삼고 (driveId, joinId) 복합 keyset을 사용합니다.</p>
  *
  * @author Jaeik
  * @version 2.8.0

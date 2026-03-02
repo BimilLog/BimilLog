@@ -11,7 +11,6 @@ import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.comment.repository.*;
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.async.CacheUpdateCountSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -43,14 +42,11 @@ import java.util.Objects;
 public class CommentCommandService {
     private final ApplicationEventPublisher eventPublisher;
     private final PostRepository postRepository;
-    private final CacheUpdateCountSync cacheUpdateCountSync;
     private final CommentToMemberAdapter commentToMemberAdapter;
     private final CommentRepository commentRepository;
     private final CommentDeleteRepository commentDeleteRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentClosureRepository commentClosureRepository;
-
-    private static final long COMMENT_COUNT = 1L;
 
     /**
      * <h3>댓글 작성</h3>
@@ -95,12 +91,9 @@ public class CommentCommandService {
             // 댓글 수 DB 직접 반영
             postRepository.incrementCommentCount(postId);
 
-            // 카운터 캐시 증가
-            updatePostCacheCount(postId, COMMENT_COUNT);
-
-            // 댓글 작성 이벤트 발행 (실시간 인기글 점수, 알림, 친구 상호작용)
+            // 댓글 작성 이벤트 발행 (실시간 인기글 점수, 알림, 친구 상호작용, 카운터 캐시 증가)
             Long postUserId = post.getMember() != null ? post.getMember().getId() : null;
-            eventPublisher.publishEvent(new CommentCreatedEvent(postUserId, memberName, memberId, postId));
+            eventPublisher.publishEvent(CommentCreatedEvent.of(postUserId, memberName, memberId, postId));
         } catch (Exception e) {
             throw new CustomException(ErrorCode.COMMENT_WRITE_FAILED, e);
         }
@@ -151,22 +144,8 @@ public class CommentCommandService {
         // 댓글 수 DB 직접 반영
         postRepository.decrementCommentCount(postId);
 
-        // 카운터 캐시 감소
-        updatePostCacheCount(postId, -COMMENT_COUNT);
-
-        // 댓글 삭제 이벤트 발행 (실시간 인기글 점수 감소)
+        // 댓글 삭제 이벤트 발행 (실시간 인기글 점수 감소, 카운터 캐시 감소)
         eventPublisher.publishEvent(new CommentDeletedEvent(postId));
-    }
-
-    /**
-     * <h3>캐시 댓글 수 증가</h3>
-     */
-    private void updatePostCacheCount(Long postId, long delta) {
-        try {
-            cacheUpdateCountSync.incrementCommentCounter(postId, delta);
-        } catch (Exception e) {
-            log.warn("댓글 카운터 캐시 증감 실패: postId={}, delta={}, error={}", postId, delta, e.getMessage());
-        }
     }
 
     /**
@@ -205,7 +184,7 @@ public class CommentCommandService {
             if (comment.getMember() != null) {
                 Long commentAuthorId = comment.getMember().getId();
                 if (!Objects.equals(commentAuthorId, memberId)) {
-                    eventPublisher.publishEvent(new CommentLikeEvent(commentId, commentAuthorId, memberId));
+                    eventPublisher.publishEvent(CommentLikeEvent.of(commentId, commentAuthorId, memberId));
                 }
             }
         }

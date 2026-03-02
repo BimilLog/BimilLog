@@ -74,8 +74,8 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @InjectMocks
     private AdminCommandService adminCommandService;
 
-    private ReportType testReportType = ReportType.POST;
-    private Long testTargetId = 200L;
+    private final ReportType testReportType = ReportType.POST;
+    private final Long testTargetId = 200L;
 
     @BeforeEach
     void setUp() {
@@ -109,21 +109,6 @@ class AdminCommandServiceTest extends BaseUnitTest {
         assertThat(capturedEvent.memberId()).isEqualTo(200L);
         assertThat(capturedEvent.socialId()).isEqualTo(memberWithId.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(memberWithId.getProvider());
-    }
-
-    @Test
-    @DisplayName("targetId가 null인 경우 NullPointerException 발생")
-    void shouldThrowException_WhenTargetIdIsNull() {
-        // Given
-        ReportType invalidReportType = ReportType.POST;
-        Long invalidTargetId = null;
-
-        // When & Then
-        assertThatThrownBy(() -> adminCommandService.banUser(invalidReportType, invalidTargetId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
-
-        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
