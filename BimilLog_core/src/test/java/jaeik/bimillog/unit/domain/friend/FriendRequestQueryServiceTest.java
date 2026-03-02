@@ -53,16 +53,14 @@ class FriendRequestQueryServiceTest extends BaseUnitTest {
     @InjectMocks
     private FriendRequestQueryService friendRequestQueryService;
 
-    private Member sender;
-    private Member receiver;
     private FriendRequest friendRequest;
 
     @BeforeEach
     void setUp() {
-        sender = getTestMember();
+        Member sender = getTestMember();
         TestFixtures.setFieldValue(sender, "id", SENDER_ID);
 
-        receiver = getOtherMember();
+        Member receiver = getOtherMember();
         TestFixtures.setFieldValue(receiver, "id", RECEIVER_ID);
 
         friendRequest = FriendTestDataBuilder.createFriendRequest(FRIEND_REQUEST_ID, sender, receiver);

@@ -52,13 +52,7 @@ class FriendEventDlqSchedulerTest {
     private RedisCheck redisCheck;
 
     @Mock
-    private RedisFriendRestore redisFriendRestore;
-
-    @Mock
     private RedisFriendshipRepository redisFriendshipRepository;
-
-    @Mock
-    private RedisInteractionScoreRepository redisInteractionScoreRepository;
 
     @BeforeEach
     void setUp() {
@@ -156,7 +150,6 @@ class FriendEventDlqSchedulerTest {
 
     @Test
     @DisplayName("파이프라인 실패 시 개별 재처리 후 retryCount 증가")
-    @SuppressWarnings("unchecked")
     void processDlq_shouldIncrementRetryCountOnFailure() {
         // Given
         FriendEventDlq event = FriendEventDlq.createFriendAdd(1L, 2L);
@@ -180,7 +173,6 @@ class FriendEventDlqSchedulerTest {
 
     @Test
     @DisplayName("최대 재시도 초과 시 FAILED 상태로 변경")
-    @SuppressWarnings("unchecked")
     void processDlq_shouldMarkAsFailedAfterMaxRetries() {
         // Given
         FriendEventDlq event = FriendEventDlq.createFriendAdd(1L, 2L);

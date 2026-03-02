@@ -7,6 +7,7 @@ import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,7 +40,7 @@ public class AdminCommandController {
      */
     @PostMapping("/ban")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> banUser(@RequestBody BanUserDTO banUserDTO) {
+    public ResponseEntity<String> banUser(@RequestBody @Valid BanUserDTO banUserDTO) {
         adminCommandService.banUser(banUserDTO.getReportType(), banUserDTO.getTargetId());
         return ResponseEntity.ok("유저를 성공적으로 차단했습니다.");
     }
@@ -53,7 +54,7 @@ public class AdminCommandController {
      */
     @PostMapping("/withdraw")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> forceWithdrawUser(@RequestBody ForceWithdrawDTO forceWithdrawDTO) {
+    public ResponseEntity<String> forceWithdrawUser(@RequestBody @Valid ForceWithdrawDTO forceWithdrawDTO) {
         adminCommandService.forceWithdrawUser(forceWithdrawDTO.getReportType(), forceWithdrawDTO.getTargetId());
         return ResponseEntity.ok("사용자 탈퇴 처리를 시작했습니다. 백그라운드에서 처리됩니다.");
     }

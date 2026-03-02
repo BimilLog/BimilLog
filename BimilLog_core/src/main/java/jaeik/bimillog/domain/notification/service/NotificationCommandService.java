@@ -54,11 +54,11 @@ public class NotificationCommandService {
     @Transactional
     public void batchUpdate(Long memberId, List<Long> readIds, List<Long> deletedIds) {
 
-        if (deletedIds != null && !deletedIds.isEmpty()) {
+        if (!deletedIds.isEmpty()) {
             notificationRepository.deleteAllByIdInAndMember_Id(deletedIds, memberId);
         }
 
-        if (readIds != null && !readIds.isEmpty()) {
+        if (!readIds.isEmpty()) {
             List<Notification> notifications = notificationRepository.findAllByIdInAndMember_Id(readIds, memberId);
             notifications.forEach(Notification::markAsRead);
         }

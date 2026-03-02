@@ -3,6 +3,8 @@ package jaeik.bimillog.domain.post.entity.jpa;
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.service.PostCommandService;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -141,11 +143,18 @@ public class Post extends BaseEntity {
      * @author Jaeik
      * @since 2.0.0
      */
-    public boolean isAuthor(Long memberId, Integer password) {
+    public void validateAuthor(Long memberId, Integer password) {
+        // 1. 회원인 경우의 검증: 회원이면 ID 대조 후 즉시 종료
         if (this.member != null) {
-            return this.member.getId().equals(memberId);
-        } else {
-            return this.password != null && this.password.equals(password);
+            if (!this.member.getId().equals(memberId)) {
+                throw new CustomException(ErrorCode.POST_FORBIDDEN);
+            }
+            return;
+        }
+
+        // 2. 비회원인 경우의 검증: 비밀번호가 없거나 일치하지 않으면 예외 발생
+        if (this.password == null || !this.password.equals(password)) {
+            throw new CustomException(ErrorCode.POST_FORBIDDEN);
         }
     }
 }

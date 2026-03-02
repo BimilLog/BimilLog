@@ -1,6 +1,5 @@
 package jaeik.bimillog.unit.domain.notification;
 
-import jaeik.bimillog.domain.notification.adapter.NotificationToMemberAdapter;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.repository.NotificationRepository;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,12 +34,6 @@ class NotificationCommandServiceTest {
 
     @Mock
     private NotificationRepository notificationRepository;
-
-    @Mock
-    private NotificationToMemberAdapter notificationToMemberAdapter;
-
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private NotificationCommandService notificationCommandService;

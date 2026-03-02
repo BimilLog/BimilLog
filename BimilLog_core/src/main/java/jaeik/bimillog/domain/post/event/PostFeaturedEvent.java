@@ -16,10 +16,5 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
  * @author Jaeik
  * @version 2.0.0
  */
-public record PostFeaturedEvent(
-        Long memberId,
-        String sseMessage,
-        Long postId,
-        NotificationType notificationType,
-        String postTitle
-) {}
+public record PostFeaturedEvent(Long memberId, String sseMessage, Long postId,
+        NotificationType notificationType, String postTitle) {}

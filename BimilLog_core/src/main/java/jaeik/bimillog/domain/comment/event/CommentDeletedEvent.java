@@ -11,9 +11,4 @@ package jaeik.bimillog.domain.comment.event;
  * @version 2.0.0
  */
 public record CommentDeletedEvent(Long postId) {
-    public CommentDeletedEvent {
-        if (postId == null) {
-            throw new IllegalArgumentException("게시글 ID는 null일 수 없습니다.");
-        }
-    }
 }

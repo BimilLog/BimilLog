@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.friend.service.FriendRecommendService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberBlacklist;
 import jaeik.bimillog.domain.member.repository.MemberBlacklistRepository;
-import jaeik.bimillog.domain.post.event.PostLikeEvent;
+import jaeik.bimillog.domain.post.event.PostLikedEvent;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import jaeik.bimillog.testutil.RedisTestHelper;
@@ -178,7 +178,7 @@ class FriendRecommendServiceIntegrationTest {
     }
 
     private void publishPostLikeEvent(Member author, Member liker, Long postId) {
-        eventPublisher.publishEvent(new PostLikeEvent(postId, author.getId(), liker.getId()));
+        eventPublisher.publishEvent(new PostLikedEvent(postId, author.getId(), liker.getId()));
     }
 
     @Test

@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.listener.RealtimePaperPopularScoreListener;
 import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.async.PostAsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperUpdateAdapter;
 import org.awaitility.Awaitility;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.*;
  * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
  */
 @DisplayName("RealtimePaperPopularScoreListener 재시도 테스트")
-@SpringBootTest(classes = {RealtimePaperPopularScoreListener.class, RetryConfig.class, AsyncConfig.class})
+@SpringBootTest(classes = {RealtimePaperPopularScoreListener.class, RetryConfig.class, AsyncConfig.class, PostAsyncConfig.class})
 @Tag("springboot-nodb")
 @TestPropertySource(properties = {
         "retry.max-attempts=3",

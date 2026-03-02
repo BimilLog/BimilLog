@@ -3,9 +3,9 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
-import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.event.PostDetailViewedEvent;
 import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -44,7 +44,6 @@ public class PostQueryService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisPostListQueryAdapter redisPostListQueryAdapter;
-    private final CacheRealtimeSync cacheRealtimeSync;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -120,7 +119,7 @@ public class PostQueryService {
         PostDetail result = PostDetail.from(post, isLiked);
 
         // 3. 비동기로 실시간 인기글 점수, 조회 수 증가
-        cacheRealtimeSync.postDetailCheck(postId, viewerKey);
+        eventPublisher.publishEvent(new PostDetailViewedEvent(postId, viewerKey));
 
         // 4. 비회원이면 바로 반환
         if (memberId == null) {

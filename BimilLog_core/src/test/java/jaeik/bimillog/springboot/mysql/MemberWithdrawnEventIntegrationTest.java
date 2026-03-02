@@ -100,7 +100,7 @@ class MemberWithdrawnEventIntegrationTest {
         }
 
         @Override
-        public String refreshAccessToken(String refreshToken) throws Exception {
+        public String refreshAccessToken(String refreshToken) {
             return "test-refreshed-token";
         }
     };

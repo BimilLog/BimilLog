@@ -111,4 +111,12 @@ public enum PostQueryType {
     public BooleanExpression condition() {
         return conditionFn.get();
     }
+
+    public BooleanExpression prefixCondition(String query) {
+        return prefixConditionFn.apply(query);
+    }
+
+    public BooleanExpression partialCondition(String query) {
+        return partialConditionFn.apply(query);
+    }
 }

@@ -5,14 +5,17 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.event.PostModifiedEvent;
+import jaeik.bimillog.domain.post.event.PostRemovedEvent;
+import jaeik.bimillog.domain.post.event.PostWrittenEvent;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.post.async.CacheUpdateSync;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +39,7 @@ public class PostCommandService {
     private final PostRepository postRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final CommentCommandService commentCommandService;
-    private final CacheUpdateSync cacheUpdateSync;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>게시글 작성</h3>
@@ -70,10 +73,9 @@ public class PostCommandService {
         Post post = Post.createPost(member, title, content, password, memberName);
         post = postRepository.save(post);
 
-        // 첫 페이지 캐시 비동기 추가
+        // 첫 페이지 캐시 이벤트 발행
         PostSimpleDetail newPostDetail = PostSimpleDetail.ofNewPost(post, memberId, memberName);
-        cacheUpdateSync.asyncAddNewPost(newPostDetail);
-
+        eventPublisher.publishEvent(new PostWrittenEvent(newPostDetail));
         return post.getId();
     }
 
@@ -89,17 +91,12 @@ public class PostCommandService {
      */
     @Transactional
     public void updatePost(Long memberId, Long postId, String title, String content, Integer password) {
-
-        // 글 조회
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-
-        checkAuthor(post, memberId, password);
-
-        // 글 수정
+        post.validateAuthor(memberId, password);
         post.updatePost(title, content);
 
-        // 모든 캐시 비동기 처리 (인기글 Hash 무효화 + 첫 페이지 LSET)
-        cacheUpdateSync.asyncUpdatePost(postId, PostSimpleDetail.from(post));
+        // 캐시 수정 이벤트 발행
+        eventPublisher.publishEvent(new PostModifiedEvent(postId, PostSimpleDetail.from(post)));
     }
 
     /**
@@ -115,14 +112,13 @@ public class PostCommandService {
     @Transactional
     public void deletePost(Long memberId, Long postId, Integer password) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-
-        checkAuthor(post, memberId, password);
+        post.validateAuthor(memberId, password);
 
         // CASCADE로 Comment와 PostLike 자동 삭제
         postRepository.delete(post);
 
-        // 모든 캐시 비동기 처리 (실시간 ZSet + 인기글 Hash + 첫 페이지 List)
-        cacheUpdateSync.asyncDeletePost(postId);
+        // 캐시 삭제 이벤트 발행
+        eventPublisher.publishEvent(new PostRemovedEvent(postId));
     }
 
     /**
@@ -142,11 +138,10 @@ public class PostCommandService {
         }
         // 게시글 일괄 삭제
         postRepository.deleteAllByMemberId(memberId);
-    }
 
-    private void checkAuthor(Post post, Long memberId, Integer password) {
-        if (!post.isAuthor(memberId, password)) {
-            throw new CustomException(ErrorCode.POST_FORBIDDEN);
+        // 캐시 삭제 이벤트 발행 (각 게시글별)
+        for (Long postId : postIds) {
+            eventPublisher.publishEvent(new PostRemovedEvent(postId));
         }
     }
 }

@@ -19,7 +19,7 @@ import java.util.List;
  * <p>모든 메서드에 key 파라미터를 받아 다양한 캐시(첫페이지, 주간, 레전드, 공지, 실시간)에 범용적으로 사용합니다.</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.8.0
  */
 @Component
 @Slf4j

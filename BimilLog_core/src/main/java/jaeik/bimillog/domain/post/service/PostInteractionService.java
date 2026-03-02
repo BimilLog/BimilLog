@@ -2,11 +2,10 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.async.CacheUpdateCountSync;
-import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
-import jaeik.bimillog.domain.post.event.PostLikeEvent;
+import jaeik.bimillog.domain.post.event.PostLikedEvent;
+import jaeik.bimillog.domain.post.event.PostUnlikedEvent;
 import jaeik.bimillog.domain.post.repository.PostLikeRepository;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
@@ -18,7 +17,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 
 /**
  * <h2>PostInteractionService</h2>
@@ -36,8 +34,6 @@ public class PostInteractionService {
     private final PostLikeRepository postLikeRepository;
     private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final CacheRealtimeSync cacheRealtimeSync;
-    private final CacheUpdateCountSync cacheUpdateCountSync;
 
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
@@ -74,7 +70,7 @@ public class PostInteractionService {
     private void unlikePost(Member member, Post post) {
         postLikeRepository.deleteByMemberAndPost(member, post);
         postRepository.decrementLikeCount(post.getId()); // 좋아요 수 DB 직접 반영
-        updateCache(post.getId(), -1, -4.0);
+        eventPublisher.publishEvent(new PostUnlikedEvent(post.getId()));
     }
 
     /**
@@ -84,26 +80,8 @@ public class PostInteractionService {
         PostLike postLike = PostLike.builder().member(member).post(post).build();
         postLikeRepository.save(postLike);
         postRepository.incrementLikeCount(post.getId()); // 좋아요 수 DB 직접 반영
-        updateCache(post.getId(), 1, 4.0);
 
-        Long myId = member.getId();
-        if (post.getMember() != null) {
-            Long postAuthorId = post.getMember().getId();
-            if (!Objects.equals(postAuthorId, myId)) {
-                eventPublisher.publishEvent(new PostLikeEvent(post.getId(), postAuthorId, myId));
-            }
-        }
-    }
-
-    /**
-     * <h3>캐시 업데이트</h3>
-     */
-    private void updateCache(Long postId, long count, double score) {
-        try {
-            cacheUpdateCountSync.incrementLikeCounter(postId, count); // 카운터 캐시 감소
-            cacheRealtimeSync.updateRealtimeScore(postId, score); // 비동기로 실시간 인기글 점수 감소
-        } catch (Exception e) {
-            log.error("추천 관련 캐시 증감 실패: postId={}, error={}", postId, e.getMessage());
-        }
+        Long postAuthorId = post.getMember() != null ? post.getMember().getId() : null;
+        eventPublisher.publishEvent(new PostLikedEvent(post.getId(), postAuthorId, member.getId()));
     }
 }

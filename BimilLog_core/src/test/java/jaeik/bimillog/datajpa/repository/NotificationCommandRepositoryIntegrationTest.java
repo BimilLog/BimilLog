@@ -119,7 +119,7 @@ class NotificationCommandRepositoryIntegrationTest {
         
         notification1 = testEntityManager.persistAndFlush(notification1);
         notification2 = testEntityManager.persistAndFlush(notification2);
-        notification3 = testEntityManager.persistAndFlush(notification3);
+        testEntityManager.persistAndFlush(notification3);
 
         testEntityManager.flush();
         testEntityManager.clear();

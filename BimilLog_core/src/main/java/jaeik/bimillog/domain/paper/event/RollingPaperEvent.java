@@ -21,12 +21,4 @@ public record RollingPaperEvent(
         Long paperOwnerId,
         String memberName
 ) {
-    public RollingPaperEvent {
-        if (paperOwnerId == null) {
-            throw new IllegalArgumentException("롤링페이퍼 주인 ID는 null일 수 없습니다.");
-        }
-        if (memberName == null || memberName.isBlank()) {
-            throw new IllegalArgumentException("사용자 이름은 null이거나 비어있을 수 없습니다.");
-        }
-    }
 }

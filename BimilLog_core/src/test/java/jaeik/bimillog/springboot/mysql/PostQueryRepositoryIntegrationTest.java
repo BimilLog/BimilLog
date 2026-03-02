@@ -5,9 +5,9 @@ import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.PostLike;
+import jaeik.bimillog.domain.post.repository.PostFulltextRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
-import jaeik.bimillog.domain.post.repository.PostSearchRepository;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
 import jakarta.persistence.EntityManager;
@@ -50,7 +50,7 @@ class PostQueryRepositoryIntegrationTest {
     private PostQueryRepository postQueryRepository;
 
     @Autowired
-    private PostSearchRepository postSearchRepository;
+    private PostFulltextRepository postFulltextRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -62,7 +62,8 @@ class PostQueryRepositoryIntegrationTest {
     private PostToMemberAdapter postToMemberAdapter;
 
     private Member testMember;
-    private Post testPost1, testPost2, testPost3;
+    private Post testPost1;
+    private Post testPost2;
 
     /**
      * 로컬 MySQL 데이터베이스의 기존 데이터를 테스트 시작 전 1회만 정리
@@ -104,7 +105,7 @@ class PostQueryRepositoryIntegrationTest {
         entityManager.persist(testPost2);
         entityManager.flush();
 
-        testPost3 = Post.createPost(testMember, "세 번째 게시글", "세 번째 게시글 내용", 1234, testMember.getMemberName());
+        Post testPost3 = Post.createPost(testMember, "세 번째 게시글", "세 번째 게시글 내용", 1234, testMember.getMemberName());
         entityManager.persist(testPost3);
         entityManager.flush();
     }
@@ -197,7 +198,8 @@ class PostQueryRepositoryIntegrationTest {
         String query = "첫";
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<PostSimpleDetail> result = postSearchRepository.findByPartialMatch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.selectPostSimpleDetails(
+                searchType.partialCondition(query), pageable, searchType.getOrders());
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
@@ -211,7 +213,8 @@ class PostQueryRepositoryIntegrationTest {
         String query = "test";
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<PostSimpleDetail> result = postSearchRepository.findByPrefixMatch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.selectPostSimpleDetails(
+                searchType.prefixCondition(query), pageable, searchType.getOrders());
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSizeGreaterThan(0);
@@ -222,11 +225,10 @@ class PostQueryRepositoryIntegrationTest {
     @Test
     @DisplayName("정상 케이스 - 전문 검색 (MySQL FULLTEXT)")
     void shouldFindPostsByFullTextSearch_WhenValidQueryProvided() {
-        PostQueryType searchType = PostQueryType.TITLE;
-        String query = "첫번째";
+        String query = "첫번째*";
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<Object[]> result = postSearchRepository.findByFullTextSearch(searchType, query, pageable, null);
+        List<Object[]> result = postFulltextRepository.findByTitleFullText(query, pageable, null);
 
         assertThat(result).isNotNull();
     }

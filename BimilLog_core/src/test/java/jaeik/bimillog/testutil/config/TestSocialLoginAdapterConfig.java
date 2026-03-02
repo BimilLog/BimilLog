@@ -92,7 +92,7 @@ public class TestSocialLoginAdapterConfig {
         }
 
         @Override
-        public String refreshAccessToken(String refreshToken) throws Exception {
+        public String refreshAccessToken(String refreshToken) {
             return "refreshed-access-token";
         }
     }

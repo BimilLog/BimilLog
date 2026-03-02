@@ -1,7 +1,9 @@
 package jaeik.bimillog.springboot.mysql.redis;
 
-import jaeik.bimillog.domain.post.async.CacheRealtimeSync;
-import jaeik.bimillog.domain.post.async.CacheUpdateCountSync;
+import jaeik.bimillog.domain.post.listener.RealtimeUpdateListener;
+import jaeik.bimillog.domain.post.event.PostDetailViewedEvent;
+import jaeik.bimillog.domain.post.event.PostLikedEvent;
+import jaeik.bimillog.domain.post.event.PostUnlikedEvent;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostViewAdapter;
@@ -19,21 +21,18 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>CacheUpdateCountSync + CacheRealtimeSync 로컬 통합 테스트</h2>
+ * <h2>CacheCountUpdateListener + RealtimeUpdateListener 로컬 통합 테스트</h2>
  * <p>MySQL + Redis 환경에서 조회수 캐시 버퍼링과 실시간 점수 업데이트를 검증합니다.</p>
  * <p>실행 전 Redis(6379) 필요 (MySQL 연결은 SpringBootTest 컨텍스트에 의해 요구됨)</p>
  */
-@DisplayName("CacheUpdateCountSync + CacheRealtimeSync 로컬 통합 테스트")
+@DisplayName("CacheCountUpdateListener + RealtimeUpdateListener 로컬 통합 테스트")
 @SpringBootTest
 @Tag("local-integration")
 @ActiveProfiles("local-integration")
-class CacheUpdateCountSyncLocalTest {
+class CacheCountUpdateListenerLocalTest {
 
     @Autowired
-    private CacheUpdateCountSync cacheUpdateCountSync;
-
-    @Autowired
-    private CacheRealtimeSync cacheRealtimeSync;
+    private RealtimeUpdateListener realtimeUpdateListener;
 
     @Autowired
     private RedisPostViewAdapter redisPostViewAdapter;
@@ -63,15 +62,16 @@ class CacheUpdateCountSyncLocalTest {
         stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":ip:1.1.1.1");
         stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":ip:2.2.2.2");
         stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":m:100");
+        stringRedisTemplate.delete(RedisKey.VIEW_PREFIX + TEST_POST_ID + ":test-accumulate");
     }
 
-    // ==================== 조회수 버퍼 (CacheRealtimeSync.postDetailCheck) ====================
+    // ==================== 조회수 버퍼 (RealtimeUpdateListener.handlePostDetailViewed) ====================
 
     @Test
     @DisplayName("조회수 - 첫 조회 시 SET NX EX 마킹 + 조회수 버퍼 증가 + 실시간 점수 증가")
     void postDetailCheck_firstView_shouldMarkAndIncrement() {
         // When
-        cacheRealtimeSync.postDetailCheck(TEST_POST_ID, TEST_VIEWER_KEY);
+        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, TEST_VIEWER_KEY));
         waitForAsync();
 
         // Then - String 키로 viewer 마킹 확인
@@ -93,11 +93,11 @@ class CacheUpdateCountSyncLocalTest {
     @DisplayName("조회수 - 중복 조회 시 조회수 증가하지 않음 (실시간 점수는 증가)")
     void postDetailCheck_duplicateView_shouldNotIncrementViewCount() {
         // Given - 첫 조회
-        cacheRealtimeSync.postDetailCheck(TEST_POST_ID, TEST_VIEWER_KEY);
+        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, TEST_VIEWER_KEY));
         waitForAsync();
 
         // When - 같은 viewerKey로 재조회
-        cacheRealtimeSync.postDetailCheck(TEST_POST_ID, TEST_VIEWER_KEY);
+        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, TEST_VIEWER_KEY));
         waitForAsync();
 
         // Then - 조회수는 1만 증가 (중복 방지)
@@ -109,9 +109,9 @@ class CacheUpdateCountSyncLocalTest {
     @DisplayName("조회수 - 다른 viewerKey는 각각 조회수 증가")
     void postDetailCheck_differentViewers_shouldIncrementEach() {
         // When
-        cacheRealtimeSync.postDetailCheck(TEST_POST_ID, "ip:1.1.1.1");
-        cacheRealtimeSync.postDetailCheck(TEST_POST_ID, "ip:2.2.2.2");
-        cacheRealtimeSync.postDetailCheck(TEST_POST_ID, "m:100");
+        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "ip:1.1.1.1"));
+        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "ip:2.2.2.2"));
+        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "m:100"));
         waitForAsync();
 
         // Then - 3명 각각 조회수 증가
@@ -141,24 +141,24 @@ class CacheUpdateCountSyncLocalTest {
     // ==================== 실시간 인기글 점수 ====================
 
     @Test
-    @DisplayName("실시간 점수 - 양수 점수 증가")
-    void updateRealtimeScore_positive_shouldIncrementZSet() {
+    @DisplayName("실시간 점수 - 추천 시 점수 4.0 증가")
+    void updateRealtimeScore_liked_shouldIncrementZSet() {
         // When
-        cacheRealtimeSync.updateRealtimeScore(TEST_POST_ID, 2.0);
+        realtimeUpdateListener.handlePostLiked(new PostLikedEvent(TEST_POST_ID));
         waitForAsync();
 
         // Then
         Double score = stringRedisTemplate.opsForZSet()
                 .score(RedisKey.REALTIME_POST_SCORE_KEY, String.valueOf(TEST_POST_ID));
-        assertThat(score).isEqualTo(2.0);
+        assertThat(score).isEqualTo(4.0);
     }
 
     @Test
     @DisplayName("실시간 점수 - 여러 이벤트 누적 (조회2 + 추천4 = 6)")
     void updateRealtimeScore_accumulated_shouldSumScores() {
         // When
-        cacheRealtimeSync.updateRealtimeScore(TEST_POST_ID, 2.0);  // 조회
-        cacheRealtimeSync.updateRealtimeScore(TEST_POST_ID, 4.0);  // 추천
+        realtimeUpdateListener.handlePostDetailViewed(new PostDetailViewedEvent(TEST_POST_ID, "test-accumulate"));  // 조회 +2
+        realtimeUpdateListener.handlePostLiked(new PostLikedEvent(TEST_POST_ID));  // 추천 +4
         waitForAsync();
 
         // Then
@@ -169,13 +169,13 @@ class CacheUpdateCountSyncLocalTest {
 
     @Test
     @DisplayName("실시간 점수 - 추천 취소 시 점수 감소")
-    void updateRealtimeScore_negative_shouldDecrementZSet() {
+    void updateRealtimeScore_unliked_shouldDecrementZSet() {
         // Given
-        cacheRealtimeSync.updateRealtimeScore(TEST_POST_ID, 4.0);
+        realtimeUpdateListener.handlePostLiked(new PostLikedEvent(TEST_POST_ID));
         waitForAsync();
 
         // When
-        cacheRealtimeSync.updateRealtimeScore(TEST_POST_ID, -4.0);
+        realtimeUpdateListener.handlePostUnliked(new PostUnlikedEvent(TEST_POST_ID));
         waitForAsync();
 
         // Then
@@ -187,14 +187,13 @@ class CacheUpdateCountSyncLocalTest {
     @Test
     @DisplayName("실시간 점수 - 상위 5개 게시글 조회")
     void getRangePostId_shouldReturnTopFiveByScore() {
-        // Given - 점수 설정
-        cacheRealtimeSync.updateRealtimeScore(1L, 10.0);
-        cacheRealtimeSync.updateRealtimeScore(2L, 30.0);
-        cacheRealtimeSync.updateRealtimeScore(3L, 20.0);
-        cacheRealtimeSync.updateRealtimeScore(4L, 50.0);
-        cacheRealtimeSync.updateRealtimeScore(5L, 40.0);
-        cacheRealtimeSync.updateRealtimeScore(6L, 5.0);
-        waitForAsync();
+        // Given - Redis에 직접 점수 설정 (다양한 점수로 랭킹 검증)
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(1L, 10.0);
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(2L, 30.0);
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(3L, 20.0);
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(4L, 50.0);
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(5L, 40.0);
+        redisPostRealTimeAdapter.incrementRealtimePopularScore(6L, 5.0);
 
         // When
         var topPosts = redisPostRealTimeAdapter.getRangePostId();

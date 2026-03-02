@@ -19,7 +19,7 @@ import java.util.Map;
  * <p>실제 카운터(조회수/추천수/댓글수)는 JSON LIST 캐시에 직접 관리합니다.</p>
  *
  * @author Jaeik
- * @version 3.1.0
+ * @version 2.8.0
  */
 @Component
 @Slf4j

@@ -1,5 +1,7 @@
 package jaeik.bimillog.springboot.nodb;
 
+import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
+import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
 import jaeik.bimillog.domain.friend.async.FriendshipRedisUpdateSync;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
@@ -80,13 +82,13 @@ class FriendshipRedisUpdateSyncRetryTest {
 
     @Test
     @DisplayName("친구 관계 추가 - RedisConnectionFailureException 발생 시 3회 재시도")
-    void addFriendToRedis_shouldRetryOnRedisConnectionFailure() {
+    void handleFriendshipCreated_shouldRetryOnRedisConnectionFailure() {
         // Given
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
                 .given(redisFriendshipRepository).addFriend(anyLong(), anyLong());
 
         // When
-        friendshipRedisUpdateSync.addFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.handleFriendshipCreated(new FriendshipCreatedEvent(1L, 2L));
 
         // Then
         Awaitility.await()
@@ -97,13 +99,13 @@ class FriendshipRedisUpdateSyncRetryTest {
 
     @Test
     @DisplayName("친구 관계 추가 - 3회 재시도 실패 후 DLQ 저장")
-    void addFriendToRedis_shouldSaveToDlqAfterMaxRetries() {
+    void handleFriendshipCreated_shouldSaveToDlqAfterMaxRetries() {
         // Given
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
                 .given(redisFriendshipRepository).addFriend(anyLong(), anyLong());
 
         // When
-        friendshipRedisUpdateSync.addFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.handleFriendshipCreated(new FriendshipCreatedEvent(1L, 2L));
 
         // Then
         Awaitility.await()
@@ -114,13 +116,13 @@ class FriendshipRedisUpdateSyncRetryTest {
 
     @Test
     @DisplayName("친구 관계 삭제 - RedisConnectionFailureException 발생 시 3회 재시도")
-    void deleteFriendToRedis_shouldRetryOnRedisConnectionFailure() {
+    void handleFriendshipDeleted_shouldRetryOnRedisConnectionFailure() {
         // Given
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
                 .given(redisFriendshipRepository).deleteFriend(anyLong(), anyLong());
 
         // When
-        friendshipRedisUpdateSync.deleteFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.handleFriendshipDeleted(new FriendshipDeletedEvent(1L, 2L));
 
         // Then
         Awaitility.await()
@@ -131,13 +133,13 @@ class FriendshipRedisUpdateSyncRetryTest {
 
     @Test
     @DisplayName("친구 관계 삭제 - 3회 재시도 실패 후 DLQ 저장")
-    void deleteFriendToRedis_shouldSaveToDlqAfterMaxRetries() {
+    void handleFriendshipDeleted_shouldSaveToDlqAfterMaxRetries() {
         // Given
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
                 .given(redisFriendshipRepository).deleteFriend(anyLong(), anyLong());
 
         // When
-        friendshipRedisUpdateSync.deleteFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.handleFriendshipDeleted(new FriendshipDeletedEvent(1L, 2L));
 
         // Then
         Awaitility.await()
@@ -148,7 +150,7 @@ class FriendshipRedisUpdateSyncRetryTest {
 
     @Test
     @DisplayName("친구 관계 추가 - 2회 실패 후 3회차에 성공 - DLQ 저장 안함")
-    void addFriendToRedis_shouldSucceedAfterTwoFailures_noDlqSave() {
+    void handleFriendshipCreated_shouldSucceedAfterTwoFailures_noDlqSave() {
         // Given
         doThrow(new RedisConnectionFailureException("실패"))
                 .doThrow(new RedisConnectionFailureException("실패"))
@@ -156,7 +158,7 @@ class FriendshipRedisUpdateSyncRetryTest {
                 .when(redisFriendshipRepository).addFriend(1L, 2L);
 
         // When
-        friendshipRedisUpdateSync.addFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.handleFriendshipCreated(new FriendshipCreatedEvent(1L, 2L));
 
         // Then
         Awaitility.await()
@@ -169,12 +171,12 @@ class FriendshipRedisUpdateSyncRetryTest {
 
     @Test
     @DisplayName("친구 관계 삭제 - 1회 성공 시 재시도 및 DLQ 저장 없음")
-    void deleteFriendToRedis_shouldNotRetryOnSuccess() {
+    void handleFriendshipDeleted_shouldNotRetryOnSuccess() {
         // Given
         doNothing().when(redisFriendshipRepository).deleteFriend(anyLong(), anyLong());
 
         // When
-        friendshipRedisUpdateSync.deleteFriendToRedis(1L, 2L);
+        friendshipRedisUpdateSync.handleFriendshipDeleted(new FriendshipDeletedEvent(1L, 2L));
 
         // Then
         Awaitility.await()

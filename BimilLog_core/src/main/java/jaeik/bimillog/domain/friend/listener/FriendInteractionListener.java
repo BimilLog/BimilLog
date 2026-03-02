@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
 import jaeik.bimillog.domain.global.event.FriendInteractionEvent;
-import jaeik.bimillog.domain.post.event.PostLikeEvent;
+
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -14,9 +14,4 @@ import jaeik.bimillog.domain.paper.listener.RealtimePaperPopularScoreListener;
  * {@link RealtimePaperPopularScoreListener} 실시간 인기 점수 비동기 감소
  */
 public record MessageDeletedEvent(Long paperOwnerId) {
-    public MessageDeletedEvent {
-        if (paperOwnerId == null) {
-            throw new IllegalArgumentException("롤링페이퍼 소유자 ID는 null일 수 없습니다.");
-        }
-    }
 }

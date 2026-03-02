@@ -1,8 +1,11 @@
 package jaeik.bimillog.springboot.mysql.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.domain.post.async.CacheUpdateSync;
+import jaeik.bimillog.domain.post.listener.CacheUpdateListener;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.event.PostModifiedEvent;
+import jaeik.bimillog.domain.post.event.PostRemovedEvent;
+import jaeik.bimillog.domain.post.event.PostWrittenEvent;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,18 +22,18 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>CacheUpdateSync 로컬 통합 테스트</h2>
+ * <h2>CacheUpdateListener 로컬 통합 테스트</h2>
  * <p>실제 Redis에서 글 작성/수정/삭제 시 JSON LIST 캐시가 올바르게 갱신되는지 검증합니다.</p>
  * <p>실행 전 Redis(6379) 필요 (MySQL 연결은 SpringBootTest 컨텍스트에 의해 요구됨)</p>
  */
-@DisplayName("CacheUpdateSync 로컬 통합 테스트")
+@DisplayName("CacheUpdateListener 로컬 통합 테스트")
 @SpringBootTest
 @Tag("local-integration")
 @ActiveProfiles("local-integration")
-class CacheUpdateSyncLocalIntegrationTest {
+class CacheUpdateListenerLocalIntegrationTest {
 
     @Autowired
-    private CacheUpdateSync cacheUpdateSync;
+    private CacheUpdateListener cacheUpdateListener;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -54,13 +57,13 @@ class CacheUpdateSyncLocalIntegrationTest {
     // ==================== 글 추가 ====================
 
     @Test
-    @DisplayName("asyncAddNewPost - 새 글이 첫 페이지 리스트 맨 앞에 추가됨")
-    void asyncAddNewPost_shouldPushToFrontOfFirstPageList() throws Exception {
+    @DisplayName("handlePostWritten - 새 글이 첫 페이지 리스트 맨 앞에 추가됨")
+    void handlePostWritten_shouldPushToFrontOfFirstPageList() throws Exception {
         // Given
         PostSimpleDetail post = buildPost(TEST_POST_ID, "새 글 제목");
 
         // When
-        cacheUpdateSync.asyncAddNewPost(post);
+        cacheUpdateListener.handlePostWritten(new PostWrittenEvent(post));
         waitForAsync();
 
         // Then: 리스트 맨 앞(index 0)에 추가됨
@@ -72,16 +75,16 @@ class CacheUpdateSyncLocalIntegrationTest {
     }
 
     @Test
-    @DisplayName("asyncAddNewPost - 여러 글 추가 시 최신 글이 앞에 위치함")
-    void asyncAddNewPost_shouldMaintainOrder_WhenMultiplePostsAdded() throws Exception {
+    @DisplayName("handlePostWritten - 여러 글 추가 시 최신 글이 앞에 위치함")
+    void handlePostWritten_shouldMaintainOrder_WhenMultiplePostsAdded() throws Exception {
         // Given
         PostSimpleDetail olderPost = buildPost(OTHER_POST_ID, "오래된 글");
         PostSimpleDetail newerPost = buildPost(TEST_POST_ID, "최신 글");
 
         // When: 순서대로 추가 (나중에 추가한 글이 앞으로)
-        cacheUpdateSync.asyncAddNewPost(olderPost);
+        cacheUpdateListener.handlePostWritten(new PostWrittenEvent(olderPost));
         waitForAsync();
-        cacheUpdateSync.asyncAddNewPost(newerPost);
+        cacheUpdateListener.handlePostWritten(new PostWrittenEvent(newerPost));
         waitForAsync();
 
         // Then: 최신 글이 index 0 (LPUSH 방식)
@@ -95,8 +98,8 @@ class CacheUpdateSyncLocalIntegrationTest {
     }
 
     @Test
-    @DisplayName("asyncAddNewPost - FIRST_PAGE_SIZE+1 초과 시 LTRIM으로 자름")
-    void asyncAddNewPost_shouldTrimWhenExceedsMaxSize() {
+    @DisplayName("handlePostWritten - FIRST_PAGE_SIZE+1 초과 시 LTRIM으로 자름")
+    void handlePostWritten_shouldTrimWhenExceedsMaxSize() {
         // Given: FIRST_PAGE_SIZE + 1개 미리 채우기
         int limit = RedisKey.FIRST_PAGE_SIZE + 1;
         for (long i = 1; i <= limit; i++) {
@@ -106,7 +109,7 @@ class CacheUpdateSyncLocalIntegrationTest {
         assertThat(stringRedisTemplate.opsForList().size(RedisKey.FIRST_PAGE_JSON_KEY)).isEqualTo(limit);
 
         // When: 한 개 더 추가
-        cacheUpdateSync.asyncAddNewPost(buildPost(TEST_POST_ID, "초과 글"));
+        cacheUpdateListener.handlePostWritten(new PostWrittenEvent(buildPost(TEST_POST_ID, "초과 글")));
         waitForAsync();
 
         // Then: maxSize = FIRST_PAGE_SIZE + 1 개로 유지됨
@@ -117,8 +120,8 @@ class CacheUpdateSyncLocalIntegrationTest {
     // ==================== 글 수정 ====================
 
     @Test
-    @DisplayName("asyncUpdatePost - 첫 페이지 리스트의 제목이 갱신됨")
-    void asyncUpdatePost_shouldUpdateTitleInFirstPageList() throws Exception {
+    @DisplayName("handlePostModified - 첫 페이지 리스트의 제목이 갱신됨")
+    void handlePostModified_shouldUpdateTitleInFirstPageList() throws Exception {
         // Given: 첫 페이지에 기존 글 저장
         PostSimpleDetail original = buildPost(TEST_POST_ID, "기존 제목");
         stringRedisTemplate.opsForList().rightPush(RedisKey.FIRST_PAGE_JSON_KEY, toJsonSilent(original));
@@ -126,7 +129,7 @@ class CacheUpdateSyncLocalIntegrationTest {
         PostSimpleDetail updated = buildPost(TEST_POST_ID, "수정된 제목");
 
         // When
-        cacheUpdateSync.asyncUpdatePost(TEST_POST_ID, updated);
+        cacheUpdateListener.handlePostModified(new PostModifiedEvent(TEST_POST_ID, updated));
         waitForAsync();
 
         // Then: 제목이 갱신됨
@@ -137,8 +140,8 @@ class CacheUpdateSyncLocalIntegrationTest {
     }
 
     @Test
-    @DisplayName("asyncUpdatePost - 모든 JSON LIST(주간/레전드 등)에 제목이 갱신됨")
-    void asyncUpdatePost_shouldUpdateTitleInAllLists() throws Exception {
+    @DisplayName("handlePostModified - 모든 JSON LIST(주간/레전드 등)에 제목이 갱신됨")
+    void handlePostModified_shouldUpdateTitleInAllLists() throws Exception {
         // Given: 주간, 레전드 리스트에도 글 저장
         PostSimpleDetail original = buildPost(TEST_POST_ID, "원래 제목");
         String json = toJsonSilent(original);
@@ -148,7 +151,7 @@ class CacheUpdateSyncLocalIntegrationTest {
         PostSimpleDetail updated = buildPost(TEST_POST_ID, "갱신된 제목");
 
         // When
-        cacheUpdateSync.asyncUpdatePost(TEST_POST_ID, updated);
+        cacheUpdateListener.handlePostModified(new PostModifiedEvent(TEST_POST_ID, updated));
         waitForAsync();
 
         // Then: 주간, 레전드 모두 갱신됨
@@ -162,14 +165,14 @@ class CacheUpdateSyncLocalIntegrationTest {
     // ==================== 글 삭제 ====================
 
     @Test
-    @DisplayName("asyncDeletePost - 첫 페이지 리스트에서 해당 글이 제거됨")
-    void asyncDeletePost_shouldRemovePostFromFirstPageList() {
+    @DisplayName("handlePostRemoved - 첫 페이지 리스트에서 해당 글이 제거됨")
+    void handlePostRemoved_shouldRemovePostFromFirstPageList() {
         // Given: 두 개의 글을 첫 페이지에 저장
         stringRedisTemplate.opsForList().rightPush(RedisKey.FIRST_PAGE_JSON_KEY, toJsonSilent(buildPost(OTHER_POST_ID, "남을 글")));
         stringRedisTemplate.opsForList().rightPush(RedisKey.FIRST_PAGE_JSON_KEY, toJsonSilent(buildPost(TEST_POST_ID, "삭제될 글")));
 
         // When
-        cacheUpdateSync.asyncDeletePost(TEST_POST_ID);
+        cacheUpdateListener.handlePostRemoved(new PostRemovedEvent(TEST_POST_ID));
         waitForAsync();
 
         // Then: TEST_POST_ID 글이 제거되고, 다른 글은 남아있음
@@ -182,8 +185,8 @@ class CacheUpdateSyncLocalIntegrationTest {
     }
 
     @Test
-    @DisplayName("asyncDeletePost - 주간/레전드/실시간 캐시에서도 해당 글이 제거됨")
-    void asyncDeletePost_shouldRemovePostFromCacheLists() {
+    @DisplayName("handlePostRemoved - 주간/레전드/실시간 캐시에서도 해당 글이 제거됨")
+    void handlePostRemoved_shouldRemovePostFromCacheLists() {
         // Given: 여러 캐시 리스트에 글 저장
         String json = toJsonSilent(buildPost(TEST_POST_ID, "삭제될 글"));
         stringRedisTemplate.opsForList().rightPush(RedisKey.POST_WEEKLY_JSON_KEY, json);
@@ -191,7 +194,7 @@ class CacheUpdateSyncLocalIntegrationTest {
         stringRedisTemplate.opsForList().rightPush(RedisKey.POST_REALTIME_JSON_KEY, json);
 
         // When
-        cacheUpdateSync.asyncDeletePost(TEST_POST_ID);
+        cacheUpdateListener.handlePostRemoved(new PostRemovedEvent(TEST_POST_ID));
         waitForAsync();
 
         // Then: 모든 캐시에서 제거됨
