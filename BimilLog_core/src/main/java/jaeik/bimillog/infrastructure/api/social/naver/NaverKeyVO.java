@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Getter
-public class NaverKeyVO {
+public final class NaverKeyVO {
 
     @Value("${spring.naver.client-id}")
     private String CLIENT_ID; // 애플리케이션 클라이언트 아이디

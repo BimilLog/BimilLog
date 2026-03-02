@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Getter
-public class KakaoKeyVO {
+public final class KakaoKeyVO {
 
     @Value("${spring.kakao.client-id}")
     private String CLIENT_ID; // 앱 REST API 키
