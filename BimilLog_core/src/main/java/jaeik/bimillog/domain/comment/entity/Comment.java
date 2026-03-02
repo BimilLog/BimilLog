@@ -25,7 +25,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Table(indexes = {
         @Index(name = "idx_comment_post_deleted", columnList = "post_id, deleted"),
-        @Index(name = "idx_comment_post_created", columnList = "post_id, created_at DESC")
+        @Index(name = "idx_comment_post_created", columnList = "post_id, created_at DESC"),
+        @Index(name = "idx_comment_member_post", columnList = "member_id, post_id")
 })
 public class Comment extends BaseEntity {
 
