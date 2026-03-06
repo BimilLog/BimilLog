@@ -96,6 +96,7 @@ public class RealtimePostCacheService {
             if (postIds.isEmpty()) {
                 return new PageImpl<>(List.of(), pageable, 0);
             }
+
             return postQueryRepository.selectPostSimpleDetails(
                     PostQueryType.CAFFEINE_REALTIME.getIdsConditionFn().apply(postIds), pageable,
                     PostQueryType.CAFFEINE_REALTIME.getOrders());
