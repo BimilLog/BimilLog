@@ -9,7 +9,7 @@ export const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000,
       // 백그라운드에서 refetch
       refetchOnWindowFocus: false,
-      // 마운트 시 refetch 비활성화 (필요한 경우만 활성화)
+      // stale 상태일 때만 마운트 시 refetch (staleTime 5분과 연동)
       refetchOnMount: true,
       // 재시도 로직
       retry: (failureCount, error: unknown) => {

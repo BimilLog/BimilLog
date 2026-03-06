@@ -17,7 +17,7 @@ interface FriendListItemProps {
 /**
  * 친구 목록 아이템 컴포넌트
  */
-export const FriendListItem: React.FC<FriendListItemProps> = ({ friend }) => {
+export const FriendListItem: React.FC<FriendListItemProps> = React.memo(({ friend }) => {
   const router = useRouter();
   const { removeFriend, isPending } = useRemoveFriendAction();
   const { confirm, ConfirmModalComponent } = useConfirmModal();
@@ -86,4 +86,6 @@ export const FriendListItem: React.FC<FriendListItemProps> = ({ friend }) => {
       <ConfirmModalComponent />
     </>
   );
-};
+});
+
+FriendListItem.displayName = "FriendListItem";

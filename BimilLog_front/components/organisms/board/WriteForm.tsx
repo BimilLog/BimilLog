@@ -36,7 +36,7 @@ interface WriteFormProps {
  *   - 비로그인 사용자: 익명 게시, 비밀번호 입력 필수
  * - 리치텍스트 에디터(LazyEditor)로 풍부한 컨텐츠 작성 지원
  */
-export const WriteForm: React.FC<WriteFormProps> = ({
+export const WriteForm: React.FC<WriteFormProps> = React.memo(({
   title,
   setTitle,
   content,
@@ -183,4 +183,6 @@ export const WriteForm: React.FC<WriteFormProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+WriteForm.displayName = "WriteForm";

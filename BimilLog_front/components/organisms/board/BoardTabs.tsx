@@ -2,7 +2,7 @@
 
 import React, { memo, useMemo } from "react";
 import { Tabs, TabItem } from "flowbite-react";
-import { HiClipboardList, HiTrendingUp, HiSparkles, HiFire } from "react-icons/hi";
+import { ClipboardList, TrendingUp, Sparkles, Flame } from "lucide-react";
 import { NoticeList } from "./notice-list";
 import { BoardTable } from "./BoardTable";
 import { BoardPagination } from "./board-pagination";
@@ -159,7 +159,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <HiClipboardList className="w-5 h-5 text-blue-500" />
+                <ClipboardList className="w-5 h-5 text-blue-500" />
                 <span>
                   {isSearching && searchTerm ? `'${searchTerm}' 검색 결과` : "전체 게시판"}
                 </span>
@@ -186,7 +186,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <HiFire className="w-5 h-5 text-red-500" />
+                <Flame className="w-5 h-5 text-red-500" />
                 <span>실시간 인기글</span>
               </CardTitle>
             </CardHeader>
@@ -207,7 +207,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <HiTrendingUp className="w-5 h-5 text-orange-500" />
+                <TrendingUp className="w-5 h-5 text-orange-500" />
                 <span>주간 인기글</span>
               </CardTitle>
             </CardHeader>
@@ -228,7 +228,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <HiSparkles className="w-5 h-5 text-purple-500" />
+                <Sparkles className="w-5 h-5 text-purple-500" />
                 <span>레전드 글</span>
               </CardTitle>
             </CardHeader>

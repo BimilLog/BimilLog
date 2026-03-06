@@ -58,6 +58,7 @@ const createDefaultParams = (
   post: createPost(),
   isAuthenticated: true,
   canModify: vi.fn(() => true),
+  isMyComment: vi.fn(() => true),
   canModifyComment: vi.fn(() => true),
   openPasswordModal: vi.fn(),
   resetPasswordModal: vi.fn(),
@@ -87,14 +88,14 @@ describe("useCommentInteraction", () => {
       const { result } = renderHook(() =>
         useCommentInteraction(createDefaultParams())
       );
-      expect(result.current.editingComment).toBeNull();
+      expect(result.current.editState.editingComment).toBeNull();
     });
 
     it("replyingTo이 null이다", () => {
       const { result } = renderHook(() =>
         useCommentInteraction(createDefaultParams())
       );
-      expect(result.current.replyingTo).toBeNull();
+      expect(result.current.replyState.replyingTo).toBeNull();
     });
 
     it("showDeleteModal이 false이다", () => {
@@ -124,11 +125,11 @@ describe("useCommentInteraction", () => {
         const comment = createComment({ content: "기존 댓글 내용" });
 
         act(() => {
-          result.current.handleEditComment(comment);
+          result.current.commentHandlers.onEditComment(comment);
         });
 
-        expect(result.current.editingComment).toEqual(comment);
-        expect(result.current.editContent).toBe("기존 댓글 내용");
+        expect(result.current.editState.editingComment).toEqual(comment);
+        expect(result.current.editState.editContent).toBe("기존 댓글 내용");
       });
     });
 
@@ -140,13 +141,13 @@ describe("useCommentInteraction", () => {
         const comment = createComment();
 
         act(() => {
-          result.current.handleEditComment(comment);
+          result.current.commentHandlers.onEditComment(comment);
         });
         act(() => {
-          result.current.setEditContent("   ");
+          result.current.editState.setEditContent("   ");
         });
         act(() => {
-          result.current.handleUpdateComment();
+          result.current.commentHandlers.onUpdateComment();
         });
 
         expect(mockShowToast).toHaveBeenCalledWith({
@@ -162,13 +163,13 @@ describe("useCommentInteraction", () => {
         const comment = createComment();
 
         act(() => {
-          result.current.handleEditComment(comment);
+          result.current.commentHandlers.onEditComment(comment);
         });
         act(() => {
-          result.current.setEditContent("a".repeat(256));
+          result.current.editState.setEditContent("a".repeat(256));
         });
         act(() => {
-          result.current.handleUpdateComment();
+          result.current.commentHandlers.onUpdateComment();
         });
 
         expect(mockShowToast).toHaveBeenCalledWith({
@@ -187,14 +188,14 @@ describe("useCommentInteraction", () => {
         });
 
         act(() => {
-          result.current.handleEditComment(anonymousComment);
+          result.current.commentHandlers.onEditComment(anonymousComment);
         });
         act(() => {
-          result.current.setEditContent("수정된 내용");
+          result.current.editState.setEditContent("수정된 내용");
         });
         // editPassword를 설정하지 않으면 ""이므로 비밀번호 없음
         act(() => {
-          result.current.handleUpdateComment();
+          result.current.commentHandlers.onUpdateComment();
         });
 
         expect(mockShowToast).toHaveBeenCalledWith({
@@ -213,14 +214,14 @@ describe("useCommentInteraction", () => {
         });
 
         act(() => {
-          result.current.handleEditComment(anonymousComment);
+          result.current.commentHandlers.onEditComment(anonymousComment);
         });
         act(() => {
-          result.current.setEditContent("수정된 내용");
-          result.current.setEditPassword("12"); // 4자리가 아닌 비밀번호
+          result.current.editState.setEditContent("수정된 내용");
+          result.current.editState.setEditPassword("12"); // 4자리가 아닌 비밀번호
         });
         act(() => {
-          result.current.handleUpdateComment();
+          result.current.commentHandlers.onUpdateComment();
         });
 
         expect(mockShowToast).toHaveBeenCalledWith({
@@ -239,13 +240,13 @@ describe("useCommentInteraction", () => {
         const comment = createComment({ id: 5, content: "원래 내용" });
 
         act(() => {
-          result.current.handleEditComment(comment);
+          result.current.commentHandlers.onEditComment(comment);
         });
         act(() => {
-          result.current.setEditContent("수정된 내용");
+          result.current.editState.setEditContent("수정된 내용");
         });
         act(() => {
-          result.current.handleUpdateComment();
+          result.current.commentHandlers.onUpdateComment();
         });
 
         expect(mockUpdateComment).toHaveBeenCalledWith(
@@ -275,14 +276,14 @@ describe("useCommentInteraction", () => {
         });
 
         act(() => {
-          result.current.handleEditComment(anonymousComment);
+          result.current.commentHandlers.onEditComment(anonymousComment);
         });
         act(() => {
-          result.current.setEditContent("수정된 익명 댓글");
-          result.current.setEditPassword("1234");
+          result.current.editState.setEditContent("수정된 익명 댓글");
+          result.current.editState.setEditPassword("1234");
         });
         act(() => {
-          result.current.handleUpdateComment();
+          result.current.commentHandlers.onUpdateComment();
         });
 
         expect(mockUpdateComment).toHaveBeenCalledWith(
@@ -307,16 +308,16 @@ describe("useCommentInteraction", () => {
         const comment = createComment({ content: "원래 내용" });
 
         act(() => {
-          result.current.handleEditComment(comment);
+          result.current.commentHandlers.onEditComment(comment);
         });
         // editContent는 "원래 내용"으로 설정됨 - 변경하지 않음
         act(() => {
-          result.current.handleCancelEdit();
+          result.current.commentHandlers.onCancelEdit();
         });
 
         expect(mockConfirm).not.toHaveBeenCalled();
-        expect(result.current.editingComment).toBeNull();
-        expect(result.current.editContent).toBe("");
+        expect(result.current.editState.editingComment).toBeNull();
+        expect(result.current.editState.editContent).toBe("");
       });
 
       it("변경이 있으면 window.confirm을 호출한다", () => {
@@ -327,19 +328,19 @@ describe("useCommentInteraction", () => {
         const comment = createComment({ content: "원래 내용" });
 
         act(() => {
-          result.current.handleEditComment(comment);
+          result.current.commentHandlers.onEditComment(comment);
         });
         act(() => {
-          result.current.setEditContent("변경된 내용");
+          result.current.editState.setEditContent("변경된 내용");
         });
         act(() => {
-          result.current.handleCancelEdit();
+          result.current.commentHandlers.onCancelEdit();
         });
 
         expect(mockConfirm).toHaveBeenCalledWith(
           "수정 중인 내용이 있습니다. 취소하시겠습니까?"
         );
-        expect(result.current.editingComment).toBeNull();
+        expect(result.current.editState.editingComment).toBeNull();
       });
 
       it("confirm에서 취소하면 편집 상태를 유지한다", () => {
@@ -350,17 +351,17 @@ describe("useCommentInteraction", () => {
         const comment = createComment({ content: "원래 내용" });
 
         act(() => {
-          result.current.handleEditComment(comment);
+          result.current.commentHandlers.onEditComment(comment);
         });
         act(() => {
-          result.current.setEditContent("변경된 내용");
+          result.current.editState.setEditContent("변경된 내용");
         });
         act(() => {
-          result.current.handleCancelEdit();
+          result.current.commentHandlers.onCancelEdit();
         });
 
-        expect(result.current.editingComment).toEqual(comment);
-        expect(result.current.editContent).toBe("변경된 내용");
+        expect(result.current.editState.editingComment).toEqual(comment);
+        expect(result.current.editState.editContent).toBe("변경된 내용");
       });
     });
   });
@@ -377,11 +378,11 @@ describe("useCommentInteraction", () => {
         const comment = createComment({ id: 3 });
 
         act(() => {
-          result.current.handleReplyTo(comment);
+          result.current.commentHandlers.onReplyTo(comment);
         });
 
-        expect(result.current.replyingTo).toEqual(comment);
-        expect(result.current.replyContent).toBe("");
+        expect(result.current.replyState.replyingTo).toEqual(comment);
+        expect(result.current.replyState.replyContent).toBe("");
       });
     });
 
@@ -395,7 +396,7 @@ describe("useCommentInteraction", () => {
         );
 
         act(() => {
-          result.current.handleSubmitReply();
+          result.current.commentHandlers.onReplySubmit();
         });
 
         expect(mockCreateComment).not.toHaveBeenCalled();
@@ -411,13 +412,13 @@ describe("useCommentInteraction", () => {
         const parentComment = createComment({ id: 5 });
 
         act(() => {
-          result.current.handleReplyTo(parentComment);
+          result.current.commentHandlers.onReplyTo(parentComment);
         });
         act(() => {
-          result.current.setReplyContent("답글 내용");
+          result.current.replyState.setReplyContent("답글 내용");
         });
         act(() => {
-          result.current.handleSubmitReply();
+          result.current.commentHandlers.onReplySubmit();
         });
 
         expect(mockCreateComment).toHaveBeenCalledWith(
@@ -443,14 +444,14 @@ describe("useCommentInteraction", () => {
         const parentComment = createComment({ id: 5 });
 
         act(() => {
-          result.current.handleReplyTo(parentComment);
+          result.current.commentHandlers.onReplyTo(parentComment);
         });
         act(() => {
-          result.current.setReplyContent("답글 내용");
-          result.current.setReplyPassword("4567");
+          result.current.replyState.setReplyContent("답글 내용");
+          result.current.replyState.setReplyPassword("4567");
         });
         act(() => {
-          result.current.handleSubmitReply();
+          result.current.commentHandlers.onReplySubmit();
         });
 
         expect(mockCreateComment).toHaveBeenCalledWith(
@@ -475,22 +476,22 @@ describe("useCommentInteraction", () => {
         const comment = createComment({ id: 3 });
 
         act(() => {
-          result.current.handleReplyTo(comment);
+          result.current.commentHandlers.onReplyTo(comment);
         });
         act(() => {
-          result.current.setReplyContent("답글 내용");
-          result.current.setReplyPassword("1234");
+          result.current.replyState.setReplyContent("답글 내용");
+          result.current.replyState.setReplyPassword("1234");
         });
 
-        expect(result.current.replyingTo).not.toBeNull();
+        expect(result.current.replyState.replyingTo).not.toBeNull();
 
         act(() => {
-          result.current.handleCancelReply();
+          result.current.commentHandlers.onCancelReply();
         });
 
-        expect(result.current.replyingTo).toBeNull();
-        expect(result.current.replyContent).toBe("");
-        expect(result.current.replyPassword).toBe("");
+        expect(result.current.replyState.replyingTo).toBeNull();
+        expect(result.current.replyState.replyContent).toBe("");
+        expect(result.current.replyState.replyPassword).toBe("");
       });
     });
   });
@@ -556,7 +557,7 @@ describe("useCommentInteraction", () => {
         const comment = createComment({ id: 7 });
 
         act(() => {
-          result.current.handleLikeComment(comment);
+          result.current.commentHandlers.onLikeComment(comment);
         });
 
         expect(mockShowToast).toHaveBeenCalledWith({
@@ -579,7 +580,7 @@ describe("useCommentInteraction", () => {
         const comment = createComment({ id: 7 });
 
         act(() => {
-          result.current.handleLikeComment(comment);
+          result.current.commentHandlers.onLikeComment(comment);
         });
 
         expect(mockShowToast).not.toHaveBeenCalled();
@@ -681,7 +682,7 @@ describe("useCommentInteraction", () => {
         const comment = createComment();
 
         act(() => {
-          result.current.handleDeleteComment(comment);
+          result.current.commentHandlers.onDeleteComment(comment);
         });
 
         expect(mockShowToast).toHaveBeenCalledWith({
@@ -702,7 +703,7 @@ describe("useCommentInteraction", () => {
         const anonymousComment = createComment({ memberName: "익명" });
 
         act(() => {
-          result.current.handleDeleteComment(anonymousComment);
+          result.current.commentHandlers.onDeleteComment(anonymousComment);
         });
 
         expect(mockOpenPasswordModal).toHaveBeenCalledWith(
@@ -726,7 +727,7 @@ describe("useCommentInteraction", () => {
         });
 
         act(() => {
-          result.current.handleDeleteComment(nullNameComment);
+          result.current.commentHandlers.onDeleteComment(nullNameComment);
         });
 
         expect(mockOpenPasswordModal).toHaveBeenCalledWith(
@@ -743,7 +744,7 @@ describe("useCommentInteraction", () => {
         const comment = createComment({ memberName: "로그인유저" });
 
         act(() => {
-          result.current.handleDeleteComment(comment);
+          result.current.commentHandlers.onDeleteComment(comment);
         });
 
         expect(result.current.showCommentDeleteModal).toBe(true);
@@ -801,7 +802,7 @@ describe("useCommentInteraction", () => {
 
         // 먼저 삭제 대상 설정
         act(() => {
-          result.current.handleDeleteComment(comment);
+          result.current.commentHandlers.onDeleteComment(comment);
         });
         act(() => {
           result.current.handleConfirmCommentDelete();

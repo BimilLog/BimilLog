@@ -14,7 +14,7 @@ interface ReceivedRequestItemProps {
 /**
  * 받은 친구 요청 아이템 컴포넌트
  */
-export const ReceivedRequestItem: React.FC<ReceivedRequestItemProps> = ({ request }) => {
+export const ReceivedRequestItem: React.FC<ReceivedRequestItemProps> = React.memo(({ request }) => {
   const { acceptRequest, isPending: isAccepting } = useAcceptFriendRequestAction();
   const { rejectRequest, isPending: isRejecting } = useRejectFriendRequestAction();
   const { confirm, ConfirmModalComponent } = useConfirmModal();
@@ -75,4 +75,6 @@ export const ReceivedRequestItem: React.FC<ReceivedRequestItemProps> = ({ reques
       <ConfirmModalComponent />
     </>
   );
-};
+});
+
+ReceivedRequestItem.displayName = "ReceivedRequestItem";

@@ -161,6 +161,10 @@ const nextConfig = withPWA(pwaConfig)({
                 protocol: 'https',
                 hostname: 'lh3.googleusercontent.com',
             },
+            {
+                protocol: 'https',
+                hostname: '*.pstatic.net',
+            },
         ],
         formats: ['image/avif', 'image/webp'],
         deviceSizes: [640, 768, 1024, 1280, 1536],

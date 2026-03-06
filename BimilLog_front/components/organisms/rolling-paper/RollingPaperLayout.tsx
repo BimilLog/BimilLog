@@ -6,7 +6,7 @@ interface RollingPaperLayoutProps {
   children: React.ReactNode;
 }
 
-export const RollingPaperLayout: React.FC<RollingPaperLayoutProps> = ({
+export const RollingPaperLayout: React.FC<RollingPaperLayoutProps> = React.memo(({
   children,
 }) => {
   return (
@@ -17,4 +17,6 @@ export const RollingPaperLayout: React.FC<RollingPaperLayoutProps> = ({
       <HomeFooter />
     </div>
   );
-};
+});
+
+RollingPaperLayout.displayName = "RollingPaperLayout";

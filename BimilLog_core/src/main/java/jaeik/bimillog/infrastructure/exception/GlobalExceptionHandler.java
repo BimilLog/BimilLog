@@ -203,7 +203,6 @@ public class GlobalExceptionHandler {
                 e.getMessage()
         );
 
-        // TODO: 비즈니스 로직 문제 해결 - 잘못된 provider 값에 대한 적절한 에러 처리
         log.warn("IllegalArgumentException: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }

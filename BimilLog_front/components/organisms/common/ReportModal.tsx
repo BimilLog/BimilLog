@@ -14,7 +14,7 @@ interface ReportModalProps {
   type: "게시글" | "댓글";
 }
 
-export const ReportModal: React.FC<ReportModalProps> = ({
+export const ReportModal: React.FC<ReportModalProps> = React.memo(({
   isOpen,
   onClose,
   onSubmit,
@@ -145,4 +145,6 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       </ModalFooter>
     </Modal>
   );
-};
+});
+
+ReportModal.displayName = "ReportModal";

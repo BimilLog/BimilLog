@@ -5,75 +5,55 @@ import { Button, SafeHTML, TimeBadge } from "@/components";
 import { LazyReportModal } from "@/lib/utils/lazy-components";
 import { User, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Comment } from "@/lib/api";
-import { useAuth } from "@/hooks";
 import { submitReportAction } from "@/lib/actions/user";
-import { useToast } from "@/hooks";
+import { useAuthStore } from "@/stores/auth.store";
+import { useToastStore } from "@/stores/toast.store";
 import { UserActionPopover } from "@/components/molecules/UserActionPopover";
 import { CommentEditForm } from "./CommentEditForm";
 import { CommentReplyForm } from "./CommentReplyForm";
 import { CommentActions } from "./CommentActions";
+import type { CommentHandlers, CommentEditState, CommentReplyState } from "@/hooks/features/post/useCommentInteraction";
 
 interface CommentItemProps {
   comment: Comment & { replies?: Comment[] };
   depth: number;
-  parentUserName?: string; // 부모 댓글 작성자명 추가
-  editingComment: Comment | null;
-  editContent: string;
-  editPassword: string;
-  replyingTo: Comment | null;
-  replyContent: string;
-  replyPassword: string;
+  parentUserName?: string;
   isAuthenticated: boolean;
   isSubmittingReply: boolean;
   isUpdatingComment: boolean;
   postId: number;
-  onEditComment: (comment: Comment) => void;
-  onUpdateComment: () => void;
-  onCancelEdit: () => void;
-  onDeleteComment: (comment: Comment) => void;
-  onReplyTo: (comment: Comment) => void;
-  onReplySubmit: () => void;
-  onCancelReply: () => void;
-  setEditContent: (content: string) => void;
-  setEditPassword: (password: string) => void;
-  setReplyContent: (content: string) => void;
-  setReplyPassword: (password: string) => void;
-  isMyComment: (comment: Comment) => boolean;
-  onLikeComment: (comment: Comment) => void;
-  canModifyComment: (comment: Comment) => boolean;
+  handlers: CommentHandlers;
+  editState: CommentEditState;
+  replyState: CommentReplyState;
 }
 
 export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   comment,
   depth,
   parentUserName,
-  editingComment,
-  editContent,
-  editPassword,
-  replyingTo,
-  replyContent,
-  replyPassword,
   isAuthenticated,
   isSubmittingReply,
   isUpdatingComment,
   postId,
-  onEditComment,
-  onUpdateComment,
-  onCancelEdit,
-  onDeleteComment,
-  onReplyTo,
-  onReplySubmit,
-  onCancelReply,
-  setEditContent,
-  setEditPassword,
-  setReplyContent,
-  setReplyPassword,
-  isMyComment,
-  onLikeComment,
-  canModifyComment,
+  handlers,
+  editState,
+  replyState,
 }) => {
-  const { user } = useAuth();
-  const { showFeedback, showError } = useToast();
+  // 그룹화된 객체에서 구조 분해
+  const {
+    onEditComment, onUpdateComment, onCancelEdit, onDeleteComment,
+    onReplyTo, onReplySubmit, onCancelReply, onLikeComment,
+    isMyComment, canModifyComment,
+  } = handlers;
+  const {
+    editingComment, editContent, editPassword,
+    setEditContent, setEditPassword,
+  } = editState;
+  const {
+    replyingTo, replyContent, replyPassword,
+    setReplyContent, setReplyPassword,
+  } = replyState;
+  // 신고 시에만 사용하므로 구독 대신 이벤트 시점에 직접 접근 (memo 우회 방지)
 
   // 댓글 계층구조 처리: 최대 3단계까지만 지원하여 모바일에서도 읽기 편하도록 제한
   const maxDepth = 3; // 최대 들여쓰기 레벨
@@ -113,8 +93,9 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   // 댓글 신고 처리 함수: 비로그인 사용자도 신고 가능
   // v2 API를 사용하여 신고 타입과 대상 ID, 사유를 전송
   const handleReport = async (reason: string) => {
+    const user = useAuthStore.getState().user;
+    const { showFeedback, showError } = useToastStore.getState();
     try {
-      // v2 신고 API 사용 - 익명 사용자도 신고 가능
       const response = await submitReportAction({
         reportType: "COMMENT",
         targetId: comment.id,
@@ -256,30 +237,13 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               comment={reply}
               depth={depth + 1}
               parentUserName={comment.memberName || "익명"}
-              editingComment={editingComment}
-              editContent={editContent}
-              editPassword={editPassword}
-              replyingTo={replyingTo}
-              replyContent={replyContent}
-              replyPassword={replyPassword}
               isAuthenticated={isAuthenticated}
               isSubmittingReply={isSubmittingReply}
               isUpdatingComment={isUpdatingComment}
               postId={postId}
-              onEditComment={onEditComment}
-              onUpdateComment={onUpdateComment}
-              onCancelEdit={onCancelEdit}
-              onDeleteComment={onDeleteComment}
-              onReplyTo={onReplyTo}
-              onReplySubmit={onReplySubmit}
-              onCancelReply={onCancelReply}
-              setEditContent={setEditContent}
-              setEditPassword={setEditPassword}
-              setReplyContent={setReplyContent}
-              setReplyPassword={setReplyPassword}
-              isMyComment={isMyComment}
-              onLikeComment={onLikeComment}
-              canModifyComment={canModifyComment}
+              handlers={handlers}
+              editState={editState}
+              replyState={replyState}
             />
           ))}
 
@@ -312,30 +276,13 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               comment={reply}
               depth={depth + 1}
               parentUserName={comment.memberName || "익명"}
-              editingComment={editingComment}
-              editContent={editContent}
-              editPassword={editPassword}
-              replyingTo={replyingTo}
-              replyContent={replyContent}
-              replyPassword={replyPassword}
               isAuthenticated={isAuthenticated}
               isSubmittingReply={isSubmittingReply}
               isUpdatingComment={isUpdatingComment}
               postId={postId}
-              onEditComment={onEditComment}
-              onUpdateComment={onUpdateComment}
-              onCancelEdit={onCancelEdit}
-              onDeleteComment={onDeleteComment}
-              onReplyTo={onReplyTo}
-              onReplySubmit={onReplySubmit}
-              onCancelReply={onCancelReply}
-              setEditContent={setEditContent}
-              setEditPassword={setEditPassword}
-              setReplyContent={setReplyContent}
-              setReplyPassword={setReplyPassword}
-              isMyComment={isMyComment}
-              onLikeComment={onLikeComment}
-              canModifyComment={canModifyComment}
+              handlers={handlers}
+              editState={editState}
+              replyState={replyState}
             />
           ))}
         </div>
@@ -352,7 +299,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   );
 }, (prevProps, nextProps) => {
   // React.memo 최적화: 댓글 컴포넌트의 불필요한 리렌더링 방지
-  // 주요 상태 변화만 감지하여 성능 최적화
+  // 그룹화된 객체는 useMemo로 참조 안정성이 보장되므로 얕은 비교로 충분
 
   // Comment 객체의 핵심 필드들만 비교
   if (prevProps.comment.id !== nextProps.comment.id) return false;
@@ -361,19 +308,16 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   if (prevProps.comment.userLike !== nextProps.comment.userLike) return false;
   if (prevProps.comment.deleted !== nextProps.comment.deleted) return false;
 
-  // 댓글 수정/답글 상태 비교
-  if (prevProps.editingComment?.id !== nextProps.editingComment?.id) return false;
-  if (prevProps.replyingTo?.id !== nextProps.replyingTo?.id) return false;
-
   // 기본 props 비교
   if (prevProps.depth !== nextProps.depth) return false;
-  if (prevProps.editContent !== nextProps.editContent) return false;
-  if (prevProps.editPassword !== nextProps.editPassword) return false;
-  if (prevProps.replyContent !== nextProps.replyContent) return false;
-  if (prevProps.replyPassword !== nextProps.replyPassword) return false;
   if (prevProps.isAuthenticated !== nextProps.isAuthenticated) return false;
   if (prevProps.isSubmittingReply !== nextProps.isSubmittingReply) return false;
   if (prevProps.isUpdatingComment !== nextProps.isUpdatingComment) return false;
+
+  // 그룹화된 객체 참조 비교 (useMemo로 안정성 보장)
+  if (prevProps.handlers !== nextProps.handlers) return false;
+  if (prevProps.editState !== nextProps.editState) return false;
+  if (prevProps.replyState !== nextProps.replyState) return false;
 
   // 답글 개수 비교
   if ((prevProps.comment.replies?.length || 0) !== (nextProps.comment.replies?.length || 0)) return false;

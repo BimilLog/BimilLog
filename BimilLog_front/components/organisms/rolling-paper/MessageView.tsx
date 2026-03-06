@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Button } from "@/components";
 import { Badge } from "@/components";
 import { ConfirmModal } from "@/components";
@@ -18,7 +18,7 @@ interface MessageViewProps {
   onDeleteError?: (message: string) => void;
 }
 
-export const MessageView: React.FC<MessageViewProps> = ({
+export const MessageView: React.FC<MessageViewProps> = memo(({
   message,
   isOwner,
   onDelete,
@@ -138,4 +138,6 @@ export const MessageView: React.FC<MessageViewProps> = ({
       />
     </>
   );
-};
+});
+
+MessageView.displayName = "MessageView";

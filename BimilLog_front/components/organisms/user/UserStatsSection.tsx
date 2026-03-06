@@ -54,7 +54,7 @@ const getActivityLevelWithIcons = (totalScore: number) => {
   return { ...baseLevel, badge };
 };
 
-export const UserStatsSection: React.FC<UserStatsProps> = ({
+export const UserStatsSection: React.FC<UserStatsProps> = React.memo(({
   stats,
   isLoading = false,
   error = null,
@@ -227,4 +227,6 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
       </div>
     </div>
   );
-};
+});
+
+UserStatsSection.displayName = "UserStatsSection";

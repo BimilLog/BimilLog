@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
 import { User } from "lucide-react";
@@ -14,7 +14,7 @@ interface AllUsersListProps {
  * Renders visit-page member listings, switching between search results and the full list.
  * Rendered inside the SearchSection card so no additional card wrapper is needed here.
  */
-export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
+export const AllUsersList = memo(({ searchKeyword = "" }: AllUsersListProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   // Determine whether we are currently showing filtered results
@@ -182,4 +182,6 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
       )}
     </>
   );
-};
+});
+
+AllUsersList.displayName = "AllUsersList";

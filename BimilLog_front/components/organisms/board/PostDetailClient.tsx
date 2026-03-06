@@ -84,16 +84,13 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // 댓글 편집/답글/삭제 상태 및 핸들러
   const {
-    editingComment, editContent, editPassword,
-    replyingTo, replyContent, replyPassword,
+    commentHandlers, editState, replyState,
     showDeleteModal, showCommentDeleteModal, targetDeleteComment,
     passwordError,
-    handleCommentSubmitForSection, handleEditComment, handleUpdateComment,
-    handleCancelEdit, handleReplyTo, handleCancelReply, handleSubmitReply,
+    handleCommentSubmitForSection,
     handleLikePost, handleDeletePostClick, handleConfirmDelete,
-    handleDeleteComment, handleConfirmCommentDelete, handleLikeComment,
+    handleConfirmCommentDelete,
     handlePasswordSubmit,
-    setEditContent, setEditPassword, setReplyContent, setReplyPassword,
     setShowDeleteModal, setShowCommentDeleteModal,
     setTargetDeleteComment, setPasswordError,
   } = useCommentInteraction({
@@ -101,6 +98,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     post,
     isAuthenticated,
     canModify,
+    isMyComment,
     canModifyComment,
     openPasswordModal,
     resetPasswordModal,
@@ -229,32 +227,14 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           isSubmittingComment={isCreatingComment}
           onSubmitComment={handleCommentSubmitForSection}
 
-          editingComment={editingComment}
-          editContent={editContent}
-          editPassword={editPassword}
-          replyingTo={replyingTo}
-          replyContent={replyContent}
-          replyPassword={replyPassword}
+          handlers={commentHandlers}
+          editState={editState}
+          replyState={replyState}
+
           isSubmittingReply={isCreatingComment}
           isUpdatingComment={isUpdatingComment}
-
-          onEditComment={handleEditComment}
-          onUpdateComment={handleUpdateComment}
-          onCancelEdit={handleCancelEdit}
-          onDeleteComment={handleDeleteComment}
-          onReplyTo={handleReplyTo}
-          onReplySubmit={handleSubmitReply}
-          onCancelReply={handleCancelReply}
-          onLikeComment={handleLikeComment}
           onLoadMore={loadMoreComments}
 
-          setEditContent={setEditContent}
-          setEditPassword={setEditPassword}
-          setReplyContent={setReplyContent}
-          setReplyPassword={setReplyPassword}
-
-          isMyComment={isMyComment}
-          canModifyComment={canModifyComment}
           onCommentClick={handleCommentClick}
         />
 

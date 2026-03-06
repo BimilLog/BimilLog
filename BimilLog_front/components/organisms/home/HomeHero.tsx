@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Button } from "flowbite-react";
 import { UserCheck } from "lucide-react";
 import { KakaoShareButton } from "@/components";
@@ -12,7 +13,7 @@ interface HomeHeroProps {
   onOpenFriendsModal: () => void;
 }
 
-export const HomeHero: React.FC<HomeHeroProps> = ({
+export const HomeHero: React.FC<HomeHeroProps> = memo(({
   isAuthenticated,
   provider,
   onOpenFriendsModal,
@@ -111,4 +112,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
       </div>
     </div>
   );
-};
+});
+
+HomeHero.displayName = "HomeHero";

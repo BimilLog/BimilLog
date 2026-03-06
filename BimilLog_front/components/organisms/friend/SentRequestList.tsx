@@ -15,7 +15,7 @@ interface SentRequestListProps {
 /**
  * 보낸 친구 요청 목록 컴포넌트
  */
-export const SentRequestList: React.FC<SentRequestListProps> = ({ initialData }) => {
+export const SentRequestList: React.FC<SentRequestListProps> = React.memo(({ initialData }) => {
   const [page, setPage] = useState(0);
   const size = 20;
 
@@ -102,4 +102,6 @@ export const SentRequestList: React.FC<SentRequestListProps> = ({ initialData })
       )}
     </div>
   );
-};
+});
+
+SentRequestList.displayName = "SentRequestList";

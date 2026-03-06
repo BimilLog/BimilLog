@@ -83,9 +83,8 @@ export function useUpdateCommentAction() {
       const result = await updateCommentAction(data)
 
       if (result.success) {
+        // 댓글 수정은 댓글 수 변동 없으므로 comment.list만 갱신
         queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(data.postId) })
-
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(data.postId) })
         showToast({ type: 'success', message: result.message || '댓글이 수정되었습니다.' })
         callbacks?.onSuccess?.()
       } else {

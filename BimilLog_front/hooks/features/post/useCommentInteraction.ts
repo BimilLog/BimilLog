@@ -1,10 +1,40 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks";
 import type { PasswordModalMode } from "@/hooks/common/usePasswordModal";
 import type { Post } from "@/types/domains/post";
 import type { Comment } from "@/types/domains/comment";
+
+// 그룹화된 props 타입 - CommentItem, CommentList, CommentSection에서 공유
+export interface CommentHandlers {
+  onEditComment: (comment: Comment) => void;
+  onUpdateComment: () => void;
+  onCancelEdit: () => void;
+  onDeleteComment: (comment: Comment) => void;
+  onReplyTo: (comment: Comment) => void;
+  onReplySubmit: () => void;
+  onCancelReply: () => void;
+  onLikeComment: (comment: Comment) => void;
+  isMyComment: (comment: Comment) => boolean;
+  canModifyComment: (comment: Comment) => boolean;
+}
+
+export interface CommentEditState {
+  editingComment: Comment | null;
+  editContent: string;
+  editPassword: string;
+  setEditContent: (content: string) => void;
+  setEditPassword: (password: string) => void;
+}
+
+export interface CommentReplyState {
+  replyingTo: Comment | null;
+  replyContent: string;
+  replyPassword: string;
+  setReplyContent: (content: string) => void;
+  setReplyPassword: (password: string) => void;
+}
 
 // Server Action hooks의 함수 타입
 interface CreateCommentFn {
@@ -48,6 +78,7 @@ export interface UseCommentInteractionParams {
   post: Post | null;
   isAuthenticated: boolean;
   canModify: () => boolean;
+  isMyComment: (comment: Comment) => boolean;
   canModifyComment: (comment: Comment) => boolean;
   openPasswordModal: (title: string, mode: PasswordModalMode, comment?: Comment) => void;
   resetPasswordModal: () => void;
@@ -68,6 +99,7 @@ export function useCommentInteraction({
   post,
   isAuthenticated,
   canModify,
+  isMyComment,
   canModifyComment,
   openPasswordModal,
   resetPasswordModal,
@@ -337,40 +369,59 @@ export function useCommentInteraction({
     }
   }, [deleteMode, modalPassword, targetComment, deletePost, deleteComment, postId, resetPasswordModal]);
 
-  return {
-    // 상태
+  // 그룹화된 핸들러 객체 (참조 안정성 보장)
+  const commentHandlers: CommentHandlers = useMemo(() => ({
+    onEditComment: handleEditComment,
+    onUpdateComment: handleUpdateComment,
+    onCancelEdit: handleCancelEdit,
+    onDeleteComment: handleDeleteComment,
+    onReplyTo: handleReplyTo,
+    onReplySubmit: handleSubmitReply,
+    onCancelReply: handleCancelReply,
+    onLikeComment: handleLikeComment,
+    isMyComment,
+    canModifyComment,
+  }), [handleEditComment, handleUpdateComment, handleCancelEdit, handleDeleteComment, handleReplyTo, handleSubmitReply, handleCancelReply, handleLikeComment, isMyComment, canModifyComment]);
+
+  // 그룹화된 수정 상태 객체
+  const editState: CommentEditState = useMemo(() => ({
     editingComment,
     editContent,
     editPassword,
+    setEditContent,
+    setEditPassword,
+  }), [editingComment, editContent, editPassword]);
+
+  // 그룹화된 답글 상태 객체
+  const replyState: CommentReplyState = useMemo(() => ({
     replyingTo,
     replyContent,
     replyPassword,
+    setReplyContent,
+    setReplyPassword,
+  }), [replyingTo, replyContent, replyPassword]);
+
+  return {
+    // 그룹화된 객체
+    commentHandlers,
+    editState,
+    replyState,
+
+    // 개별 상태 (PostDetailClient에서 직접 사용)
     showDeleteModal,
     showCommentDeleteModal,
     targetDeleteComment,
     passwordError,
 
-    // 핸들러
+    // PostDetailClient 전용 핸들러
     handleCommentSubmitForSection,
-    handleEditComment,
-    handleUpdateComment,
-    handleCancelEdit,
-    handleReplyTo,
-    handleCancelReply,
-    handleSubmitReply,
     handleLikePost,
     handleDeletePostClick,
     handleConfirmDelete,
-    handleDeleteComment,
     handleConfirmCommentDelete,
-    handleLikeComment,
     handlePasswordSubmit,
 
-    // setter 래퍼
-    setEditContent,
-    setEditPassword,
-    setReplyContent,
-    setReplyPassword,
+    // PostDetailClient 전용 setter
     setShowDeleteModal,
     setShowCommentDeleteModal,
     setTargetDeleteComment,

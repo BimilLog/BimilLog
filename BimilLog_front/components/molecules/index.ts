@@ -1,6 +1,5 @@
 // Card components
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './cards/card';
-export { ActivityCard } from './cards/activity-card';
 export { ProfileCard } from './cards/profile-card';
 
 // Modal components
@@ -17,6 +16,8 @@ export { Alert, AlertDescription, AlertTitle, SuccessAlert, ErrorAlert, WarningA
 export { ToastContainer, ToastComponent, type Toast, type ToastType } from './feedback/toast';
 export { Loading } from './feedback/loading';
 export { EmptyState } from './feedback/empty-state';
+export { ErrorBoundary, type ErrorFallbackProps } from './feedback/error-boundary';
+export { ErrorFallback } from './feedback/error-fallback';
 
 // Other components
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';

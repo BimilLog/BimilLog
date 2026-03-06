@@ -15,7 +15,7 @@ interface FriendListProps {
 /**
  * 내 친구 목록 컴포넌트
  */
-export const FriendList: React.FC<FriendListProps> = ({ initialData }) => {
+export const FriendList: React.FC<FriendListProps> = React.memo(({ initialData }) => {
   const [page, setPage] = useState(0);
   const size = 20;
 
@@ -105,4 +105,6 @@ export const FriendList: React.FC<FriendListProps> = ({ initialData }) => {
       )}
     </div>
   );
-};
+});
+
+FriendList.displayName = "FriendList";

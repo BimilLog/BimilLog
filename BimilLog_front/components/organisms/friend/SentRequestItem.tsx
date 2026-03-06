@@ -17,7 +17,7 @@ interface SentRequestItemProps {
 /**
  * 보낸 친구 요청 아이템 컴포넌트
  */
-export const SentRequestItem: React.FC<SentRequestItemProps> = ({ request }) => {
+export const SentRequestItem: React.FC<SentRequestItemProps> = React.memo(({ request }) => {
   const { cancelRequest, isPending } = useCancelFriendRequestAction();
   const { confirm, ConfirmModalComponent } = useConfirmModal();
 
@@ -65,4 +65,6 @@ export const SentRequestItem: React.FC<SentRequestItemProps> = ({ request }) => 
       <ConfirmModalComponent />
     </>
   );
-};
+});
+
+SentRequestItem.displayName = "SentRequestItem";

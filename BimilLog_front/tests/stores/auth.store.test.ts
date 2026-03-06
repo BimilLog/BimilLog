@@ -45,6 +45,7 @@ const baseUser = {
   thumbnailImage: 'https://example.com/profile.png',
   memberName: '재익',
   role: 'USER' as const,
+  provider: 'KAKAO' as const,
 };
 
 const resetStoreState = () => {

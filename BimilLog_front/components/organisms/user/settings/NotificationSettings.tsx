@@ -20,7 +20,7 @@ interface NotificationSettingsProps {
   className?: string;
 }
 
-export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
+export const NotificationSettings: React.FC<NotificationSettingsProps> = React.memo(({
   settings,
   saving,
   savingFields,
@@ -101,4 +101,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
       </div>
     </div>
   </SettingsSection>
-);
+));
+
+NotificationSettings.displayName = "NotificationSettings";

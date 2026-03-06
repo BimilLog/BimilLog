@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Badge } from "@/components";
 import { Megaphone, Crown, Flame, Trophy } from "lucide-react";
 
@@ -14,7 +15,7 @@ const FEATURED_CONFIG = {
   REALTIME: { label: "실시간", variant: "pink" as const, icon: Trophy },
 } as const;
 
-export const FeaturedBadge = ({ type }: FeaturedBadgeProps) => {
+export const FeaturedBadge = memo(({ type }: FeaturedBadgeProps) => {
   const config = FEATURED_CONFIG[type];
   if (!config) return null;
 
@@ -23,7 +24,9 @@ export const FeaturedBadge = ({ type }: FeaturedBadgeProps) => {
       {config.label}
     </Badge>
   );
-};
+});
+
+FeaturedBadge.displayName = "FeaturedBadge";
 
 interface FeaturedBadgesProps {
   weekly?: boolean;
@@ -31,7 +34,7 @@ interface FeaturedBadgesProps {
   notice?: boolean;
 }
 
-export const FeaturedBadges = ({ weekly, legend, notice }: FeaturedBadgesProps) => {
+export const FeaturedBadges = memo(({ weekly, legend, notice }: FeaturedBadgesProps) => {
   const badges: FeaturedKey[] = [];
   if (notice) badges.push("NOTICE");
   if (legend) badges.push("LEGEND");
@@ -46,4 +49,6 @@ export const FeaturedBadges = ({ weekly, legend, notice }: FeaturedBadgesProps) 
       ))}
     </>
   );
-};
+});
+
+FeaturedBadges.displayName = "FeaturedBadges";

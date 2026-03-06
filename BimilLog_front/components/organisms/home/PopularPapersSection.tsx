@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Card, Button, Spinner } from "flowbite-react";
 import { TrendingUp, MessageSquare, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -12,7 +13,7 @@ interface PopularPapersSectionProps {
   initialData?: PageResponse<PopularPaperInfo> | null;
 }
 
-export const PopularPapersSection: React.FC<PopularPapersSectionProps> = ({ initialData }) => {
+export const PopularPapersSection: React.FC<PopularPapersSectionProps> = memo(({ initialData }) => {
   const router = useRouter();
 
   // SSR 데이터가 없으면 클라이언트에서 fetch (fallback)
@@ -119,4 +120,6 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = ({ init
       </Card>
     </section>
   );
-};
+});
+
+PopularPapersSection.displayName = "PopularPapersSection";

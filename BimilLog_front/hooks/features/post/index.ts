@@ -4,3 +4,4 @@ export { usePostDetail } from './usePostDetail';
 export { useWriteForm } from './useWriteForm';
 export { useEditForm } from './useEditForm';
 export { useCommentInteraction } from './useCommentInteraction';
+export type { CommentHandlers, CommentEditState, CommentReplyState } from './useCommentInteraction';

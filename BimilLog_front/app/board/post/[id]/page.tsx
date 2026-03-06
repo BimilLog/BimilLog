@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cookies, headers } from "next/headers";
 import { generateStructuredData, generateKeywords } from "@/lib/seo";
-import { PostDetailClient } from "@/components/organisms/board";
+import { PostDetailWithErrorBoundary } from "@/components/organisms/board";
 import { BlockedToastRedirect } from "@/components/molecules/alerts/BlockedToastRedirect";
 
 interface Props {
@@ -180,7 +180,7 @@ export default async function PostDetailPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
         {/* 서버에서 가져온 초기 데이터를 클라이언트 컴포넌트에 전달 */}
-        <PostDetailClient initialPost={post} postId={postId} />
+        <PostDetailWithErrorBoundary initialPost={post} postId={postId} />
       </>
     );
   } catch {

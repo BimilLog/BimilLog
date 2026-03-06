@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Button } from "@/components";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
@@ -12,7 +13,7 @@ interface WritePageHeaderProps {
   isFormValid: boolean;
 }
 
-export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
+export const WritePageHeader: React.FC<WritePageHeaderProps> = memo(({
   isPreview,
   onTogglePreview,
   onSubmit,
@@ -87,4 +88,6 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
       </div>
     </div>
   );
-};
+});
+
+WritePageHeader.displayName = "WritePageHeader";

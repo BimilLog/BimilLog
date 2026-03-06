@@ -12,7 +12,7 @@ interface CommentFormProps {
   onSubmit: (comment: string, password: string) => void;
 }
 
-export const CommentForm: React.FC<CommentFormProps> = ({
+export const CommentForm: React.FC<CommentFormProps> = React.memo(({
   isAuthenticated,
   isSubmittingComment,
   onSubmit,
@@ -124,4 +124,6 @@ export const CommentForm: React.FC<CommentFormProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+CommentForm.displayName = "CommentForm";

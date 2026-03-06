@@ -1,7 +1,8 @@
+import { memo } from "react";
 import { Card, CardContent } from "@/components";
 import { Heart, MessageSquare, Users } from "lucide-react";
 
-export const HomeFeatures: React.FC = () => {
+export const HomeFeatures: React.FC = memo(() => {
   const features = [
     {
       icon: Heart,
@@ -55,4 +56,6 @@ export const HomeFeatures: React.FC = () => {
       </div>
     </section>
   );
-};
+});
+
+HomeFeatures.displayName = "HomeFeatures";
