@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.repository.AdminQueryRepository;
 import jaeik.bimillog.domain.admin.adapter.AdminToCommentAdapter;
 import jaeik.bimillog.domain.admin.adapter.AdminToPostAdapter;
-import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.jpa.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import lombok.RequiredArgsConstructor;

@@ -100,7 +100,6 @@ public class RedisPostRealTimeAdapter {
         // 1. 모든 항목의 점수에 0.97 곱하기
         stringRedisTemplate.execute(
                 script,
-
                 List.of(REALTIME_SCORE_KEY),
                 String.valueOf(REALTIME_POST_SCORE_DECAY_RATE)
         );
@@ -169,7 +168,6 @@ public class RedisPostRealTimeAdapter {
             return;
         }
         List<Map.Entry<Long, Double>> entries = new ArrayList<>(scores.entrySet());
-        int syncedCount = 0;
         for (int i = 0; i < entries.size(); i += SYNC_BATCH_SIZE) {
             List<Map.Entry<Long, Double>> batch = entries.subList(i, Math.min(i + SYNC_BATCH_SIZE, entries.size()));
             stringRedisTemplate.executePipelined((RedisCallback<Object>) conn -> {
@@ -182,10 +180,7 @@ public class RedisPostRealTimeAdapter {
             // 배치 성공 시 해당 항목만 Caffeine에서 제거
             List<Long> syncedIds = batch.stream().map(Map.Entry::getKey).toList();
             fallbackStore.removeSyncedScores(syncedIds);
-            syncedCount += syncedIds.size();
         }
-        int batches = (entries.size() + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
-        log.info("[SYNC] Caffeine → Redis 점수 동기화 완료: {}건({}배치)", syncedCount, batches);
     }
 
     /**
@@ -197,7 +192,6 @@ public class RedisPostRealTimeAdapter {
      */
     public void replayDeletionsToRedis(Set<Long> deletedIds) {
         List<Long> deletedList = new ArrayList<>(deletedIds);
-        int syncedCount = 0;
         for (int i = 0; i < deletedList.size(); i += SYNC_BATCH_SIZE) {
             List<Long> batch = deletedList.subList(i, Math.min(i + SYNC_BATCH_SIZE, deletedList.size()));
             stringRedisTemplate.executePipelined((RedisCallback<Object>) conn -> {
@@ -209,9 +203,6 @@ public class RedisPostRealTimeAdapter {
             });
             // 배치 성공 시 해당 항목만 삭제 로그에서 제거
             fallbackStore.removeSyncedDeletedPostIds(batch);
-            syncedCount += batch.size();
         }
-        int batches = (deletedList.size() + SYNC_BATCH_SIZE - 1) / Math.max(SYNC_BATCH_SIZE, 1);
-        log.info("[SYNC] 삭제 재처리 완료: {}건({}배치)", syncedCount, batches);
     }
 }

@@ -5,8 +5,10 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.post.entity.*;
+import com.querydsl.core.types.Projections;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.entity.jpa.QPostLike;
 import jaeik.bimillog.domain.post.service.PostQueryService;
@@ -41,6 +43,26 @@ public class PostQueryRepository {
     private static final QPostLike postLike = QPostLike.postLike;
 
     /**
+     * PostSimpleDetail 프로젝션의 공통 base query 생성
+     */
+    private JPAQuery<PostSimpleDetail> postSimpleDetailQuery() {
+        return jpaQueryFactory
+                .select(Projections.constructor(PostSimpleDetail.class,
+                        post.id,
+                        post.title,
+                        post.views,
+                        post.likeCount,
+                        post.createdAt,
+                        post.member.id,
+                        post.memberName,
+                        post.commentCount,
+                        post.isWeekly,
+                        post.isLegend,
+                        post.isNotice))
+                .from(post);
+    }
+
+    /**
      * <h3>게시판 게시글 조회 (Cursor 기반)</h3>
      * <p>커서 기반 페이지네이션으로 게시글 목록을 조회합니다.</p>
      * <p>hasNext 판단을 위해 size + 1개를 조회합니다.</p>
@@ -52,20 +74,7 @@ public class PostQueryRepository {
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findBoardPostsByCursor(Long cursor, int size) {
         BooleanExpression cursorCondition = cursor != null ? post.id.lt(cursor) : null;
-        return jpaQueryFactory
-                .select(new QPostSimpleDetail(
-                        post.id,
-                        post.title,
-                        post.views,
-                        post.likeCount,
-                        post.createdAt,
-                        post.member.id,
-                        post.memberName,
-                        post.commentCount,
-                        post.isWeekly,
-                        post.isLegend,
-                        post.isNotice))
-                .from(post)
+        return postSimpleDetailQuery()
                 .where(cursorCondition)
                 .orderBy(post.id.desc())
                 .limit(size + 1)
@@ -77,20 +86,7 @@ public class PostQueryRepository {
      */
     @Transactional(readOnly = true)
     public Page<PostSimpleDetail> selectPostSimpleDetails(BooleanExpression condition, Pageable pageable, OrderSpecifier<?>... orders) {
-        List<PostSimpleDetail> content = jpaQueryFactory
-                .select(new QPostSimpleDetail(
-                        post.id,
-                        post.title,
-                        post.views,
-                        post.likeCount,
-                        post.createdAt,
-                        post.member.id,
-                        post.memberName,
-                        post.commentCount,
-                        post.isWeekly,
-                        post.isLegend,
-                        post.isNotice))
-                .from(post)
+        List<PostSimpleDetail> content = postSimpleDetailQuery()
                 .where(condition)
                 .orderBy(orders)
                 .offset(pageable.getOffset())
@@ -116,21 +112,7 @@ public class PostQueryRepository {
      * @return 추천한 게시글 목록 페이지 (추천일 기준 최신순)
      */
     public Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
-        List<PostSimpleDetail> content = jpaQueryFactory
-                .select(new QPostSimpleDetail(
-                        post.id,
-                        post.title,
-                        post.views,
-                        post.likeCount,
-                        post.createdAt,
-                        post.member.id,
-                        post.memberName,
-                        post.commentCount,
-                        post.isWeekly,
-                        post.isLegend,
-                        post.isNotice
-                ))
-                .from(post)
+        List<PostSimpleDetail> content = postSimpleDetailQuery()
                 .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
                 .orderBy(postLike.createdAt.desc())
                 .offset(pageable.getOffset())
@@ -156,8 +138,6 @@ public class PostQueryRepository {
      * </pre>
      */
     public void bulkIncrementCount(Map<Long, Long> counts, NumberPath<Integer> field) {
-        QPost post = QPost.post;
-
         CaseBuilder.Cases<Integer, NumberExpression<Integer>> caseExpression = null;
         for (Map.Entry<Long, Long> entry : counts.entrySet()) {
             if (caseExpression == null) {
@@ -170,7 +150,6 @@ public class PostQueryRepository {
         }
 
         NumberExpression<Integer> delta = Objects.requireNonNull(caseExpression).otherwise(0);
-
         jpaQueryFactory.update(post)
                 .set(field, field.add(delta))
                 .where(post.id.in(counts.keySet()))

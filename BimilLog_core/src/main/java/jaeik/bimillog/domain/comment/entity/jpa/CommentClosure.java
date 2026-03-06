@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.comment.entity;
+package jaeik.bimillog.domain.comment.entity.jpa;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

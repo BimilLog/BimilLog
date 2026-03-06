@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.friend.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.comment.entity.QComment;
-import jaeik.bimillog.domain.comment.entity.QCommentLike;
+import jaeik.bimillog.domain.comment.entity.jpa.QComment;
+import jaeik.bimillog.domain.comment.entity.jpa.QCommentLike;
 import jaeik.bimillog.domain.friend.entity.jpa.QFriendship;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;

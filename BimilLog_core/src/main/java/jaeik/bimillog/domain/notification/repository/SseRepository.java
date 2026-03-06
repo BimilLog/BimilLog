@@ -164,12 +164,10 @@ public class SseRepository {
 
     private void cleanup(String emitterId, SseEmitter emitter) {
         emitters.remove(emitterId);
-        if (emitter != null) {
-            try {
-                emitter.complete();
-            } catch (Exception e) {
-                log.debug("SSE complete 처리 중 무시된 예외: {} ({})", emitterId, e.getMessage());
-            }
+        try {
+            emitter.complete();
+        } catch (Exception e) {
+            log.debug("SSE complete 처리 중 무시된 예외: {} ({})", emitterId, e.getMessage());
         }
     }
 }

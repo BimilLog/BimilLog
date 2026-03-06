@@ -44,18 +44,13 @@ public class GlobalExceptionHandler {
                 e.getMessage());
 
         // ErrorCode의 LogLevel에 따라 적절한 로그 레벨로 기록
-        if (e.getErrorCode() != null) {
-            String logMessage = "CustomException: 코드: {}, 메시지: {}";
-            ErrorCode.LogLevel logLevel = e.getErrorCode().getLogLevel();
+        String logMessage = "CustomException: 코드: {}, 메시지: {}";
+        ErrorCode.LogLevel logLevel = e.getErrorCode().getLogLevel();
 
-            switch (logLevel) {
-                case INFO -> log.info(logMessage, e.getErrorCode().name(), e.getMessage(), e);
-                case WARN -> log.warn(logMessage, e.getErrorCode().name(), e.getMessage(), e);
-                case ERROR -> log.error(logMessage, e.getErrorCode().name(), e.getMessage(), e);
-            }
-        } else {
-            // ErrorCode가 없는 경우 기본적으로 ERROR 레벨로 로깅
-            log.error("CustomException: 메시지: {}", e.getMessage(), e);
+        switch (logLevel) {
+            case INFO -> log.info(logMessage, e.getErrorCode().name(), e.getMessage(), e);
+            case WARN -> log.warn(logMessage, e.getErrorCode().name(), e.getMessage(), e);
+            case ERROR -> log.error(logMessage, e.getErrorCode().name(), e.getMessage(), e);
         }
 
         return new ResponseEntity<>(response, e.getErrorCode().getStatus());

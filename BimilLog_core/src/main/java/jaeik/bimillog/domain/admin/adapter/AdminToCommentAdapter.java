@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.admin.adapter;
 
-import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.jpa.Comment;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;

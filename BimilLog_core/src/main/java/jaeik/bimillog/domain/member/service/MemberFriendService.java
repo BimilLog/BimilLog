@@ -83,7 +83,7 @@ public class MemberFriendService {
                     ? memberNames.get(index)
                     : "";
 
-            if (memberName == null || memberName.isEmpty()) {
+            if (memberName.isEmpty()) {
                 continue;
             }
 

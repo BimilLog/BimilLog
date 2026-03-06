@@ -35,7 +35,7 @@ public class RedisPostListQueryAdapter {
                 result.add(objectMapper.readValue(json, PostSimpleDetail.class));
             }
         } catch (JsonProcessingException e) {
-            log.warn("[JSON_LIST] JSON 파싱 실패 (key={}): {}", key, e.getMessage());
+            throw new IllegalStateException("[JSON_LIST] JSON 파싱 실패 (key=" + key + ")", e);
         }
         return result;
     }

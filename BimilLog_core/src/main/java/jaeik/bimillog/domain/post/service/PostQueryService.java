@@ -141,8 +141,7 @@ public class PostQueryService {
      */
     public MemberActivityPost getMemberActivityPosts(Long memberId, Pageable pageable) {
         Page<PostSimpleDetail> writePosts = postQueryRepository.selectPostSimpleDetails(
-                PostQueryType.MEMBER_POSTS.getMemberConditionFn().apply(memberId),
-                pageable,
+                PostQueryType.MEMBER_POSTS.getMemberConditionFn().apply(memberId), pageable,
                 PostQueryType.MEMBER_POSTS.getOrders());
         Page<PostSimpleDetail> likedPosts = postQueryRepository.findLikedPostsByMemberId(memberId, pageable);
         return new MemberActivityPost(writePosts, likedPosts);

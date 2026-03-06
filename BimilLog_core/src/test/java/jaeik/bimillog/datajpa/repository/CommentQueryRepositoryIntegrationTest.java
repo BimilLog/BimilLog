@@ -1,9 +1,9 @@
 package jaeik.bimillog.datajpa.repository;
 
-import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.jpa.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.domain.comment.entity.CommentLike;
-import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
+import jaeik.bimillog.domain.comment.entity.jpa.CommentLike;
+import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
 import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
@@ -141,7 +141,7 @@ class CommentQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 특정 사용자의 댓글 조회
-        Page<MemberActivityComment.SimpleCommentInfo> memberComments = commentQueryRepository.findCommentsByMemberId(testMember.getId(), pageable);
+        Page<SimpleCommentInfo> memberComments = commentQueryRepository.findCommentsByMemberId(testMember.getId(), pageable);
 
         // Then: 해당 사용자의 댓글만 조회되는지 검증
         assertThat(memberComments).isNotNull();
@@ -169,7 +169,7 @@ class CommentQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자가 추천한 댓글 조회
-        Page<MemberActivityComment.SimpleCommentInfo> likedComments = commentQueryRepository
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository
                 .findLikedCommentsByMemberId(otherMember.getId(), pageable);
 
         // Then: 추천한 댓글들이 조회되는지 검증
@@ -345,12 +345,12 @@ class CommentQueryRepositoryIntegrationTest {
         // When & Then: 여러 쿼리 연속 실행
 
         // 1. 사용자별 댓글 조회
-        Page<MemberActivityComment.SimpleCommentInfo> memberComments = commentQueryRepository.findCommentsByMemberId(testMember.getId(), PageRequest.of(0, 10));
+        Page<SimpleCommentInfo> memberComments = commentQueryRepository.findCommentsByMemberId(testMember.getId(), PageRequest.of(0, 10));
         assertThat(memberComments.getTotalElements()).isEqualTo(1);
         assertThat(memberComments.getContent().get(0).getContent()).isEqualTo("복합쿼리 댓글1");
 
         // 3. 사용자가 추천한 댓글 조회
-        Page<MemberActivityComment.SimpleCommentInfo> likedComments = commentQueryRepository.findLikedCommentsByMemberId(testMember.getId(), PageRequest.of(0, 10));
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository.findLikedCommentsByMemberId(testMember.getId(), PageRequest.of(0, 10));
         assertThat(likedComments.getTotalElements()).isEqualTo(1);
         assertThat(likedComments.getContent().get(0).getId()).isEqualTo(comment2.getId());
     }
@@ -474,7 +474,7 @@ class CommentQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: otherMember가 추천한 댓글 조회
-        Page<MemberActivityComment.SimpleCommentInfo> likedComments = commentQueryRepository
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository
                 .findLikedCommentsByMemberId(otherMember.getId(), pageable);
 
         // Then: 실제 전체 추천 수가 정확히 표시되어야 함 (본인 포함)
@@ -484,8 +484,8 @@ class CommentQueryRepositoryIntegrationTest {
         // 각 댓글의 likeCount 검증 (버그 수정 전에는 모두 1로 표시됨)
         Map<String, Integer> likeCountsByContent = likedComments.getContent().stream()
                 .collect(java.util.stream.Collectors.toMap(
-                        MemberActivityComment.SimpleCommentInfo::getContent,
-                        MemberActivityComment.SimpleCommentInfo::getLikeCount
+                        SimpleCommentInfo::getContent,
+                        SimpleCommentInfo::getLikeCount
                 ));
 
         assertThat(likeCountsByContent.get("댓글1")).isEqualTo(100); // 99 + otherMember
@@ -494,7 +494,7 @@ class CommentQueryRepositoryIntegrationTest {
 
         // userLike는 모두 true여야 함
         assertThat(likedComments.getContent())
-                .extracting(MemberActivityComment.SimpleCommentInfo::isUserLike)
+                .extracting(SimpleCommentInfo::isUserLike)
                 .containsOnly(true);
     }
 
@@ -515,7 +515,7 @@ class CommentQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: otherMember가 추천한 댓글 조회 (0개)
-        Page<MemberActivityComment.SimpleCommentInfo> likedComments = commentQueryRepository
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository
                 .findLikedCommentsByMemberId(otherMember.getId(), pageable);
 
         // Then: 빈 목록 반환
@@ -582,7 +582,7 @@ class CommentQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: otherMember가 추천한 댓글 조회
-        Page<MemberActivityComment.SimpleCommentInfo> likedComments = commentQueryRepository
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository
                 .findLikedCommentsByMemberId(otherMember.getId(), pageable);
 
         // Then: 추천 날짜 기준 최신순으로 정렬됨 (comment3 → comment2 → comment1)
@@ -590,7 +590,7 @@ class CommentQueryRepositoryIntegrationTest {
         assertThat(likedComments.getContent()).hasSize(3);
 
         List<String> commentContents = likedComments.getContent().stream()
-                .map(MemberActivityComment.SimpleCommentInfo::getContent)
+                .map(SimpleCommentInfo::getContent)
                 .toList();
 
         assertThat(commentContents.get(0)).isEqualTo("세번째 댓글"); // 가장 최근 추천

@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.comment.entity;
+package jaeik.bimillog.domain.comment.entity.jpa;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -71,7 +71,7 @@ public class Comment extends BaseEntity {
      * @since 2.0.0
      */
     public static Comment createComment(Post post, Member member, String content, Integer password) {
-        return jaeik.bimillog.domain.comment.entity.Comment.builder()
+        return Comment.builder()
                 .post(post)
                 .member(member)
                 .content(content)

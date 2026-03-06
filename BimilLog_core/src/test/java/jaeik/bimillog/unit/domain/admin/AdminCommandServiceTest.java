@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.admin.adapter.AdminToPostAdapter;
 import jaeik.bimillog.domain.admin.repository.ReportRepository;
 import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
-import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.jpa.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.repository.MemberRepository;

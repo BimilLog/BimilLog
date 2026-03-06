@@ -28,22 +28,4 @@ public class CommentInfo {
     private Integer likeCount;
     private Instant createdAt;
     private boolean userLike;
-
-    // 생성자
-    public CommentInfo(Long id, Long postId, Long memberId, String memberName, String content,
-                       Boolean deleted, Instant createdAt, Long parentId, Integer likeCount, Boolean userLike) {
-        this.id = id;
-        this.parentId = parentId;
-        this.postId = postId;
-        this.memberId = memberId;
-        this.memberName = memberName;
-        this.content = content;
-        this.popular = false; // 기본값
-        this.deleted = deleted != null ? deleted : false;
-        this.likeCount = likeCount != null ? likeCount : 0;
-        this.createdAt = createdAt;
-        this.userLike = userLike != null ? userLike : false;
-    }
 }
-
-
