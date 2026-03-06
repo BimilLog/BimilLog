@@ -1,8 +1,6 @@
 package jaeik.bimillog.domain.post.scheduler;
 
-import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.event.PostEvent.PostFeaturedEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
 import jaeik.bimillog.domain.post.repository.PostRepository;
@@ -12,26 +10,21 @@ import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.PostConstruct;
 
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * <h2>PostCacheScheduler</h2>
  * <p>게시글 캐시 동기화를 담당하는 스케줄링 서비스</p>
- * <p>주간/레전드/공지/첫 페이지/실시간 인기글 JSON LIST 캐시를 24시간마다 재구축합니다.</p>
- * <p>앱 기동 시 {@link PostConstruct}로 캐시 워밍을 1회 수행합니다.</p>
+ * <p>공지/첫 페이지/실시간 인기글 JSON LIST 캐시를 24시간마다 재구축합니다.</p>
+ * <p>앱 기동 시 {@link PostConstruct}로 전체 캐시 워밍을 1회 수행합니다.</p>
  *
  * @author Jaeik
  * @version 2.8.0
@@ -45,7 +38,7 @@ public class PostCacheScheduler {
     private final RedisPostRealTimeAdapter redisPostRealTimeAdapter;
     private final PostQueryRepository postQueryRepository;
     private final PostRepository postRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final FeaturedPostScheduler featuredPostScheduler;
 
     @PostConstruct
     public void warmUpCaches() {
@@ -53,68 +46,23 @@ public class PostCacheScheduler {
         try { refreshFirstPageCache(); } catch (Exception e) { log.warn("첫 페이지 캐시 워밍 실패: {}", e.getMessage()); }
         try { refreshNoticePosts(); } catch (Exception e) { log.warn("공지사항 캐시 워밍 실패: {}", e.getMessage()); }
         try { refreshRealtimePopularPosts(); } catch (Exception e) { log.warn("실시간 인기글 캐시 워밍 실패: {}", e.getMessage()); }
-        try { warmUpFeaturedCache("WEEKLY", PostQueryType.WEEKLY_SCHEDULER, RedisKey.POST_WEEKLY_JSON_KEY); } catch (Exception e) { log.warn("주간 인기글 캐시 워밍 실패: {}", e.getMessage()); }
-        try { warmUpFeaturedCache("LEGEND", PostQueryType.LEGEND_SCHEDULER, RedisKey.POST_LEGEND_JSON_KEY); } catch (Exception e) { log.warn("전설 게시글 캐시 워밍 실패: {}", e.getMessage()); }
+        try { featuredPostScheduler.queryAndReplaceCache("WEEKLY", PostQueryType.WEEKLY_SCHEDULER, RedisKey.POST_WEEKLY_JSON_KEY); } catch (Exception e) { log.warn("주간 인기글 캐시 워밍 실패: {}", e.getMessage()); }
+        try { featuredPostScheduler.queryAndReplaceCache("LEGEND", PostQueryType.LEGEND_SCHEDULER, RedisKey.POST_LEGEND_JSON_KEY); } catch (Exception e) { log.warn("전설 게시글 캐시 워밍 실패: {}", e.getMessage()); }
         log.info("앱 기동 시 캐시 워밍 완료");
-    }
-
-    private void warmUpFeaturedCache(String type, PostQueryType queryType, String redisKey) {
-        List<PostSimpleDetail> posts = postQueryRepository.selectPostSimpleDetails(
-                queryType.condition(), PageRequest.of(0, queryType.getLimit()), queryType.getOrders()
-        ).getContent();
-        if (posts.isEmpty()) {
-            log.info("{}에 대한 게시글이 없어 캐시 워밍을 건너뜁니다.", type);
-            return;
-        }
-        redisPostListUpdateAdapter.replaceList(redisKey, posts, RedisKey.DEFAULT_CACHE_TTL);
-        log.info("{} 캐시 워밍 완료. {}개의 게시글이 처리됨", type, posts.size());
-    }
-
-
-    @Scheduled(cron = "0 0 3 * * *")
-    @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
-    @Transactional
-    public void updateWeeklyPopularPosts() {
-        refreshCache("WEEKLY", () -> postQueryRepository.selectPostSimpleDetails(PostQueryType.WEEKLY_SCHEDULER.condition(), PageRequest.of(0, PostQueryType.WEEKLY_SCHEDULER.getLimit()), PostQueryType.WEEKLY_SCHEDULER.getOrders()).getContent(),
-                RedisKey.POST_WEEKLY_JSON_KEY,
-                postRepository::clearWeeklyFlag, postRepository::setWeeklyFlag,
-                "주간 인기 게시글로 선정되었어요!", NotificationType.POST_FEATURED_WEEKLY);
-    }
-
-    @Scheduled(cron = "0 0 3 * * *")
-    @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
-    @Transactional
-    public void updateLegendaryPosts() {
-        refreshCache("LEGEND", () -> postQueryRepository.selectPostSimpleDetails(PostQueryType.LEGEND_SCHEDULER.condition(), PageRequest.of(0, PostQueryType.LEGEND_SCHEDULER.getLimit()), PostQueryType.LEGEND_SCHEDULER.getOrders()).getContent(),
-                RedisKey.POST_LEGEND_JSON_KEY,
-                postRepository::clearLegendFlag, postRepository::setLegendFlag,
-                "명예의 전당에 등극했어요!", NotificationType.POST_FEATURED_LEGEND);
     }
 
     @Scheduled(cron = "0 0 3 * * *")
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshNoticePosts() {
-        refreshCache("NOTICE",
-                () -> postRepository.findByIsNoticeTrueOrderByIdDesc().stream()
-                        .map(PostSimpleDetail::from).toList(),
-                RedisKey.POST_NOTICE_JSON_KEY,
-                null, null, null, null);
+        List<PostSimpleDetail> posts = postRepository.findByIsNoticeTrueOrderByIdDesc().stream().map(PostSimpleDetail::from).toList();
+        replaceIfNotEmpty("NOTICE", RedisKey.POST_NOTICE_JSON_KEY, posts);
     }
 
     @Scheduled(cron = "0 0 3 * * *")
     @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
     public void refreshFirstPageCache() {
         List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
-        if (posts.size() > RedisKey.FIRST_PAGE_SIZE + 1) {
-            posts = posts.subList(0, RedisKey.FIRST_PAGE_SIZE + 1);
-        }
-        if (posts.isEmpty()) {
-            log.info("첫 페이지에 대한 게시글이 없어 캐시 업데이트를 건너뜁니다.");
-            return;
-        }
-
-        redisPostListUpdateAdapter.replaceList(RedisKey.FIRST_PAGE_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
-        log.info("첫 페이지 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
+        replaceIfNotEmpty("첫 페이지", RedisKey.FIRST_PAGE_JSON_KEY, posts);
     }
 
     @Scheduled(cron = "0 0 3 * * *")
@@ -122,17 +70,12 @@ public class PostCacheScheduler {
     public void refreshRealtimePopularPosts() {
         List<Long> topIds = redisPostRealTimeAdapter.getRangePostId();
         if (topIds.isEmpty()) {
-            log.info("실시간 인기글에 대한 게시글이 없어 캐시 업데이트를 건너뜁니다.");
+            log.info("실시간 인기글에 대한 게시글이 없어 캐시 갱신을 건너뜁니다.");
             return;
         }
-
         List<PostSimpleDetail> posts = postRepository.findAllByIds(topIds).stream()
                 .map(PostSimpleDetail::from).toList();
-
-        if (!posts.isEmpty()) {
-            redisPostListUpdateAdapter.replaceList(RedisKey.POST_REALTIME_JSON_KEY, posts, RedisKey.DEFAULT_CACHE_TTL);
-            log.info("실시간 인기글 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
-        }
+        replaceIfNotEmpty("실시간 인기글", RedisKey.POST_REALTIME_JSON_KEY, posts);
     }
 
     @Recover
@@ -140,46 +83,13 @@ public class PostCacheScheduler {
         log.error("[FEATURED_SCHEDULE] 갱신 최종 실패 (5회 재시도): {}", e.getMessage(), e);
     }
 
-    private void refreshCache(String type, Supplier<List<PostSimpleDetail>> queryFn,
-                              String redisKey,
-                              Runnable clearFlag, Consumer<List<Long>> setFlag,
-                              String eventMessage, NotificationType notificationType) {
-        List<PostSimpleDetail> posts = queryFn.get();
+    private void replaceIfNotEmpty(String type, String redisKey, List<PostSimpleDetail> posts) {
         if (posts.isEmpty()) {
-            log.info("{}에 대한 게시글이 없어 캐시 업데이트를 건너뜁니다.", type);
+            log.info("{}에 대한 게시글이 없어 캐시 갱신을 건너뜁니다.", type);
             return;
         }
-
-        if (clearFlag != null) {
-            List<Long> ids = posts.stream().map(PostSimpleDetail::getId).toList();
-            clearFlag.run();
-            setFlag.accept(ids);
-        }
-
         redisPostListUpdateAdapter.replaceList(redisKey, posts, RedisKey.DEFAULT_CACHE_TTL);
-        log.info("{} 캐시 업데이트 완료. {}개의 게시글이 처리됨", type, posts.size());
-
-        if (eventMessage != null) {
-            try {
-                publishFeaturedEventFromSimpleDetails(posts, eventMessage, notificationType);
-            } catch (Exception e) {
-                log.error("{} 이벤트 발행 실패: {}", type, e.getMessage());
-            }
-        }
+        log.info("{} 캐시 갱신 완료. {}개의 게시글이 처리됨", type, posts.size());
     }
 
-    private void publishFeaturedEventFromSimpleDetails(List<PostSimpleDetail> posts, String sseMessage, NotificationType notificationType) {
-        posts.stream().filter(post -> post.getMemberId() != null)
-                .forEach(post -> {
-                    eventPublisher.publishEvent(new PostFeaturedEvent(
-                            post.getMemberId(),
-                            sseMessage,
-                            post.getId(),
-                            notificationType,
-                            post.getTitle()
-                    ));
-                    log.info("게시글 ID {}에 대한 {} 알림 이벤트 발행: 회원 ID={}",
-                            post.getId(), notificationType, post.getMemberId());
-                });
-    }
 }

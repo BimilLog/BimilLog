@@ -97,8 +97,7 @@ public class RealtimePostCacheService {
                 return new PageImpl<>(List.of(), pageable, 0);
             }
             return postQueryRepository.selectPostSimpleDetails(
-                    PostQueryType.CAFFEINE_REALTIME.getIdsConditionFn().apply(postIds),
-                    pageable,
+                    PostQueryType.CAFFEINE_REALTIME.getIdsConditionFn().apply(postIds), pageable,
                     PostQueryType.CAFFEINE_REALTIME.getOrders());
         } catch (Exception e) {
             log.warn("[CAFFEINE_FALLBACK] Caffeine 폴백 실패, DB 직접 조회: {}", e.getMessage());

@@ -74,7 +74,7 @@ public class PostCommandService {
         post = postRepository.save(post);
 
         // 첫 페이지 캐시 이벤트 발행
-        PostSimpleDetail newPostDetail = PostSimpleDetail.ofNewPost(post, memberId, memberName);
+        PostSimpleDetail newPostDetail = PostSimpleDetail.from(post);
         eventPublisher.publishEvent(new PostWrittenEvent(newPostDetail));
         return post.getId();
     }

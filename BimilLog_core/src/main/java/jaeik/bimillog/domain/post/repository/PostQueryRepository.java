@@ -7,7 +7,8 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.post.entity.*;
+import com.querydsl.core.types.Projections;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.entity.jpa.QPostLike;
 import jaeik.bimillog.domain.post.service.PostQueryService;
@@ -46,7 +47,7 @@ public class PostQueryRepository {
      */
     private JPAQuery<PostSimpleDetail> postSimpleDetailQuery() {
         return jpaQueryFactory
-                .select(new QPostSimpleDetail(
+                .select(Projections.constructor(PostSimpleDetail.class,
                         post.id,
                         post.title,
                         post.views,
