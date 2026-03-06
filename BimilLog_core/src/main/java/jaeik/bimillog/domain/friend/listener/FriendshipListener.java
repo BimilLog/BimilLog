@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.async;
+package jaeik.bimillog.domain.friend.listener;
 
 import io.lettuce.core.RedisCommandTimeoutException;
 import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipCreatedEvent;
@@ -25,7 +25,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FriendshipRedisUpdateAsync {
+public class FriendshipListener {
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final FriendEventDlqService friendEventDlqService;
 

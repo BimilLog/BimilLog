@@ -1,6 +1,6 @@
 package jaeik.bimillog.unit.domain.comment;
 
-import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.jpa.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.testutil.TestMembers;

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.comment.repository;
 
-import jaeik.bimillog.domain.comment.entity.CommentLike;
+import jaeik.bimillog.domain.comment.entity.jpa.CommentLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

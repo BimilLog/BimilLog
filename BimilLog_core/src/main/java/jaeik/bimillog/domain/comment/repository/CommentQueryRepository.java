@@ -9,10 +9,10 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
-import jaeik.bimillog.domain.comment.entity.QComment;
-import jaeik.bimillog.domain.comment.entity.QCommentClosure;
-import jaeik.bimillog.domain.comment.entity.QCommentLike;
+import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.comment.entity.jpa.QComment;
+import jaeik.bimillog.domain.comment.entity.jpa.QCommentClosure;
+import jaeik.bimillog.domain.comment.entity.jpa.QCommentLike;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
@@ -142,14 +142,15 @@ public class CommentQueryRepository {
         JPAQuery<CommentInfo> query = jpaQueryFactory
                 .select(Projections.constructor(CommentInfo.class,
                         comment.id,
+                        parentClosure.ancestor.id.coalesce(comment.id),
                         comment.post.id,
                         comment.member.id,
                         member.memberName,
                         comment.content,
-                        comment.deleted,
-                        comment.createdAt,
-                        parentClosure.ancestor.id.coalesce(comment.id),
+                        Expressions.constant(false),
+                        comment.deleted.coalesce(false),
                         commentLike.countDistinct().coalesce(0L).intValue(),
+                        comment.createdAt,
                         userLikedExpression
                 ))
                 .from(comment)
@@ -182,19 +183,19 @@ public class CommentQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<MemberActivityComment.SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
+    public Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
         // 쿼리 빌딩 - memberId가 있으므로 항상 userLike 조인
-        List<MemberActivityComment.SimpleCommentInfo> content = jpaQueryFactory
-                .select(Projections.constructor(MemberActivityComment.SimpleCommentInfo.class,
+        List<SimpleCommentInfo> content = jpaQueryFactory
+                .select(Projections.constructor(SimpleCommentInfo.class,
                         comment.id,
                         comment.post.id,
-                        comment.member.memberName,
+                        comment.member.memberName.coalesce("익명"),
                         comment.content,
-                        comment.createdAt,
                         commentLike.countDistinct().coalesce(0L).intValue(),
-                        userCommentLike.id.isNotNull()
+                        userCommentLike.id.isNotNull(),
+                        comment.createdAt
                 ))
                 .from(comment)
                 .join(comment.member, member)
@@ -230,21 +231,21 @@ public class CommentQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<MemberActivityComment.SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
+    public Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
         QCommentLike userLike = new QCommentLike("userLike");  // 필터링용
         QCommentLike allLikes = new QCommentLike("allLikes");  // 전체 좋아요 카운트용
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");  // Projection용
 
         // 쿼리 빌딩
-        List<MemberActivityComment.SimpleCommentInfo> content = jpaQueryFactory
-                .select(Projections.constructor(MemberActivityComment.SimpleCommentInfo.class,
+        List<SimpleCommentInfo> content = jpaQueryFactory
+                .select(Projections.constructor(SimpleCommentInfo.class,
                         comment.id,
                         comment.post.id,
-                        member.memberName,
+                        member.memberName.coalesce("익명"),
                         comment.content,
-                        comment.createdAt,
                         allLikes.countDistinct().coalesce(0L).intValue(), // 전체 좋아요 카운트
-                        userCommentLike.id.isNotNull() // 사용자 추천 여부
+                        userCommentLike.id.isNotNull(), // 사용자 추천 여부
+                        comment.createdAt
                 ))
                 .from(comment)
                 // 필터링용: 현재 사용자가 추천한 댓글만 (WHERE 대신 JOIN ON 사용)

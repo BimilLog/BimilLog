@@ -1,9 +1,10 @@
 package jaeik.bimillog.domain.comment.service;
 
 import jaeik.bimillog.application.comment.dto.CommentDTO;
-import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.jpa.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
+import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -16,7 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * <h2>댓글 조회 서비스</h2>
@@ -79,8 +79,8 @@ public class CommentQueryService {
      * @since 2.0.0
      */
     public MemberActivityComment getMemberActivityComments(Long memberId, Pageable pageable) {
-        Page<MemberActivityComment.SimpleCommentInfo> writeComments = commentQueryRepository.findCommentsByMemberId(memberId, pageable);
-        Page<MemberActivityComment.SimpleCommentInfo> likedComments = commentQueryRepository.findLikedCommentsByMemberId(memberId, pageable);
+        Page<SimpleCommentInfo> writeComments = commentQueryRepository.findCommentsByMemberId(memberId, pageable);
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository.findLikedCommentsByMemberId(memberId, pageable);
         return new MemberActivityComment(writeComments, likedComments);
     }
 }

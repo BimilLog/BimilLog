@@ -1,6 +1,6 @@
 package jaeik.bimillog.datajpa.repository;
 
-import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.jpa.Comment;
 import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.member.entity.Member;

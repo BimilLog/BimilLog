@@ -1,8 +1,8 @@
 package jaeik.bimillog.unit.domain.comment;
 
-import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.entity.CommentClosure;
-import jaeik.bimillog.domain.comment.entity.CommentLike;
+import jaeik.bimillog.domain.comment.entity.jpa.Comment;
+import jaeik.bimillog.domain.comment.entity.jpa.CommentClosure;
+import jaeik.bimillog.domain.comment.entity.jpa.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.comment.repository.CommentClosureRepository;

@@ -21,6 +21,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.annotation.PostConstruct;
+
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -29,6 +31,7 @@ import java.util.function.Supplier;
  * <h2>PostCacheScheduler</h2>
  * <p>게시글 캐시 동기화를 담당하는 스케줄링 서비스</p>
  * <p>주간/레전드/공지/첫 페이지/실시간 인기글 JSON LIST 캐시를 24시간마다 재구축합니다.</p>
+ * <p>앱 기동 시 {@link PostConstruct}로 캐시 워밍을 1회 수행합니다.</p>
  *
  * @author Jaeik
  * @version 2.8.0
@@ -43,6 +46,29 @@ public class PostCacheScheduler {
     private final PostQueryRepository postQueryRepository;
     private final PostRepository postRepository;
     private final ApplicationEventPublisher eventPublisher;
+
+    @PostConstruct
+    public void warmUpCaches() {
+        log.info("앱 기동 시 캐시 워밍 시작");
+        try { refreshFirstPageCache(); } catch (Exception e) { log.warn("첫 페이지 캐시 워밍 실패: {}", e.getMessage()); }
+        try { refreshNoticePosts(); } catch (Exception e) { log.warn("공지사항 캐시 워밍 실패: {}", e.getMessage()); }
+        try { refreshRealtimePopularPosts(); } catch (Exception e) { log.warn("실시간 인기글 캐시 워밍 실패: {}", e.getMessage()); }
+        try { warmUpFeaturedCache("WEEKLY", PostQueryType.WEEKLY_SCHEDULER, RedisKey.POST_WEEKLY_JSON_KEY); } catch (Exception e) { log.warn("주간 인기글 캐시 워밍 실패: {}", e.getMessage()); }
+        try { warmUpFeaturedCache("LEGEND", PostQueryType.LEGEND_SCHEDULER, RedisKey.POST_LEGEND_JSON_KEY); } catch (Exception e) { log.warn("전설 게시글 캐시 워밍 실패: {}", e.getMessage()); }
+        log.info("앱 기동 시 캐시 워밍 완료");
+    }
+
+    private void warmUpFeaturedCache(String type, PostQueryType queryType, String redisKey) {
+        List<PostSimpleDetail> posts = postQueryRepository.selectPostSimpleDetails(
+                queryType.condition(), PageRequest.of(0, queryType.getLimit()), queryType.getOrders()
+        ).getContent();
+        if (posts.isEmpty()) {
+            log.info("{}에 대한 게시글이 없어 캐시 워밍을 건너뜁니다.", type);
+            return;
+        }
+        redisPostListUpdateAdapter.replaceList(redisKey, posts, RedisKey.DEFAULT_CACHE_TTL);
+        log.info("{} 캐시 워밍 완료. {}개의 게시글이 처리됨", type, posts.size());
+    }
 
 
     @Scheduled(cron = "0 0 3 * * *")
