@@ -15,7 +15,7 @@ import {
 import { Github, Contact, Brain, Music } from "lucide-react";
 import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 
-export const HomeFooter: React.FC = () => {
+export const HomeFooter: React.FC = React.memo(() => {
   const router = useRouter();
   const { isAuthenticated } = useAuth({ skipRefresh: true });
   const { confirm, ConfirmModalComponent } = useConfirmModal();
@@ -214,4 +214,6 @@ export const HomeFooter: React.FC = () => {
       <ConfirmModalComponent />
     </Footer>
   );
-};
+});
+
+HomeFooter.displayName = "HomeFooter";

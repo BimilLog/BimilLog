@@ -7,26 +7,21 @@ export { authCommand } from './auth/command'
 
 // User
 export { userQuery } from './user/query'
-export { userCommand } from './user/command'
 
 // MyPage
 export { mypageQuery } from './mypage/query'
 
 // Post
 export { postQuery } from './post/query'
-export { postCommand } from './post/command'
 
 // Comment
 export { commentQuery } from './comment/query'
-export { commentCommand } from './comment/command'
 
 // Paper (Rolling Paper)
 export { paperQuery } from './paper/query'
-export { paperCommand } from './paper/command'
 
 // Notification
 export { notificationQuery } from './notification/query'
-export { notificationCommand } from './notification/command'
 
 // Admin
 export { adminQuery } from './admin/query'

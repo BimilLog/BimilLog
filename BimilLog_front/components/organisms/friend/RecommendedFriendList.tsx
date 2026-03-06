@@ -16,7 +16,7 @@ interface RecommendedFriendListProps {
  * 추천 친구 목록 컴포넌트
  * 2촌, 3촌 친구를 추천 점수별로 표시
  */
-export const RecommendedFriendList: React.FC<RecommendedFriendListProps> = ({ initialData }) => {
+export const RecommendedFriendList: React.FC<RecommendedFriendListProps> = React.memo(({ initialData }) => {
   const [page, setPage] = useState(0);
   const size = 10;
 
@@ -109,4 +109,6 @@ export const RecommendedFriendList: React.FC<RecommendedFriendListProps> = ({ in
       )}
     </div>
   );
-};
+});
+
+RecommendedFriendList.displayName = "RecommendedFriendList";

@@ -4,37 +4,18 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks";
-import { useTheme } from "next-themes";
-import {
-  Settings,
-  Moon,
-  Sun,
-  Monitor,
-  LogOut,
-  Shield,
-  ScrollText,
-  UserCircle,
-  UserX,
-  Brain,
-  Music,
-  ChevronDown
-} from "lucide-react";
 import {
   Navbar,
   NavbarBrand,
   NavbarCollapse,
   NavbarLink,
   NavbarToggle,
-  Dropdown,
-  DropdownDivider,
-  DropdownHeader,
-  DropdownItem,
-  Avatar,
   Spinner as FlowbiteSpinner
 } from "flowbite-react";
-import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
+import { ThemeToggleButton } from "./ThemeToggleButton";
+import { UserDropdownMenu } from "./UserDropdownMenu";
+import { KillingTimeDropdown } from "./KillingTimeDropdown";
 
 const NotificationBell = dynamic(
   () => import("@/components/organisms/common/notification-bell").then(mod => ({ default: mod.NotificationBell })),
@@ -44,109 +25,67 @@ const NotificationBell = dynamic(
   }
 );
 
+const NAVBAR_THEME = {
+  root: {
+    base: "px-4 sm:px-6 lg:px-8 py-3 sm:py-4",
+    rounded: {
+      on: "rounded",
+      off: ""
+    },
+    bordered: {
+      on: "border",
+      off: ""
+    },
+    inner: {
+      base: "mx-auto flex flex-wrap items-center justify-between",
+      fluid: {
+        on: "",
+        off: "container"
+      }
+    }
+  },
+  brand: {
+    base: "flex items-center"
+  },
+  collapse: {
+    base: "w-full md:block md:w-auto",
+    list: "mt-4 flex flex-col p-4 md:mt-0 md:flex-row md:space-x-8 md:p-0 md:text-sm md:font-medium",
+    hidden: {
+      on: "hidden",
+      off: ""
+    }
+  },
+  link: {
+    base: "block py-2 pr-4 pl-3 md:p-0",
+    active: {
+      on: "bg-brand-primary text-white dark:text-white md:bg-transparent md:text-brand-primary",
+      off: "border-b border-gray-100 text-brand-muted hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white md:border-0 md:hover:bg-transparent md:hover:text-brand-primary"
+    },
+    disabled: {
+      on: "text-gray-400 hover:cursor-not-allowed dark:text-gray-600",
+      off: ""
+    }
+  },
+  toggle: {
+    base: "inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600",
+    icon: "w-6 h-6"
+  }
+} as const;
+
 export const AuthHeader = React.memo(() => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
-  const { confirm, ConfirmModalComponent } = useConfirmModal();
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
-
-  const getThemeIcon = () => {
-    if (!mounted) return <Monitor className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
-    if (resolvedTheme === 'dark') return <Moon className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
-    if (resolvedTheme === 'light') return <Sun className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
-    return <Monitor className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
-  };
-
-  const handlePsychologyTest = async () => {
-    const confirmed = await confirm({
-      title: "외부 사이트 이동",
-      message: "개발자가 만든 킬링타임용 심리테스트 사이트로 이동됩니다.",
-      confirmText: "이동",
-      cancelText: "취소",
-      confirmButtonVariant: "default",
-      icon: <Brain className="h-8 w-8 stroke-purple-600 fill-purple-100" />
-    });
-
-    if (confirmed) {
-      window.open('https://liketests.vercel.app/', '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  const handleBeatMaker = async () => {
-    const confirmed = await confirm({
-      title: "외부 사이트 이동",
-      message: "개발자가 만든 비트 만들기 사이트로 이동됩니다.",
-      confirmText: "이동",
-      cancelText: "취소",
-      confirmButtonVariant: "default",
-      icon: <Music className="h-8 w-8 stroke-purple-600 fill-purple-100" />
-    });
-
-    if (confirmed) {
-      window.open('https://v0-drum-machine-with-claude.vercel.app/', '_blank', 'noopener,noreferrer');
-    }
-  };
-
   return (
-    <>
-      <Navbar
+    <Navbar
       data-toast-anchor
       fluid
       className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm transition-colors duration-300"
-      theme={{
-        root: {
-          base: "px-4 sm:px-6 lg:px-8 py-3 sm:py-4",
-          rounded: {
-            on: "rounded",
-            off: ""
-          },
-          bordered: {
-            on: "border",
-            off: ""
-          },
-          inner: {
-            base: "mx-auto flex flex-wrap items-center justify-between",
-            fluid: {
-              on: "",
-              off: "container"
-            }
-          }
-        },
-        brand: {
-          base: "flex items-center"
-        },
-        collapse: {
-          base: "w-full md:block md:w-auto",
-          list: "mt-4 flex flex-col p-4 md:mt-0 md:flex-row md:space-x-8 md:p-0 md:text-sm md:font-medium",
-          hidden: {
-            on: "hidden",
-            off: ""
-          }
-        },
-        link: {
-          base: "block py-2 pr-4 pl-3 md:p-0",
-          active: {
-            on: "bg-brand-primary text-white dark:text-white md:bg-transparent md:text-brand-primary",
-            off: "border-b border-gray-100 text-brand-muted hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white md:border-0 md:hover:bg-transparent md:hover:text-brand-primary"
-          },
-          disabled: {
-            on: "text-gray-400 hover:cursor-not-allowed dark:text-gray-600",
-            off: ""
-          }
-        },
-        toggle: {
-          base: "inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600",
-          icon: "w-6 h-6"
-        }
-      }}
+      theme={NAVBAR_THEME}
     >
       <NavbarBrand as={Link} href="/">
         <Image
@@ -160,18 +99,7 @@ export const AuthHeader = React.memo(() => {
       </NavbarBrand>
 
       <div className="flex items-center gap-2 sm:gap-3 md:ml-auto md:order-2">
-        {/* 테마 토글 버튼 - 모든 사용자에게 표시 */}
-        <button
-          onClick={() => {
-            if (theme === 'light') setTheme('dark');
-            else if (theme === 'dark') setTheme('system');
-            else setTheme('light');
-          }}
-          className="min-h-[44px] min-w-[44px] touch-manipulation rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
-          title={mounted ? `테마 변경 (현재: ${theme === 'dark' ? '다크' : theme === 'light' ? '라이트' : '시스템'})` : '테마 변경'}
-        >
-          {getThemeIcon()}
-        </button>
+        <ThemeToggleButton mounted={mounted} />
 
         {isLoading ? (
           <div className="w-8 h-8 flex items-center justify-center">
@@ -180,102 +108,7 @@ export const AuthHeader = React.memo(() => {
         ) : isAuthenticated && user ? (
           <>
             <NotificationBell />
-            <Dropdown
-              arrowIcon={false}
-              inline
-              label={
-                <Avatar
-                  alt={user.memberName}
-                  img={user.thumbnailImage}
-                  rounded
-                  className="hover:ring-2 hover:ring-purple-200 transition-all cursor-pointer"
-                />
-              }
-              theme={{
-                arrowIcon: "ml-2 h-4 w-4",
-                content: "py-1 focus:outline-none",
-                floating: {
-                  animation: "transition-opacity",
-                  arrow: {
-                    base: "absolute z-10 h-2 w-2 rotate-45",
-                    style: {
-                      dark: "bg-gray-900 dark:bg-gray-700",
-                      light: "bg-white",
-                      auto: "bg-white dark:bg-gray-700"
-                    },
-                    placement: "-4px"
-                  },
-                  base: "z-50 w-fit rounded-lg divide-y divide-gray-100 shadow-lg focus:outline-none",
-                  content: "py-1 text-sm text-gray-700 dark:text-gray-200",
-                  divider: "my-1 h-px bg-gray-100 dark:bg-gray-600",
-                  header: "block py-2 px-4 text-sm text-gray-700 dark:text-gray-200",
-                  hidden: "invisible opacity-0",
-                  item: {
-                    container: "",
-                    base: "flex items-center justify-start py-2 px-4 text-sm text-gray-700 cursor-pointer w-full hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 focus:outline-none dark:hover:text-white dark:focus:bg-gray-600 dark:focus:text-white",
-                    icon: "mr-2 h-4 w-4"
-                  },
-                  style: {
-                    dark: "bg-gray-900 text-white dark:bg-gray-700",
-                    light: "border border-gray-200 bg-white text-gray-900",
-                    auto: "border border-gray-200 bg-white text-gray-900 dark:border-none dark:bg-gray-700 dark:text-white"
-                  },
-                  target: "w-fit"
-                },
-                inlineWrapper: "flex items-center"
-              }}
-            >
-              <DropdownHeader>
-                <span className="block text-sm font-semibold">{user.memberName}</span>
-                <span className="block truncate text-sm text-gray-500">
-                  @{user.socialNickname}
-                </span>
-                {user.role === "ADMIN" && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 mt-1">
-                    관리자
-                  </span>
-                )}
-              </DropdownHeader>
-              <DropdownItem as={Link} href="/rolling-paper">
-                <ScrollText className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
-                내 롤링페이퍼
-              </DropdownItem>
-              <DropdownItem as={Link} href="/mypage">
-                <UserCircle className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
-                마이페이지
-              </DropdownItem>
-              <DropdownItem as={Link} href="/settings">
-                <Settings className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
-                설정
-              </DropdownItem>
-              <DropdownItem as={Link} href="/blacklist">
-                <UserX className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
-                블랙리스트
-              </DropdownItem>
-              {user.role === "ADMIN" && (
-                <>
-                  <DropdownDivider />
-                  <DropdownItem as={Link} href="/admin" className="text-red-600">
-                    <Shield className="mr-2 h-4 w-4 stroke-purple-600 fill-purple-100" />
-                    관리자 페이지
-                  </DropdownItem>
-                </>
-              )}
-              <DropdownDivider />
-              <DropdownItem
-                onClick={() => {
-                  const currentPath = pathname || "/";
-                  const queryString = searchParams?.toString();
-                  const redirectTarget = queryString ? `${currentPath}?${queryString}` : currentPath;
-                  const encodedRedirect = encodeURIComponent(redirectTarget);
-                  router.push(`/logout?redirect=${encodedRedirect}`);
-                }}
-                className="text-red-600"
-              >
-                <LogOut className="mr-2 h-4 w-4 stroke-red-600 fill-red-100" />
-                로그아웃
-              </DropdownItem>
-            </Dropdown>
+            <UserDropdownMenu user={user} />
           </>
         ) : null}
 
@@ -284,35 +117,7 @@ export const AuthHeader = React.memo(() => {
 
       <NavbarCollapse className="basis-full md:basis-auto md:order-1 md:flex md:items-center md:gap-6 md:mx-auto">
         <div className="md:relative">
-          <Dropdown
-            arrowIcon={false}
-            inline
-            label={
-              <span className="flex items-center gap-1 text-sm lg:text-base text-brand-muted hover:text-brand-primary cursor-pointer py-2 pr-4 pl-3 md:p-0">
-                킬링타임
-                <ChevronDown className="w-4 h-4" />
-              </span>
-            }
-            theme={{
-              floating: {
-                base: "z-50 w-44 rounded-lg divide-y divide-gray-100 shadow-lg focus:outline-none",
-                content: "py-1 text-sm text-gray-700 dark:text-gray-200",
-                style: {
-                  auto: "border border-gray-200 bg-white text-gray-900 dark:border-none dark:bg-gray-700 dark:text-white"
-                },
-              },
-              inlineWrapper: "flex items-center"
-            }}
-          >
-            <DropdownItem onClick={handlePsychologyTest}>
-              <Brain className="mr-2 h-4 w-4 stroke-purple-600 fill-purple-100" />
-              심리테스트
-            </DropdownItem>
-            <DropdownItem onClick={handleBeatMaker}>
-              <Music className="mr-2 h-4 w-4 stroke-purple-600 fill-purple-100" />
-              비트만들기
-            </DropdownItem>
-          </Dropdown>
+          <KillingTimeDropdown />
         </div>
         <NavbarLink as={Link} href="/board" className="text-sm lg:text-base">
           게시판
@@ -334,10 +139,7 @@ export const AuthHeader = React.memo(() => {
           </NavbarLink>
         )}
       </NavbarCollapse>
-      </Navbar>
-
-      <ConfirmModalComponent />
-    </>
+    </Navbar>
   );
 });
 

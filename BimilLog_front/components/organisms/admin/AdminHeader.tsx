@@ -1,8 +1,9 @@
+import React from "react";
 import { Button } from "@/components";
 import { Shield } from "lucide-react";
 import Link from "next/link";
 
-export const AdminHeader: React.FC = () => {
+export const AdminHeader: React.FC = React.memo(() => {
   return (
     <div className="mb-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -28,4 +29,6 @@ export const AdminHeader: React.FC = () => {
       </div>
     </div>
   );
-};
+});
+
+AdminHeader.displayName = "AdminHeader";

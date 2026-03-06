@@ -134,7 +134,10 @@ export const useToastStore = create<ToastState>()(
 
 // Helper hook for easier toast usage (compatible with old toastStore interface)
 export const useGlobalToast = () => {
-  const { showSuccess, showError, showWarning, showInfo } = useToastStore();
+  const showSuccess = useToastStore((state) => state.showSuccess);
+  const showError = useToastStore((state) => state.showError);
+  const showWarning = useToastStore((state) => state.showWarning);
+  const showInfo = useToastStore((state) => state.showInfo);
 
   return {
     success: (message: string, title?: string) => {

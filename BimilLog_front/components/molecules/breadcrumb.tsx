@@ -1,7 +1,8 @@
 "use client";
 
 import { Breadcrumb as FlowbiteBreadcrumb, BreadcrumbItem as FlowbiteBreadcrumbItem } from "flowbite-react";
-import { HiHome } from "react-icons/hi";
+import { Home } from "lucide-react";
+import type { ComponentProps, FC } from "react";
 
 interface BreadcrumbItem {
   title: string;
@@ -42,7 +43,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
           <FlowbiteBreadcrumbItem
             key={index}
             href={item.href}
-            icon={index === 0 ? HiHome : undefined}
+            icon={index === 0 ? Home as unknown as FC<ComponentProps<"svg">> : undefined}
           >
             {item.title}
           </FlowbiteBreadcrumbItem>

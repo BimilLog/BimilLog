@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Toast, ToastToggle } from 'flowbite-react';
-import { HiCheck, HiX, HiExclamation, HiInformationCircle } from 'react-icons/hi';
+import { Check, X, AlertTriangle, Info } from 'lucide-react';
 import { useToastStore } from '@/stores/toast.store';
 import type { ToastType } from '@/components/molecules/feedback/toast';
 
@@ -65,14 +65,14 @@ export function GlobalToast() {
   const getIcon = (type: ToastType) => {
     switch (type) {
       case 'success':
-        return <HiCheck className="h-5 w-5" />;
+        return <Check className="h-5 w-5" />;
       case 'error':
-        return <HiX className="h-5 w-5" />;
+        return <X className="h-5 w-5" />;
       case 'warning':
-        return <HiExclamation className="h-5 w-5" />;
+        return <AlertTriangle className="h-5 w-5" />;
       case 'info':
       default:
-        return <HiInformationCircle className="h-5 w-5" />;
+        return <Info className="h-5 w-5" />;
     }
   };
 

@@ -12,7 +12,7 @@ interface SearchSectionProps {
   children?: React.ReactNode;
 }
 
-export const SearchSection: React.FC<SearchSectionProps> = ({
+export const SearchSection: React.FC<SearchSectionProps> = React.memo(({
   searchNickname,
   setSearchNickname,
   isSearching,
@@ -76,4 +76,6 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
       </div>
     </Card>
   );
-};
+});
+
+SearchSection.displayName = "SearchSection";

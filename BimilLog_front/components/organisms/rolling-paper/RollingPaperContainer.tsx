@@ -15,7 +15,7 @@ interface RollingPaperContainerProps {
   initialPaperData?: VisitPaperResult;
 }
 
-export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
+export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = React.memo(({
   nickname,
   initialPaperData,
 }) => {
@@ -188,4 +188,6 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   };
 
   return <RollingPaperView {...viewProps} />;
-};
+});
+
+RollingPaperContainer.displayName = "RollingPaperContainer";

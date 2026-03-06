@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Modal, ModalHeader, ModalBody } from "flowbite-react";
 import {
   Card,
@@ -44,7 +44,7 @@ interface ReportDetailModalProps {
   onAction: () => void;
 }
 
-export function ReportDetailModal({
+export const ReportDetailModal = memo(function ReportDetailModal({
   report,
   isOpen,
   onClose,
@@ -350,4 +350,6 @@ export function ReportDetailModal({
       <ConfirmModalComponent />
     </Modal>
   );
-}
+});
+
+ReportDetailModal.displayName = "ReportDetailModal";

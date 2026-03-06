@@ -14,7 +14,7 @@ interface UseAuthOptions {
 
 export function useAuth(options: UseAuthOptions = {}) {
   const authStore = useAuthStore();
-  const { showInfo } = useToastStore();
+  const showInfo = useToastStore((state) => state.showInfo);
   const { skipRefresh = false } = options;
 
   // 초기 로드 시 사용자 정보 새로고침 (skipRefresh가 false일 때만)

@@ -1,85 +1,59 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Button, Input, SafeHTML, Spinner, TimeBadge } from "@/components";
-import { LazyEditor, LazyReportModal } from "@/lib/utils/lazy-components";
-import { Button as FlowbiteButton } from "flowbite-react";
-import { ThumbsUp, Reply, MoreHorizontal, User, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
+import { Button, SafeHTML, TimeBadge } from "@/components";
+import { LazyReportModal } from "@/lib/utils/lazy-components";
+import { User, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Comment } from "@/lib/api";
-import { useAuth } from "@/hooks";
 import { submitReportAction } from "@/lib/actions/user";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/molecules/dropdown-menu";
-import Link from "next/link";
-import { useToast } from "@/hooks";
-import { Popover } from "flowbite-react";
+import { useAuthStore } from "@/stores/auth.store";
+import { useToastStore } from "@/stores/toast.store";
 import { UserActionPopover } from "@/components/molecules/UserActionPopover";
+import { CommentEditForm } from "./CommentEditForm";
+import { CommentReplyForm } from "./CommentReplyForm";
+import { CommentActions } from "./CommentActions";
+import type { CommentHandlers, CommentEditState, CommentReplyState } from "@/hooks/features/post/useCommentInteraction";
 
 interface CommentItemProps {
   comment: Comment & { replies?: Comment[] };
   depth: number;
-  parentUserName?: string; // 부모 댓글 작성자명 추가
-  editingComment: Comment | null;
-  editContent: string;
-  editPassword: string;
-  replyingTo: Comment | null;
-  replyContent: string;
-  replyPassword: string;
+  parentUserName?: string;
   isAuthenticated: boolean;
   isSubmittingReply: boolean;
   isUpdatingComment: boolean;
   postId: number;
-  onEditComment: (comment: Comment) => void;
-  onUpdateComment: () => void;
-  onCancelEdit: () => void;
-  onDeleteComment: (comment: Comment) => void;
-  onReplyTo: (comment: Comment) => void;
-  onReplySubmit: () => void;
-  onCancelReply: () => void;
-  setEditContent: (content: string) => void;
-  setEditPassword: (password: string) => void;
-  setReplyContent: (content: string) => void;
-  setReplyPassword: (password: string) => void;
-  isMyComment: (comment: Comment) => boolean;
-  onLikeComment: (comment: Comment) => void;
-  canModifyComment: (comment: Comment) => boolean;
+  handlers: CommentHandlers;
+  editState: CommentEditState;
+  replyState: CommentReplyState;
 }
 
 export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   comment,
   depth,
   parentUserName,
-  editingComment,
-  editContent,
-  editPassword,
-  replyingTo,
-  replyContent,
-  replyPassword,
   isAuthenticated,
   isSubmittingReply,
   isUpdatingComment,
   postId,
-  onEditComment,
-  onUpdateComment,
-  onCancelEdit,
-  onDeleteComment,
-  onReplyTo,
-  onReplySubmit,
-  onCancelReply,
-  setEditContent,
-  setEditPassword,
-  setReplyContent,
-  setReplyPassword,
-  isMyComment,
-  onLikeComment,
-  canModifyComment,
+  handlers,
+  editState,
+  replyState,
 }) => {
-  const { user } = useAuth();
-  const { showFeedback, showError } = useToast();
+  // 그룹화된 객체에서 구조 분해
+  const {
+    onEditComment, onUpdateComment, onCancelEdit, onDeleteComment,
+    onReplyTo, onReplySubmit, onCancelReply, onLikeComment,
+    isMyComment, canModifyComment,
+  } = handlers;
+  const {
+    editingComment, editContent, editPassword,
+    setEditContent, setEditPassword,
+  } = editState;
+  const {
+    replyingTo, replyContent, replyPassword,
+    setReplyContent, setReplyPassword,
+  } = replyState;
+  // 신고 시에만 사용하므로 구독 대신 이벤트 시점에 직접 접근 (memo 우회 방지)
 
   // 댓글 계층구조 처리: 최대 3단계까지만 지원하여 모바일에서도 읽기 편하도록 제한
   const maxDepth = 3; // 최대 들여쓰기 레벨
@@ -119,8 +93,9 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   // 댓글 신고 처리 함수: 비로그인 사용자도 신고 가능
   // v2 API를 사용하여 신고 타입과 대상 ID, 사유를 전송
   const handleReport = async (reason: string) => {
+    const user = useAuthStore.getState().user;
+    const { showFeedback, showError } = useToastStore.getState();
     try {
-      // v2 신고 API 사용 - 익명 사용자도 신고 가능
       const response = await submitReportAction({
         reportType: "COMMENT",
         targetId: comment.id,
@@ -165,69 +140,17 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
       <div className={`p-3 sm:p-4 ${depth > 0 ? "bg-gray-100 dark:bg-gray-800/50" : "bg-gray-50 dark:bg-gray-800"} rounded-lg mb-3 comment-content`}>
         {/* 댓글 수정 모드: 현재 수정 중인 댓글과 일치할 때 수정 폼 표시 */}
         {editingComment?.id === comment.id ? (
-          <div className="p-3 sm:p-4 bg-gray-100 dark:bg-gray-800/70 rounded-lg space-y-3">
-            <LazyEditor
-              value={editContent}
-              onChange={setEditContent}
-            />
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-brand-secondary">HTML 형식 지원</p>
-              {editContent && (
-                <p
-                  className={`text-xs ${
-                    editPlainTextLength >= 255
-                      ? "text-red-600 font-semibold"
-                      : editPlainTextLength >= 230
-                      ? "text-orange-500 font-medium"
-                      : "text-brand-muted"
-                  }`}
-                >
-                  {editPlainTextLength}/255자
-                </p>
-              )}
-            </div>
-            {editPlainTextLength > 255 && (
-              <p className="text-red-500 text-sm">
-                댓글은 최대 255자까지 입력 가능합니다
-              </p>
-            )}
-            {/* 익명 댓글 수정 시에만 비밀번호 입력 필요 */}
-            {(comment.memberName === "익명" || comment.memberName === null) && (
-              <Input
-                type="password"
-                placeholder="비밀번호 (1000~9999)"
-                value={editPassword}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditPassword(e.target.value)}
-                disabled={isUpdatingComment}
-              />
-            )}
-            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
-              <Button
-                onClick={onUpdateComment}
-                size="sm"
-                className="w-full sm:w-auto"
-                disabled={isUpdatingComment || editPlainTextLength > 255}
-              >
-                {isUpdatingComment ? (
-                  <>
-                    <Spinner size="sm" className="mr-2" />
-                    수정 중...
-                  </>
-                ) : (
-                  "수정완료"
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={onCancelEdit}
-                size="sm"
-                className="w-full sm:w-auto"
-                disabled={isUpdatingComment}
-              >
-                취소
-              </Button>
-            </div>
-          </div>
+          <CommentEditForm
+            editContent={editContent}
+            editPassword={editPassword}
+            isAnonymous={comment.memberName === "익명" || comment.memberName === null}
+            isUpdatingComment={isUpdatingComment}
+            editPlainTextLength={editPlainTextLength}
+            onUpdateComment={onUpdateComment}
+            onCancelEdit={onCancelEdit}
+            setEditContent={setEditContent}
+            setEditPassword={setEditPassword}
+          />
         ) : (
           <div>
             {/* [프로필] 닉네임 · 날짜 (헤더: 액션 버튼 제거) */}
@@ -272,133 +195,33 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               className="prose max-w-none prose-sm text-sm sm:text-base leading-relaxed"
             />
 
-            {/* 추천 2 답글 신고 (액션 버튼을 댓글 내용 아래로 이동) */}
-            <div className="mt-3 flex items-center gap-2 flex-wrap">
-              {/* 추천 버튼: 비로그인 사용자에게는 비활성화 + 툴팁 표시 */}
-              <FlowbiteButton
-                size="xs"
-                color={comment.userLike ? "blue" : "light"}
-                onClick={() => onLikeComment(comment)}
-                disabled={!isAuthenticated}
-                title={!isAuthenticated ? "로그인 후 추천할 수 있습니다" : undefined}
-                className={!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}
-              >
-                <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
-                추천 {comment.likeCount}
-              </FlowbiteButton>
-
-              {/* 답글 버튼: 모바일에서도 항상 표시하여 접근성 향상 */}
-              <FlowbiteButton
-                size="xs"
-                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
-                onClick={() => onReplyTo(comment)}
-              >
-                <Reply className="w-4 h-4 mr-2" />
-                답글
-              </FlowbiteButton>
-
-              {/* 신고 버튼: 다른 사람의 댓글인 경우만 표시 */}
-              {!isMyComment(comment) && !comment.deleted && (
-                <FlowbiteButton
-                  size="xs"
-                  color="red"
-                  onClick={() => setIsReportModalOpen(true)}
-                >
-                  신고
-                </FlowbiteButton>
-              )}
-
-              {/* 수정/삭제 버튼을 위한 드롭다운 */}
-              {canModifyComment(comment) && !comment.deleted && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs px-2 py-1 h-7 text-brand-secondary hover:text-brand-primary"
-                    >
-                      <MoreHorizontal className="w-3 h-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-24">
-                    <DropdownMenuItem
-                      onClick={() => onEditComment(comment)}
-                      className="cursor-pointer"
-                    >
-                      수정
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onDeleteComment(comment)}
-                      className="text-red-600 hover:text-red-700 cursor-pointer"
-                    >
-                      삭제
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-            {/* (액션 버튼 이동 끝) */}
-
+            {/* 추천 답글 신고 (액션 버튼을 댓글 내용 아래로 이동) */}
+            <CommentActions
+              comment={comment}
+              isAuthenticated={isAuthenticated}
+              canModify={canModifyComment(comment)}
+              isMyComment={isMyComment(comment)}
+              onLikeComment={onLikeComment}
+              onReplyTo={onReplyTo}
+              onEditComment={onEditComment}
+              onDeleteComment={onDeleteComment}
+              onReportClick={() => setIsReportModalOpen(true)}
+            />
 
             {/* 답글 작성 폼: 해당 댓글에 답글을 작성 중일 때만 표시 */}
             {replyingTo?.id === comment.id && (
-              <div className="mt-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700 space-y-3">
-                <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-400">
-                  {comment.memberName}님에게 답글 작성
-                </h4>
-                {/* 비로그인 사용자는 비밀번호 입력 필요 */}
-                {!isAuthenticated && (
-                  <Input
-                    type="password"
-                    placeholder="비밀번호 (1000~9999)"
-                    value={replyPassword}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReplyPassword(e.target.value)}
-                  />
-                )}
-                <LazyEditor
-                  value={replyContent}
-                  onChange={setReplyContent}
-                />
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-brand-secondary">HTML 형식 지원</p>
-                  {replyContent && (
-                    <p
-                      className={`text-xs ${
-                        replyPlainTextLength >= 255
-                          ? "text-red-600 font-semibold"
-                          : replyPlainTextLength >= 230
-                          ? "text-orange-500 font-medium"
-                          : "text-brand-muted"
-                      }`}
-                    >
-                      {replyPlainTextLength}/255자
-                    </p>
-                  )}
-                </div>
-                {replyPlainTextLength > 255 && (
-                  <p className="text-red-500 text-sm">
-                    댓글은 최대 255자까지 입력 가능합니다
-                  </p>
-                )}
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={onReplySubmit}
-                    disabled={isSubmittingReply || replyPlainTextLength > 255}
-                    className="flex-1 sm:flex-none"
-                  >
-                    작성
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={onCancelReply}
-                    className="flex-1 sm:flex-none"
-                  >
-                    취소
-                  </Button>
-                </div>
-              </div>
+              <CommentReplyForm
+                targetUserName={comment.memberName || "익명"}
+                replyContent={replyContent}
+                replyPassword={replyPassword}
+                isAuthenticated={isAuthenticated}
+                isSubmittingReply={isSubmittingReply}
+                replyPlainTextLength={replyPlainTextLength}
+                onReplySubmit={onReplySubmit}
+                onCancelReply={onCancelReply}
+                setReplyContent={setReplyContent}
+                setReplyPassword={setReplyPassword}
+              />
             )}
           </div>
         )}
@@ -414,30 +237,13 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               comment={reply}
               depth={depth + 1}
               parentUserName={comment.memberName || "익명"}
-              editingComment={editingComment}
-              editContent={editContent}
-              editPassword={editPassword}
-              replyingTo={replyingTo}
-              replyContent={replyContent}
-              replyPassword={replyPassword}
               isAuthenticated={isAuthenticated}
               isSubmittingReply={isSubmittingReply}
               isUpdatingComment={isUpdatingComment}
               postId={postId}
-              onEditComment={onEditComment}
-              onUpdateComment={onUpdateComment}
-              onCancelEdit={onCancelEdit}
-              onDeleteComment={onDeleteComment}
-              onReplyTo={onReplyTo}
-              onReplySubmit={onReplySubmit}
-              onCancelReply={onCancelReply}
-              setEditContent={setEditContent}
-              setEditPassword={setEditPassword}
-              setReplyContent={setReplyContent}
-              setReplyPassword={setReplyPassword}
-              isMyComment={isMyComment}
-              onLikeComment={onLikeComment}
-              canModifyComment={canModifyComment}
+              handlers={handlers}
+              editState={editState}
+              replyState={replyState}
             />
           ))}
 
@@ -470,30 +276,13 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               comment={reply}
               depth={depth + 1}
               parentUserName={comment.memberName || "익명"}
-              editingComment={editingComment}
-              editContent={editContent}
-              editPassword={editPassword}
-              replyingTo={replyingTo}
-              replyContent={replyContent}
-              replyPassword={replyPassword}
               isAuthenticated={isAuthenticated}
               isSubmittingReply={isSubmittingReply}
               isUpdatingComment={isUpdatingComment}
               postId={postId}
-              onEditComment={onEditComment}
-              onUpdateComment={onUpdateComment}
-              onCancelEdit={onCancelEdit}
-              onDeleteComment={onDeleteComment}
-              onReplyTo={onReplyTo}
-              onReplySubmit={onReplySubmit}
-              onCancelReply={onCancelReply}
-              setEditContent={setEditContent}
-              setEditPassword={setEditPassword}
-              setReplyContent={setReplyContent}
-              setReplyPassword={setReplyPassword}
-              isMyComment={isMyComment}
-              onLikeComment={onLikeComment}
-              canModifyComment={canModifyComment}
+              handlers={handlers}
+              editState={editState}
+              replyState={replyState}
             />
           ))}
         </div>
@@ -510,7 +299,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   );
 }, (prevProps, nextProps) => {
   // React.memo 최적화: 댓글 컴포넌트의 불필요한 리렌더링 방지
-  // 주요 상태 변화만 감지하여 성능 최적화
+  // 그룹화된 객체는 useMemo로 참조 안정성이 보장되므로 얕은 비교로 충분
 
   // Comment 객체의 핵심 필드들만 비교
   if (prevProps.comment.id !== nextProps.comment.id) return false;
@@ -519,19 +308,16 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   if (prevProps.comment.userLike !== nextProps.comment.userLike) return false;
   if (prevProps.comment.deleted !== nextProps.comment.deleted) return false;
 
-  // 댓글 수정/답글 상태 비교
-  if (prevProps.editingComment?.id !== nextProps.editingComment?.id) return false;
-  if (prevProps.replyingTo?.id !== nextProps.replyingTo?.id) return false;
-
   // 기본 props 비교
   if (prevProps.depth !== nextProps.depth) return false;
-  if (prevProps.editContent !== nextProps.editContent) return false;
-  if (prevProps.editPassword !== nextProps.editPassword) return false;
-  if (prevProps.replyContent !== nextProps.replyContent) return false;
-  if (prevProps.replyPassword !== nextProps.replyPassword) return false;
   if (prevProps.isAuthenticated !== nextProps.isAuthenticated) return false;
   if (prevProps.isSubmittingReply !== nextProps.isSubmittingReply) return false;
   if (prevProps.isUpdatingComment !== nextProps.isUpdatingComment) return false;
+
+  // 그룹화된 객체 참조 비교 (useMemo로 안정성 보장)
+  if (prevProps.handlers !== nextProps.handlers) return false;
+  if (prevProps.editState !== nextProps.editState) return false;
+  if (prevProps.replyState !== nextProps.replyState) return false;
 
   // 답글 개수 비교
   if ((prevProps.comment.replies?.length || 0) !== (nextProps.comment.replies?.length || 0)) return false;

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { MessageSquare } from "lucide-react";
 import { Comment } from "@/lib/api";
@@ -10,7 +11,7 @@ interface PopularCommentsProps {
   onCommentClick: (commentId: number) => void;
 }
 
-export const PopularComments: React.FC<PopularCommentsProps> = ({
+export const PopularComments: React.FC<PopularCommentsProps> = memo(({
   comments,
   onLikeComment,
   onReplyTo,
@@ -41,4 +42,6 @@ export const PopularComments: React.FC<PopularCommentsProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+PopularComments.displayName = "PopularComments";

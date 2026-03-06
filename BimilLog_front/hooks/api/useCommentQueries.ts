@@ -82,12 +82,13 @@ export const useCommentsQuery = (postId: number) => {
       }
     });
 
-    // 중복 제거 (같은 ID가 여러 페이지에 나타날 수 있음)
-    const uniqueComments = allComments.reduce((acc, comment) => {
-      const exists = acc.find((c) => c.id === comment.id);
-      if (!exists) acc.push(comment);
-      return acc;
-    }, [] as Comment[]);
+    // 중복 제거 (같은 ID가 여러 페이지에 나타날 수 있음) - Set 기반 O(n)
+    const seenIds = new Set<number>();
+    const uniqueComments = allComments.filter((comment) => {
+      if (seenIds.has(comment.id)) return false;
+      seenIds.add(comment.id);
+      return true;
+    });
 
     // 트리 구조로 변환
     return buildCommentTree(uniqueComments);

@@ -44,7 +44,7 @@ const isValidTab = (tab: string | null): tab is TabId => {
  * - 알림에서 /friends?tab=received로 이동 가능
  * - 북마크/공유 가능한 URL 구조
  */
-export const FriendTabs: React.FC<FriendTabsProps> = ({ initialData, initialTab }) => {
+export const FriendTabs: React.FC<FriendTabsProps> = React.memo(({ initialData, initialTab }) => {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab') as string | null;
 
@@ -102,4 +102,6 @@ export const FriendTabs: React.FC<FriendTabsProps> = ({ initialData, initialTab 
       </div>
     </div>
   );
-};
+});
+
+FriendTabs.displayName = "FriendTabs";

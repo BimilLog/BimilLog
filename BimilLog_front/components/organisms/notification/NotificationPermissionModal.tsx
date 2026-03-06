@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "flowbite-react";
 import { Bell, BellOff, AlertCircle } from "lucide-react";
 import { fcmManager } from "@/lib/auth/fcm";
@@ -16,7 +16,7 @@ interface NotificationPermissionModalProps {
 
 const NOTIFICATION_SKIP_KEY = "notification_permission_skipped";
 
-export function NotificationPermissionModal({
+export const NotificationPermissionModal = memo(function NotificationPermissionModal({
   show,
   onClose,
   onSuccess,
@@ -24,7 +24,8 @@ export function NotificationPermissionModal({
 }: NotificationPermissionModalProps) {
   const [isRequesting, setIsRequesting] = useState(false);
   const [showDeniedHelp, setShowDeniedHelp] = useState(false);
-  const { showInfo, showError } = useToastStore();
+  const showInfo = useToastStore((state) => state.showInfo);
+  const showError = useToastStore((state) => state.showError);
 
   const handleEnableNotifications = async () => {
     if (isRequesting) {
@@ -149,4 +150,6 @@ export function NotificationPermissionModal({
       </ModalFooter>
     </Modal>
   );
-}
+});
+
+NotificationPermissionModal.displayName = "NotificationPermissionModal";

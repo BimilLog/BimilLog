@@ -1,6 +1,6 @@
 "use client";
+import { useCallback } from "react";
 
-import { useState } from "react";
 import { Card } from "@/components";
 import { AuthHeader } from "@/components/organisms/common";
 import {
@@ -22,9 +22,9 @@ import { PostDetailSkeleton } from "./PostDetailSkeleton";
 import { DeleteConfirmModal } from "@/components/molecules/modals/DeleteConfirmModal";
 
 // 분리된 훅들 import
-import { usePostDetail } from "@/hooks/features";
+import { usePostDetail, useCommentInteraction } from "@/hooks/features";
 import { useReadingProgress } from "@/hooks/features/useReadingProgress";
-import { useAuth, useToast } from "@/hooks";
+import { useAuth } from "@/hooks";
 
 // Server Action hooks (브라우저에서 백엔드 직접 호출 방지)
 import { useLikePostAction, useDeletePostAction } from "@/hooks/actions/usePostActions";
@@ -43,7 +43,6 @@ interface Props {
 export default function PostDetailClient({ initialPost, postId }: Props) {
   // 인증 상태 가져오기
   const { isAuthenticated } = useAuth();
-  const { showToast } = useToast();
 
   // 읽기 진행률 트래킹
   const { progress } = useReadingProgress({
@@ -83,275 +82,36 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   const { deleteComment, isPending: isDeletingComment } = useDeleteCommentAction();
   const { likeComment } = useLikeCommentAction(Number(postId));
 
-  // 댓글 편집 및 답글 상태 관리
-  const [editingComment, setEditingComment] = useState<Comment | null>(null);
-  const [editContent, setEditContent] = useState("");
-  const [editPassword, setEditPassword] = useState("");
-  const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
-  const [replyContent, setReplyContent] = useState("");
-  const [replyPassword, setReplyPassword] = useState("");
-
-  // 삭제 확인 모달 상태 관리
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showCommentDeleteModal, setShowCommentDeleteModal] = useState(false);
-  const [targetDeleteComment, setTargetDeleteComment] = useState<Comment | null>(null);
-
-  // 비밀번호 모달 에러 상태
-  const [passwordError, setPasswordError] = useState("");
-
-  // 댓글 작성 핸들러
-  const handleCommentSubmitForSection = (content: string, password: string) => {
-    createComment({
-      postId: Number(postId),
-      content,
-      password: password ? Number(password) : undefined,
-    });
-  };
-
-  // 댓글 수정 상태 관리 - 수정 모드 진입 시 기존 내용을 대입
-  const handleEditComment = (comment: Comment) => {
-    setEditingComment(comment);
-    setEditContent(comment.content); // 기존 내용을 편집 필드에 설정
-    setEditPassword(""); // 비밀번호는 매번 새로 입력
-  };
-
-  // 댓글 수정 완료 후 상태 초기화
-  const handleUpdateComment = async () => {
-    if (!editingComment) return;
-
-    // 내용 검증
-    const trimmedContent = editContent.trim();
-    if (!trimmedContent) {
-      showToast({ type: 'error', message: '댓글 내용을 입력해주세요.' });
-      return;
-    }
-    if (trimmedContent.length > 255) {
-      showToast({ type: 'error', message: '댓글은 최대 255자까지 입력 가능합니다.' });
-      return;
-    }
-
-    // 익명 댓글 수정 시 비밀번호 검증
-    const isAnonymous = editingComment.memberName === "익명" || editingComment.memberName === null;
-    if (isAnonymous) {
-      if (!editPassword) {
-        showToast({ type: 'error', message: '비밀번호를 입력해주세요.' });
-        return;
-      }
-      const passwordNum = Number(editPassword);
-      if (isNaN(passwordNum) || passwordNum < 1000 || passwordNum > 9999) {
-        showToast({ type: 'error', message: '비밀번호는 4자리 숫자여야 합니다.' });
-        return;
-      }
-    }
-
-    updateComment(
-      {
-        commentId: editingComment.id,
-        postId: Number(postId),
-        content: trimmedContent,
-        password: editPassword ? Number(editPassword) : undefined,
-      },
-      {
-        onSuccess: () => {
-          setEditingComment(null);
-          setEditContent("");
-          setEditPassword("");
-        },
-      }
-    );
-  };
-
-  const handleCancelEdit = () => {
-    // 내용이 변경되었으면 확인
-    if (editingComment && editContent !== editingComment.content) {
-      const confirmed = window.confirm("수정 중인 내용이 있습니다. 취소하시겠습니까?");
-      if (!confirmed) {
-        return;
-      }
-    }
-    setEditingComment(null);
-    setEditContent("");
-    setEditPassword("");
-  };
-
-  // 댓글 답글 상태 관리 - 특정 댓글에 답글 작성 모드
-  const handleReplyTo = (comment: Comment) => {
-    setReplyingTo(comment); // 답글 대상 설정
-    setReplyContent("");   // 답글 내용 초기화
-    setReplyPassword(""); // 답글 비밀번호 초기화
-  };
-
-  const handleCancelReply = () => {
-    setReplyingTo(null);
-    setReplyContent("");
-    setReplyPassword("");
-  };
-
-  // 답글 작성 완료 - parentId로 replyingTo.id 전달
-  const handleSubmitReply = async () => {
-    if (!replyingTo) return;
-
-    createComment(
-      {
-        postId: Number(postId),
-        content: replyContent,
-        parentId: replyingTo.id,
-        password: replyPassword ? Number(replyPassword) : undefined,
-      },
-      {
-        onSuccess: () => {
-          setReplyingTo(null);
-          setReplyContent("");
-          setReplyPassword("");
-        },
-      }
-    );
-  };
-
-  const handleUpdateEditContent = (content: string) => {
-    setEditContent(content);
-  };
-
-  const handleUpdateEditPassword = (password: string) => {
-    setEditPassword(password);
-  };
-
-  const handleUpdateReplyContent = (content: string) => {
-    setReplyContent(content);
-  };
-
-  const handleUpdateReplyPassword = (password: string) => {
-    setReplyPassword(password);
-  };
-
-  // 게시글 좋아요 핸들러
-  const handleLikePost = () => {
-    if (!isAuthenticated) {
-      showToast({ type: "warning", message: "로그인이 필요합니다." });
-      return;
-    }
-    likePost(Number(postId));
-  };
-
-  // 게시글 삭제 클릭 핸들러
-  const handleDeletePostClick = () => {
-    if (!canModify()) {
-      showToast({ type: "error", message: "삭제 권한이 없습니다." });
-      return;
-    }
-
-    if (post?.memberName === "익명" || post?.memberName === null) {
-      // 익명 게시글의 경우 비밀번호 모달
-      openPasswordModal("게시글 삭제", "post");
-    } else {
-      // 로그인 사용자의 경우 삭제 확인 모달
-      setShowDeleteModal(true);
-    }
-  };
-
-  // 삭제 확인 후 실제 삭제 실행
-  const handleConfirmDelete = async () => {
-    deletePost(
-      { postId: Number(postId) },
-      {
-        onSuccess: () => {
-          setShowDeleteModal(false);
-        },
-        onError: () => {
-          setShowDeleteModal(false);
-        },
-      }
-    );
-  };
-
-  // 댓글 삭제 핸들러
-  const handleDeleteComment = (comment: Comment) => {
-    if (!canModifyComment(comment)) {
-      showToast({ type: "error", message: "삭제 권한이 없습니다." });
-      return;
-    }
-
-    if (comment.memberName === "익명" || comment.memberName === null) {
-      // 익명 댓글의 경우 비밀번호 모달
-      openPasswordModal("댓글 삭제", "comment", comment);
-    } else {
-      // 로그인 사용자 댓글: 확인 모달 표시
-      setTargetDeleteComment(comment);
-      setShowCommentDeleteModal(true);
-    }
-  };
-
-  // 댓글 삭제 확인 후 실제 삭제 실행
-  const handleConfirmCommentDelete = async () => {
-    if (!targetDeleteComment) return;
-
-    deleteComment(
-      {
-        commentId: targetDeleteComment.id,
-        postId: Number(postId),
-      },
-      {
-        onSuccess: () => {
-          setShowCommentDeleteModal(false);
-          setTargetDeleteComment(null);
-        },
-        onError: () => {
-          setShowCommentDeleteModal(false);
-          setTargetDeleteComment(null);
-        },
-      }
-    );
-  };
-
-  // 댓글 좋아요 핸들러
-  const handleLikeComment = (comment: Comment) => {
-    if (!isAuthenticated) {
-      showToast({ type: "warning", message: "로그인이 필요합니다." });
-      return;
-    }
-    likeComment(comment.id);
-  };
-
-  // 비밀번호 모달 제출 - 게시글/댓글 삭제 모드에 따라 분기 처리
-  const handlePasswordSubmit = async () => {
-    // 에러 초기화
-    setPasswordError("");
-
-    if (deleteMode === "post") {
-      deletePost(
-        {
-          postId: Number(postId),
-          password: modalPassword ? Number(modalPassword) : undefined,
-        },
-        {
-          onSuccess: () => {
-            resetPasswordModal();
-            setPasswordError("");
-          },
-          onError: (error: string) => {
-            setPasswordError(error || "비밀번호가 올바르지 않습니다.");
-          },
-        }
-      );
-    } else if (deleteMode === "comment" && targetComment) {
-      deleteComment(
-        {
-          commentId: targetComment.id,
-          postId: Number(postId),
-          password: modalPassword ? Number(modalPassword) : undefined,
-        },
-        {
-          onSuccess: () => {
-            resetPasswordModal();
-            setPasswordError("");
-          },
-          onError: (error: string) => {
-            setPasswordError(error || "비밀번호가 올바르지 않습니다.");
-          },
-        }
-      );
-    }
-  };
+  // 댓글 편집/답글/삭제 상태 및 핸들러
+  const {
+    commentHandlers, editState, replyState,
+    showDeleteModal, showCommentDeleteModal, targetDeleteComment,
+    passwordError,
+    handleCommentSubmitForSection,
+    handleLikePost, handleDeletePostClick, handleConfirmDelete,
+    handleConfirmCommentDelete,
+    handlePasswordSubmit,
+    setShowDeleteModal, setShowCommentDeleteModal,
+    setTargetDeleteComment, setPasswordError,
+  } = useCommentInteraction({
+    postId,
+    post,
+    isAuthenticated,
+    canModify,
+    isMyComment,
+    canModifyComment,
+    openPasswordModal,
+    resetPasswordModal,
+    modalPassword,
+    deleteMode,
+    targetComment,
+    createComment,
+    updateComment,
+    deleteComment,
+    deletePost,
+    likePost,
+    likeComment,
+  });
 
   // 로딩 상태
   if (loading) {
@@ -366,6 +126,32 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
       </div>
     );
   }
+
+
+  // 인기 댓글 → 원본 댓글 스크롤 이동 핸들러
+  const handleCommentClick = useCallback((commentId: number) => {
+    const element = document.getElementById(`comment-${commentId}`);
+    if (element) {
+      // 부모 댓글 자동 펼치기 (대댓글인 경우)
+      const clickedComment = comments.find(c => c.id === commentId);
+      if (clickedComment?.parentId) {
+        const toggleButton = document.querySelector(`#comment-${clickedComment.parentId} button[class*="답글"]`);
+        if (toggleButton && toggleButton.textContent?.includes('더보기')) {
+          (toggleButton as HTMLButtonElement).click();
+        }
+      }
+
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      const commentContent = element.querySelector('.comment-content');
+      if (commentContent) {
+        commentContent.classList.add('bg-yellow-100', 'ring-2', 'ring-yellow-400');
+        setTimeout(() => {
+          commentContent.classList.remove('bg-yellow-100', 'ring-2', 'ring-yellow-400');
+        }, 2500);
+      }
+    }
+  }, [comments]);
 
   const commentCount = getTotalCommentCount(comments);
   const rootCommentCount = getRootCommentCount(comments);
@@ -441,61 +227,15 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           isSubmittingComment={isCreatingComment}
           onSubmitComment={handleCommentSubmitForSection}
 
-          editingComment={editingComment}
-          editContent={editContent}
-          editPassword={editPassword}
-          replyingTo={replyingTo}
-          replyContent={replyContent}
-          replyPassword={replyPassword}
+          handlers={commentHandlers}
+          editState={editState}
+          replyState={replyState}
+
           isSubmittingReply={isCreatingComment}
           isUpdatingComment={isUpdatingComment}
-
-          onEditComment={handleEditComment}
-          onUpdateComment={handleUpdateComment}
-          onCancelEdit={handleCancelEdit}
-          onDeleteComment={handleDeleteComment}
-          onReplyTo={handleReplyTo}
-          onReplySubmit={handleSubmitReply}
-          onCancelReply={handleCancelReply}
-          onLikeComment={handleLikeComment}
           onLoadMore={loadMoreComments}
 
-          setEditContent={handleUpdateEditContent}
-          setEditPassword={handleUpdateEditPassword}
-          setReplyContent={handleUpdateReplyContent}
-          setReplyPassword={handleUpdateReplyPassword}
-
-          isMyComment={isMyComment}
-          canModifyComment={canModifyComment}
-          onCommentClick={(commentId) => {
-            // 인기 댓글에서 원본 댓글로 이동 - 댓글 ID로 DOM 요소를 찾아 스크롤 이동
-            const element = document.getElementById(`comment-${commentId}`);
-            if (element) {
-              // 부모 댓글 자동 펼치기 (대댓글인 경우)
-              const clickedComment = comments.find(c => c.id === commentId);
-              if (clickedComment?.parentId) {
-                // 답글인 경우, 부모 댓글 내부의 "답글 더보기" 버튼 클릭 (접혀있는 경우)
-                const toggleButton = document.querySelector(`#comment-${clickedComment.parentId} button[class*="답글"]`);
-                if (toggleButton && toggleButton.textContent?.includes('더보기')) {
-                  (toggleButton as HTMLButtonElement).click();
-                }
-              }
-
-              // 스크롤 이동
-              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-              // 하이라이트 효과 추가
-              const commentContent = element.querySelector('.comment-content');
-              if (commentContent) {
-                commentContent.classList.add('bg-yellow-100', 'ring-2', 'ring-yellow-400');
-
-                // 2.5초 후 하이라이트 제거
-                setTimeout(() => {
-                  commentContent.classList.remove('bg-yellow-100', 'ring-2', 'ring-yellow-400');
-                }, 2500);
-              }
-            }
-          }}
+          onCommentClick={handleCommentClick}
         />
 
         {/* Mobile Advertisement */}

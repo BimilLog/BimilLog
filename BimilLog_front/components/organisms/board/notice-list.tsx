@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card, CardContent, Badge, Button } from "@/components";
 import { Eye, Megaphone, ThumbsUp, User, ExternalLink } from "lucide-react";
 import Link from "next/link";
@@ -11,7 +12,7 @@ interface NoticeListProps {
 
 const numberFormatter = new Intl.NumberFormat("ko-KR");
 
-export const NoticeList = ({ posts }: NoticeListProps) => {
+export const NoticeList = memo(({ posts }: NoticeListProps) => {
   // /api/post/notice 엔드포인트에서 가져온 공지사항 전용 데이터
   if (posts.length === 0) {
     return null;
@@ -205,4 +206,6 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
       </div>
     </>
   );
-};
+});
+
+NoticeList.displayName = "NoticeList";

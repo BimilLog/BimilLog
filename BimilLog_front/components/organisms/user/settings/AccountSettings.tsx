@@ -14,7 +14,7 @@ interface AccountSettingsProps {
   className?: string;
 }
 
-export const AccountSettings: React.FC<AccountSettingsProps> = ({
+export const AccountSettings: React.FC<AccountSettingsProps> = React.memo(({
   withdrawing,
   showWithdrawModal,
   onOpenWithdrawModal,
@@ -65,4 +65,6 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({
       isProcessing={withdrawing}
     />
   </>
-);
+));
+
+AccountSettings.displayName = "AccountSettings";

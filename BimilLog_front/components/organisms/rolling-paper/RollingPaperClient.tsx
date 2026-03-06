@@ -10,7 +10,7 @@ interface RollingPaperClientProps {
   initialPaperData?: VisitPaperResult;
 }
 
-export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
+export const RollingPaperClient: React.FC<RollingPaperClientProps> = React.memo(({
   nickname,
   initialPaperData,
 }) => {
@@ -20,4 +20,6 @@ export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
   const targetNickname = nickname ? decodeURIComponent(nickname) : user?.memberName;
 
   return <RollingPaperContainer nickname={targetNickname} initialPaperData={initialPaperData} />;
-};
+});
+
+RollingPaperClient.displayName = "RollingPaperClient";

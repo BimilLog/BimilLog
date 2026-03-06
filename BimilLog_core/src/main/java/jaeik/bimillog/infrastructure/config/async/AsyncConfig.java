@@ -52,7 +52,7 @@ public class AsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(1);
         executor.setMaxPoolSize(3);
-        executor.setQueueCapacity(20);
+        executor.setQueueCapacity(5);
         executor.setThreadNamePrefix("report-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(60);

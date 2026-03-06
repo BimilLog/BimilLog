@@ -16,7 +16,7 @@ interface RecommendedFriendItemProps {
  * 추천 친구 아이템 컴포넌트 (리스트형)
  * 2촌/3촌 표시 및 공통 친구 소개 문구 포함
  */
-export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = ({ friend }) => {
+export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = React.memo(({ friend }) => {
   const { sendRequest, isPending } = useSendFriendRequestAction();
 
   const handleAddFriend = () => {
@@ -69,4 +69,6 @@ export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = ({ fr
       </Button>
     </li>
   );
-};
+});
+
+RecommendedFriendItem.displayName = "RecommendedFriendItem";

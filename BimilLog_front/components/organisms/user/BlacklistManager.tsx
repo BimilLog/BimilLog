@@ -12,7 +12,7 @@ interface BlacklistManagerProps {
   className?: string;
 }
 
-export const BlacklistManager: React.FC<BlacklistManagerProps> = ({ className }) => {
+export const BlacklistManager: React.FC<BlacklistManagerProps> = React.memo(({ className }) => {
   const [page, setPage] = useState(0);
   const size = 20;
 
@@ -134,4 +134,6 @@ export const BlacklistManager: React.FC<BlacklistManagerProps> = ({ className })
       )}
     </div>
   );
-};
+});
+
+BlacklistManager.displayName = "BlacklistManager";

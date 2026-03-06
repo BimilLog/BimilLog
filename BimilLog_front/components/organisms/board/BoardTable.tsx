@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React, { memo, useMemo } from "react";
 import { Card } from "@/components";
 import { Button } from "@/components";
 import Link from "next/link";
@@ -23,6 +23,7 @@ import {
   Popover
 } from "flowbite-react";
 import { UserActionPopover } from "@/components/molecules/UserActionPopover";
+import { BoardTableSkeleton } from "./BoardTableSkeleton";
 
 /**
  * 게시글 목록 테이블 컴포넌트
@@ -271,7 +272,7 @@ export const BoardTable = memo<BoardTableProps>(({
   enablePopover = variant !== "all"
 }) => {
   // 읽음 상태 추적 - 모든 variant에서 사용
-  const postIds = posts.map(post => post.id);
+  const postIds = useMemo(() => posts.map(post => post.id), [posts]);
   const { readStatus } = usePostReadStatus(postIds);
 
   // 에러 상태 처리
@@ -294,67 +295,7 @@ export const BoardTable = memo<BoardTableProps>(({
 
   // 로딩 상태 처리 - 이전 데이터가 없을 때만 스켈레톤 표시
   if (isLoading && posts.length === 0) {
-    return (
-      <>
-        {/* 데스크톱 로딩 스켈레톤 */}
-        <div className="hidden sm:block overflow-x-auto">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell className="w-20 text-center">
-                  {showRanking ? "순위" : "번호"}
-                </TableHeadCell>
-                <TableHeadCell>제목</TableHeadCell>
-                <TableHeadCell className="w-24">작성자</TableHeadCell>
-                <TableHeadCell className="w-28 hidden sm:table-cell">작성일</TableHeadCell>
-                <TableHeadCell className="w-20 text-center">추천</TableHeadCell>
-                <TableHeadCell className="w-20 text-center">조회</TableHeadCell>
-              </TableRow>
-            </TableHead>
-            <TableBody className="divide-y">
-              {[...Array(5)].map((_, idx) => (
-                <TableRow key={idx}>
-                  <TableCell className="text-center">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse" />
-                  </TableCell>
-                  <TableCell>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse" />
-                  </TableCell>
-                  <TableCell>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-16" />
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-20" />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-8 mx-auto" />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-8 mx-auto" />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* 모바일 로딩 스켈레톤 */}
-        <div className="sm:hidden space-y-3">
-          {[...Array(5)].map((_, idx) => (
-            <Card key={idx} variant="elevated">
-              <div className="p-3 space-y-2">
-                <div className="h-4 bg-gray-200 rounded animate-pulse" />
-                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-                <div className="flex justify-between">
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-20" />
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-16" />
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </>
-    );
+    return <BoardTableSkeleton rows={6} showRanking={showRanking} />;
   }
 
   return (

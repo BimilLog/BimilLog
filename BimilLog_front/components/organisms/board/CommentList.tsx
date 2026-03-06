@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, Button, Spinner } from "@/com
 import { MessageSquare, ChevronDown } from "lucide-react";
 import { Comment } from "@/lib/api";
 import { CommentItem } from "./CommentItem";
+import type { CommentHandlers, CommentEditState, CommentReplyState } from "@/hooks/features/post/useCommentInteraction";
 
 interface CommentWithReplies extends Comment {
   replies?: CommentWithReplies[];
@@ -13,32 +14,15 @@ interface CommentListProps {
   commentCount: number;
   rootCommentCount: number;
   postId: number;
-  editingComment: Comment | null;
-  editContent: string;
-  editPassword: string;
-  replyingTo: Comment | null;
-  replyContent: string;
-  replyPassword: string;
   isAuthenticated: boolean;
   isSubmittingReply: boolean;
   isUpdatingComment: boolean;
   hasMoreComments: boolean;
   isLoadingMore: boolean;
-  onEditComment: (comment: Comment) => void;
-  onUpdateComment: () => void;
-  onCancelEdit: () => void;
-  onDeleteComment: (comment: Comment) => void;
-  onReplyTo: (comment: Comment) => void;
-  onReplySubmit: () => void;
-  onCancelReply: () => void;
   onLoadMore: () => void;
-  setEditContent: (content: string) => void;
-  setEditPassword: (password: string) => void;
-  setReplyContent: (content: string) => void;
-  setReplyPassword: (password: string) => void;
-  isMyComment: (comment: Comment) => boolean;
-  onLikeComment: (comment: Comment) => void;
-  canModifyComment: (comment: Comment) => boolean;
+  handlers: CommentHandlers;
+  editState: CommentEditState;
+  replyState: CommentReplyState;
 }
 
 export const CommentList = React.memo<CommentListProps>(({
@@ -46,32 +30,15 @@ export const CommentList = React.memo<CommentListProps>(({
   commentCount,
   rootCommentCount,
   postId,
-  editingComment,
-  editContent,
-  editPassword,
-  replyingTo,
-  replyContent,
-  replyPassword,
   isAuthenticated,
   isSubmittingReply,
   isUpdatingComment,
   hasMoreComments,
   isLoadingMore,
-  onEditComment,
-  onUpdateComment,
-  onCancelEdit,
-  onDeleteComment,
-  onReplyTo,
-  onReplySubmit,
-  onCancelReply,
   onLoadMore,
-  setEditContent,
-  setEditPassword,
-  setReplyContent,
-  setReplyPassword,
-  isMyComment,
-  onLikeComment,
-  canModifyComment,
+  handlers,
+  editState,
+  replyState,
 }) => {
   const replyCount = commentCount - rootCommentCount;
 
@@ -96,29 +63,12 @@ export const CommentList = React.memo<CommentListProps>(({
                   comment={comment}
                   depth={0}
                   postId={postId}
-                  editingComment={editingComment}
-                  editContent={editContent}
-                  editPassword={editPassword}
-                  replyingTo={replyingTo}
-                  replyContent={replyContent}
-                  replyPassword={replyPassword}
                   isAuthenticated={isAuthenticated}
                   isSubmittingReply={isSubmittingReply}
                   isUpdatingComment={isUpdatingComment}
-                  onEditComment={onEditComment}
-                  onUpdateComment={onUpdateComment}
-                  onCancelEdit={onCancelEdit}
-                  onDeleteComment={onDeleteComment}
-                  onReplyTo={onReplyTo}
-                  onReplySubmit={onReplySubmit}
-                  onCancelReply={onCancelReply}
-                  setEditContent={setEditContent}
-                  setEditPassword={setEditPassword}
-                  setReplyContent={setReplyContent}
-                  setReplyPassword={setReplyPassword}
-                  isMyComment={isMyComment}
-                  onLikeComment={onLikeComment}
-                  canModifyComment={canModifyComment}
+                  handlers={handlers}
+                  editState={editState}
+                  replyState={replyState}
                 />
               ))}
             </div>

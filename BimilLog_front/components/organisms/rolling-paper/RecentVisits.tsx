@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { Button } from "@/components";
 import { TimeBadge } from "@/components";
@@ -18,7 +18,7 @@ interface RecentVisit {
   displayName: string;
 }
 
-export const RecentVisits: React.FC = () => {
+export const RecentVisits: React.FC = memo(() => {
   const [recentVisits, setRecentVisits] = useState<RecentVisit[]>([]);
 
   useEffect(() => {
@@ -98,4 +98,6 @@ export const RecentVisits: React.FC = () => {
       </CardContent>
     </Card>
   );
-};
+});
+
+RecentVisits.displayName = "RecentVisits";

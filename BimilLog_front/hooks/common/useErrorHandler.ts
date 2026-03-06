@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks';
 import { useAuthStore } from '@/stores/auth.store';
-import { useToastStore } from '@/stores/toast.store';
+
 import { ErrorHandler, type AppError, type ErrorType } from '@/lib/api/helpers';
 import type { DomainError, ErrorDomain } from '@/lib/errors/domainErrors';
 
@@ -28,7 +28,6 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
   const { showError, showWarning } = useToast();
   const router = useRouter();
   const authStore = useAuthStore();
-  const toastStore = useToastStore();
 
   const handleError = useCallback(async (
     error: unknown,
@@ -76,7 +75,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     onError?.(appError);
 
     return appError;
-  }, [showToast, showError, showWarning, onError, customMessages, domain, enableAutoRecovery, router, authStore, toastStore]);
+  }, [showToast, showError, showWarning, onError, customMessages, domain, enableAutoRecovery, router, authStore]);
 
   const handleRollingPaperError = useCallback(async (error: unknown, data?: unknown) => {
     // 롤링페이퍼 도메인으로 처리

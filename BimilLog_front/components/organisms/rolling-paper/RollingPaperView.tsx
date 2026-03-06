@@ -65,7 +65,7 @@ interface RollingPaperViewProps {
   showError: (title: string, message: string) => void;
 }
 
-export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
+export const RollingPaperView: React.FC<RollingPaperViewProps> = React.memo(({
   targetNickname,
   isPublic,
   isOwner,
@@ -153,4 +153,6 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </RollingPaperLayout>
   );
-};
+});
+
+RollingPaperView.displayName = "RollingPaperView";

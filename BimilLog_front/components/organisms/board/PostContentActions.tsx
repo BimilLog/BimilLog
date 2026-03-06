@@ -4,7 +4,7 @@ import { Button, Tooltip } from "flowbite-react";
 import { ThumbsUp, Flag } from "lucide-react";
 import { Post } from "@/lib/api";
 import { useAuth, useToast } from "@/hooks";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { LazyReportModal } from "@/lib/utils/lazy-components";
 import { submitReportAction } from "@/lib/actions/user";
 
@@ -14,7 +14,7 @@ interface PostContentActionsProps {
   onLike: () => void;
 }
 
-export const PostContentActions: React.FC<PostContentActionsProps> = ({
+export const PostContentActions: React.FC<PostContentActionsProps> = memo(({
   post,
   isAuthenticated,
   onLike,
@@ -110,4 +110,6 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
       />
     </>
   );
-};
+});
+
+PostContentActions.displayName = "PostContentActions";

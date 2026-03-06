@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
@@ -52,7 +52,7 @@ const suggestionTypes = [
   },
 ];
 
-export default function SuggestClient() {
+const SuggestClient = memo(function SuggestClient() {
   const [suggestionType, setSuggestionType] = useState<SuggestionType | "">("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -264,4 +264,8 @@ export default function SuggestClient() {
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </>
   );
-}
+});
+
+SuggestClient.displayName = "SuggestClient";
+
+export default SuggestClient;

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Pagination } from "flowbite-react";
 
 interface BoardPaginationProps {
@@ -8,7 +9,7 @@ interface BoardPaginationProps {
   setCurrentPage: (page: number) => void;
 }
 
-export const BoardPagination = ({
+export const BoardPagination = memo(({
   currentPage,
   totalPages,
   setCurrentPage,
@@ -55,4 +56,6 @@ export const BoardPagination = ({
       />
     </div>
   );
-};
+});
+
+BoardPagination.displayName = "BoardPagination";

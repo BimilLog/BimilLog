@@ -7,7 +7,7 @@ import { Spinner as FlowbiteSpinner } from 'flowbite-react';
 export const LazyEditor = dynamic(
   () => import('@/components/molecules/forms/editor'),
   { 
-    loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
+    loading: () => <div className="h-64 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg" />,
     ssr: false 
   }
 );
@@ -75,7 +75,7 @@ export const LazyBrowserGuideModal = dynamic(
 export const LazyWriteForm = dynamic(
   () => import('@/components/organisms/board/WriteForm').then(mod => ({ default: mod.WriteForm })),
   { 
-    loading: () => <div className="min-h-screen bg-gray-100 animate-pulse" />,
+    loading: () => <div className="min-h-screen bg-gray-100 dark:bg-gray-900 animate-pulse" />,
     ssr: false 
   }
 );
@@ -84,9 +84,9 @@ export const LazyAdminStats = dynamic(
   () => import('@/components/organisms/admin/AdminStats').then(mod => ({ default: mod.AdminStats })),
   { 
     loading: () => <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-      <div className="h-32 bg-gray-200 rounded-lg" />
-      <div className="h-32 bg-gray-200 rounded-lg" />
-      <div className="h-32 bg-gray-200 rounded-lg" />
+      <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+      <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+      <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg" />
     </div>
   }
 );
@@ -95,9 +95,9 @@ export const LazyReportListContainer = dynamic(
   () => import('@/components/organisms/admin/ReportListContainer').then(mod => ({ default: mod.ReportListContainer })),
   {
     loading: () => <div className="space-y-4 animate-pulse">
-      <div className="h-20 bg-gray-200 rounded-lg" />
-      <div className="h-20 bg-gray-200 rounded-lg" />
-      <div className="h-20 bg-gray-200 rounded-lg" />
+      <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+      <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+      <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
     </div>
   }
 );
@@ -122,13 +122,22 @@ export const LazyMessageListModal = dynamic(
 export const LazyCommentItem = dynamic(
   () => import('@/components/organisms/board/CommentItem').then(mod => ({ default: mod.CommentItem })),
   {
-    loading: () => <div className="p-4 border border-gray-200 rounded-lg animate-pulse">
-      <div className="flex items-center space-x-3 mb-2">
-        <div className="w-8 h-8 bg-gray-200 rounded-full" />
-        <div className="h-4 bg-gray-200 rounded w-20" />
+    loading: () => <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg animate-pulse">
+      <div className="flex items-center space-x-3 mb-3">
+        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full" />
+        <div className="flex items-center gap-2">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" />
+        </div>
       </div>
-      <div className="h-4 bg-gray-200 rounded w-full mb-2" />
-      <div className="h-4 bg-gray-200 rounded w-3/4" />
+      <div className="ml-11 space-y-2 mb-3">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+      </div>
+      <div className="ml-11 flex items-center gap-4">
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-14" />
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-14" />
+      </div>
     </div>
   }
 );
@@ -140,7 +149,7 @@ export const LazyRollingPaperGrid = dynamic(
   {
     loading: () => <div className="grid grid-cols-4 md:grid-cols-6 gap-2 animate-pulse">
       {Array.from({ length: 24 }).map((_, i) => (
-        <div key={i} className="h-20 bg-gray-200 rounded-lg" />
+        <div key={i} className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
       ))}
     </div>,
     ssr: false
@@ -151,9 +160,22 @@ export const LazyUserActivitySection = dynamic(
   () => import('@/components/organisms/user/UserActivitySection').then(mod => ({ default: mod.UserActivitySection })),
   {
     loading: () => <div className="space-y-4 animate-pulse">
-      <div className="h-40 bg-gray-200 rounded-lg" />
-      <div className="h-32 bg-gray-200 rounded-lg" />
-      <div className="h-32 bg-gray-200 rounded-lg" />
+      {/* 탭 헤더 */}
+      <div className="flex gap-2 p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+        <div className="h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+        <div className="h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+      </div>
+      {/* 테이블 행 */}
+      <div className="space-y-3 p-4">
+        {[1, 2, 3, 4, 5].map(i => (
+          <div key={i} className="flex items-center gap-4">
+            <div className="h-4 w-8 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-4 flex-1 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
+          </div>
+        ))}
+      </div>
     </div>
   }
 );

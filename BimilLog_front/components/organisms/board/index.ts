@@ -1,5 +1,6 @@
 // Board Feature Components
 export { default as BoardClient } from './BoardClient';
+export { default as BoardClientWithErrorBoundary } from './BoardClientWithErrorBoundary';
 export { BoardSearch } from './board-search';
 export { NoticeList } from './notice-list';
 export { BoardPagination } from './board-pagination';
@@ -18,7 +19,10 @@ export { PopularCommentItem } from './PopularCommentItem';
 export { PostActions } from './PostActions';
 export { PostContent } from './PostContent';
 export { default as PostDetailClient } from './PostDetailClient';
+export { default as PostDetailWithErrorBoundary } from './PostDetailWithErrorBoundary';
 export { PostDetailSkeleton } from './PostDetailSkeleton';
+export { BoardTableSkeleton } from './BoardTableSkeleton';
+export { CommentSectionSkeleton } from './CommentSectionSkeleton';
 export { PostHeader } from './PostHeader';
 
 // Write Components

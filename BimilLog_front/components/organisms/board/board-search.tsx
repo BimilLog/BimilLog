@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Input, Button, Card } from "@/components";
 import { Dropdown, DropdownItem } from "flowbite-react";
 import { Search, ListFilter, ChevronDown, X } from "lucide-react";
@@ -14,7 +15,7 @@ interface BoardSearchProps {
   handleSearch: () => void;
 }
 
-export const BoardSearch = ({
+export const BoardSearch = memo(({
   searchTerm,
   setSearchTerm,
   searchType,
@@ -132,4 +133,6 @@ export const BoardSearch = ({
       </div>
     </Card>
   );
-};
+});
+
+BoardSearch.displayName = "BoardSearch";

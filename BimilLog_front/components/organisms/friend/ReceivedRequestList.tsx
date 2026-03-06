@@ -15,7 +15,7 @@ interface ReceivedRequestListProps {
 /**
  * 받은 친구 요청 목록 컴포넌트
  */
-export const ReceivedRequestList: React.FC<ReceivedRequestListProps> = ({ initialData }) => {
+export const ReceivedRequestList: React.FC<ReceivedRequestListProps> = React.memo(({ initialData }) => {
   const [page, setPage] = useState(0);
   const size = 20;
 
@@ -102,4 +102,6 @@ export const ReceivedRequestList: React.FC<ReceivedRequestListProps> = ({ initia
       )}
     </div>
   );
-};
+});
+
+ReceivedRequestList.displayName = "ReceivedRequestList";
