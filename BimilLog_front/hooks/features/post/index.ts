@@ -3,3 +3,4 @@ export { useInfinitePostList, usePopularPostsTabs, useNoticePosts } from './useP
 export { usePostDetail } from './usePostDetail';
 export { useWriteForm } from './useWriteForm';
 export { useEditForm } from './useEditForm';
+export { useCommentInteraction } from './useCommentInteraction';

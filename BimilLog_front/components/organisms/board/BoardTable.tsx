@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React, { memo, useMemo } from "react";
 import { Card } from "@/components";
 import { Button } from "@/components";
 import Link from "next/link";
@@ -271,7 +271,7 @@ export const BoardTable = memo<BoardTableProps>(({
   enablePopover = variant !== "all"
 }) => {
   // 읽음 상태 추적 - 모든 variant에서 사용
-  const postIds = posts.map(post => post.id);
+  const postIds = useMemo(() => posts.map(post => post.id), [posts]);
   const { readStatus } = usePostReadStatus(postIds);
 
   // 에러 상태 처리

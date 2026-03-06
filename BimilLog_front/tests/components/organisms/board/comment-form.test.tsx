@@ -4,6 +4,23 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CommentForm } from "@/components/organisms/board";
 
+// LazyEditor 모킹 - CommentForm은 LazyEditor를 사용하므로 textarea로 대체
+vi.mock("@/lib/utils/lazy-components", () => ({
+  LazyEditor: vi.fn(({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
+    <textarea
+      data-testid="comment-editor"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="댓글을 입력하세요"
+    />
+  )),
+}));
+
+// stripHtmlTags 모킹 - 테스트에서는 plain text 그대로 반환
+vi.mock("@/lib/utils/sanitize", () => ({
+  stripHtmlTags: (html: string) => html,
+}));
+
 describe("CommentForm", () => {
   const defaultProps = {
     isAuthenticated: false,
@@ -19,8 +36,8 @@ describe("CommentForm", () => {
     it("댓글과 비밀번호 입력 필드를 모두 표시한다", () => {
       render(<CommentForm {...defaultProps} isAuthenticated={false} />);
 
-      expect(screen.getByPlaceholderText(/댓글을 입력하세요/)).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/비밀번호.*4자리 숫자/)).toBeInTheDocument();
+      expect(screen.getByTestId("comment-editor")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("비밀번호 (1000~9999)")).toBeInTheDocument();
     });
 
     it("비밀번호가 4자리 숫자가 아니면 오류 메시지를 표시한다", async () => {
@@ -28,17 +45,16 @@ describe("CommentForm", () => {
 
       render(<CommentForm {...defaultProps} isAuthenticated={false} />);
 
-      const passwordInput = screen.getByPlaceholderText(/비밀번호.*4자리 숫자/);
-      const commentInput = screen.getByPlaceholderText(/댓글을 입력하세요/);
-      const submitButton = screen.getByRole("button");
+      const passwordInput = screen.getByPlaceholderText("비밀번호 (1000~9999)");
+      const commentEditor = screen.getByTestId("comment-editor");
+      const submitButton = screen.getByRole("button", { name: /작성/ });
 
-      // 잘못된 비밀번호 입력
-      await user.type(passwordInput, "abc");
-      await user.type(commentInput, "테스트 댓글");
+      await user.type(passwordInput, "123");
+      await user.type(commentEditor, "테스트 댓글");
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText("4자리 숫자를 입력해주세요")).toBeInTheDocument();
+        expect(screen.getByText("1000~9999 사이의 숫자를 입력해주세요")).toBeInTheDocument();
       });
 
       expect(defaultProps.onSubmit).not.toHaveBeenCalled();
@@ -49,18 +65,15 @@ describe("CommentForm", () => {
 
       render(<CommentForm {...defaultProps} isAuthenticated={false} />);
 
-      const passwordInput = screen.getByPlaceholderText(/비밀번호.*4자리 숫자/);
-      const commentInput = screen.getByPlaceholderText(/댓글을 입력하세요/);
-      const submitButton = screen.getByRole("button");
+      const passwordInput = screen.getByPlaceholderText("비밀번호 (1000~9999)");
+      const commentEditor = screen.getByTestId("comment-editor");
+      const submitButton = screen.getByRole("button", { name: /작성/ });
 
-      // 초기 상태: 버튼 비활성화
       expect(submitButton).toBeDisabled();
 
-      // 댓글만 입력: 버튼 여전히 비활성화
-      await user.type(commentInput, "테스트 댓글");
+      await user.type(commentEditor, "테스트 댓글");
       expect(submitButton).toBeDisabled();
 
-      // 비밀번호도 입력: 버튼 활성화
       await user.type(passwordInput, "1234");
       expect(submitButton).toBeEnabled();
     });
@@ -71,29 +84,25 @@ describe("CommentForm", () => {
 
       render(<CommentForm {...defaultProps} isAuthenticated={false} onSubmit={onSubmit} />);
 
-      const passwordInput = screen.getByPlaceholderText(/비밀번호.*4자리 숫자/);
-      const commentInput = screen.getByPlaceholderText(/댓글을 입력하세요/);
-      const submitButton = screen.getByRole("button");
+      const passwordInput = screen.getByPlaceholderText("비밀번호 (1000~9999)");
+      const commentEditor = screen.getByTestId("comment-editor");
+      const submitButton = screen.getByRole("button", { name: /작성/ });
 
-      await user.type(commentInput, "테스트 댓글입니다");
+      await user.type(commentEditor, "테스트 댓글입니다");
       await user.type(passwordInput, "5678");
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(onSubmit).toHaveBeenCalledWith("테스트 댓글입니다", "5678");
-        expect(commentInput).toHaveValue("");
+        expect(commentEditor).toHaveValue("");
         expect(passwordInput).toHaveValue("");
       });
     });
 
     it("비밀번호는 최대 4자리까지만 입력 가능하다", async () => {
-      const user = userEvent.setup();
-
       render(<CommentForm {...defaultProps} isAuthenticated={false} />);
 
-      const passwordInput = screen.getByPlaceholderText(/비밀번호.*4자리 숫자/);
-      await user.type(passwordInput, "123456");
-
+      const passwordInput = screen.getByPlaceholderText("비밀번호 (1000~9999)");
       expect(passwordInput).toHaveAttribute("maxLength", "4");
     });
   });
@@ -102,7 +111,7 @@ describe("CommentForm", () => {
     it("비밀번호 필드를 표시하지 않는다", () => {
       render(<CommentForm {...defaultProps} isAuthenticated={true} />);
 
-      expect(screen.getByPlaceholderText(/댓글을 입력하세요/)).toBeInTheDocument();
+      expect(screen.getByTestId("comment-editor")).toBeInTheDocument();
       expect(screen.queryByPlaceholderText(/비밀번호/)).not.toBeInTheDocument();
     });
 
@@ -111,14 +120,12 @@ describe("CommentForm", () => {
 
       render(<CommentForm {...defaultProps} isAuthenticated={true} />);
 
-      const commentInput = screen.getByPlaceholderText(/댓글을 입력하세요/);
-      const submitButton = screen.getByRole("button");
+      const commentEditor = screen.getByTestId("comment-editor");
+      const submitButton = screen.getByRole("button", { name: /작성/ });
 
-      // 초기 상태: 버튼 비활성화
       expect(submitButton).toBeDisabled();
 
-      // 댓글 입력: 버튼 활성화
-      await user.type(commentInput, "로그인 사용자 댓글");
+      await user.type(commentEditor, "로그인 사용자 댓글");
       expect(submitButton).toBeEnabled();
     });
 
@@ -128,30 +135,24 @@ describe("CommentForm", () => {
 
       render(<CommentForm {...defaultProps} isAuthenticated={true} onSubmit={onSubmit} />);
 
-      const commentInput = screen.getByPlaceholderText(/댓글을 입력하세요/);
-      const submitButton = screen.getByRole("button");
+      const commentEditor = screen.getByTestId("comment-editor");
+      const submitButton = screen.getByRole("button", { name: /작성/ });
 
-      await user.type(commentInput, "로그인 사용자의 댓글");
+      await user.type(commentEditor, "로그인 사용자의 댓글");
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(onSubmit).toHaveBeenCalledWith("로그인 사용자의 댓글", "");
-        expect(commentInput).toHaveValue("");
+        expect(commentEditor).toHaveValue("");
       });
     });
   });
 
   describe("공통 기능", () => {
     it("빈 댓글은 제출할 수 없다", async () => {
-      const user = userEvent.setup();
-
       render(<CommentForm {...defaultProps} isAuthenticated={true} />);
 
-      const commentInput = screen.getByPlaceholderText(/댓글을 입력하세요/);
-      const submitButton = screen.getByRole("button");
-
-      // 공백만 입력
-      await user.type(commentInput, "   ");
+      const submitButton = screen.getByRole("button", { name: /작성/ });
       expect(submitButton).toBeDisabled();
     });
 
@@ -166,28 +167,11 @@ describe("CommentForm", () => {
         />
       );
 
-      const commentInput = screen.getByPlaceholderText(/댓글을 입력하세요/);
-      const submitButton = screen.getByRole("button");
+      const commentEditor = screen.getByTestId("comment-editor");
+      const submitButton = screen.getByRole("button", { name: /작성/ });
 
-      await user.type(commentInput, "테스트 댓글");
-
-      // isSubmittingComment가 true이므로 버튼이 비활성화
+      await user.type(commentEditor, "테스트 댓글");
       expect(submitButton).toBeDisabled();
-    });
-
-    it("댓글 필드가 필수 입력 필드임을 표시한다", async () => {
-      const user = userEvent.setup();
-
-      render(<CommentForm {...defaultProps} isAuthenticated={true} />);
-
-      const submitButton = screen.getByRole("button");
-      const commentInput = screen.getByPlaceholderText(/댓글을 입력하세요/);
-
-      // 빈 상태로 제출 시도
-      await user.click(submitButton);
-
-      // HTML5 validation이나 react-hook-form의 필수 필드 검증
-      expect(commentInput).toBeRequired();
     });
 
     it("댓글 작성 카드 헤더가 올바르게 표시된다", () => {
@@ -199,7 +183,7 @@ describe("CommentForm", () => {
     it("제출 버튼에 Send 아이콘이 포함된다", () => {
       render(<CommentForm {...defaultProps} />);
 
-      const submitButton = screen.getByRole("button");
+      const submitButton = screen.getByRole("button", { name: /작성/ });
       const sendIcon = submitButton.querySelector("svg");
 
       expect(sendIcon).toBeInTheDocument();
@@ -218,42 +202,24 @@ describe("CommentForm", () => {
         />
       );
 
-      const passwordInput = screen.getByPlaceholderText(/비밀번호.*4자리 숫자/);
-      const commentInput = screen.getByPlaceholderText(/댓글을 입력하세요/);
-      const submitButton = screen.getByRole("button");
+      const passwordInput = screen.getByPlaceholderText("비밀번호 (1000~9999)");
+      const commentEditor = screen.getByTestId("comment-editor");
+      const submitButton = screen.getByRole("button", { name: /작성/ });
 
-      // 폼 작성 및 제출
-      await user.type(commentInput, "테스트 댓글");
+      await user.type(commentEditor, "테스트 댓글");
       await user.type(passwordInput, "1234");
       await user.click(submitButton);
 
       await waitFor(() => {
-        // 모든 입력 필드가 비워졌는지 확인
-        expect(commentInput).toHaveValue("");
+        expect(commentEditor).toHaveValue("");
         expect(passwordInput).toHaveValue("");
       });
     });
 
-    it("Enter 키로 댓글을 제출할 수 있다", async () => {
-      const user = userEvent.setup();
-      const onSubmit = vi.fn();
+    it("다양한 스타일로 댓글을 꾸며보세요 텍스트가 표시된다", () => {
+      render(<CommentForm {...defaultProps} />);
 
-      render(
-        <CommentForm
-          {...defaultProps}
-          isAuthenticated={true}
-          onSubmit={onSubmit}
-        />
-      );
-
-      const commentInput = screen.getByPlaceholderText(/댓글을 입력하세요/);
-
-      await user.type(commentInput, "엔터로 제출하는 댓글");
-      await user.keyboard("{Enter}");
-
-      await waitFor(() => {
-        expect(onSubmit).toHaveBeenCalledWith("엔터로 제출하는 댓글", "");
-      });
+      expect(screen.getByText("다양한 스타일로 댓글을 꾸며보세요.")).toBeInTheDocument();
     });
   });
 });

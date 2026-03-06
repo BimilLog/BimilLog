@@ -15,8 +15,9 @@ import {
 import { SimplePost, SimpleComment } from "@/lib/api";
 import { formatKoreanDate } from "@/lib/utils/date";
 import { formatNumber } from "@/lib/utils";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { commentCommand } from "@/lib/api";
+import { useTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { likeCommentAction } from "@/lib/actions/comment";
 import { queryKeys } from "@/lib/tanstack-query/keys";
 import { useToast } from "@/hooks";
 
@@ -109,27 +110,21 @@ PostCard.displayName = "PostCard";
 const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = React.memo(({ comment, isLiked }) => {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-
-  // 추천 취소 mutation
-  const unlikeMutation = useMutation({
-    mutationFn: () => commentCommand.like(comment.id),
-    onSuccess: () => {
-      // 마이페이지 전체 캐시 갱신 (통합 API 사용)
-      queryClient.invalidateQueries({ queryKey: queryKeys.mypage.all });
-      // 해당 게시글의 댓글 목록도 갱신
-      queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(comment.postId) });
-      showToast({ type: 'success', message: '추천을 취소했습니다.' });
-    },
-    onError: (error) => {
-      const errorMessage = error instanceof Error ? error.message : '추천 취소에 실패했습니다.';
-      showToast({ type: 'error', message: errorMessage });
-    },
-  });
+  const [isPending, startTransition] = useTransition();
 
   const handleUnlike = (e: React.MouseEvent) => {
-    e.preventDefault(); // Link 클릭 방지
+    e.preventDefault();
     e.stopPropagation();
-    unlikeMutation.mutate();
+    startTransition(async () => {
+      const result = await likeCommentAction(comment.id, comment.postId);
+      if (result.success) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.mypage.all });
+        queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(comment.postId) });
+        showToast({ type: 'success', message: '추천을 취소했습니다.' });
+      } else {
+        showToast({ type: 'error', message: result.error || '추천 취소에 실패했습니다.' });
+      }
+    });
   };
 
   return (
@@ -155,7 +150,7 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
               variant="ghost"
               size="sm"
               onClick={handleUnlike}
-              disabled={unlikeMutation.isPending}
+              disabled={isPending}
               className="hover:text-red-500 hover:bg-red-50 transition-colors"
               title="추천 취소"
             >

@@ -24,7 +24,8 @@ export function NotificationPermissionModal({
 }: NotificationPermissionModalProps) {
   const [isRequesting, setIsRequesting] = useState(false);
   const [showDeniedHelp, setShowDeniedHelp] = useState(false);
-  const { showInfo, showError } = useToastStore();
+  const showInfo = useToastStore((state) => state.showInfo);
+  const showError = useToastStore((state) => state.showError);
 
   const handleEnableNotifications = async () => {
     if (isRequesting) {

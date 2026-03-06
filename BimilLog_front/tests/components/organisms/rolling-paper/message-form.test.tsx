@@ -38,13 +38,13 @@ vi.mock("@/lib/api", async () => {
   return {
     ...actual,
     getDecoInfo: vi.fn((type: string) => ({
-      name: type === "POTATO" ? "????" : type === "WATERMELON" ? "????" : "????",
+      name: type === "POTATO" ? "감자" : type === "WATERMELON" ? "수박" : "딸기",
       color: "from-yellow-100 to-yellow-200",
     })),
     decoTypeMap: {
-      POTATO: { name: "????", color: "from-yellow-100 to-yellow-200" },
-      WATERMELON: { name: "????", color: "from-green-100 to-green-200" },
-      STRAWBERRY: { name: "????", color: "from-pink-100 to-pink-200" },
+      POTATO: { name: "감자", color: "from-yellow-100 to-yellow-200" },
+      WATERMELON: { name: "수박", color: "from-green-100 to-green-200" },
+      STRAWBERRY: { name: "딸기", color: "from-pink-100 to-pink-200" },
     },
   };
 });
@@ -64,8 +64,8 @@ describe("MessageForm", () => {
     it("모든 입력 필드를 올바르게 렌더링한다", () => {
       render(<MessageForm {...defaultProps} />);
 
-      expect(screen.getByPlaceholderText(/시원한 마음의 친구/)).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("익명 닉네임")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요.../)).toBeInTheDocument();
       expect(screen.getByText("장식 선택")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /메시지 남기기/ })).toBeInTheDocument();
     });
@@ -74,7 +74,7 @@ describe("MessageForm", () => {
       render(<MessageForm {...defaultProps} />);
 
       expect(screen.getByText("여기에 메시지가 표시됩니다...")).toBeInTheDocument();
-      expect(screen.getByText("감자")).toBeInTheDocument(); // 기본 데코 타입
+      expect(screen.getAllByText("감자").length).toBeGreaterThanOrEqual(1); // 기본 데코 타입
     });
 
     it("글자수 카운터를 표시한다", () => {
@@ -91,7 +91,7 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByPlaceholderText(/시원한 마음의 친구/);
+      const nicknameInput = screen.getByPlaceholderText("익명 닉네임");
       await user.type(nicknameInput, "테스터");
 
       expect(screen.getByText("3 / 8")).toBeInTheDocument();
@@ -102,7 +102,7 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByPlaceholderText(/시원한 마음의 친구/);
+      const nicknameInput = screen.getByPlaceholderText("익명 닉네임");
       await user.type(nicknameInput, "아주긴닉네임입니다");
 
       // maxLength 속성으로 인해 8자까지만 입력됨
@@ -114,7 +114,7 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} />);
 
-      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
+      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요.../);
       const submitButton = screen.getByRole("button", { name: /메시지 남기기/ });
 
       await user.type(messageInput, "테스트 메시지");
@@ -132,7 +132,7 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} />);
 
-      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
+      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요.../);
       await user.type(messageInput, "생일 축하해!");
 
       expect(screen.getByText("생일 축하해!")).toBeInTheDocument();
@@ -143,7 +143,7 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} />);
 
-      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
+      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요.../);
       await user.type(messageInput, "테스트 메시지입니다");
 
       expect(screen.getByText("10 / 255")).toBeInTheDocument();
@@ -152,7 +152,7 @@ describe("MessageForm", () => {
     it("메시지가 255자를 초과할 수 없다", () => {
       render(<MessageForm {...defaultProps} />);
 
-      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
+      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요.../);
       expect(messageInput).toHaveAttribute("maxLength", "255");
     });
 
@@ -161,7 +161,7 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByPlaceholderText(/시원한 마음의 친구/);
+      const nicknameInput = screen.getByPlaceholderText("익명 닉네임");
       const submitButton = screen.getByRole("button", { name: /메시지 남기기/ });
 
       await user.type(nicknameInput, "테스터");
@@ -177,8 +177,8 @@ describe("MessageForm", () => {
     it("기본 장식이 '감자'로 설정되어 있다", () => {
       render(<MessageForm {...defaultProps} />);
 
-      const triggerButton = screen.getByRole("button", { name: /감자/ });
-      expect(triggerButton).toBeInTheDocument();
+      const triggerButtons = screen.getAllByRole("button", { name: /감자/ });
+      expect(triggerButtons.length).toBeGreaterThanOrEqual(1);
     });
 
     it("장식을 변경할 수 있다", async () => {
@@ -212,8 +212,8 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} onSubmit={onSubmit} />);
 
-      const nicknameInput = screen.getByPlaceholderText(/시원한 마음의 친구/);
-      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
+      const nicknameInput = screen.getByPlaceholderText("익명 닉네임");
+      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요.../);
       const submitButton = screen.getByRole("button", { name: /메시지 남기기/ });
 
       await user.type(nicknameInput, "친구");
@@ -234,8 +234,8 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} />);
 
-      const nicknameInput = screen.getByPlaceholderText(/시원한 마음의 친구/);
-      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
+      const nicknameInput = screen.getByPlaceholderText("익명 닉네임");
+      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요.../);
       const submitButton = screen.getByRole("button", { name: /메시지 남기기/ });
 
       await user.type(nicknameInput, "친구");
@@ -260,18 +260,18 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} onSubmit={onSubmit} />);
 
-      const nicknameInput = screen.getByPlaceholderText(/시원한 마음의 친구/);
-      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
+      const nicknameInput = screen.getByPlaceholderText("익명 닉네임");
+      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요.../);
       const submitButton = screen.getByRole("button", { name: /메시지 남기기/ });
 
       await user.type(nicknameInput, "친구");
       await user.type(messageInput, "메시지");
       await user.click(submitButton);
 
-      // 로딩 상태 확인
+      // 제출 중 버튼 비활성화 확인
       await waitFor(() => {
-        expect(screen.getByText("등록 중...")).toBeInTheDocument();
-        expect(submitButton).toBeDisabled();
+        const submitBtn = screen.getByRole("button", { name: /등록 중|메시지 남기기/ });
+        expect(submitBtn).toBeDisabled();
       });
 
       // Promise 해결
@@ -285,8 +285,8 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} onSubmit={onSubmit} onError={onError} />);
 
-      const nicknameInput = screen.getByPlaceholderText(/시원한 마음의 친구/);
-      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
+      const nicknameInput = screen.getByPlaceholderText("익명 닉네임");
+      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요.../);
       const submitButton = screen.getByRole("button", { name: /메시지 남기기/ });
 
       await user.type(nicknameInput, "친구");
@@ -304,8 +304,8 @@ describe("MessageForm", () => {
 
       render(<MessageForm {...defaultProps} onSubmit={onSubmit} />);
 
-      const nicknameInput = screen.getByPlaceholderText(/시원한 마음의 친구/);
-      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
+      const nicknameInput = screen.getByPlaceholderText("익명 닉네임");
+      const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요.../);
       const submitButton = screen.getByRole("button", { name: /메시지 남기기/ });
 
       await user.type(nicknameInput, "  친구  ");

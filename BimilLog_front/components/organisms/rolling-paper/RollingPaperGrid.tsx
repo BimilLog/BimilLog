@@ -11,6 +11,75 @@ import { Button } from "@/components";
 import { DecoIcon } from "@/components";
 import { getPageAndGridPosition, findNearestEmptyPositions } from "@/lib/utils/rolling-paper";
 
+// 개별 셀 컴포넌트 - 모달 상태 변경 시 전체 셀 리렌더 방지
+interface GridCellProps {
+  actualX: number;
+  actualY: number;
+  message: RollingPaperMessage | VisitMessage | null;
+  isHighlighted: boolean;
+  isOwner: boolean;
+  onClick: (x: number, y: number) => void;
+}
+
+const GridCell = memo(({ actualX, actualY, message, isHighlighted, isOwner, onClick }: GridCellProps) => {
+  const decoInfo = message ? getDecoInfo(message.decoType) : null;
+
+  const handleClick = useCallback(() => {
+    onClick(actualX, actualY);
+  }, [onClick, actualX, actualY]);
+
+  return (
+    <div
+      onClick={handleClick}
+      className={`
+        aspect-square rounded-lg md:rounded-xl border-2 md:border-3 flex items-center justify-center transition-all duration-300 relative
+        ${
+          isHighlighted
+            ? "border-4 border-green-400 bg-gradient-to-br from-green-100 to-emerald-100 animate-pulse shadow-xl shadow-green-200 cursor-pointer"
+            : message
+            ? `bg-gradient-to-br ${typeof decoInfo?.color === 'string' ? decoInfo.color : ''} border-white dark:border-gray-600 shadow-md md:shadow-lg cursor-pointer hover:scale-105 md:hover:scale-110 hover:rotate-1 md:hover:rotate-3`
+            : isOwner
+            ? "border-dashed border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-50"
+            : "border-dashed border-sky-300 dark:border-sky-600 hover:border-sky-500 dark:hover:border-sky-400 hover:bg-sky-50 dark:hover:bg-sky-800/50 cursor-pointer hover:scale-105 hover:rotate-1"
+        }
+      `}
+      style={{
+        boxShadow: message
+          ? "0 2px 8px rgba(91,192,222,0.3), inset 0 1px 0 rgba(255,255,255,0.5)"
+          : "0 1px 4px rgba(91,192,222,0.1)",
+      }}
+    >
+      {message ? (
+        <div className="relative">
+          <DecoIcon
+            decoType={message.decoType}
+            size="lg"
+            showBackground={true}
+            animate="bounce"
+          />
+          <div className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-300 rounded-full animate-ping"></div>
+          {isHighlighted && (
+            <div className="absolute inset-0 bg-green-300 rounded-full opacity-50 animate-ping"></div>
+          )}
+        </div>
+      ) : isOwner ? (
+        <div className="text-gray-400 dark:text-gray-600 text-xs md:text-sm text-center leading-tight opacity-0"></div>
+      ) : (
+        <div className="relative group">
+          <Plus
+            className="w-4 h-4 md:w-5 md:h-5 transition-colors text-sky-400 dark:text-sky-500 group-hover:text-sky-600 dark:group-hover:text-sky-400"
+          />
+          <div
+            className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-30 transition-opacity animate-pulse bg-sky-200"
+          ></div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+GridCell.displayName = "GridCell";
+
 interface RollingPaperGridProps {
   messages: (RollingPaperMessage | VisitMessage)[];
   nickname: string;
@@ -228,81 +297,28 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
             style={{ gridTemplateColumns: `repeat(${pageWidth}, 1fr)` }}
           >
             {Array.from({ length: totalSlots }, (_, i) => {
-              // 1차원 인덱스를 2차원 그리드 좌표로 변환 (0-based)
-              const gridX = i % pageWidth; // 열 위치: 0, 1, 2, 3... (모바일 0~3, PC 0~5)
-              const gridY = Math.floor(i / pageWidth); // 행 위치: 0, 1, 2... (0~9)
-
-              // 현재 페이지와 그리드 위치를 전체 좌표로 변환 (0-based)
-              // 예: 2페이지, gridX=1, gridY=2 -> PC에서 actualX=7, actualY=2
+              const gridX = i % pageWidth;
+              const gridY = Math.floor(i / pageWidth);
               const { x: actualX, y: actualY } = getCoordsFromPageAndGrid(
                 currentPage,
                 gridX,
                 gridY
               );
-
-              // 해당 좌표에 메시지가 있는지 확인
               const messageAtPosition = getMessageAt(actualX, actualY);
-              // 메시지가 있으면 데코레이션 정보 가져오기
-              const decoInfo = messageAtPosition
-                ? getDecoInfo(messageAtPosition.decoType)
-                : null;
-
-              // 하이라이트 좌표인지 확인 (최근 작성된 메시지 등)
-              const isHighlighted = highlightedPosition &&
+              const isHighlighted = !!(highlightedPosition &&
                 highlightedPosition.x === actualX &&
-                highlightedPosition.y === actualY;
+                highlightedPosition.y === actualY);
 
               return (
-                <div
+                <GridCell
                   key={`grid-cell-${actualX}-${actualY}`}
-                  onClick={() => handleCellClick(actualX, actualY)}
-                  className={`
-                        aspect-square rounded-lg md:rounded-xl border-2 md:border-3 flex items-center justify-center transition-all duration-300 relative
-                        ${
-                          isHighlighted // 하이라이트된 셀 (최근 작성 메시지 등)
-                            ? "border-4 border-green-400 bg-gradient-to-br from-green-100 to-emerald-100 animate-pulse shadow-xl shadow-green-200 cursor-pointer"
-                            : messageAtPosition // 메시지가 있는 셀
-                            ? `bg-gradient-to-br ${typeof decoInfo?.color === 'string' ? decoInfo.color : ''} border-white dark:border-gray-600 shadow-md md:shadow-lg cursor-pointer hover:scale-105 md:hover:scale-110 hover:rotate-1 md:hover:rotate-3`
-                            : isOwner // 롤링페이퍼 소유자인 경우 메시지 작성 불가
-                            ? "border-dashed border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-50"
-                            : "border-dashed border-sky-300 dark:border-sky-600 hover:border-sky-500 dark:hover:border-sky-400 hover:bg-sky-50 dark:hover:bg-sky-800/50 cursor-pointer hover:scale-105 hover:rotate-1" // 빈 셀, 메시지 작성 가능
-                        }
-                      `}
-                      style={{
-                        boxShadow: messageAtPosition
-                          ? "0 2px 8px rgba(91,192,222,0.3), inset 0 1px 0 rgba(255,255,255,0.5)"
-                          : "0 1px 4px rgba(91,192,222,0.1)",
-                      }}
-                    >
-                      {messageAtPosition ? ( // 메시지가 있는 경우: 데코 아이콘 표시
-                        <div className="relative">
-                          <DecoIcon
-                            decoType={messageAtPosition.decoType}
-                            size="lg"
-                            showBackground={true}
-                            animate="bounce"
-                          />
-                          {/* 메시지 존재를 나타내는 알림 점 */}
-                          <div className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-300 rounded-full animate-ping"></div>
-                          {/* 하이라이트 효과 */}
-                          {isHighlighted && (
-                            <div className="absolute inset-0 bg-green-300 rounded-full opacity-50 animate-ping"></div>
-                          )}
-                        </div>
-                      ) : isOwner ? ( // 소유자인 경우: 빈 공간 (메시지 작성 불가)
-                        <div className="text-gray-400 dark:text-gray-600 text-xs md:text-sm text-center leading-tight opacity-0"></div>
-                      ) : ( // 방문자인 경우: + 아이콘으로 메시지 작성 유도
-                        <div className="relative group">
-                          <Plus
-                            className={`w-4 h-4 md:w-5 md:h-5 transition-colors text-sky-400 dark:text-sky-500 group-hover:text-sky-600 dark:group-hover:text-sky-400`}
-                          />
-                          {/* 호버 시 배경 효과 */}
-                          <div
-                            className={`absolute inset-0 rounded-full opacity-0 group-hover:opacity-30 transition-opacity animate-pulse bg-sky-200`}
-                          ></div>
-                        </div>
-                      )}
-                </div>
+                  actualX={actualX}
+                  actualY={actualY}
+                  message={messageAtPosition}
+                  isHighlighted={isHighlighted}
+                  isOwner={isOwner}
+                  onClick={handleCellClick}
+                />
               );
             })}
           </div>

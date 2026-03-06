@@ -10,9 +10,6 @@ vi.mock('@/lib/api', async () => {
     authCommand: {
       logout: vi.fn(),
     },
-    userCommand: {
-      updateUserName: vi.fn(),
-    },
     sseManager: {
       connect: vi.fn(),
       disconnect: vi.fn(),
@@ -32,6 +29,8 @@ vi.mock('@/lib/utils', () => ({
 vi.mock('@/lib/auth/fcm', () => ({
   fcmManager: {
     clearCache: vi.fn(),
+    isSupported: vi.fn().mockReturnValue(false),
+    ensureTokenForLogin: vi.fn().mockResolvedValue(null),
   },
 }));
 

@@ -37,6 +37,8 @@ ENTRYPOINT ["java", \
     "-javaagent:/app/scouter-agent/scouter.agent.jar", \
     "-Dscouter.config=/app/scouter-agent/conf/scouter.conf", \
     "-Dobj_name=BimilLog-Backend", \
+    "-Xms400m", \
+    "-Xmx400m", \
     "-Dfile.encoding=UTF-8", \
     "-Duser.timezone=Asia/Seoul", \
     "-XX:+HeapDumpOnOutOfMemoryError", \

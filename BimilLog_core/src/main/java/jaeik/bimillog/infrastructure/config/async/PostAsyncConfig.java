@@ -24,9 +24,9 @@ public class PostAsyncConfig {
     @Bean(name = "realtimeEventExecutor")
     public Executor realtimeEventExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(30);
-        executor.setQueueCapacity(50);
+        executor.setCorePoolSize(3);
+        executor.setMaxPoolSize(6);
+        executor.setQueueCapacity(13);
         executor.setThreadNamePrefix("realtime-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
@@ -40,9 +40,9 @@ public class PostAsyncConfig {
     @Bean(name = "cacheCountUpdateExecutor")
     public Executor cacheCountUpdateExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(30);
-        executor.setQueueCapacity(50);
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(9);
+        executor.setQueueCapacity(14);
         executor.setThreadNamePrefix("cache-count-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
@@ -57,9 +57,9 @@ public class PostAsyncConfig {
     @Bean(name = "cacheRefreshExecutor")
     public Executor cacheRefreshExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(30);
-        executor.setQueueCapacity(50);
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(8);
+        executor.setQueueCapacity(13);
         executor.setThreadNamePrefix("cache-refresh-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);

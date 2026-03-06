@@ -23,8 +23,8 @@ public class NotificationAsyncConfig {
     public Executor sseNotificationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(3);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(50);
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("sse-notification-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
@@ -39,8 +39,8 @@ public class NotificationAsyncConfig {
     public Executor fcmNotificationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(8);
-        executor.setQueueCapacity(50);
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("fcm-notification-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(60);
@@ -54,9 +54,9 @@ public class NotificationAsyncConfig {
     @Bean(name = "saveNotificationExecutor")
     public Executor saveNotificationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(20);
-        executor.setQueueCapacity(30);
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("save-notification-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
