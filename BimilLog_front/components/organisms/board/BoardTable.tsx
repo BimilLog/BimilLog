@@ -2,7 +2,6 @@
 
 import React, { memo, useMemo } from "react";
 import { Card } from "@/components";
-import { Button } from "@/components";
 import Link from "next/link";
 import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils";

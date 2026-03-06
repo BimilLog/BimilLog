@@ -4,19 +4,17 @@ import { Button, Card, CardContent } from "@/components";
 import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import {
   Smartphone,
-  Monitor,
   MessageCircle,
   ArrowLeft,
   Zap,
   Shield,
   Wifi,
-  Rocket,
 } from "lucide-react";
 import Link from "next/link";
 import { PWAInstallButton } from "@/components/molecules/pwa-install-button";
 import { useBrowserGuide } from "@/hooks";
 import { useState, useEffect } from "react";
-import { isIOS, isAndroid, isSafari } from "@/lib/utils";
+import { isIOS, isSafari } from "@/lib/utils";
 import { CleanLayout } from "@/components/organisms/layout/BaseLayout";
 import { APP_LINKS } from "@/lib/constants/app";
 
@@ -133,9 +131,7 @@ export default function InstallPage() {
 
   const browserInfo = isClient ? getBrowserInfo() : { name: "브라우저", isInApp: false };
   const isIOSDevice = isClient ? isIOS() : false;
-  const isAndroidDevice = isClient ? isAndroid() : false;
   const isSafariBrowser = isClient ? isSafari() : false;
-  const isIOSChrome = isClient && isIOSDevice && !isSafariBrowser;
 
   useEffect(() => {
     setIsClient(true);

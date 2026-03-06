@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import dynamic from "next/dynamic";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
 import { Button, Spinner } from "@/components";

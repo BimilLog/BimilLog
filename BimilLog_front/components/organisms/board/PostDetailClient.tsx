@@ -10,7 +10,7 @@ import {
   getAdUnit,
   Breadcrumb,
 } from "@/components";
-import { Post, Comment } from "@/lib/api";
+import { Post } from "@/lib/api";
 
 // 분리된 컴포넌트들 import
 import { PostHeader } from "./PostHeader";
@@ -75,7 +75,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   } = usePostDetail(postId, initialPost);
 
   // Server Action hooks (브라우저에서 백엔드 직접 호출 방지)
-  const { likePost, isPending: isLikingPost } = useLikePostAction();
+  const { likePost } = useLikePostAction();
   const { deletePost, isPending: isDeletingPost } = useDeletePostAction();
   const { createComment, isPending: isCreatingComment } = useCreateCommentAction();
   const { updateComment, isPending: isUpdatingComment } = useUpdateCommentAction();
@@ -113,21 +113,6 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     likeComment,
   });
 
-  // 로딩 상태
-  if (loading) {
-    return <PostDetailSkeleton />;
-  }
-
-  // 게시글이 없는 경우
-  if (!post) {
-    return (
-      <div className="min-h-screen bg-brand-gradient flex items-center justify-center">
-        <p>게시글을 찾을 수 없습니다.</p>
-      </div>
-    );
-  }
-
-
   // 인기 댓글 → 원본 댓글 스크롤 이동 핸들러
   const handleCommentClick = useCallback((commentId: number) => {
     const element = document.getElementById(`comment-${commentId}`);
@@ -152,6 +137,20 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
       }
     }
   }, [comments]);
+
+  // 로딩 상태
+  if (loading) {
+    return <PostDetailSkeleton />;
+  }
+
+  // 게시글이 없는 경우
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-brand-gradient flex items-center justify-center">
+        <p>게시글을 찾을 수 없습니다.</p>
+      </div>
+    );
+  }
 
   const commentCount = getTotalCommentCount(comments);
   const rootCommentCount = getRootCommentCount(comments);

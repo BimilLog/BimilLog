@@ -2,13 +2,10 @@
 
 import React from "react";
 import { X } from "lucide-react";
-import { Avatar } from "flowbite-react";
 import { Button, Badge } from "@/components";
 import { SentFriendRequest } from "@/types/domains/friend";
 import { useCancelFriendRequestAction } from "@/hooks/actions/useFriendActions";
 import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
-import { getInitials } from "@/lib/utils/format";
-import { formatDate } from "@/lib/utils";
 
 interface SentRequestItemProps {
   request: SentFriendRequest;
