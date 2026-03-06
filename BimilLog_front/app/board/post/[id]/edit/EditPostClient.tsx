@@ -138,7 +138,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
           </div>
         </header>
 
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <main className="container mx-auto px-4 py-8 max-w-4xl">
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -224,9 +224,9 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                 /* 미리보기 */
                 <div className="space-y-6">
                   <div className="border-b pb-4">
-                    <h1 className="text-2xl font-bold text-brand-primary mb-2">
+                    <h2 className="text-2xl font-bold text-brand-primary mb-2">
                       {title || "제목을 입력하세요"}
-                    </h1>
+                    </h2>
                     <div className="flex items-center space-x-4 text-sm text-brand-muted">
                       <span>작성자: {post.memberName}</span>
                       <span>작성일: {post.createdAt}</span>
@@ -243,7 +243,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
               )}
             </CardContent>
           </Card>
-        </div>
+        </main>
       </div>
     </>
   );

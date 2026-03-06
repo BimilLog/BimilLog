@@ -126,10 +126,6 @@ export default async function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <head>
         {/* Preconnect & DNS Prefetch */}
-        <link rel="preconnect" href="https://grow-farm.com" />
-        <link rel="dns-prefetch" href="https://grow-farm.com" />
-        <link rel="preconnect" href="https://accounts.kakao.com" />
-        <link rel="dns-prefetch" href="https://accounts.kakao.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
@@ -158,13 +154,13 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Google Analytics */}
+        {/* Google Analytics - lazyOnload로 메인 스레드 차단 최소화 */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-G9C4KYCEEJ"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           nonce={nonce}
         />
-        <Script id="google-analytics" strategy="afterInteractive" nonce={nonce}>
+        <Script id="google-analytics" strategy="lazyOnload" nonce={nonce}>
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}

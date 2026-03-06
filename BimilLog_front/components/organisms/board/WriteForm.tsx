@@ -172,7 +172,7 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
         ) : (
           /* 미리보기 모드: 실제 게시글 렌더링 형태로 표시 */
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold mb-4">{title}</h1>
+            <h2 className="text-3xl font-bold mb-4">{title}</h2>
             <div className="text-sm text-brand-secondary mb-6">
               {/* 작성자 표시: 인증된 사용자는 이름, 비인증 사용자는 '익명' */}
               작성자: {isAuthenticated ? user?.memberName : "익명"}

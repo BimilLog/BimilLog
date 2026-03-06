@@ -26,6 +26,7 @@ export const ThemeToggleButton = React.memo(({ mounted }: ThemeToggleButtonProps
         else setTheme('light');
       }}
       className="min-h-[44px] min-w-[44px] touch-manipulation rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
+      aria-label={mounted ? `테마 변경 (현재: ${theme === 'dark' ? '다크' : theme === 'light' ? '라이트' : '시스템'})` : '테마 변경'}
       title={mounted ? `테마 변경 (현재: ${theme === 'dark' ? '다크' : theme === 'light' ? '라이트' : '시스템'})` : '테마 변경'}
     >
       {getThemeIcon()}

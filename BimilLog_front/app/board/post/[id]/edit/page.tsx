@@ -1,5 +1,11 @@
+import { Metadata } from "next";
 import { getPostDetailServer } from "@/lib/api/server";
 import EditPostClient from "./EditPostClient";
+
+export const metadata: Metadata = {
+  title: "게시글 수정 - 비밀로그",
+  description: "비밀로그 게시글을 수정합니다.",
+};
 
 interface EditPostPageProps {
   params: Promise<{ id: string }>;

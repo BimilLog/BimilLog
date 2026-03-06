@@ -83,7 +83,7 @@ export default function WritePostPage() {
         isFormValid={isFormValid}
       />
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-4 flex items-center justify-between">
           <Breadcrumb
             items={[
@@ -123,7 +123,7 @@ export default function WritePostPage() {
           isPreview={isPreview}
           plainTextLength={plainTextLength} // 순수 텍스트 길이 (HTML 태그 제외)
         />
-      </div>
+      </main>
     </div>
   );
 }

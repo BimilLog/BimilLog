@@ -28,7 +28,7 @@ export const HomeHero: React.FC<HomeHeroProps> = memo(({
           비밀로그에서 친구들에게 익명으로 따뜻한 메시지를 남겨보세요
         </p>
 
-        <div className="flex flex-col gap-4 justify-center items-center">
+        <div className="flex flex-col gap-4 justify-center items-center min-h-[160px]">
           {/* 비로그인 상태 */}
           {!isAuthenticated && (
             <Button
@@ -91,23 +91,12 @@ export const HomeHero: React.FC<HomeHeroProps> = memo(({
             </Button>
           </div>
 
-          {/* PC: 카카오톡 공유 버튼 - 로그인 여부 관계없이 항상 표시 */}
-          <div className="hidden sm:block">
-            <KakaoShareButton
-              type="service"
-              size="lg"
-              className="px-8 py-3 text-lg font-semibold"
-            />
-          </div>
-
-          {/* 모바일: 카카오톡 공유 버튼 - 로그인 여부 관계없이 항상 표시 */}
-          <div className="sm:hidden">
-            <KakaoShareButton
-              type="service"
-              size="lg"
-              className="px-8 py-3 text-lg font-semibold"
-            />
-          </div>
+          {/* 카카오톡 공유 버튼 - 로그인 여부 관계없이 항상 표시 */}
+          <KakaoShareButton
+            type="service"
+            size="lg"
+            className="px-8 py-3 text-lg font-semibold"
+          />
         </div>
       </div>
     </div>

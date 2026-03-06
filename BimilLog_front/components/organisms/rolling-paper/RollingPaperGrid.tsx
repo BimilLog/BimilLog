@@ -270,6 +270,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 size="sm"
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
+                aria-label="이전 페이지"
                 className="bg-white/80 dark:bg-gray-800/80"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -284,6 +285,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 size="sm"
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
+                aria-label="다음 페이지"
                 className="bg-white/80 dark:bg-gray-800/80"
               >
                 <ChevronRight className="w-4 h-4" />

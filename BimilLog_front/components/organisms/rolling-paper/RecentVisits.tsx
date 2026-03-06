@@ -53,6 +53,7 @@ export const RecentVisits: React.FC = memo(() => {
             size="sm"
             onClick={handleClearAll}
             className="text-brand-secondary hover:text-red-500 hover:bg-red-50"
+            aria-label="최근 방문 기록 전체 삭제"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
@@ -82,6 +83,7 @@ export const RecentVisits: React.FC = memo(() => {
                   handleRemoveVisit(visit.nickname);
                 }}
                 className="text-brand-secondary hover:text-red-500 hover:bg-red-50 h-8 w-8 p-0 flex-shrink-0"
+                aria-label={`${visit.displayName}님의 방문 기록 삭제`}
               >
                 <X className="w-4 h-4" />
               </Button>

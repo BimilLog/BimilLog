@@ -196,6 +196,7 @@ export const HomeFooter: React.FC = React.memo(() => {
               href="https://github.com/BimilLog"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="비밀로그 GitHub 저장소"
               className="hover:bg-accent rounded-lg p-2 transition-colors"
             >
               <Github className="w-5 h-5 text-foreground" />
@@ -204,6 +205,7 @@ export const HomeFooter: React.FC = React.memo(() => {
               href="https://jaeiktech.tistory.com"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="개발자 블로그"
               className="hover:bg-accent rounded-lg p-2 transition-colors"
             >
               <Contact className="w-5 h-5 text-foreground" />

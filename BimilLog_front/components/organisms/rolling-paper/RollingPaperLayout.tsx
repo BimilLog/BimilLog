@@ -13,7 +13,9 @@ export const RollingPaperLayout: React.FC<RollingPaperLayoutProps> = React.memo(
     <div className="min-h-screen bg-brand-gradient">
       {/* Auth Header */}
       <AuthHeader />
-      {children}
+      <main>
+        {children}
+      </main>
       <HomeFooter />
     </div>
   );

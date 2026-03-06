@@ -144,7 +144,7 @@ export function KakaoShareButton({
       disabled={isSharing}  // 중복 클릭 방지
       color={color}
       size={size}
-      className={`!bg-yellow-400 !hover:bg-yellow-500 !text-white ${className}`}
+      className={`!bg-yellow-400 !hover:bg-yellow-500 !text-gray-900 ${className}`}
     >
       <MessageCircle className="w-4 h-4 mr-2" />
       {/* 상태별 버튼 텍스트 - 로딩 중이거나 게시글 타입에 따라 다르게 표시 */}

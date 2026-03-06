@@ -12,7 +12,7 @@ import { ToastContainer, Loading, Spinner, type Toast } from "@/components";
 const RollingPaperGrid = dynamic(
   () => import("@/components/organisms/rolling-paper/RollingPaperGrid").then(mod => ({ default: mod.RollingPaperGrid })),
   {
-    loading: () => <Loading className="min-h-[400px]" />,
+    loading: () => <Loading className="min-h-[700px] md:min-h-[800px]" />,
     ssr: false
   }
 );

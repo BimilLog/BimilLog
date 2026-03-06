@@ -41,7 +41,9 @@ export default function SuggestPage() {
         </div>
       </header>
 
-      <SuggestClient />
+      <main>
+        <SuggestClient />
+      </main>
 
       {/* Footer */}
       <HomeFooter />

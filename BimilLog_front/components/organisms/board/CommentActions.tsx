@@ -78,6 +78,7 @@ export const CommentActions: React.FC<CommentActionsProps> = React.memo(({
             <Button
               size="sm"
               variant="ghost"
+              aria-label="댓글 옵션"
               className="text-xs px-2 py-1 h-7 text-brand-secondary hover:text-brand-primary"
             >
               <MoreHorizontal className="w-3 h-3" />
