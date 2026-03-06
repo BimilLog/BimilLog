@@ -155,7 +155,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
               <div className="w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-blue-200 dark:ring-blue-800 shadow-xl">
                 {user.thumbnailImage ? (
                   <Image
-                    src={user.thumbnailImage}
+                    src={user.thumbnailImage.replace(/^http:\/\//, 'https://')}
                     alt={user.memberName}
                     width={128}
                     height={128}
