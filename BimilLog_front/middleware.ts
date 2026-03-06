@@ -69,6 +69,13 @@ export function middleware(request: NextRequest) {
     });
 
     response.headers.set('Content-Security-Policy', cspHeaderValue);
+    response.headers.set('Content-Security-Policy-Report-Only', "require-trusted-types-for 'script'");
+
+    // bfcache 활성화: no-store 대신 no-cache 사용
+    // Next.js가 동적 페이지에 자동으로 no-store를 설정하는 것을 덮어씀
+    if (!request.nextUrl.pathname.startsWith('/api/')) {
+        response.headers.set('Cache-Control', 'private, no-cache, must-revalidate');
+    }
 
     return response;
 }

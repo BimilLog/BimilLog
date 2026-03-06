@@ -111,8 +111,8 @@ export default function HomeClient({ popularPapers }: HomeClientProps) {
       {/* Hero Section with Popular Papers */}
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          {/* Hero Section */}
-          <div className="flex-1">
+          {/* Hero Section - 최소 높이 고정으로 CLS 방지 */}
+          <div className="flex-1 min-h-[280px] md:min-h-[320px]">
             <HomeHero
               isAuthenticated={isAuthenticated}
               provider={provider}
