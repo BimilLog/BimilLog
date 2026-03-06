@@ -52,7 +52,6 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     sentRequestId,
     receivedRequestId,
     targetMemberId,
-    isLoading: isLoadingRelationship,
   } = useFriendRelationshipCheck(memberName, shouldFetchData);
 
   // 친구 요청 Actions

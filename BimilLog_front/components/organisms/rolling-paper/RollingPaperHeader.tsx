@@ -6,12 +6,9 @@ import { MessageSquare, Share2, List } from "lucide-react";
 import { KakaoShareButton } from "@/components";
 import { useRollingPaperShare } from "@/hooks/features/useRollingPaperShare";
 import { FriendActionButtons } from "./FriendActionButtons";
-import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
-
 interface RollingPaperHeaderProps {
   nickname: string;
   messageCount: number;
-  messages: (RollingPaperMessage | VisitMessage)[];
   ownerId?: number | null;
   isOwner?: boolean;
   onShowMessages?: () => void;
@@ -21,7 +18,6 @@ interface RollingPaperHeaderProps {
 export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(({
   nickname,
   messageCount,
-  messages,
   ownerId,
   isOwner = false,
   onShowMessages,

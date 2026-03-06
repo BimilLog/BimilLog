@@ -2,11 +2,9 @@
 
 import React from "react";
 import { UserPlus, UsersRound } from "lucide-react";
-import { Avatar } from "flowbite-react";
 import { Badge, Button } from "@/components";
 import { RecommendedFriend } from "@/types/domains/friend";
 import { useSendFriendRequestAction } from "@/hooks/actions/useFriendActions";
-import { getInitials } from "@/lib/utils/format";
 
 interface RecommendedFriendItemProps {
   friend: RecommendedFriend;

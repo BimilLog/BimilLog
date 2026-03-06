@@ -7,7 +7,7 @@ interface ActionResult {
   success: boolean
   message?: string
   error?: string
-  data?: any
+  data?: unknown
 }
 
 async function getAuthHeaders() {

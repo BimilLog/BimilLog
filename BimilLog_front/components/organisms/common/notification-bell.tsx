@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Bell, BellOff } from "lucide-react";
 import { Button } from "@/components";
 import { useNotifications } from "@/hooks/features";
@@ -45,10 +45,10 @@ export function NotificationBell() {
     isRefetching,
     refetch,
   } = useNotificationList({ enabled: canUseNotifications });
-  const { markAsRead, isPending: isMarkingAsRead } = useMarkNotificationAsReadAction();
-  const { deleteNotification, isPending: isDeletingNotification } = useDeleteNotificationAction();
-  const { markAllAsRead, isPending: isMarkingAllAsRead } = useMarkAllNotificationsAsReadAction();
-  const { deleteAllNotifications, isPending: isDeletingAllNotifications } = useDeleteAllNotificationsAction();
+  const { markAsRead } = useMarkNotificationAsReadAction();
+  const { deleteNotification } = useDeleteNotificationAction();
+  const { markAllAsRead } = useMarkAllNotificationsAsReadAction();
+  const { deleteAllNotifications } = useDeleteAllNotificationsAction();
   const { registerFcmToken } = useRegisterFcmTokenAction();
 
   useEffect(() => {
@@ -111,7 +111,7 @@ export function NotificationBell() {
     };
   }, [isOpen, isMobile, updateDesktopPopoverPosition]);
 
-  const notifications = notificationResponse?.success ? (notificationResponse.data || []) : [];
+  const notifications = useMemo(() => notificationResponse?.success ? (notificationResponse.data || []) : [], [notificationResponse]);
   const isFetchingList = isFetching || isRefetching;
   const isInitialLoading = status === "pending" && isFetchingList;
   const unreadCount = notifications.filter(n => !n.read).length;

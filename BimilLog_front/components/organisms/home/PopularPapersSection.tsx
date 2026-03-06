@@ -17,7 +17,7 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = memo(({
   const router = useRouter();
 
   // SSR 데이터가 없으면 클라이언트에서 fetch (fallback)
-  const { data: clientData, isLoading, isError } = usePopularPapers(0, 10, {
+  const { data: clientData, isLoading } = usePopularPapers(0, 10, {
     enabled: !initialData, // SSR 데이터가 없을 때만 활성화
   });
 

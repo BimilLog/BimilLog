@@ -96,7 +96,6 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = React.memo(({
       <RollingPaperHeader
         nickname={targetNickname}
         messageCount={messageCount}
-        messages={messages}
         ownerId={ownerId}
         isOwner={isOwner}
         onShowMessages={isOwner ? () => setIsMessageListOpen(true) : undefined}
