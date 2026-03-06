@@ -49,6 +49,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = React.m
               checked={allEnabled === true}
               onCheckedChange={onAllToggle}
               disabled={saving}
+              aria-label="전체 알림 설정"
             />
           </div>
         </div>

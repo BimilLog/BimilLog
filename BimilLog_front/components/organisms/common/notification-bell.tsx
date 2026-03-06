@@ -226,6 +226,7 @@ export function NotificationBell() {
         className={`flex items-center gap-1 min-h-[44px] px-2 touch-manipulation ${
           !isMobile ? "notification-button " : ""
         }${bellInfo.className}`}
+        aria-label="알림"
         title={bellInfo.tooltip}
       >
         {bellInfo.icon}

@@ -169,7 +169,7 @@ export const FriendActionButtons: React.FC<FriendActionButtonsProps> = React.mem
           color="light"
           size="sm"
           disabled={isPending}
-          className="text-xs text-orange-600 hover:text-orange-700"
+          className="text-xs text-orange-700 hover:text-orange-800"
         >
           <UserMinus className="w-4 h-4 mr-1" />
           {isPending ? "처리 중..." : "요청 취소"}

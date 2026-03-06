@@ -54,7 +54,10 @@ export const BoardSearch = memo(({
               label=""
               dismissOnClick={true}
               renderTrigger={() => (
-                <button className="flex items-center justify-between w-[120px] px-3 py-2 border-0 rounded-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-gray-50 hover:bg-gray-100 border-r border-gray-200 text-sm dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-slate-700">
+                <button
+                  aria-label="검색 유형 선택"
+                  className="flex items-center justify-between w-[120px] px-3 py-2 border-0 rounded-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-gray-50 hover:bg-gray-100 border-r border-gray-200 text-sm text-gray-900 dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-slate-700 dark:text-gray-100"
+                >
                   <span>
                     {searchType === "TITLE" ? "제목" :
                      searchType === "TITLE_CONTENT" ? "제목+내용" :
@@ -91,7 +94,7 @@ export const BoardSearch = memo(({
                   handleSearch(); // 즉시 목록으로 복귀
                 }}
                 className="border-0 rounded-none hover:bg-gray-100 dark:hover:bg-slate-800"
-                title="검색어 지우기"
+                aria-label="검색어 지우기"
               >
                 <X className="w-4 h-4 stroke-gray-500" />
               </Button>
@@ -100,6 +103,7 @@ export const BoardSearch = memo(({
               variant="ghost"
               size="icon"
               onClick={executeSearch}
+              aria-label="검색"
               className="border-0 rounded-none border-l border-gray-200 hover:bg-brand-secondary/10 dark:border-slate-700 dark:hover:bg-brand-secondary/20"
             >
               <Search className="w-5 h-5 stroke-blue-600 fill-blue-100" />
@@ -113,7 +117,10 @@ export const BoardSearch = memo(({
             label=""
             dismissOnClick={true}
             renderTrigger={() => (
-              <button className="flex items-center justify-between w-[120px] px-3 py-2 bg-white border border-gray-300 rounded-lg hover:border-brand-secondary/50 focus:ring-2 focus:ring-brand-secondary/20 text-sm dark:bg-slate-900/80 dark:border-slate-700 dark:hover:border-brand-secondary/40">
+              <button
+                aria-label="페이지 당 게시글 수 선택"
+                className="flex items-center justify-between w-[120px] px-3 py-2 bg-white border border-gray-300 rounded-lg hover:border-brand-secondary/50 focus:ring-2 focus:ring-brand-secondary/20 text-sm text-gray-900 dark:bg-slate-900/80 dark:border-slate-700 dark:hover:border-brand-secondary/40 dark:text-gray-100"
+              >
                 <span>{postsPerPage}개씩</span>
                 <ChevronDown className="w-4 h-4 stroke-slate-600 fill-slate-100" />
               </button>

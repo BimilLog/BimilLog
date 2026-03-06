@@ -97,9 +97,9 @@ const CardHeader = React.memo(({ className, ...props }: React.ComponentProps<"di
 
 CardHeader.displayName = "CardHeader";
 
-const CardTitle = React.memo(({ className, ...props }: React.ComponentProps<"h3">) => {
+const CardTitle = React.memo(({ className, ...props }: React.ComponentProps<"h2">) => {
   return (
-    <h3
+    <h2
       data-slot="card-title"
       className={cn(
         "leading-tight font-semibold text-lg text-brand-primary",
