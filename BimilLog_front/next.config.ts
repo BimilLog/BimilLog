@@ -158,6 +158,10 @@ const nextConfig = withPWA(pwaConfig)({
                 hostname: '*.kakaocdn.net',
             },
             {
+                protocol: 'http',
+                hostname: '*.kakaocdn.net',
+            },
+            {
                 protocol: 'https',
                 hostname: '*.kakao.com',
             },
@@ -167,6 +171,10 @@ const nextConfig = withPWA(pwaConfig)({
             },
             {
                 protocol: 'https',
+                hostname: '*.pstatic.net',
+            },
+            {
+                protocol: 'http',
                 hostname: '*.pstatic.net',
             },
         ],
