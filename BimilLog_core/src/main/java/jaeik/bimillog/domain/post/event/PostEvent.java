@@ -92,6 +92,4 @@ public interface PostEvent {
         @Override
         public int counterDelta() { return -1; }
     }
-
-
 }
