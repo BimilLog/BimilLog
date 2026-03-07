@@ -249,17 +249,11 @@ class RealtimeCacheConsistencyTest {
      * 자카드 유사도 계산: |교집합| / |합집합|
      */
     private double jaccardSimilarity(List<Long> a, List<Long> b) {
-        if (a.isEmpty() && b.isEmpty()) {
-            return 1.0;
-        }
-        if (a.isEmpty() || b.isEmpty()) {
-            return 0.0;
-        }
         Set<Long> setA = new HashSet<>(a);
         Set<Long> setB = new HashSet<>(b);
         Set<Long> intersection = new HashSet<>(setA);
-        intersection.retainAll(setB);
         Set<Long> union = new HashSet<>(setA);
+        intersection.retainAll(setB);
         union.addAll(setB);
         return (double) intersection.size() / union.size();
     }
