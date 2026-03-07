@@ -121,9 +121,6 @@ function BoardClient({ initialData }: BoardClientProps) {
       className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]"
       containerClassName="container mx-auto px-4"
     >
-      {/* 게시판 헤더 */}
-      <BoardHeader />
-
       <main className="pb-8">
         <Breadcrumb
           items={[
@@ -144,8 +141,10 @@ function BoardClient({ initialData }: BoardClientProps) {
             />
         </div>
 
-        {/* 게시판 탭 */}
-        <BoardTabs
+        {/* 게시판 탭 + 글쓰기 버튼 */}
+        <div className="relative">
+          <BoardHeader />
+          <BoardTabs
           activeTab={activeTab}
           onTabChange={handleTabChange}
           posts={posts}
@@ -169,6 +168,7 @@ function BoardClient({ initialData }: BoardClientProps) {
           popularLoading={popularLoading}
           popularError={popularError}
         />
+        </div>
 
       </main>
     </MainLayout>
