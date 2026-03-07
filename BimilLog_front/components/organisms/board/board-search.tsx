@@ -3,7 +3,8 @@
 import { memo } from "react";
 import { Input, Button, Card } from "@/components";
 import { Dropdown, DropdownItem } from "flowbite-react";
-import { Search, ListFilter, ChevronDown, X } from "lucide-react";
+import { Search, ListFilter, ChevronDown, X, Edit } from "lucide-react";
+import Link from "next/link";
 
 interface BoardSearchProps {
   searchTerm: string;
@@ -136,6 +137,16 @@ export const BoardSearch = memo(({
               50개씩
             </DropdownItem>
           </Dropdown>
+
+          <Link href="/board/write">
+            <Button
+              size="sm"
+              className="inline-flex items-center"
+            >
+              <Edit className="w-4 h-4 mr-1 stroke-slate-600 fill-slate-100" />
+              <span className="text-sm">글쓰기</span>
+            </Button>
+          </Link>
         </div>
       </div>
     </Card>

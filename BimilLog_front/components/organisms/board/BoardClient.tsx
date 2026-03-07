@@ -10,7 +10,6 @@ import { Breadcrumb } from "@/components";
 import { useInfinitePostList, usePopularPostsTabs, useNoticePosts } from "@/hooks/features";
 
 // 분리된 컴포넌트들 import
-import { BoardHeader } from "@/components/organisms/board/BoardHeader";
 import { BoardTabs } from "@/components/organisms/board/BoardTabs";
 
 import { PageResponse, CursorPageResponse } from "@/types/common";
@@ -141,10 +140,8 @@ function BoardClient({ initialData }: BoardClientProps) {
             />
         </div>
 
-        {/* 게시판 탭 + 글쓰기 버튼 */}
-        <div className="relative">
-          <BoardHeader />
-          <BoardTabs
+        {/* 게시판 탭 */}
+        <BoardTabs
           activeTab={activeTab}
           onTabChange={handleTabChange}
           posts={posts}
@@ -168,7 +165,6 @@ function BoardClient({ initialData }: BoardClientProps) {
           popularLoading={popularLoading}
           popularError={popularError}
         />
-        </div>
 
       </main>
     </MainLayout>
