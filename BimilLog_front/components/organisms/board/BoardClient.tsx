@@ -33,7 +33,6 @@ function BoardClient({ initialData }: BoardClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("all");
-  const [postsPerPage, setPostsPerPage] = useState("20");
 
   // URL에서 검색 파라미터 가져오기
   const urlQuery = searchParams.get('q');
@@ -57,7 +56,7 @@ function BoardClient({ initialData }: BoardClientProps) {
     setSearchType,
     isSearching,
   } = useInfinitePostList({
-    pageSize: Number(postsPerPage),
+    pageSize: 20,
     // 검색이 아닌 경우에만 커서 기반 초기 데이터 사용
     initialData: !initialData?.isSearch
       ? (initialData?.posts as CursorPageResponse<SimplePost> | null)
@@ -134,8 +133,6 @@ function BoardClient({ initialData }: BoardClientProps) {
               setSearchTerm={setSearchTerm}
               searchType={searchType}
               setSearchType={setSearchType}
-              postsPerPage={postsPerPage}
-              setPostsPerPage={setPostsPerPage}
               handleSearch={handleSearch}
             />
         </div>
