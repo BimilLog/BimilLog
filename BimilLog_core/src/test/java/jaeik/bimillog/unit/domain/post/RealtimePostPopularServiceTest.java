@@ -18,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -60,11 +59,10 @@ class RealtimePostPopularServiceTest {
     @DisplayName("ZSet 비어있음 → 빈 페이지 반환")
     void shouldReturnEmptyPage_WhenZSetIsEmpty() {
         // Given
-        Pageable pageable = PageRequest.of(0, 5);
         given(redisPostRealTimeAdapter.getRangePostId()).willReturn(List.of());
 
         // When
-        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
+        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts();
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -75,7 +73,6 @@ class RealtimePostPopularServiceTest {
     @DisplayName("ZSet 있음 + LIST ID 순서 일치 → LIST + 카운터 결합 반환 (비동기 갱신 없음)")
     void shouldReturnListPosts_WhenIdsMatch() {
         // Given
-        Pageable pageable = PageRequest.of(0, 5);
         List<Long> zsetIds = List.of(2L, 1L);
         List<PostSimpleDetail> posts = List.of(
                 PostTestDataBuilder.createPostSearchResult(2L, "인기글1"),
@@ -84,10 +81,10 @@ class RealtimePostPopularServiceTest {
 
         given(redisPostRealTimeAdapter.getRangePostId()).willReturn(zsetIds);
         given(redisPostListQueryAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
-        given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(posts, pageable, 2));
+        given(postUtil.paginate(any(), any(Pageable.class))).willReturn(new PageImpl<>(posts));
 
         // When
-        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
+        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts();
 
         // Then
         assertThat(result.getContent()).hasSize(2);
@@ -98,7 +95,6 @@ class RealtimePostPopularServiceTest {
     @DisplayName("ZSet 있음 + LIST ID 순서 불일치 → LIST + 카운터 결합 반환 + 비동기 갱신 트리거")
     void shouldReturnListAndTriggerAsyncRebuild_WhenIdsMismatch() {
         // Given
-        Pageable pageable = PageRequest.of(0, 5);
         List<Long> zsetIds = List.of(3L, 1L);
         List<PostSimpleDetail> posts = List.of(
                 PostTestDataBuilder.createPostSearchResult(1L, "인기글1"),
@@ -107,10 +103,10 @@ class RealtimePostPopularServiceTest {
 
         given(redisPostRealTimeAdapter.getRangePostId()).willReturn(zsetIds);
         given(redisPostListQueryAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(posts);
-        given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(posts, pageable, 2));
+        given(postUtil.paginate(any(), any(Pageable.class))).willReturn(new PageImpl<>(posts));
 
         // When
-        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
+        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts();
 
         // Then
         assertThat(result.getContent()).hasSize(2);
@@ -121,16 +117,15 @@ class RealtimePostPopularServiceTest {
     @DisplayName("ZSet 있음 + LIST 비어있음 → 빈 카운터 결합 반환 + 비동기 갱신 트리거")
     void shouldReturnEmptyAndTriggerRebuild_WhenListIsEmpty() {
         // Given
-        Pageable pageable = PageRequest.of(0, 5);
         List<Long> zsetIds = List.of(1L, 2L);
         List<PostSimpleDetail> emptyPosts = List.of();
 
         given(redisPostRealTimeAdapter.getRangePostId()).willReturn(zsetIds);
         given(redisPostListQueryAdapter.getAll(RedisKey.POST_REALTIME_JSON_KEY)).willReturn(emptyPosts);
-        given(postUtil.paginate(any(), eq(pageable))).willReturn(new PageImpl<>(emptyPosts, pageable, 0));
+        given(postUtil.paginate(any(), any(Pageable.class))).willReturn(new PageImpl<>(emptyPosts));
 
         // When
-        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts(pageable);
+        Page<PostSimpleDetail> result = realtimePostCacheService.getRealtimePosts();
 
         // Then
         assertThat(result.getContent()).isEmpty();

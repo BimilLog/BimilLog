@@ -43,31 +43,31 @@ export async function getPostsServer(cursor?: number | null, size = 20) {
 }
 
 // 실시간 인기글 조회
-export async function getRealtimePostsServer(page = 0, size = 5) {
-  return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post/realtime?page=${page}&size=${size}`)
+export async function getRealtimePostsServer() {
+  return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post/realtime`)
 }
 
 // 주간 인기글 조회
-export async function getWeeklyPostsServer(page = 0, size = 10) {
-  return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post/weekly?page=${page}&size=${size}`)
+export async function getWeeklyPostsServer() {
+  return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post/weekly`)
 }
 
 // 레전드 글 조회
-export async function getLegendPostsServer(page = 0, size = 10) {
-  return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post/legend?page=${page}&size=${size}`)
+export async function getLegendPostsServer() {
+  return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post/legend`)
 }
 
 // 공지사항 조회
-export async function getNoticePostsServer(page = 0, size = 10) {
-  return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post/notice?page=${page}&size=${size}`)
+export async function getNoticePostsServer() {
+  return serverFetch<ApiResponse<PageResponse<SimplePost>>>(`/api/post/notice`)
 }
 
 // 게시판 초기 데이터 한 번에 조회 (커서 기반)
 export async function getBoardInitialData(size = 20) {
   const [posts, realtimePosts, noticePosts] = await Promise.all([
     getPostsServer(null, size), // 첫 페이지는 cursor = null
-    getRealtimePostsServer(0, 5),
-    getNoticePostsServer(0, 10),
+    getRealtimePostsServer(),
+    getNoticePostsServer(),
   ])
 
   return {
@@ -87,7 +87,7 @@ export async function getSearchInitialData(
 ) {
   const [searchResults, realtimePosts] = await Promise.all([
     searchPostsServer(type, query, page, size),
-    getRealtimePostsServer(0, 5),
+    getRealtimePostsServer(),
   ])
 
   return {

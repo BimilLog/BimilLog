@@ -6,6 +6,9 @@ import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -32,28 +35,28 @@ public enum PostQueryType {
     WEEKLY(
             () -> QPost.post.isWeekly.eq(true),
             null, null, null, null,
-            new OrderSpecifier[]{QPost.post.id.desc()}, -1),
+            new OrderSpecifier[]{QPost.post.id.desc()}, -1, 10),
 
     LEGEND(
             () -> QPost.post.isLegend.eq(true),
             null, null, null, null,
-            new OrderSpecifier[]{QPost.post.id.desc()}, -1),
+            new OrderSpecifier[]{QPost.post.id.desc()}, -1, 10),
 
     NOTICE(
             () -> QPost.post.isNotice.eq(true),
             null, null, null, null,
-            new OrderSpecifier[]{QPost.post.id.desc()}, -1),
+            new OrderSpecifier[]{QPost.post.id.desc()}, -1, 10),
 
     WEEKLY_SCHEDULER(
             () -> QPost.post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS))
                     .and(QPost.post.likeCount.goe(1)),
             null, null, null, null,
-            new OrderSpecifier[]{QPost.post.likeCount.desc()}, 5),
+            new OrderSpecifier[]{QPost.post.likeCount.desc()}, 5, -1),
 
     LEGEND_SCHEDULER(
             () -> QPost.post.likeCount.goe(20),
             null, null, null, null,
-            new OrderSpecifier[]{QPost.post.likeCount.desc()}, 50),
+            new OrderSpecifier[]{QPost.post.likeCount.desc()}, 50, -1),
 
     REALTIME_FALLBACK(
             () -> QPost.post.createdAt.after(Instant.now().minus(1, ChronoUnit.HOURS)),
@@ -61,44 +64,44 @@ public enum PostQueryType {
             new OrderSpecifier[]{
                     QPost.post.views.add(QPost.post.likeCount.multiply(30)).desc(),
                     QPost.post.createdAt.desc()
-            }, -1),
+            }, -1, 5),
 
     MEMBER_POSTS(
             null,
             QPost.post.member.id::eq,
             null, null, null,
-            new OrderSpecifier[]{QPost.post.createdAt.desc()}, -1),
+            new OrderSpecifier[]{QPost.post.createdAt.desc()}, -1, -1),
 
     TITLE(
             null, null,
             QPost.post.title::startsWith,
             QPost.post.title::contains,
             null,
-            new OrderSpecifier[]{QPost.post.id.desc()}, -1),
+            new OrderSpecifier[]{QPost.post.id.desc()}, -1, -1),
 
     WRITER(
             null, null,
             QPost.post.memberName::startsWith,
             QPost.post.memberName::contains,
             null,
-            new OrderSpecifier[]{QPost.post.id.desc()}, -1),
+            new OrderSpecifier[]{QPost.post.id.desc()}, -1, -1),
 
     TITLE_CONTENT(
             null, null,
             query -> QPost.post.title.startsWith(query).or(QPost.post.content.startsWith(query)),
             query -> QPost.post.title.contains(query).or(QPost.post.content.contains(query)),
             null,
-            new OrderSpecifier[]{QPost.post.id.desc()}, -1),
+            new OrderSpecifier[]{QPost.post.id.desc()}, -1, -1),
 
     CAFFEINE_REALTIME(
             null, null, null, null,
             QPost.post.id::in,
-            new OrderSpecifier[]{QPost.post.id.desc()}, -1),
+            new OrderSpecifier[]{QPost.post.id.desc()}, -1, 5),
 
     LIKED_POSTS(
             null, null, null, null,
             QPost.post.id::in,
-            new OrderSpecifier[]{QPost.post.id.desc()}, -1);
+            new OrderSpecifier[]{QPost.post.id.desc()}, -1, -1);
 
     private final Supplier<BooleanExpression> conditionFn;
     private final Function<Long, BooleanExpression> memberConditionFn;
@@ -107,6 +110,7 @@ public enum PostQueryType {
     private final Function<List<Long>, BooleanExpression> idsConditionFn;
     private final OrderSpecifier[] orders;
     private final int limit;
+    private final int defaultPageSize;
 
     public BooleanExpression condition() {
         return conditionFn.get();
@@ -118,5 +122,9 @@ public enum PostQueryType {
 
     public BooleanExpression partialCondition(String query) {
         return partialConditionFn.apply(query);
+    }
+
+    public Pageable defaultPageable() {
+        return PageRequest.of(0, defaultPageSize);
     }
 }

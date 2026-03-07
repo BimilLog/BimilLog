@@ -35,7 +35,8 @@ public class PostPopularService {
     /**
      * 주간, 레전드, 공지 목록 조회
      */
-    public Page<PostSimpleDetail> getPopularPosts(Pageable pageable, String redisKey, PostQueryType type) {
+    public Page<PostSimpleDetail> getPopularPosts(String redisKey, PostQueryType type) {
+        Pageable pageable = type.defaultPageable();
         try {
             List<PostSimpleDetail> posts = redisPostListQueryAdapter.getAll(redisKey);
             if (!posts.isEmpty()) {
