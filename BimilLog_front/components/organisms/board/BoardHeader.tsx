@@ -1,23 +1,12 @@
 import React from "react";
 import { Button } from "@/components";
-import { MessageSquare, Edit } from "lucide-react";
+import { Edit } from "lucide-react";
 import Link from "next/link";
 
 export const BoardHeader = React.memo(() => {
   return (
     <header className="py-8">
       <div className="container mx-auto px-4 text-center">
-        <div className="flex items-center justify-center space-x-3 mb-4">
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-            <MessageSquare className="w-7 h-7 text-white stroke-blue-600 fill-blue-100" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent inline-block">
-            커뮤니티 게시판
-          </h1>
-        </div>
-        <p className="text-lg text-brand-muted mx-auto mb-6" style={{ maxWidth: '672px' }}>
-          다른 사용자들과 소통하고 생각을 나누어보세요
-        </p>
         <Link href="/board/write">
           <Button
             size="lg"
