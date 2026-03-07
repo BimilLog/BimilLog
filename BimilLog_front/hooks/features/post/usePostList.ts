@@ -139,10 +139,7 @@ export function usePopularPostsTabs(initialRealtimeData?: PageResponse<SimplePos
       page: realtimePagination.currentPage,
       size: realtimePagination.pageSize
     }),
-    queryFn: () => postQuery.getRealtimePosts(
-      realtimePagination.currentPage,
-      realtimePagination.pageSize
-    ),
+    queryFn: () => postQuery.getRealtimePosts(),
     // SSR에서 전달받은 초기 데이터 사용 (첫 페이지만)
     initialData: initialRealtimeData && realtimePagination.currentPage === 0
       ? { success: true, data: initialRealtimeData }
@@ -159,10 +156,7 @@ export function usePopularPostsTabs(initialRealtimeData?: PageResponse<SimplePos
       page: weeklyPagination.currentPage,
       size: weeklyPagination.pageSize
     }),
-    queryFn: () => postQuery.getWeeklyPosts(
-      weeklyPagination.currentPage,
-      weeklyPagination.pageSize
-    ),
+    queryFn: () => postQuery.getWeeklyPosts(),
     enabled: activeTab === 'weekly',
     placeholderData: (previousData) => previousData, // 탭 전환 시 이전 데이터 유지
     staleTime: 5 * 60 * 1000, // 5분
@@ -175,7 +169,7 @@ export function usePopularPostsTabs(initialRealtimeData?: PageResponse<SimplePos
       page: legendPagination.currentPage,
       size: legendPagination.pageSize
     }),
-    queryFn: () => postQuery.getLegend(legendPagination.currentPage, legendPagination.pageSize),
+    queryFn: () => postQuery.getLegend(),
     enabled: activeTab === 'legend',
     placeholderData: (previousData) => previousData, // 탭 전환 시 이전 데이터 유지
     staleTime: 10 * 60 * 1000, // 10분 (레전드는 자주 변경되지 않음)
@@ -255,10 +249,7 @@ export function useNoticePosts(enabled = true, initialData?: PageResponse<Simple
       page: pagination.currentPage,
       size: pagination.pageSize
     }),
-    queryFn: () => postQuery.getNoticePosts(
-      pagination.currentPage,
-      pagination.pageSize
-    ),
+    queryFn: () => postQuery.getNoticePosts(),
     // SSR에서 전달받은 초기 데이터 사용 (첫 페이지만)
     initialData: initialData && pagination.currentPage === 0
       ? { success: true, data: initialData }

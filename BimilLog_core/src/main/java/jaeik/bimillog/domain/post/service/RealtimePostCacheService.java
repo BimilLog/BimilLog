@@ -20,6 +20,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import static jaeik.bimillog.domain.post.repository.PostQueryType.REALTIME_FALLBACK;
+
 import java.util.List;
 
 /**
@@ -45,19 +47,20 @@ public class RealtimePostCacheService {
 
     private static final String REALTIME_REDIS_CIRCUIT = "realtimeRedis";
     private static final int REALTIME_FALLBACK_LIMIT = 5;
+    private static final Pageable DEFAULT_PAGEABLE = REALTIME_FALLBACK.defaultPageable();
 
     /**
      * <h3>실시간 인기글 목록 조회</h3>
      * <p>ZSet 조회 → LIST 비교 → 불일치 시 비동기 갱신</p>
-     * <p>서킷 OPEN → {@link #getRealtimePostsFallback(Pageable, Throwable)}에서 Caffeine 폴백</p>
+     * <p>서킷 OPEN → {@link #getRealtimePostsFallback(Throwable)}에서 Caffeine 폴백</p>
      * <p>Redis 예외(서킷 CLOSED) → DB 유사 인기글 폴백</p>
      */
     @CircuitBreaker(name = REALTIME_REDIS_CIRCUIT, fallbackMethod = "getRealtimePostsFallback")
-    public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
+    public Page<PostSimpleDetail> getRealtimePosts() {
         // 1. ZSet top 5 조회
         List<Long> realtimeTop5Id = redisPostRealTimeAdapter.getRangePostId();
         if (realtimeTop5Id.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, 0);
+            return new PageImpl<>(List.of(), DEFAULT_PAGEABLE, 0);
         }
 
         // 2. LIST 조회 → ZSet ID 순서와 비교
@@ -67,7 +70,7 @@ public class RealtimePostCacheService {
             eventPublisher.publishEvent(new RealtimeCacheRebuildEvent(realtimeTop5Id));
         }
 
-        return postUtil.paginate(entries, pageable);
+        return postUtil.paginate(entries, DEFAULT_PAGEABLE);
     }
 
     /**
@@ -76,33 +79,33 @@ public class RealtimePostCacheService {
      * <p>Redis 예외 (서킷 CLOSED) → DB 유사 인기글 폴백</p>
      */
     @SuppressWarnings("unused")
-    private Page<PostSimpleDetail> getRealtimePostsFallback(Pageable pageable, Throwable t) {
+    private Page<PostSimpleDetail> getRealtimePostsFallback(Throwable t) {
         if (t instanceof CallNotPermittedException) {
-            return getRealtimePostsFromCaffeine(pageable);
+            return getRealtimePostsFromCaffeine();
         }
 
         log.warn("[REALTIME] Redis 예외, 서킷 닫힘 DB 폴백: {}", t.getMessage());
-        return postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), pageable, PostQueryType.REALTIME_FALLBACK.getOrders());
+        return postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), DEFAULT_PAGEABLE, PostQueryType.REALTIME_FALLBACK.getOrders());
     }
 
     /**
      * <h3>서킷 OPEN 시 Caffeine 폴백</h3>
      * <p>Caffeine도 실패하면 DB 직접 조회</p>
      */
-    private Page<PostSimpleDetail> getRealtimePostsFromCaffeine(Pageable pageable) {
+    private Page<PostSimpleDetail> getRealtimePostsFromCaffeine() {
         log.warn("[CIRCUIT_OPEN] 서킷 OPEN, Caffeine 폴백");
         try {
             List<Long> postIds = realtimeScoreFallbackStore.getTopPostIds(0, REALTIME_FALLBACK_LIMIT);
             if (postIds.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, 0);
+                return new PageImpl<>(List.of(), DEFAULT_PAGEABLE, 0);
             }
 
             return postQueryRepository.selectPostSimpleDetails(
-                    PostQueryType.CAFFEINE_REALTIME.getIdsConditionFn().apply(postIds), pageable,
+                    PostQueryType.CAFFEINE_REALTIME.getIdsConditionFn().apply(postIds), DEFAULT_PAGEABLE,
                     PostQueryType.CAFFEINE_REALTIME.getOrders());
         } catch (Exception e) {
             log.warn("[CAFFEINE_FALLBACK] Caffeine 폴백 실패, DB 직접 조회: {}", e.getMessage());
-            return postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), pageable, PostQueryType.REALTIME_FALLBACK.getOrders());
+            return postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), DEFAULT_PAGEABLE, PostQueryType.REALTIME_FALLBACK.getOrders());
         }
     }
 }

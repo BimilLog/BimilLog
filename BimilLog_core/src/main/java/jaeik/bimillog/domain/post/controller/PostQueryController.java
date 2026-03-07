@@ -81,7 +81,6 @@ public class PostQueryController {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
         String viewerKey = buildViewerKey(memberId, request);
         PostDetail postDetail = postQueryService.getPost(postId, memberId, viewerKey);
-
         return ResponseEntity.ok(postDetail);
     }
 

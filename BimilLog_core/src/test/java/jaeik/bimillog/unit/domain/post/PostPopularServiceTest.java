@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
@@ -67,18 +66,17 @@ class PostPopularServiceTest {
     @DisplayName("주간/레전드/공지 캐시 히트")
     void shouldGetPopularPosts_CacheHit(String jsonKey, String label, String titlePrefix, PostQueryType type) {
         // Given
-        Pageable pageable = PageRequest.of(0, 10);
         List<PostSimpleDetail> posts = List.of(
                 PostTestDataBuilder.createPostSearchResult(1L, titlePrefix + " 1"),
                 PostTestDataBuilder.createPostSearchResult(2L, titlePrefix + " 2")
         );
 
         given(redisPostListQueryAdapter.getAll(jsonKey)).willReturn(posts);
-        given(postUtil.paginate(any(), eq(pageable)))
-                .willReturn(new PageImpl<>(posts, pageable, 2));
+        given(postUtil.paginate(any(), any(Pageable.class)))
+                .willReturn(new PageImpl<>(posts));
 
         // When
-        Page<PostSimpleDetail> result = postPopularService.getPopularPosts(pageable, jsonKey, type);
+        Page<PostSimpleDetail> result = postPopularService.getPopularPosts(jsonKey, type);
 
         // Then
         assertThat(result.getContent()).hasSize(2);
@@ -91,12 +89,10 @@ class PostPopularServiceTest {
     @DisplayName("JSON LIST 비어있음 - DB 폴백 없이 빈 결과 반환")
     void shouldFallbackToDb_WhenCacheEmpty(String jsonKey, String label, PostQueryType type) {
         // Given
-        Pageable pageable = PageRequest.of(0, 10);
-
         given(redisPostListQueryAdapter.getAll(jsonKey)).willReturn(Collections.emptyList());
 
         // When: 캐시가 비어있으면 getCachedPosts()에서 Page.empty()를 바로 반환 (DB 폴백 아님)
-        Page<PostSimpleDetail> result = postPopularService.getPopularPosts(pageable, jsonKey, type);
+        Page<PostSimpleDetail> result = postPopularService.getPopularPosts(jsonKey, type);
 
         // Then
         assertThat(result.getContent()).isEmpty();
@@ -109,21 +105,20 @@ class PostPopularServiceTest {
     @DisplayName("Redis 장애 시 DB fallback")
     void shouldFallbackToDb_WhenRedisFails(String jsonKey, String label, String expectedTitle, PostQueryType type) {
         // Given
-        Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail post = PostTestDataBuilder.createPostSearchResult(1L, expectedTitle);
 
         given(redisPostListQueryAdapter.getAll(jsonKey))
                 .willThrow(new RuntimeException("Redis connection failed"));
-        given(postQueryRepository.selectPostSimpleDetails(any(), eq(pageable), any()))
-                .willReturn(new PageImpl<>(List.of(post), pageable, 1));
+        given(postQueryRepository.selectPostSimpleDetails(any(), any(Pageable.class), any()))
+                .willReturn(new PageImpl<>(List.of(post)));
 
         // When
-        Page<PostSimpleDetail> result = postPopularService.getPopularPosts(pageable, jsonKey, type);
+        Page<PostSimpleDetail> result = postPopularService.getPopularPosts(jsonKey, type);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo(expectedTitle);
-        verify(postQueryRepository).selectPostSimpleDetails(any(), eq(pageable), any());
+        verify(postQueryRepository).selectPostSimpleDetails(any(), any(Pageable.class), any());
     }
 
     static Stream<Arguments> provideCacheHitScenarios() {

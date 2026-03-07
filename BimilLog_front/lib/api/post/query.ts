@@ -19,15 +19,15 @@ export const postQuery = {
     )
   },
 
-  getRealtimePosts: (page = 0, size = 5): Promise<ApiResponse<PageResponse<SimplePost>>> =>
-    apiClient.get(`/api/post/realtime?page=${page}&size=${size}`),
+  getRealtimePosts: (): Promise<ApiResponse<PageResponse<SimplePost>>> =>
+    apiClient.get(`/api/post/realtime`),
 
-  getWeeklyPosts: (page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> =>
-    apiClient.get(`/api/post/weekly?page=${page}&size=${size}`),
+  getWeeklyPosts: (): Promise<ApiResponse<PageResponse<SimplePost>>> =>
+    apiClient.get(`/api/post/weekly`),
 
-  getLegend: (page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> =>
-    apiClient.get(`/api/post/legend?page=${page}&size=${size}`),
+  getLegend: (): Promise<ApiResponse<PageResponse<SimplePost>>> =>
+    apiClient.get(`/api/post/legend`),
 
-  getNoticePosts: (page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> =>
-    apiClient.get(`/api/post/notice?page=${page}&size=${size}`),
+  getNoticePosts: (): Promise<ApiResponse<PageResponse<SimplePost>>> =>
+    apiClient.get(`/api/post/notice`),
 }
