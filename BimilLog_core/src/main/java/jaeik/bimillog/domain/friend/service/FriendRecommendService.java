@@ -71,13 +71,18 @@ public class FriendRecommendService {
     private Page<RecommendedFriendDTO> getRecommendedFriends(Long memberId, Pageable pageable, boolean useRedis) {
         List<RecommendCandidate> candidates = new ArrayList<>();
 
-        // 1. 1촌 조회
+        // 1-1. BFS 시드용 1촌 조회 (랜덤 50명)
         Set<Long> myFriends = useRedis
                 ? redisFriendshipRepository.getFriendIdRandom(memberId, FIRST_FRIEND_SCAN_LIMIT)
                 : friendshipQueryRepository.getMyFriendIdsSet(memberId, FIRST_FRIEND_SCAN_LIMIT);
 
+        // 1-2. 필터링용 전체 친구 조회 (이미 친구인 사람 제외용)
+        Set<Long> allFriendIds = useRedis
+                ? redisFriendshipRepository.getFriendId(memberId)
+                : friendshipQueryRepository.getMyFriendIdsSet(memberId);
+
         // 2. 후보자 탐색 (2촌 -> 3촌 순차 확장) 및 점수 계산
-        Map<Long, RecommendCandidate> candidateMap = findAndScoreCandidates(memberId, myFriends, useRedis);
+        Map<Long, RecommendCandidate> candidateMap = findAndScoreCandidates(memberId, myFriends, allFriendIds, useRedis);
 
         // 후보자가 1명이라도 존재하면
         if (!candidateMap.isEmpty()) {
@@ -90,7 +95,7 @@ public class FriendRecommendService {
 
         // 4. 부족한 인원 보충
         if (candidates.size() < RECOMMEND_LIMIT) {
-            Set<Long> excludeIds = buildExcludeIds(memberId, myFriends, candidates);
+            Set<Long> excludeIds = buildExcludeIds(memberId, allFriendIds, candidates);
 
             // 4-1. 상호작용 점수 기반 (Redis만)
             if (useRedis) {
@@ -125,11 +130,12 @@ public class FriendRecommendService {
      * 연결 고리가 되는 2촌의 공통 친구 수를 기반으로 가산점을 부여합니다.
      * </p>
      *
-     * @param memberId  현재 회원 ID
-     * @param myFriends 내 친구(1촌) ID 집합
+     * @param memberId     현재 회원 ID
+     * @param myFriends    BFS 시드용 1촌 친구 ID 집합 (랜덤 샘플)
+     * @param allFriendIds 필터링용 전체 친구 ID 집합 (이미 친구인 사람 제외)
      * @return 추천 후보자 Map (ID -> 후보자)
      */
-    private Map<Long, RecommendCandidate> findAndScoreCandidates(Long memberId, Set<Long> myFriends, boolean useRedis) {
+    private Map<Long, RecommendCandidate> findAndScoreCandidates(Long memberId, Set<Long> myFriends, Set<Long> allFriendIds, boolean useRedis) {
         Map<Long, RecommendCandidate> candidateMap = new HashMap<>();
 
         // [1촌이 없는 경우] -> 바로 상호작용 기반 추천으로 점프하기 위해 빈 Map 반환
@@ -142,7 +148,7 @@ public class FriendRecommendService {
         List<List<Long>> secondResults = useRedis
                 ? redisFriendshipRepository.getFriendsBatch(myFriendList, SECOND_DEGREE_SAMPLE_SIZE)
                 : friendshipQueryRepository.getFriendIdsBatch(myFriendList);
-        processDegreeSearch(myFriendList, secondResults, 2, memberId, myFriends, candidateMap);
+        processDegreeSearch(myFriendList, secondResults, 2, memberId, allFriendIds, candidateMap);
 
         // B. 3촌 탐색 (2촌이 10명 이하일 때)
         if (candidateMap.size() < RECOMMEND_LIMIT) {
@@ -153,7 +159,7 @@ public class FriendRecommendService {
             List<List<Long>> thirdResults = useRedis
                     ? redisFriendshipRepository.getFriendsBatch(secondDegreeList, THIRD_DEGREE_SAMPLE_SIZE)
                     : friendshipQueryRepository.getFriendIdsBatch(secondDegreeList);
-            processDegreeSearch(secondDegreeList, thirdResults, 3, memberId, myFriends, candidateMap);
+            processDegreeSearch(secondDegreeList, thirdResults, 3, memberId, allFriendIds, candidateMap);
         }
 
         return candidateMap;
@@ -163,14 +169,14 @@ public class FriendRecommendService {
      * 2촌/3촌 탐색 공통 처리
      */
     private void processDegreeSearch(List<Long> friendIdList, List<List<Long>> results, int depth,
-                                     Long memberId, Set<Long> myFriends, Map<Long, RecommendCandidate> candidateMap) {
+                                     Long memberId, Set<Long> allFriendIds, Map<Long, RecommendCandidate> candidateMap) {
         for (int i = 0; i < friendIdList.size(); i++) {
             Long friendId = friendIdList.get(i); // 1촌 또는 2촌 친구
             List<Long> resultList = results.get(i); // 1촌의 친구 (2촌) 또는 2촌의 친구 (3촌)
 
             for (Long targetId : resultList) {
-                // 중복제거: 나 자신이거나 1촌친구에 있는 경우
-                if (targetId.equals(memberId) || myFriends.contains(targetId)) {
+                // 중복제거: 나 자신이거나 이미 친구인 경우
+                if (targetId.equals(memberId) || allFriendIds.contains(targetId)) {
                     continue;
                 }
 

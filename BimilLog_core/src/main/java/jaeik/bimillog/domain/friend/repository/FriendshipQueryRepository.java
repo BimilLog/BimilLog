@@ -4,6 +4,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.friend.entity.jpa.QFriendship;
@@ -71,16 +72,33 @@ public class FriendshipQueryRepository {
      * @return 친구 ID Set
      */
     public Set<Long> getMyFriendIdsSet(Long memberId, int limit) {
-        List<Long> friendIds = jpaQueryFactory
+        List<Long> friendIds = getFriend(memberId)
+                .limit(limit)
+                .fetch();
+        return new HashSet<>(friendIds);
+    }
+
+    /**
+     * DB에서 특정 회원의 1촌 친구 ID 전체를 조회합니다.
+     * 추천 친구 필터링용으로, 이미 친구인 사람을 제외하기 위해 사용됩니다.
+     *
+     * @param memberId 조회할 회원 ID
+     * @return 전체 친구 ID Set
+     */
+    public Set<Long> getMyFriendIdsSet(Long memberId) {
+        List<Long> friendIds = getFriend(memberId)
+                .fetch();
+        return new HashSet<>(friendIds);
+    }
+
+    private JPAQuery<Long> getFriend(Long memberId) {
+        return jpaQueryFactory
                 .select(new CaseBuilder()
                         .when(friendship.member.id.eq(memberId)).then(friendship.friend.id)
                         .otherwise(friendship.member.id))
                 .from(friendship)
                 .where(friendship.member.id.eq(memberId)
-                        .or(friendship.friend.id.eq(memberId)))
-                .limit(limit)
-                .fetch();
-        return new HashSet<>(friendIds);
+                        .or(friendship.friend.id.eq(memberId)));
     }
 
     /**

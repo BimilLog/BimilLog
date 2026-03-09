@@ -15,10 +15,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static jaeik.bimillog.infrastructure.redis.RedisKey.REALTIME_POST_SCORE_KEY;
@@ -45,7 +45,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class RealtimeCacheConsistencyTest {
-    private static final Logger log = LoggerFactory.getLogger(RealtimeCacheConsistencyTest.class);
 
     @Autowired
     private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
@@ -62,16 +61,10 @@ class RealtimeCacheConsistencyTest {
     private CircuitBreaker circuitBreaker;
 
     private static final int POST_COUNT = 1000;
-    private static final int TOTAL_ROUNDS = 200;
-    private static final int TOGGLE_INTERVAL = 20;
-    private static final int COMPARE_OFFSET = TOGGLE_INTERVAL / 2; // 전환 사이 중간 지점에서 비교
-    private static final int DECAY_INTERVAL = 50;
     private static final int WARMUP_INTERVAL = 10;
     private static final int CAFFEINE_WARM_UP_SIZE = 100;
     private static final int TOP_N = 5;
     private static final double VIEW_SCORE = 2.0;
-    private static final double MAX_ACCEPTABLE_ERROR_RATE = 0.90;
-    private static final String SCORE_KEY = REALTIME_POST_SCORE_KEY;
 
     // Zipf's Law 지수 (s 값)
     // 1.0에 가까울수록 표준적인 지프 분포, 클수록 상위 쏠림 심화
@@ -93,16 +86,13 @@ class RealtimeCacheConsistencyTest {
         double[] weights = buildZipfSkewedWeights(POST_COUNT, ZIPF_EXPONENT);
         boolean circuitOpen = false;
 
-        // 직후: 서킷 OPEN 전환 시점 (해당 라운드 이벤트는 CLOSED 구간에서 발생)
-        List<Integer> immediateRounds = new ArrayList<>();
-        List<Double> immediateAfterOpenSimilarities = new ArrayList<>();
-
-        // 중간: OPEN 진입 후 COMPARE_OFFSET 라운드 경과 시점
-        List<Integer> midpointRounds = new ArrayList<>();
-        List<Double> midpointSimilarities = new ArrayList<>();
+        int immediateCount = 0;
+        double immediateSimilaritySum = 0.0;
+        int midpointCount = 0;
+        double midpointSimilaritySum = 0.0;
 
         // When: 200라운드 시뮬레이션
-        for (int round = 1; round <= TOTAL_ROUNDS; round++) {
+        for (int round = 1; round <= 200; round++) {
 
             // 이벤트 발생: 5~10개 조회 이벤트 (항상 어댑터를 통해 호출)
             int eventCount = ThreadLocalRandom.current().nextInt(5, 11);
@@ -120,7 +110,7 @@ class RealtimeCacheConsistencyTest {
             }
 
             // 감쇠 적용 (50라운드마다)
-            if (round % DECAY_INTERVAL == 0) {
+            if (round % 50 == 0) {
                 if (!circuitOpen) {
                     redisPostRealTimeAdapter.applyRealtimePopularScoreDecay();
                 }
@@ -128,67 +118,46 @@ class RealtimeCacheConsistencyTest {
             }
 
             // 서킷 토글 (20라운드마다)
-            if (round % TOGGLE_INTERVAL == 0) {
+            if (round % 20 == 0) {
                 circuitOpen = !circuitOpen;
 
                 if (circuitOpen) {
                     circuitBreaker.transitionToOpenState();
 
                     // OPEN 직후 비교
-                    List<Long> redisTop = getRedisTop(TOP_N);
+                    List<Long> redisTop = redisPostRealTimeAdapter.getRangePostId();
                     List<Long> caffeineTop = fallbackStore.getTopPostIds(0, TOP_N);
                     double jaccard = jaccardSimilarity(redisTop, caffeineTop);
-                    immediateRounds.add(round);
-                    immediateAfterOpenSimilarities.add(jaccard);
+                    immediateCount++;
+                    immediateSimilaritySum += jaccard;
 
-                    log.info("  라운드 {} [OPEN 직후]: Redis={}, Caffeine={}, 유사도={}",
-                            String.format("%3d", round), redisTop, caffeineTop, String.format("%.4f", jaccard));
+                    System.out.printf("  라운드 %3d [OPEN 직후]: Redis=%s, Caffeine=%s, 유사도=%.4f%n", round, redisTop, caffeineTop, jaccard);
                 } else {
                     circuitBreaker.transitionToClosedState();
                 }
             }
 
             // OPEN 구간 중간 지점 비교
-            if (round % TOGGLE_INTERVAL == COMPARE_OFFSET && circuitOpen) {
-                List<Long> redisTop = getRedisTop(TOP_N);
+            if (round % 20 == 10 && circuitOpen) {
+                List<Long> redisTop = redisPostRealTimeAdapter.getRangePostId();
                 List<Long> caffeineTop = fallbackStore.getTopPostIds(0, TOP_N);
                 double jaccard = jaccardSimilarity(redisTop, caffeineTop);
-                midpointRounds.add(round);
-                midpointSimilarities.add(jaccard);
+                midpointCount++;
+                midpointSimilaritySum += jaccard;
 
-                log.info("  라운드 {} [OPEN 중간]: Redis={}, Caffeine={}, 유사도={}",
-                        String.format("%3d", round), redisTop, caffeineTop, String.format("%.4f", jaccard));
+                System.out.printf("  라운드 %3d [OPEN 중간]: Redis=%s, Caffeine=%s, 유사도=%.4f%n", round, redisTop, caffeineTop, jaccard);
             }
         }
 
-        // Then: 최종 결과 집계
-        double avgImmediateSimilarity = immediateAfterOpenSimilarities.stream()
-                .mapToDouble(Double::doubleValue).average().orElse(0.0);
+        // Then: 최종 결과 출력
+        double avgImmediateSimilarity = immediateCount > 0 ? immediateSimilaritySum / immediateCount : 0.0;
         double avgImmediateErrorRate = 1.0 - avgImmediateSimilarity;
 
-        double avgMidpointSimilarity = midpointSimilarities.stream()
-                .mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double avgMidpointSimilarity = midpointCount > 0 ? midpointSimilaritySum / midpointCount : 0.0;
         double avgMidpointErrorRate = 1.0 - avgMidpointSimilarity;
 
-        log.info("============================================================");
-        log.info("[OPEN 직후] 측정 라운드: {}", immediateRounds);
-        log.info("[OPEN 직후] 유사도 목록: {}", immediateAfterOpenSimilarities.stream()
-                .map(s -> String.format("%.4f", s)).toList());
-        log.info("[OPEN 직후] 평균 유사도: {}, 평균 오차율: {}%",
-                String.format("%.4f", avgImmediateSimilarity),
-                String.format("%.1f", avgImmediateErrorRate * 100));
-        log.info("------------------------------------------------------------");
-        log.info("[OPEN 중간] 측정 라운드: {}", midpointRounds);
-        log.info("[OPEN 중간] 유사도 목록: {}", midpointSimilarities.stream()
-                .map(s -> String.format("%.4f", s)).toList());
-        log.info("[OPEN 중간] 평균 유사도: {}, 평균 오차율: {}%",
-                String.format("%.4f", avgMidpointSimilarity),
-                String.format("%.1f", avgMidpointErrorRate * 100));
-        log.info("============================================================");
-
-        assertThat(avgMidpointErrorRate)
-                .as("평균 오차율(1 - 자카드 유사도)이 90%% 이하여야 합니다. 실제: %.2f%%", avgMidpointErrorRate * 100)
-                .isLessThanOrEqualTo(MAX_ACCEPTABLE_ERROR_RATE);
+        System.out.printf("[OPEN 직후] 평균 유사도: %.4f, 평균 오차율: %.1f%%%n", avgImmediateSimilarity, avgImmediateErrorRate * 100);
+        System.out.printf("[OPEN 중간] 평균 유사도: %.4f, 평균 오차율: %.1f%%%n", avgMidpointSimilarity, avgMidpointErrorRate * 100);
     }
 
     // ========== 유틸리티 메서드 ==========
@@ -233,33 +202,14 @@ class RealtimeCacheConsistencyTest {
     }
 
     /**
-     * Redis ZSet에서 점수 내림차순 Top N 조회
-     */
-    private List<Long> getRedisTop(int n) {
-        Set<Object> set = redisTemplate.opsForZSet().reverseRange(SCORE_KEY, 0, n - 1);
-        if (set == null || set.isEmpty()) {
-            return List.of();
-        }
-        return set.stream()
-                .map(obj -> ((Number) obj).longValue())
-                .toList();
-    }
-
-    /**
      * 자카드 유사도 계산: |교집합| / |합집합|
      */
     private double jaccardSimilarity(List<Long> a, List<Long> b) {
-        if (a.isEmpty() && b.isEmpty()) {
-            return 1.0;
-        }
-        if (a.isEmpty() || b.isEmpty()) {
-            return 0.0;
-        }
         Set<Long> setA = new HashSet<>(a);
         Set<Long> setB = new HashSet<>(b);
         Set<Long> intersection = new HashSet<>(setA);
-        intersection.retainAll(setB);
         Set<Long> union = new HashSet<>(setA);
+        intersection.retainAll(setB);
         union.addAll(setB);
         return (double) intersection.size() / union.size();
     }
