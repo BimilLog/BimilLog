@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.*;
 
+import org.springframework.data.redis.connection.ReturnType;
+
 import java.nio.charset.StandardCharsets;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -106,24 +108,37 @@ public class RedisInteractionScoreRepository {
                     end
                 end
                 """;
-        DefaultRedisScript<Void> decayScript = new DefaultRedisScript<>(INTERACTION_SCORE_DECAY_SCRIPT, Void.class);
         List<String> keys = new ArrayList<>();
 
         try (Cursor<String> cursor = stringRedisTemplate.scan(
                 ScanOptions.scanOptions()
                         .match(createAllInteractionKey())
-                        .count(100)
+                        .count(500)
                         .build())) {
             cursor.forEachRemaining(keys::add);
         }
 
-        for (String key : keys) {
-            stringRedisTemplate.execute(
-                    decayScript,
-                    Collections.singletonList(key),
-                    String.valueOf(INTERACTION_SCORE_DECAY_RATE),
-                    String.valueOf(INTERACTION_SCORE_THRESHOLD)
-            );
+        byte[] scriptBytes = INTERACTION_SCORE_DECAY_SCRIPT.getBytes(StandardCharsets.UTF_8);
+        byte[] decayRateBytes = String.valueOf(INTERACTION_SCORE_DECAY_RATE).getBytes(StandardCharsets.UTF_8);
+        byte[] thresholdBytes = String.valueOf(INTERACTION_SCORE_THRESHOLD).getBytes(StandardCharsets.UTF_8);
+
+        int decayBatchSize = 500;
+        for (int i = 0; i < keys.size(); i += decayBatchSize) {
+            List<String> batch = keys.subList(i, Math.min(i + decayBatchSize, keys.size()));
+
+            stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+                for (String key : batch) {
+                    connection.scriptingCommands().eval(
+                            scriptBytes,
+                            ReturnType.VALUE,
+                            1,
+                            key.getBytes(StandardCharsets.UTF_8),
+                            decayRateBytes,
+                            thresholdBytes
+                    );
+                }
+                return null;
+            });
         }
     }
 

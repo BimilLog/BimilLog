@@ -1,4 +1,4 @@
-# BimilLog v2.7
+# BimilLog v2.8
 
 > 익명으로 마음을 전하는 SNS
 
