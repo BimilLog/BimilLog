@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * <h2>친구 관련 비동기 스레드 풀 설정</h2>
@@ -26,6 +27,7 @@ public class FriendAsyncConfig {
         executor.setMaxPoolSize(5);
         executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("friend-update-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
         executor.initialize();

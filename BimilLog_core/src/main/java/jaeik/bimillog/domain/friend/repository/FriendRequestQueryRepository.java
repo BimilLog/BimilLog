@@ -12,7 +12,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 @RequiredArgsConstructor
@@ -43,6 +45,28 @@ public class FriendRequestQueryRepository {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
+    }
+
+    /**
+     * 보낸 요청 + 받은 요청의 상대방 ID를 모두 조회합니다.
+     * 추천 친구 필터링용으로, 이미 요청이 오간 사람을 제외하기 위해 사용됩니다.
+     */
+    public Set<Long> findAllRequestRelatedIds(Long memberId) {
+        List<Long> receiverIds = jpaQueryFactory
+                .select(friendRequest.receiver.id)
+                .from(friendRequest)
+                .where(friendRequest.sender.id.eq(memberId))
+                .fetch();
+
+        List<Long> senderIds = jpaQueryFactory
+                .select(friendRequest.sender.id)
+                .from(friendRequest)
+                .where(friendRequest.receiver.id.eq(memberId))
+                .fetch();
+
+        Set<Long> result = new HashSet<>(receiverIds);
+        result.addAll(senderIds);
+        return result;
     }
 
     // 받은 친구 요청 조회
