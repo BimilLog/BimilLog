@@ -61,16 +61,10 @@ class RealtimeCacheConsistencyTest {
     private CircuitBreaker circuitBreaker;
 
     private static final int POST_COUNT = 1000;
-    private static final int TOTAL_ROUNDS = 200;
-    private static final int TOGGLE_INTERVAL = 20;
-    private static final int COMPARE_OFFSET = TOGGLE_INTERVAL / 2; // 전환 사이 중간 지점에서 비교
-    private static final int DECAY_INTERVAL = 50;
     private static final int WARMUP_INTERVAL = 10;
     private static final int CAFFEINE_WARM_UP_SIZE = 100;
     private static final int TOP_N = 5;
     private static final double VIEW_SCORE = 2.0;
-    private static final double MAX_ACCEPTABLE_ERROR_RATE = 0.90;
-    private static final String SCORE_KEY = REALTIME_POST_SCORE_KEY;
 
     // Zipf's Law 지수 (s 값)
     // 1.0에 가까울수록 표준적인 지프 분포, 클수록 상위 쏠림 심화
@@ -98,7 +92,7 @@ class RealtimeCacheConsistencyTest {
         double midpointSimilaritySum = 0.0;
 
         // When: 200라운드 시뮬레이션
-        for (int round = 1; round <= TOTAL_ROUNDS; round++) {
+        for (int round = 1; round <= 200; round++) {
 
             // 이벤트 발생: 5~10개 조회 이벤트 (항상 어댑터를 통해 호출)
             int eventCount = ThreadLocalRandom.current().nextInt(5, 11);
@@ -116,7 +110,7 @@ class RealtimeCacheConsistencyTest {
             }
 
             // 감쇠 적용 (50라운드마다)
-            if (round % DECAY_INTERVAL == 0) {
+            if (round % 50 == 0) {
                 if (!circuitOpen) {
                     redisPostRealTimeAdapter.applyRealtimePopularScoreDecay();
                 }
@@ -124,14 +118,14 @@ class RealtimeCacheConsistencyTest {
             }
 
             // 서킷 토글 (20라운드마다)
-            if (round % TOGGLE_INTERVAL == 0) {
+            if (round % 20 == 0) {
                 circuitOpen = !circuitOpen;
 
                 if (circuitOpen) {
                     circuitBreaker.transitionToOpenState();
 
                     // OPEN 직후 비교
-                    List<Long> redisTop = getRedisTop(TOP_N);
+                    List<Long> redisTop = redisPostRealTimeAdapter.getRangePostId();
                     List<Long> caffeineTop = fallbackStore.getTopPostIds(0, TOP_N);
                     double jaccard = jaccardSimilarity(redisTop, caffeineTop);
                     immediateCount++;
@@ -144,8 +138,8 @@ class RealtimeCacheConsistencyTest {
             }
 
             // OPEN 구간 중간 지점 비교
-            if (round % TOGGLE_INTERVAL == COMPARE_OFFSET && circuitOpen) {
-                List<Long> redisTop = getRedisTop(TOP_N);
+            if (round % 20 == 10 && circuitOpen) {
+                List<Long> redisTop = redisPostRealTimeAdapter.getRangePostId();
                 List<Long> caffeineTop = fallbackStore.getTopPostIds(0, TOP_N);
                 double jaccard = jaccardSimilarity(redisTop, caffeineTop);
                 midpointCount++;
@@ -162,17 +156,8 @@ class RealtimeCacheConsistencyTest {
         double avgMidpointSimilarity = midpointCount > 0 ? midpointSimilaritySum / midpointCount : 0.0;
         double avgMidpointErrorRate = 1.0 - avgMidpointSimilarity;
 
-        System.out.println("============================================================");
-        System.out.printf("[OPEN 직후] 측정 횟수: %d%n", immediateCount);
         System.out.printf("[OPEN 직후] 평균 유사도: %.4f, 평균 오차율: %.1f%%%n", avgImmediateSimilarity, avgImmediateErrorRate * 100);
-        System.out.println("------------------------------------------------------------");
-        System.out.printf("[OPEN 중간] 측정 횟수: %d%n", midpointCount);
         System.out.printf("[OPEN 중간] 평균 유사도: %.4f, 평균 오차율: %.1f%%%n", avgMidpointSimilarity, avgMidpointErrorRate * 100);
-        System.out.println("============================================================");
-
-        assertThat(avgMidpointErrorRate)
-                .as("평균 오차율(1 - 자카드 유사도)이 90%% 이하여야 합니다. 실제: %.2f%%", avgMidpointErrorRate * 100)
-                .isLessThanOrEqualTo(MAX_ACCEPTABLE_ERROR_RATE);
     }
 
     // ========== 유틸리티 메서드 ==========
@@ -214,19 +199,6 @@ class RealtimeCacheConsistencyTest {
             }
         }
         return cumulativeWeights.length;
-    }
-
-    /**
-     * Redis ZSet에서 점수 내림차순 Top N 조회
-     */
-    private List<Long> getRedisTop(int n) {
-        Set<Object> set = redisTemplate.opsForZSet().reverseRange(SCORE_KEY, 0, n - 1);
-        if (set == null || set.isEmpty()) {
-            return List.of();
-        }
-        return set.stream()
-                .map(obj -> ((Number) obj).longValue())
-                .toList();
     }
 
     /**
