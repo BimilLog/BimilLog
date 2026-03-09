@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
@@ -35,7 +36,7 @@ public class FriendRebuildConsumer {
      * <p>POISON_PILL 수신 시 남은 항목을 처리하고 종료합니다.</p>
      */
     @Async("rebuildConsumerExecutor")
-    public void consume(BlockingQueue<FriendshipRebuildDTO> queue,
+    public CompletableFuture<Void> consume(BlockingQueue<FriendshipRebuildDTO> queue,
                         FriendshipRebuildDTO poisonPill) {
         long count = 0L;
         List<FriendshipRebuildDTO> batch = new ArrayList<>(PIPELINE_BATCH_SIZE);
@@ -66,10 +67,11 @@ public class FriendRebuildConsumer {
         }
 
         log.info("컨슈머: 종료. 총 {}명 처리", count);
+        return CompletableFuture.completedFuture(null);
     }
 
     @Async("interactionConsumerExecutor")
-    public void consumeInteraction(BlockingQueue<InteractionRebuildDTO> queue,
+    public CompletableFuture<Void> consumeInteraction(BlockingQueue<InteractionRebuildDTO> queue,
                                    InteractionRebuildDTO poisonPill) {
         long count = 0L;
         List<InteractionRebuildDTO> batch = new ArrayList<>(PIPELINE_BATCH_SIZE);
@@ -100,5 +102,6 @@ public class FriendRebuildConsumer {
         }
 
         log.info("컨슈머(상호작용): 종료. 총 {}명 처리", count);
+        return CompletableFuture.completedFuture(null);
     }
 }

@@ -1,9 +1,8 @@
 package jaeik.bimillog.domain.friend.listener;
 
 import io.lettuce.core.RedisCommandTimeoutException;
-import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
-import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
+import jaeik.bimillog.domain.friend.rebuild.FriendEventDlqService;
+import jaeik.bimillog.domain.friend.rebuild.FriendRebuildFlag;
 import jaeik.bimillog.domain.global.event.FriendInteractionEvent;
 
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
@@ -38,6 +37,7 @@ import jaeik.bimillog.infrastructure.log.Log;
 public class FriendInteractionListener {
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
     private final FriendEventDlqService friendEventDlqService;
+    private final FriendRebuildFlag friendRebuildFlag;
 
     public static final Double INTERACTION_SCORE_DEFAULT = 0.5; // 상호 작용 점수 증가 기본 값
 
@@ -61,6 +61,11 @@ public class FriendInteractionListener {
     public void handlePostLiked(FriendInteractionEvent event) {
         // 익명 사용자 또는 자기 자신과의 상호작용은 점수 반영하지 않음
         if (event.getMemberId() == null || event.getTargetMemberId() == null || event.getMemberId().equals(event.getTargetMemberId())) {
+            return;
+        }
+
+        if (friendRebuildFlag.isRebuilding()) {
+            friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.getMemberId(), event.getTargetMemberId(), INTERACTION_SCORE_DEFAULT);
             return;
         }
 

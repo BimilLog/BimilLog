@@ -3,7 +3,7 @@ package jaeik.bimillog.springboot.nodb;
 import jaeik.bimillog.domain.friend.listener.FriendshipListener;
 import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipDeletedEvent;
-import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
+import jaeik.bimillog.domain.friend.rebuild.FriendEventDlqService;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;

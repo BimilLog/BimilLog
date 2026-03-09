@@ -3,7 +3,8 @@ package jaeik.bimillog.domain.friend.listener;
 import io.lettuce.core.RedisCommandTimeoutException;
 import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipDeletedEvent;
-import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
+import jaeik.bimillog.domain.friend.rebuild.FriendEventDlqService;
+import jaeik.bimillog.domain.friend.rebuild.FriendRebuildFlag;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class FriendshipListener {
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final FriendEventDlqService friendEventDlqService;
+    private final FriendRebuildFlag friendRebuildFlag;
 
     /**
      * <h3>친구 관계 생성 이벤트 처리</h3>
@@ -45,6 +47,10 @@ public class FriendshipListener {
             recover = "recoverAddFriend"
     )
     public void handleFriendshipCreated(FriendshipCreatedEvent event) {
+        if (friendRebuildFlag.isRebuilding()) {
+            friendEventDlqService.saveFriendAdd(event.memberId(), event.friendId());
+            return;
+        }
         redisFriendshipRepository.addFriend(event.memberId(), event.friendId());
     }
 
@@ -70,6 +76,10 @@ public class FriendshipListener {
             recover = "recoverDeleteFriend"
     )
     public void handleFriendshipDeleted(FriendshipDeletedEvent event) {
+        if (friendRebuildFlag.isRebuilding()) {
+            friendEventDlqService.saveFriendRemove(event.memberId1(), event.memberId2());
+            return;
+        }
         redisFriendshipRepository.deleteFriend(event.memberId1(), event.memberId2());
     }
 

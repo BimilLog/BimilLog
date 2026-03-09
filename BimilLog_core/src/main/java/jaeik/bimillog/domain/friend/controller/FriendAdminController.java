@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.friend.controller;
 
-import jaeik.bimillog.domain.friend.service.FriendAdminService;
+import jaeik.bimillog.domain.friend.rebuild.FriendAdminService;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
