@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * <h2>친구 추천 서비스</h2>
  *
  * @author Jaeik
- * @version 2.6.0
+ * @version 2.8.0
  */
 @Service
 @RequiredArgsConstructor
