@@ -14,10 +14,6 @@ import java.util.Optional;
 public class NotificationToMemberAdapter {
     private final MemberQueryService memberQueryService;
 
-    public List<String> fcmEligibleFcmTokens(Long memberId, NotificationType type) {
-        return memberQueryService.fcmEligibleFcmTokens(memberId, type);
-    }
-
     /**
      * <h3>사용자 ID로 사용자 조회</h3>
      * <p>특정 ID에 해당하는 사용자 엔티티를 조회합니다.</p>

@@ -1,13 +1,16 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.auth.repository.AuthTokenQueryRepository;
 import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -21,6 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthTokenService {
     private final AuthTokenRepository authTokenRepository;
+    private final AuthTokenQueryRepository authTokenQueryRepository;
 
     /**
      * <h3>토큰 ID로 토큰 조회</h3>
@@ -78,5 +82,10 @@ public class AuthTokenService {
         AuthToken authToken = authTokenRepository.findById(tokenId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUTH_TOKEN_NOT_FOUND));
         authToken.updateJwtRefreshToken(newJwtRefreshToken);
+    }
+
+
+    public List<String> fcmEligibleFcmTokens(Long memberId, NotificationType type) {
+        return authTokenQueryRepository.fcmEligibleFcmTokens(memberId, type);
     }
 }
