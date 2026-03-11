@@ -84,8 +84,4 @@ public class AuthTokenService {
         authToken.updateJwtRefreshToken(newJwtRefreshToken);
     }
 
-
-    public List<String> fcmEligibleFcmTokens(Long memberId, NotificationType type) {
-        return authTokenQueryRepository.fcmEligibleFcmTokens(memberId, type);
-    }
 }

@@ -24,4 +24,9 @@ public class NotificationToMemberAdapter {
     public Member findById(Long memberId) {
         return memberQueryService.findById(memberId);
     }
+
+
+    public List<String> fcmEligibleFcmTokens(Long memberId, NotificationType type) {
+        return memberQueryService.fcmEligibleFcmTokens(memberId, type);
+    }
 }

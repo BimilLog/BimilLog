@@ -153,4 +153,12 @@ public class MemberQueryService {
         return memberRepository.findByProviderAndSocialId(provider, socialId);
     }
 
+
+
+    public List<String> fcmEligibleFcmTokens(Long memberId, NotificationType type) {
+        return memberQueryRepository.fcmEligibleFcmTokens(memberId, type);
+    }
+
+
+
 }
