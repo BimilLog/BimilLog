@@ -1,9 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
-import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
-import jaeik.bimillog.domain.friend.service.FriendAdminService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.*;
 
 import org.springframework.data.redis.connection.ReturnType;

@@ -1,6 +1,6 @@
 package jaeik.bimillog.springboot.mysql.performance;
 
-import jaeik.bimillog.domain.friend.service.FriendAdminService;
+import jaeik.bimillog.domain.friend.rebuild.FriendAdminService;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;

@@ -1,10 +1,11 @@
-package jaeik.bimillog.domain.friend.service;
+package jaeik.bimillog.domain.friend.rebuild;
 
 import jaeik.bimillog.domain.friend.async.FriendRebuildConsumer;
 import jaeik.bimillog.domain.friend.async.FriendRebuildProducer;
 import jaeik.bimillog.domain.friend.dto.FriendshipRebuildDTO;
 import jaeik.bimillog.domain.friend.dto.InteractionRebuildDTO;
 import jaeik.bimillog.domain.friend.repository.FriendAdminQueryRepository;
+import jaeik.bimillog.domain.friend.scheduler.FriendEventDlqScheduler;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,8 @@ public class FriendAdminService {
     private final RedisFriendRestore redisFriendRestore;
     private final FriendRebuildProducer friendRebuildProducer;
     private final FriendRebuildConsumer friendRebuildConsumer;
+    private final FriendRebuildFlag friendRebuildFlag;
+    private final FriendEventDlqScheduler friendEventDlqScheduler;
 
     /**
      * <h3>친구 관계 Redis 프로듀서/컨슈머 병렬 재구축</h3>
@@ -53,6 +56,7 @@ public class FriendAdminService {
      * <p>POISON_PILL 패턴으로 종료 신호를 전달합니다.</p>
      */
     public void getFriendshipDB() {
+        friendRebuildFlag.startRebuilding();
         redisFriendRestore.deleteAllFriendshipKeys();
         BlockingQueue<FriendshipRebuildDTO> queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
 
@@ -60,7 +64,16 @@ public class FriendAdminService {
         LinkedBlockingQueue<Long> memberQueue = new LinkedBlockingQueue<>(allIds);
 
         friendRebuildProducer.produce(memberQueue, queue, POISON_PILL);
-        friendRebuildConsumer.consume(queue, POISON_PILL);
+        friendRebuildConsumer.consume(queue, POISON_PILL)
+                .whenComplete((result, ex) -> {
+                    friendRebuildFlag.stopRebuilding();
+                    if (ex != null) {
+                        log.error("[친구 관계 재구축] 실패, 플래그 해제", ex);
+                        return;
+                    }
+                    log.info("[친구 관계 재구축] 완료, DLQ 재처리 시작");
+                    friendEventDlqScheduler.processDlq();
+                });
     }
 
     /**
@@ -70,6 +83,7 @@ public class FriendAdminService {
      * <p>모든 프로듀서가 완료되면 POISON_PILL을 삽입하여 컨슈머에 종료 신호를 전달합니다.</p>
      */
     public void rebuildInteractionScoreRedis() {
+        friendRebuildFlag.startRebuilding();
         redisFriendRestore.deleteAllInteractionKeys();
         BlockingQueue<InteractionRebuildDTO> queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
 
@@ -91,6 +105,15 @@ public class FriendAdminService {
             }
         });
 
-        friendRebuildConsumer.consumeInteraction(queue, INTERACTION_POISON_PILL);
+        friendRebuildConsumer.consumeInteraction(queue, INTERACTION_POISON_PILL)
+                .whenComplete((result, ex) -> {
+                    friendRebuildFlag.stopRebuilding();
+                    if (ex != null) {
+                        log.error("[상호작용 점수 재구축] 실패, 플래그 해제", ex);
+                        return;
+                    }
+                    log.info("[상호작용 점수 재구축] 완료, DLQ 재처리 시작");
+                    friendEventDlqScheduler.processDlq();
+                });
     }
 }

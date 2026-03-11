@@ -3,7 +3,7 @@ package jaeik.bimillog.springboot.nodb;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.friend.listener.FriendInteractionListener;
-import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
+import jaeik.bimillog.domain.friend.rebuild.FriendEventDlqService;
 import jaeik.bimillog.domain.post.event.PostLikedEvent;
 import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.async.FriendAsyncConfig;

@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.global.listener;
+package jaeik.bimillog.domain.auth.listener;
 
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;

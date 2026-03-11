@@ -164,5 +164,4 @@ public class MemberQueryRepository {
             default -> Expressions.FALSE;
         };
     }
-
 }
