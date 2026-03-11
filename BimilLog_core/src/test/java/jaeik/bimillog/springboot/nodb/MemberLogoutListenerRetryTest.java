@@ -3,7 +3,7 @@ package jaeik.bimillog.springboot.nodb;
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
-import jaeik.bimillog.domain.global.listener.MemberLogoutListener;
+import jaeik.bimillog.domain.auth.listener.MemberLogoutListener;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.infrastructure.config.async.AsyncConfig;

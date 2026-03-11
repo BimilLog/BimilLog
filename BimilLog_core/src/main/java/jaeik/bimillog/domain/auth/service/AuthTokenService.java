@@ -24,7 +24,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthTokenService {
     private final AuthTokenRepository authTokenRepository;
-    private final AuthTokenQueryRepository authTokenQueryRepository;
 
     /**
      * <h3>토큰 ID로 토큰 조회</h3>
