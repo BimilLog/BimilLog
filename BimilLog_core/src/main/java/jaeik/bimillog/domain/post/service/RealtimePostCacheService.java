@@ -104,7 +104,7 @@ public class RealtimePostCacheService {
                     PostQueryType.CAFFEINE_REALTIME.getIdsConditionFn().apply(postIds), DEFAULT_PAGEABLE,
                     PostQueryType.CAFFEINE_REALTIME.getOrders());
         } catch (Exception e) {
-            log.warn("[CAFFEINE_FALLBACK] Caffeine 폴백 실패, DB 직접 조회: {}", e.getMessage());
+            log.warn("[CAFFEINE_FALLBACK] Caffeine 폴백 실패, DB 직접 조회: {}", e.getMessage(), e);
             return postQueryRepository.selectPostSimpleDetails(PostQueryType.REALTIME_FALLBACK.condition(), DEFAULT_PAGEABLE, PostQueryType.REALTIME_FALLBACK.getOrders());
         }
     }

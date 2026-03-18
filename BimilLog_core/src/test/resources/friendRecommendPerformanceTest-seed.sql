@@ -164,7 +164,7 @@ WHERE comment_id <= 5000;
 -- ========================================
 -- 9. 댓글 추천 10,000개
 -- ========================================
-INSERT INTO comment_like (comment_like_id, member_id, comment_id, created_at, modified_at)
+INSERT IGNORE INTO comment_like (comment_like_id, member_id, comment_id, created_at, modified_at)
 SELECT
     t1.n,
     ((t1.n - 1) % 1000) + 1,

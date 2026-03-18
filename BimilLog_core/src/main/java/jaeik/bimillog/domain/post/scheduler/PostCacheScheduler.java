@@ -43,11 +43,11 @@ public class PostCacheScheduler {
     @PostConstruct
     public void warmUpCaches() {
         log.info("앱 기동 시 캐시 워밍 시작");
-        try { refreshFirstPageCache(); } catch (Exception e) { log.warn("첫 페이지 캐시 워밍 실패: {}", e.getMessage()); }
-        try { refreshNoticePosts(); } catch (Exception e) { log.warn("공지사항 캐시 워밍 실패: {}", e.getMessage()); }
-        try { refreshRealtimePopularPosts(); } catch (Exception e) { log.warn("실시간 인기글 캐시 워밍 실패: {}", e.getMessage()); }
-        try { featuredPostScheduler.queryAndReplaceCache("WEEKLY", PostQueryType.WEEKLY_SCHEDULER, RedisKey.POST_WEEKLY_JSON_KEY); } catch (Exception e) { log.warn("주간 인기글 캐시 워밍 실패: {}", e.getMessage()); }
-        try { featuredPostScheduler.queryAndReplaceCache("LEGEND", PostQueryType.LEGEND_SCHEDULER, RedisKey.POST_LEGEND_JSON_KEY); } catch (Exception e) { log.warn("전설 게시글 캐시 워밍 실패: {}", e.getMessage()); }
+        try { refreshFirstPageCache(); } catch (Exception e) { log.warn("첫 페이지 캐시 워밍 실패: {}", e.getMessage(), e); }
+        try { refreshNoticePosts(); } catch (Exception e) { log.warn("공지사항 캐시 워밍 실패: {}", e.getMessage(), e); }
+        try { refreshRealtimePopularPosts(); } catch (Exception e) { log.warn("실시간 인기글 캐시 워밍 실패: {}", e.getMessage(), e); }
+        try { featuredPostScheduler.queryAndReplaceCache("WEEKLY", PostQueryType.WEEKLY_SCHEDULER, RedisKey.POST_WEEKLY_JSON_KEY); } catch (Exception e) { log.warn("주간 인기글 캐시 워밍 실패: {}", e.getMessage(), e); }
+        try { featuredPostScheduler.queryAndReplaceCache("LEGEND", PostQueryType.LEGEND_SCHEDULER, RedisKey.POST_LEGEND_JSON_KEY); } catch (Exception e) { log.warn("전설 게시글 캐시 워밍 실패: {}", e.getMessage(), e); }
         log.info("앱 기동 시 캐시 워밍 완료");
     }
 
