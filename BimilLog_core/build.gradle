@@ -83,6 +83,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher' // JUnit 플랫폼 런처 (Gradle 경고 방지)
     testImplementation 'com.h2database:h2' // H2 Database
     testImplementation 'org.assertj:assertj-core:3.26.3' // AssertJ 테스트 검증
+    implementation 'org.openjdk.jol:jol-core:0.17'
 
     // ==== 알림 관련 ====
     implementation 'com.google.firebase:firebase-admin:9.2.0' // Google Firebase Admin
