@@ -11,7 +11,6 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
-import org.openjdk.jol.info.GraphLayout;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -104,7 +103,6 @@ public class FriendRecommendService {
                 fillFromRecentMembers(candidates, ignoreIds);
             }
         }
-        System.out.println("공간" + GraphLayout.parseInstance(candidates).totalSize() + " bytes");
 
         // 5. 최종 정렬 및 상위 N명 추출
         List<RecommendCandidate> topCandidates = candidates.stream()
