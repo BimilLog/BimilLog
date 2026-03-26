@@ -24,7 +24,6 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "member", indexes = {
-        @Index(name = "idx_member_membername", columnList = "memberName"),
         @Index(name = "uk_provider_social_id", columnList = "provider, social_id", unique = true),
 })
 
