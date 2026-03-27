@@ -93,7 +93,7 @@ const jsonLd = {
 
 export default async function HomePage() {
   // 인기 롤링페이퍼 SSR
-  const popularPapersResponse = await getPopularPapersServer(0, 10);
+  const popularPapersResponse = await getPopularPapersServer(10);
   const popularPapers = popularPapersResponse?.data || null;
   const nonce = (await headers()).get('x-nonce') ?? '';
 

@@ -26,17 +26,16 @@ export const useRollingPaper = (userName: string, enabled: boolean = true, initi
 };
 
 /**
- * 실시간 인기 롤링페이퍼 조회
+ * 실시간 인기 롤링페이퍼 조회 (커서 기반)
  */
 export const usePopularPapers = (
-  page: number = 0,
   size: number = 10,
   options?: { enabled?: boolean }
 ) => {
   return useQuery({
-    queryKey: queryKeys.paper.popular(page, size),
+    queryKey: queryKeys.paper.popular(size),
     queryFn: async () => {
-      const response = await paperQuery.getPopularPapers(page, size);
+      const response = await paperQuery.getPopularPapers(null, size);
       if (!response.success) {
         throw new Error(response.error || '인기 롤링페이퍼를 불러올 수 없습니다');
       }
@@ -46,6 +45,6 @@ export const usePopularPapers = (
     staleTime: 60 * 1000, // 1분
     gcTime: 5 * 60 * 1000, // 5분
     retry: 1,
-    refetchInterval: (data) => (data ? 60 * 1000 : false), // refetch every minute only after first success
+    refetchInterval: (data) => (data ? 60 * 1000 : false),
   });
 };

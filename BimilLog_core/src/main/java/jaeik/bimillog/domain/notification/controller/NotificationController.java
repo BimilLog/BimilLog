@@ -48,11 +48,8 @@ public class NotificationController {
      */
     @GetMapping("/list")
     public ResponseEntity<List<NotificationDTO>> getNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<Notification> notifications = notificationQueryService.getNotificationList(userDetails);
-        List<NotificationDTO> notificationDTOS = notifications.stream()
-                .map(NotificationDTO::from)
-                .toList();
-        return ResponseEntity.ok(notificationDTOS);
+        List<NotificationDTO> notifications = notificationQueryService.getNotificationList(userDetails);
+        return ResponseEntity.ok(notifications);
     }
 
     /**

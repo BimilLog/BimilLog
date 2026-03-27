@@ -3,22 +3,20 @@ package jaeik.bimillog.domain.paper.service;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
 import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
-import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
+import jaeik.bimillog.domain.global.dto.CursorPageResponse;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static jaeik.bimillog.infrastructure.redis.RedisKey.REALTIME_PAPER_SCORE_KEY;
 
 /**
  * <h2>롤링페이퍼 캐시 서비스</h2>
@@ -27,7 +25,7 @@ import static jaeik.bimillog.infrastructure.redis.RedisKey.REALTIME_PAPER_SCORE_
  * <p>Redis Sorted Set에서 점수 기반 순위 조회 후 DB 데이터를 결합하여 제공</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.8.0
  */
 @Log(logResult = false, logExecutionTime = true)
 @Service
@@ -37,41 +35,33 @@ public class PaperCacheService {
     private final RedisPaperQueryAdapter redisPaperQueryAdapter;
     private final PaperQueryRepository paperQueryRepository;
     private final PaperToMemberAdapter paperToMemberAdapter;
-    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
-     * <h3>실시간 인기 롤링페이퍼 조회</h3>
+     * <h3>실시간 인기 롤링페이퍼 조회 (커서 기반)</h3>
      * <p>Redis Sorted Set에서 점수 기반 순위를 조회하고 DB에서 추가 정보를 보강하여 반환합니다.</p>
+     * <p>커서는 마지막으로 조회한 rank(순위)이며, null이면 처음부터 조회합니다.</p>
      *
-     * @param pageable 페이지 정보 (페이지 번호, 크기)
-     * @return Page<PopularPaperInfo> 실시간 인기 롤링페이퍼 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
+     * @param cursor 마지막으로 조회한 순위 (null이면 처음부터)
+     * @param size 조회할 개수
+     * @return CursorPageResponse 커서 기반 페이지 응답
      */
-    public Page<PopularPaperInfo> getRealtimePapers(Pageable pageable) {
-        // 1. Pageable에서 페이징 정보 추출
-        int page = pageable.getPageNumber();
-        int size = pageable.getPageSize();
-        int start = page * size;
-        int end = start + size - 1;
+    public CursorPageResponse<PopularPaperInfo> getRealtimePapers(Long cursor, int size) {
+        // 1. 커서에서 조회 범위 계산
+        int start = (cursor == null) ? 0 : cursor.intValue();
+        int end = start + size; // size + 1개 조회하여 다음 페이지 존재 여부 판단
 
-        // 2. Redis Sorted Set 전체 크기 조회 (total)
-        Long total = redisTemplate.opsForZSet().zCard(REALTIME_PAPER_SCORE_KEY);
-        if (total == null || total == 0) {
-            CacheMetricsLogger.miss(log, "paper:realtime:zcard", REALTIME_PAPER_SCORE_KEY, "zcard_empty");
-            return Page.empty(pageable);
-        }
-        CacheMetricsLogger.hit(log, "paper:realtime:zcard", REALTIME_PAPER_SCORE_KEY, total);
-
-        // 3. Redis에서 지정된 범위로 조회 (memberId, rank, popularityScore)
-        List<PopularPaperInfo> popularPapers = redisPaperQueryAdapter
-                .getRealtimePopularPapersWithRankAndScore(start, end);
+        // 2. Redis에서 지정된 범위로 조회 (memberId, rank, popularityScore)
+        List<PopularPaperInfo> popularPapers = redisPaperQueryAdapter.getRealtimePopularPapersWithRankAndScore(start, end);
 
         if (popularPapers.isEmpty()) {
-            CacheMetricsLogger.miss(log, "paper:realtime:payload", REALTIME_PAPER_SCORE_KEY, "tuples_empty");
-            return Page.empty(pageable);
+            return CursorPageResponse.of(Collections.emptyList(), null);
         }
-        CacheMetricsLogger.hit(log, "paper:realtime:payload", REALTIME_PAPER_SCORE_KEY, popularPapers.size());
+
+        // 3. 다음 페이지 존재 여부 판단
+        boolean hasNext = popularPapers.size() > size;
+        if (hasNext) {
+            popularPapers = popularPapers.subList(0, size);
+        }
 
         // 4. memberIds 추출 및 memberName 주입
         List<Long> memberIds = popularPapers.stream()
@@ -85,9 +75,14 @@ public class PaperCacheService {
         );
 
         // 5. DB에서 24시간 이내 메시지 수 조회 후 채우기
-        paperQueryRepository.enrichPopularPaperInfos(popularPapers);
+        Instant twentyFourHoursAgo = Instant.now().minus(24, ChronoUnit.HOURS);
+        Map<Long, Integer> messageCountMap = paperQueryRepository.enrichPopularPaperInfos(memberIds, twentyFourHoursAgo);
+        popularPapers.forEach(info ->
+                info.setRecentMessageCount(messageCountMap.getOrDefault(info.getMemberId(), 0))
+        );
 
-        // 6. 페이징 정보와 함께 Page로 변환하여 반환
-        return new PageImpl<>(popularPapers, pageable, total);
+        // 6. 다음 커서 계산 (마지막 항목의 rank)
+        Long nextCursor = hasNext ? (long) popularPapers.getLast().getRank() : null;
+        return CursorPageResponse.of(popularPapers, nextCursor);
     }
 }

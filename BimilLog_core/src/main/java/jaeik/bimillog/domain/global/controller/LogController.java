@@ -43,11 +43,8 @@ public class LogController {
      */
     @PostMapping("/client-error")
     public ResponseEntity<Void> logClientError(@Valid @RequestBody ClientErrorLogDTO errorLog) {
-        log.info("클라이언트 에러 로그 수신: platform={}, message={}",
-            errorLog.getPlatform(), errorLog.getErrorMessage());
-
+        log.info("클라이언트 에러 로그 수신: platform={}, message={}", errorLog.getPlatform(), errorLog.getErrorMessage());
         logService.logClientError(errorLog);
-
         return ResponseEntity.ok().build();
     }
 }

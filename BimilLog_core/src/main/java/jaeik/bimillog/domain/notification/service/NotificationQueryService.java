@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.notification.controller.NotificationController;
+import jaeik.bimillog.domain.notification.dto.NotificationDTO;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,9 @@ public class NotificationQueryService {
      * @since 2.0.0
      */
     @Transactional(readOnly = true)
-    public List<Notification> getNotificationList(CustomUserDetails userDetails) {
-        return notificationRepository.getNotificationList(userDetails.getMemberId());
+    public List<NotificationDTO> getNotificationList(CustomUserDetails userDetails) {
+         return notificationRepository.getNotificationList(userDetails.getMemberId()).stream()
+                 .map(NotificationDTO::from)
+                 .toList();
     }
 }

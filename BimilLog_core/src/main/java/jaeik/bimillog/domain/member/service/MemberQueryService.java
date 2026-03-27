@@ -117,8 +117,8 @@ public class MemberQueryService {
      * @author Jaeik
      */
     @Transactional(readOnly = true)
-    public Page<Member> findAllMembers(Pageable pageable) {
-        return memberRepository.findAll(pageable);
+    public Page<SimpleMemberDTO> findAllMembers(Pageable pageable) {
+        return memberRepository.findAll(pageable).map(SimpleMemberDTO::fromMember);
     }
 
     /**
@@ -153,12 +153,7 @@ public class MemberQueryService {
         return memberRepository.findByProviderAndSocialId(provider, socialId);
     }
 
-
-
     public List<String> fcmEligibleFcmTokens(Long memberId, NotificationType type) {
         return memberQueryRepository.fcmEligibleFcmTokens(memberId, type);
     }
-
-
-
 }

@@ -1,7 +1,7 @@
 package jaeik.bimillog.unit.domain.notification;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.notification.entity.Notification;
+import jaeik.bimillog.domain.notification.dto.NotificationDTO;
 import jaeik.bimillog.domain.notification.repository.NotificationRepository;
 import jaeik.bimillog.domain.notification.service.NotificationQueryService;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -59,7 +59,7 @@ class NotificationQueryServiceTest extends BaseUnitTest {
                 .willReturn(List.of());
 
         // When
-        List<Notification> result = notificationQueryService.getNotificationList(userDetails);
+        List<NotificationDTO> result = notificationQueryService.getNotificationList(userDetails);
 
         // Then
         assertThat(result).isNotNull();

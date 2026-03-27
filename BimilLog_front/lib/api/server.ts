@@ -115,8 +115,8 @@ export async function searchPostsServer(
 }
 
 // 인기 롤링페이퍼 조회
-export async function getPopularPapersServer(page = 0, size = 10) {
-  return serverFetch<ApiResponse<PageResponse<PopularPaperInfo>>>(`/api/paper/popular?page=${page}&size=${size}`)
+export async function getPopularPapersServer(size = 10) {
+  return serverFetch<ApiResponse<CursorPageResponse<PopularPaperInfo>>>(`/api/paper/popular?size=${size}`)
 }
 
 /**
