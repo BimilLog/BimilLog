@@ -98,8 +98,7 @@ public class MemberQueryController {
      */
     @GetMapping("/all")
     public ResponseEntity<Page<SimpleMemberDTO>> getAllMembers(Pageable pageable) {
-        Page<SimpleMemberDTO> members = memberQueryService.findAllMembers(pageable)
-                .map(SimpleMemberDTO::fromMember);
+        Page<SimpleMemberDTO> members = memberQueryService.findAllMembers(pageable);
         return ResponseEntity.ok(members);
     }
 

@@ -1,6 +1,6 @@
 //package jaeik.bimillog.springboot.mysql.performance;
 //
-//import jaeik.bimillog.domain.post.dto.CursorPageResponse;
+//import jaeik.bimillog.domain.global.dto.CursorPageResponse;
 //import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 //import jaeik.bimillog.domain.post.service.PostQueryService;
 //import org.assertj.core.api.Assertions;

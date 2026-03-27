@@ -48,8 +48,7 @@ public class NotificationSseController {
      * @since 2.0.0
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                HttpServletResponse response) {
+    public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails, HttpServletResponse response) {
         // SSE 스트림은 중간 프록시가 버퍼링하거나 압축할 경우 HTTP/2 프로토콜 오류가 발생할 수 있으므로 명시적으로 비활성화
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         response.setHeader("Pragma", "no-cache");

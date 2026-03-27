@@ -9,7 +9,7 @@ import { logger, isMobileOrTablet, isKakaoInAppBrowser } from '@/lib/utils';
 import { LazyKakaoFriendsModal } from "@/lib/utils/lazy-components";
 import { NotificationPermissionModal } from "@/components/organisms/notification";
 import { registerFcmTokenAction } from "@/lib/actions/notification";
-import type { PageResponse } from "@/types/common";
+import type { CursorPageResponse } from "@/types/common";
 import type { PopularPaperInfo } from "@/types/domains/paper";
 
 // 분리된 컴포넌트들 import - 직접 파일에서 import하여 circular dependency 방지
@@ -18,7 +18,7 @@ import { HomeFeatures } from "./HomeFeatures";
 import { PopularPapersSection } from "./PopularPapersSection";
 
 interface HomeClientProps {
-  popularPapers: PageResponse<PopularPaperInfo> | null;
+  popularPapers: CursorPageResponse<PopularPaperInfo> | null;
 }
 
 export default function HomeClient({ popularPapers }: HomeClientProps) {

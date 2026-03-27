@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.post.dto.CursorPageResponse;
+import jaeik.bimillog.domain.global.dto.CursorPageResponse;
 import jaeik.bimillog.domain.post.dto.PostSearchDTO;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;

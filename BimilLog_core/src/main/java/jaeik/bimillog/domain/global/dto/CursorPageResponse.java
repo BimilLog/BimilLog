@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.dto;
+package jaeik.bimillog.domain.global.dto;
 
 import java.util.List;
 

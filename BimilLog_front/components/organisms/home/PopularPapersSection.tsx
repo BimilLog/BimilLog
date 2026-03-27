@@ -6,18 +6,18 @@ import { TrendingUp, MessageSquare, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { usePopularPapers } from "@/hooks/api/useRollingPaperQueries";
-import type { PageResponse } from "@/types/common";
+import type { CursorPageResponse } from "@/types/common";
 import type { PopularPaperInfo } from "@/types/domains/paper";
 
 interface PopularPapersSectionProps {
-  initialData?: PageResponse<PopularPaperInfo> | null;
+  initialData?: CursorPageResponse<PopularPaperInfo> | null;
 }
 
 export const PopularPapersSection: React.FC<PopularPapersSectionProps> = memo(({ initialData }) => {
   const router = useRouter();
 
   // SSR 데이터가 없으면 클라이언트에서 fetch (fallback)
-  const { data: clientData, isLoading } = usePopularPapers(0, 10, {
+  const { data: clientData, isLoading } = usePopularPapers(10, {
     enabled: !initialData, // SSR 데이터가 없을 때만 활성화
   });
 

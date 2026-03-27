@@ -118,7 +118,6 @@ public class MemberCommandController {
 
         return ResponseEntity.ok()
                 .headers(headers -> HTTPCookie.getLogoutCookies().forEach(cookie ->
-                        headers.add("Set-Cookie", cookie.toString())))
-                .build();
+                        headers.add("Set-Cookie", cookie.toString()))).build();
     }
 }
