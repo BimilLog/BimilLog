@@ -72,14 +72,6 @@ public class Post extends BaseEntity {
     @Column(name = "is_notice", nullable = false)
     private boolean isNotice;
 
-    public void updateWeekly(boolean isWeekly) {
-        this.isWeekly = isWeekly;
-    }
-
-    public void updateLegend(boolean isLegend) {
-        this.isLegend = isLegend;
-    }
-
     public void updateNotice(boolean isNotice) {
         this.isNotice = isNotice;
     }
