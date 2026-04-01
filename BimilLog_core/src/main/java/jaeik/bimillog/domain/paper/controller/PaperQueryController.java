@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 /**
  * <h2>롤링페이퍼 조회 컨트롤러</h2>
  * <p>롤링페이퍼 도메인의 조회 작업을 처리하는 컨트롤러입니다.</p>
@@ -42,9 +40,9 @@ public class PaperQueryController {
      * @return 메시지 리스트
      */
     @GetMapping
-    public ResponseEntity<List<MyPaperDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<MyPaperDTO> myMessages = paperQueryService.getMyPaper(userDetails.getMemberId());
-        return ResponseEntity.ok(myMessages);
+    public ResponseEntity<MyPaperDTO> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        MyPaperDTO myPaper = paperQueryService.getMyPaper(userDetails.getMemberId());
+        return ResponseEntity.ok(myPaper);
     }
 
     /**

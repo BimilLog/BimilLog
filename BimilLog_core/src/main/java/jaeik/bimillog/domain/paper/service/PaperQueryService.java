@@ -34,9 +34,9 @@ public class PaperQueryService {
      * <h3>내 롤링페이퍼 조회</h3>
      * <p>사용자 ID를 통해 자신의 롤링페이퍼에 작성된 모든 메시지를 조회합니다.</p>
      */
-    public List<MyPaperDTO> getMyPaper(Long memberId) {
+    public MyPaperDTO getMyPaper(Long memberId) {
         List<Message> messageDetails = paperQueryRepository.getMessageList(memberId);
-        return MyPaperDTO.getListMyMessageDTO(messageDetails);
+        return MyPaperDTO.createMyPaperDTO(memberId, messageDetails);
     }
 
     /**

@@ -1,7 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.paper;
 
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,13 +34,8 @@ public class RedisPaperUpdateAdapter {
      * @param score    증가시킬 점수
      */
     public void incrementRealtimePopularPaperScore(Long memberId, double score) {
-        try {
-            redisTemplate.opsForZSet().incrementScore(REALTIME_PAPER_SCORE_KEY, memberId.toString(), score);
-            log.info("{}의 롤링 페이퍼{}점 증가", memberId, score);
-        } catch (Exception e) {
-            log.warn("{}의 롤링 페이퍼 레디스 작업 실패", memberId);
-            throw new CustomException(ErrorCode.PAPER_REDIS_WRITE_ERROR, e);
-        }
+        redisTemplate.opsForZSet().incrementScore(REALTIME_PAPER_SCORE_KEY, memberId.toString(), score);
+        log.info("{}의 롤링 페이퍼{}점 증가", memberId, score);
     }
 
     /**
@@ -54,28 +47,25 @@ public class RedisPaperUpdateAdapter {
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         script.setScriptText(
                 "local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES') " +
-                "for i = 1, #members, 2 do " +
-                "    local member = members[i] " +
-                "    local score = tonumber(members[i + 1]) " +
-                "    local newScore = score * tonumber(ARGV[1]) " +
-                "    redis.call('ZADD', KEYS[1], newScore, member) " +
-                "end " +
-                "return 1"
+                        "for i = 1, #members, 2 do " +
+                        "    local member = members[i] " +
+                        "    local score = tonumber(members[i + 1]) " +
+                        "    local newScore = score * tonumber(ARGV[1]) " +
+                        "    redis.call('ZADD', KEYS[1], newScore, member) " +
+                        "end " +
+                        "return 1"
         );
         script.setResultType(Long.class);
-        try {
-            // 1. 모든 항목의 점수에 0.97 곱하기 (Lua 스크립트 사용)
-            redisTemplate.execute(
-                    script,
-                    List.of(REALTIME_PAPER_SCORE_KEY),
-                    REALTIME_PAPER_SCORE_DECAY_RATE
-            );
+        // 1. 모든 항목의 점수에 0.97 곱하기 (Lua 스크립트 사용)
+        redisTemplate.execute(
+                script,
+                List.of(REALTIME_PAPER_SCORE_KEY),
+                REALTIME_PAPER_SCORE_DECAY_RATE
+        );
 
-            // 2. 임계값(1점) 이하의 롤링페이퍼 제거
-            redisTemplate.opsForZSet().removeRangeByScore(REALTIME_PAPER_SCORE_KEY, 0, REALTIME_PAPER_SCORE_THRESHOLD);
+        // 2. 임계값(1점) 이하의 롤링페이퍼 제거
+        redisTemplate.opsForZSet().removeRangeByScore(REALTIME_PAPER_SCORE_KEY, 0, REALTIME_PAPER_SCORE_THRESHOLD);
 
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.PAPER_REDIS_WRITE_ERROR, e);
-        }
     }
 }
+

@@ -53,7 +53,6 @@ public class RealtimePaperPopularScoreListener {
     )
     public void handlePaperViewed(PaperViewedEvent event) {
         redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.memberId(), VIEW_SCORE);
-        log.debug("실시간 인기 롤링페이퍼 점수 증가 (조회): memberId={}, score=+{}", event.memberId(), VIEW_SCORE);
     }
 
     @Recover
@@ -79,7 +78,6 @@ public class RealtimePaperPopularScoreListener {
     )
     public void handleMessageCreated(RollingPaperEvent event) {
         redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.paperOwnerId(), MESSAGE_SCORE);
-        log.debug("실시간 인기 롤링페이퍼 점수 증가 (메시지 작성): memberId={}, score=+{}", event.paperOwnerId(), MESSAGE_SCORE);
     }
 
     @Recover
@@ -105,7 +103,6 @@ public class RealtimePaperPopularScoreListener {
     )
     public void handleMessageDeleted(MessageDeletedEvent event) {
         redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.paperOwnerId(), -MESSAGE_SCORE);
-        log.debug("실시간 인기 롤링페이퍼 점수 감소 (메시지 삭제): memberId={}, score=-{}", event.paperOwnerId(), MESSAGE_SCORE);
     }
 
     @Recover
