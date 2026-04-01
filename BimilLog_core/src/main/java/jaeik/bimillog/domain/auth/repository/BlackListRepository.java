@@ -25,6 +25,4 @@ public interface BlackListRepository extends JpaRepository<BlackList, Long> {
      * @since 2.0.0
      */
     boolean existsByProviderAndSocialId(SocialProvider provider, String socialId);
-
-
 }

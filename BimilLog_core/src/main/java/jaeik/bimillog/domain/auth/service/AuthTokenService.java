@@ -1,16 +1,13 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.repository.AuthTokenQueryRepository;
 import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 /**

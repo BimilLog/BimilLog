@@ -31,22 +31,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 @RequiredArgsConstructor
 @Slf4j
 public class FriendAdminService {
-
-    private static final int QUEUE_CAPACITY = 10_000;
-    private static final int INTERACTION_PRODUCER_COUNT = 5;
-
-    private static final FriendshipRebuildDTO POISON_PILL =
-            FriendshipRebuildDTO.createDTO(-1L, Set.of());
-
-    private static final InteractionRebuildDTO INTERACTION_POISON_PILL =
-            InteractionRebuildDTO.createDTO(-1L, Map.of());
-
     private final FriendAdminQueryRepository friendAdminQueryRepository;
     private final RedisFriendRestore redisFriendRestore;
     private final FriendRebuildProducer friendRebuildProducer;
     private final FriendRebuildConsumer friendRebuildConsumer;
     private final FriendRebuildFlag friendRebuildFlag;
     private final FriendEventDlqScheduler friendEventDlqScheduler;
+
+    private static final FriendshipRebuildDTO POISON_PILL = FriendshipRebuildDTO.createDTO(-1L, Set.of());
+    private static final InteractionRebuildDTO INTERACTION_POISON_PILL = InteractionRebuildDTO.createDTO(-1L, Map.of());
+
+    private static final int QUEUE_CAPACITY = 10_000;
+    private static final int INTERACTION_PRODUCER_COUNT = 5;
 
     /**
      * <h3>친구 관계 Redis 프로듀서/컨슈머 병렬 재구축</h3>

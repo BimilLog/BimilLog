@@ -16,7 +16,6 @@ public class SocialTokenQueryRepository {
     private final QMember member = QMember.member;
     private final QSocialToken socialToken = QSocialToken.socialToken;
 
-
     public Optional<SocialToken> findSocialTokenByMemberId(Long memberId) {
         SocialToken result = jpaQueryFactory
                 .select(socialToken)
@@ -24,8 +23,6 @@ public class SocialTokenQueryRepository {
                 .join(member.socialToken, socialToken)
                 .where(member.id.eq(memberId))
                 .fetchOne();
-
         return Optional.ofNullable(result);
-
     }
 }
