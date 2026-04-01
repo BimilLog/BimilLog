@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class InteractionScoreDecayScheduler {
-
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
 
     /**

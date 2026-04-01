@@ -12,9 +12,7 @@ import java.time.Instant;
  * <p>
  * 주로 마이페이지에서 사용자가 작성하거나 추천한 댓글 목록 조회 시 사용
  * </p>
- * <p>
- * 성능 최적화를 위해 mutable로 변경 - 추천수, 사용자 추천 여부를 나중에 설정 가능
- * </p>
+
  *
  * @author Jaeik
  * @version 2.0.0

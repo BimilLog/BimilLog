@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/global")
 public class LogController {
-
     private final LogService logService;
 
     /**

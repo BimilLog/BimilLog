@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 @Slf4j
 public class FriendRebuildFlag {
-
     private final AtomicInteger rebuildCount = new AtomicInteger(0);
 
     public void startRebuilding() {

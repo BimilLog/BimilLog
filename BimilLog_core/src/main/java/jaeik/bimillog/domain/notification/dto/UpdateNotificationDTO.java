@@ -48,8 +48,7 @@ public class UpdateNotificationDTO {
      */
     @AssertTrue(message = "읽음 처리 또는 삭제 중 최소 하나의 작업은 요청되어야 합니다.")
     public boolean isAtLeastOneOperationRequested() {
-        return (readIds != null && !readIds.isEmpty()) || 
-               (deletedIds != null && !deletedIds.isEmpty());
+        return (readIds != null && !readIds.isEmpty()) || (deletedIds != null && !deletedIds.isEmpty());
     }
 
     /**

@@ -32,7 +32,6 @@ public class AdminToPostAdapter {
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
     }
 
-
     /**
      * <h3>PostId 목록으로 Post 리스트 반환</h3>
      */

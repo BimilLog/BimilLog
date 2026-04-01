@@ -27,11 +27,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 @RequiredArgsConstructor
 @Slf4j
 public class FriendRebuildProducer {
+    private final FriendAdminQueryRepository friendAdminQueryRepository;
 
     private static final int MEMBER_CHUNK_SIZE = 1000;
     private static final int INTERACTION_CHUNK_SIZE = 500;
 
-    private final FriendAdminQueryRepository friendAdminQueryRepository;
 
     /**
      * <h3>DB 배치 조회 → 큐 삽입</h3>

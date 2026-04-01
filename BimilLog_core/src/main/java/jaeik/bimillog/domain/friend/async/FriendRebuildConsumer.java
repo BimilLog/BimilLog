@@ -27,7 +27,6 @@ import static jaeik.bimillog.infrastructure.redis.RedisKey.PIPELINE_BATCH_SIZE;
 @RequiredArgsConstructor
 @Slf4j
 public class FriendRebuildConsumer {
-
     private final RedisFriendRestore redisFriendRestore;
 
     /**

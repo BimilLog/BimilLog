@@ -32,7 +32,6 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 @RequestMapping("/api/notification")
 public class NotificationSseController {
-
     private final SseService sseService;
 
     /**

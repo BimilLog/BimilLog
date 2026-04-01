@@ -33,7 +33,6 @@ public class PaperToMemberAdapter {
         return memberQueryService.findById(memberId);
     }
 
-
     /**
      * <h3>여러 사용자 ID로 사용자명 배치 조회</h3>
      * <p>여러 사용자 ID에 해당하는 사용자명을 한 번에 조회합니다.</p>
@@ -44,7 +43,6 @@ public class PaperToMemberAdapter {
     public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
         return memberQueryService.findMemberNamesByIds(memberIds);
     }
-
 
     /**
      * <h3>사용자명으로 사용자 조회</h3>
