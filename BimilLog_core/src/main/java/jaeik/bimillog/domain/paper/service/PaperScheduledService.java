@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.paper.service;
 
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +18,8 @@ public class PaperScheduledService {
     public void applyRealtimeScoreDecay() {
         try {
             redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay();
-            log.info("실시간 인기글 점수 지수감쇠 적용 완료 (0.97 곱하기, 1점 이하 제거)");
         } catch (Exception e) {
-            log.error("실시간 인기글 점수 지수감쇠 적용 실패", e);
+            throw new CustomException(ErrorCode.PAPER_REDIS_WRITE_ERROR, e);
         }
     }
 }

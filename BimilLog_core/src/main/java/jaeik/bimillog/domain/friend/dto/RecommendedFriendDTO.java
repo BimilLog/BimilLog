@@ -3,15 +3,15 @@ package jaeik.bimillog.domain.friend.dto;
 import jaeik.bimillog.domain.friend.entity.RecommendCandidate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
  * <h2>추천친구 응답 DTO</h2>
  *
- * @version 2.7.0
+ * @version 2.8.0
  * @author Jaeik
  */
 @Getter
+@AllArgsConstructor
 public class RecommendedFriendDTO {
     private final Long friendMemberId;
     private final String memberName;
@@ -21,20 +21,7 @@ public class RecommendedFriendDTO {
     private final boolean manyAcquaintance;
     private final String introduce;
 
-    private RecommendedFriendDTO(Long friendMemberId, String memberName, Integer depth, Long acquaintanceId,
-                                 String acquaintanceName, boolean manyAcquaintance, String introduce) {
-        this.friendMemberId = friendMemberId;
-        this.memberName = memberName;
-        this.depth = depth;
-        this.acquaintanceId = acquaintanceId;
-        this.acquaintanceName = acquaintanceName;
-        this.manyAcquaintance = manyAcquaintance;
-        this.introduce = introduce;
-    }
-
-    public static RecommendedFriendDTO from(RecommendCandidate candidate,
-                                            String memberName,
-                                            String acquaintanceName) {
+    public static RecommendedFriendDTO from(RecommendCandidate candidate, String memberName, String acquaintanceName) {
         String introduce = createIntroduce(candidate.getDepth(), acquaintanceName, candidate.isManyAcquaintance());
         return new RecommendedFriendDTO(
                 candidate.getMemberId(),

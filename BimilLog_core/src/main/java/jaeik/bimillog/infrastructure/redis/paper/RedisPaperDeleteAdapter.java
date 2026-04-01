@@ -30,10 +30,6 @@ public class RedisPaperDeleteAdapter {
      * @param memberId 제거할 회원 ID
      */
     public void removeMemberIdFromRealtimeScore(Long memberId) {
-        try {
-            redisTemplate.opsForZSet().remove(REALTIME_PAPER_SCORE_KEY, memberId.toString());
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.PAPER_REDIS_DELETE_ERROR, e);
-        }
+        redisTemplate.opsForZSet().remove(REALTIME_PAPER_SCORE_KEY, memberId.toString());
     }
 }

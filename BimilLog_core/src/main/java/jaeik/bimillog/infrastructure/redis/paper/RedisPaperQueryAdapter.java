@@ -38,37 +38,32 @@ public class RedisPaperQueryAdapter {
      * <p>memberId, rank, popularityScore가 채워진 PopularPaperInfo 리스트를 반환합니다.</p>
      *
      * @param start 시작 인덱스 (0부터 시작)
-     * @param end 종료 인덱스 (포함)
+     * @param end   종료 인덱스 (포함)
      * @return List<PopularPaperInfo> 지정된 범위의 롤링페이퍼 정보 (memberId, rank, popularityScore만 설정됨)
      */
     public List<PopularPaperInfo> getRealtimePopularPapersWithRankAndScore(int start, int end) {
-        try {
-            // Sorted Set에서 점수와 함께 지정된 범위 조회
-            Set<ZSetOperations.TypedTuple<Object>> tuples =
-                    redisTemplate.opsForZSet().reverseRangeWithScores(REALTIME_PAPER_SCORE_KEY, start, end);
+        // Sorted Set에서 점수와 함께 지정된 범위 조회
+        Set<ZSetOperations.TypedTuple<Object>> tuples =
+                redisTemplate.opsForZSet().reverseRangeWithScores(REALTIME_PAPER_SCORE_KEY, start, end);
 
-            if (tuples == null || tuples.isEmpty()) {
-                return Collections.emptyList();
-            }
-
-            List<PopularPaperInfo> result = new ArrayList<>();
-            int rank = start + 1; // 시작 인덱스 기준으로 랭킹 계산
-
-            for (ZSetOperations.TypedTuple<Object> tuple : tuples) {
-                if (tuple.getValue() == null || tuple.getScore() == null) {
-                    continue;
-                }
-
-                PopularPaperInfo info = new PopularPaperInfo();
-                info.setMemberId(Long.valueOf(tuple.getValue().toString()));
-                info.setRank(rank++);
-                info.setPopularityScore(tuple.getScore());
-                result.add(info);
-            }
-
-            return result;
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.PAPER_REDIS_READ_ERROR, e);
+        if (tuples == null || tuples.isEmpty()) {
+            return Collections.emptyList();
         }
+
+        List<PopularPaperInfo> result = new ArrayList<>();
+        int rank = start + 1; // 시작 인덱스 기준으로 랭킹 계산
+
+        for (ZSetOperations.TypedTuple<Object> tuple : tuples) {
+            if (tuple.getValue() == null || tuple.getScore() == null) {
+                continue;
+            }
+
+            PopularPaperInfo info = new PopularPaperInfo();
+            info.setMemberId(Long.valueOf(tuple.getValue().toString()));
+            info.setRank(rank++);
+            info.setPopularityScore(tuple.getScore());
+            result.add(info);
+        }
+        return result;
     }
 }

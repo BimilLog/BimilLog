@@ -77,6 +77,10 @@ public class PaperCommandService {
     @Transactional
     public void deleteAllMessageWhenWithdraw(Long memberId) {
         paperRepository.deleteAllByMember_Id(memberId);
-        redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(memberId);
+        try {
+            redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(memberId);
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.PAPER_REDIS_DELETE_ERROR, e);
+        }
     }
 }
