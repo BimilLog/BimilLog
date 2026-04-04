@@ -10,6 +10,9 @@ UPDATE social_token st
     INNER JOIN member m ON m.social_token_id = st.social_token_id
     SET st.member_id = m.member_id;
 
+-- 2.5. 어떤 member도 참조하지 않는 고아 소셜 토큰 삭제 (NOT NULL 적용 전 필수)
+DELETE FROM social_token WHERE member_id IS NULL;
+
 -- 3. NOT NULL 제약 적용
 ALTER TABLE social_token MODIFY COLUMN member_id BIGINT NOT NULL;
 
