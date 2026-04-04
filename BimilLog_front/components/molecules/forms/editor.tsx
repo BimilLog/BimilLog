@@ -5,6 +5,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import dynamic from "next/dynamic";
+import DOMPurify from "dompurify";
 
 import { Spinner } from "@/components";
 
@@ -418,13 +419,13 @@ const QuillEditor: React.FC<EditorProps> = ({
 
           try {
 
-            const content = quill.getSemanticHTML
+            const raw = quill.getSemanticHTML
 
               ? quill.getSemanticHTML()
 
               : quill.root.innerHTML;
 
-            onChangeRef.current(content);
+            onChangeRef.current(DOMPurify.sanitize(raw));
 
             // ?ъ슜?먭? ??댄븨???쒖옉?섎㈃ 珥덇린 value ?ㅼ젙 ?꾨즺濡??쒖떆 (?댄썑 ?몃? ?숆린??諛⑹?)
 
@@ -434,7 +435,7 @@ const QuillEditor: React.FC<EditorProps> = ({
 
             logger.error("Error getting content:", err);
 
-            onChangeRef.current(quill.root.innerHTML);
+            onChangeRef.current(DOMPurify.sanitize(quill.root.innerHTML));
 
             isInitialValueSet.current = true;
 

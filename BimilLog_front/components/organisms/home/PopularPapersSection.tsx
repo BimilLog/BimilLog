@@ -29,7 +29,7 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = memo(({
   };
 
   return (
-    <section className="w-full lg:w-[400px] lg:min-w-[400px]">
+    <section className="lg:w-[400px] lg:min-w-[400px] lg:flex-shrink-0">
       <Card className="h-full">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
