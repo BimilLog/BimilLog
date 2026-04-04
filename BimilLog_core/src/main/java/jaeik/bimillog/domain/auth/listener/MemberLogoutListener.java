@@ -35,18 +35,16 @@ import jaeik.bimillog.infrastructure.log.Log;
 @Service
 @RequiredArgsConstructor
 public class MemberLogoutListener {
-    private final SocialLogoutService socialLogoutService;
     private final SseService sseService;
     private final AuthTokenService authTokenService;
 
     /**
      * <h3>사용자 로그아웃 이벤트 처리</h3>
      * <p>사용자가 로그아웃할 때 발생하는 이벤트를 비동기로 처리합니다.</p>
-     * <p>SSE 연결 종료, 소셜 플랫폼 로그아웃, AuthToken 삭제(FCM 토큰 포함)를 순차적으로 수행합니다.</p>
+     * <p>SSE 연결 종료, AuthToken 삭제(FCM 토큰 포함)를 순차적으로 수행합니다.</p>
+     * <p>로그아웃시 소셜 플랫폼은 로그아웃하지 않는다.</p>
      *
      * @param memberLoggedOutEvent 로그아웃 이벤트 (memberId, authTokenId, provider 포함)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Async("memberEventExecutor")
     @EventListener
@@ -64,15 +62,8 @@ public class MemberLogoutListener {
     public void memberLogout(MemberLoggedOutEvent memberLoggedOutEvent) {
         Long memberId = memberLoggedOutEvent.memberId();
         Long AuthTokenId = memberLoggedOutEvent.authTokenId();
-        SocialProvider provider = memberLoggedOutEvent.provider();
 
         sseService.deleteEmitters(memberId, AuthTokenId);
-        try {
-            socialLogoutService.socialLogout(memberId, provider);
-        } catch (Exception ex) {
-            log.warn("소셜 로그아웃 실패 - provider: {}, memberId: {}. 이후 정리 작업은 계속 진행합니다.", provider, memberId, ex);
-        }
-
         authTokenService.deleteTokens(memberId, AuthTokenId);
         SecurityContextHolder.clearContext();
     }

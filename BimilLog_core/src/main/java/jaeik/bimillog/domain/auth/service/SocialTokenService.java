@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.repository.SocialTokenQueryRepository;
 import jaeik.bimillog.domain.auth.repository.SocialTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,11 +11,10 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class SocialTokenService {
-    private final SocialTokenQueryRepository socialTokenQueryRepository;
     private final SocialTokenRepository socialTokenRepository;
 
     public Optional<SocialToken> getSocialToken(Long memberId) {
-        return socialTokenQueryRepository.findSocialTokenByMemberId(memberId);
+        return socialTokenRepository.findByMemberId(memberId);
     }
 
     /**
@@ -29,5 +27,4 @@ public class SocialTokenService {
     public void deleteByMemberId(Long memberId) {
         socialTokenRepository.deleteByMemberId(memberId);
     }
-
 }

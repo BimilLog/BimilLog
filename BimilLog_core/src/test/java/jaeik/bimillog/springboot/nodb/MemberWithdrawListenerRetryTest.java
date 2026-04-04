@@ -2,8 +2,8 @@ package jaeik.bimillog.springboot.nodb;
 
 import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
+import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.auth.service.SocialTokenService;
-import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -62,7 +62,7 @@ class MemberWithdrawListenerRetryTest {
     private MemberWithdrawListener listener;
 
     @MockitoBean
-    private SocialWithdrawService socialWithdrawService;
+    private SocialLogoutService socialLogoutService;
 
     @MockitoBean
     private SseService sseService;
@@ -101,7 +101,7 @@ class MemberWithdrawListenerRetryTest {
 
     @BeforeEach
     void setUp() {
-        Mockito.reset(socialWithdrawService, sseService, notificationCommandUseCase,
+        Mockito.reset(socialLogoutService, sseService, notificationCommandUseCase,
                 commentCommandService, postCommandService, authTokenService,
                 paperCommandService, adminCommandService, memberAccountService,
                 socialTokenService, redisInteractionScoreRepository, redisFriendshipRepository);

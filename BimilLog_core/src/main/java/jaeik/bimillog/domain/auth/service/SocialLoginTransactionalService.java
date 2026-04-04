@@ -6,7 +6,9 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.dto.LoginResultDTO;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.repository.*;
+import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
+import jaeik.bimillog.domain.auth.repository.BlackListRepository;
+import jaeik.bimillog.domain.auth.repository.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -36,7 +38,6 @@ public class SocialLoginTransactionalService {
     private final AuthToJwtAdapter authToJwtAdapter;
     private final AuthTokenRepository authTokenRepository;
     private final SocialTokenRepository socialTokenRepository;
-    private final SocialTokenQueryRepository socialTokenQueryRepository;
 
     /**
      * <h3>소셜 로그인 최종 처리</h3>
@@ -79,7 +80,7 @@ public class SocialLoginTransactionalService {
         String refreshToken = socialMemberProfile.getRefreshToken();
 
         // 1. 소셜 토큰 업데이트 또는 생성
-        Optional<SocialToken> existingToken = socialTokenQueryRepository.findSocialTokenByMemberId(existingMember.getId());
+        Optional<SocialToken> existingToken = socialTokenRepository.findByMemberId(existingMember.getId());
         if (existingToken.isEmpty()) {
             SocialToken socialToken = SocialToken.createSocialToken(accessToken, refreshToken, existingMember);
             socialTokenRepository.save(socialToken);

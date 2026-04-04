@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.global.listener;
 
 import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
+import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.auth.service.SocialTokenService;
-import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
@@ -48,7 +48,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 public class MemberWithdrawListener {
-    private final SocialWithdrawService socialWithdrawService;
+    private final SocialLogoutService socialLogoutService;
     private final SseService sseService;
     private final NotificationCommandService notificationCommandService;
     private final CommentCommandService commentCommandService;
@@ -92,7 +92,7 @@ public class MemberWithdrawListener {
         sseService.deleteEmitters(memberId, null); // SSE 연결해제
 
         try {
-            socialWithdrawService.unlinkSocialAccount(provider, socialId, memberId); // 소셜 계정 연결해제
+            socialLogoutService.unlinkSocialAccount(provider, socialId, memberId); // 소셜 계정 연결해제
         } catch (Exception ex) {
             log.warn("소셜 계정 연동 해제 실패 - provider: {}, socialId: {}. 탈퇴 후속 처리를 계속 진행합니다.", provider, socialId, ex);
         }
