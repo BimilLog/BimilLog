@@ -1,7 +1,6 @@
 package jaeik.bimillog.unit.domain.member;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
@@ -36,7 +35,6 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
     @InjectMocks private MemberOnboardingService onboardingService;
 
     private SocialMemberProfile socialProfile;
-    private SocialToken socialToken;
     private Member persistedMember;
 
     @BeforeEach
@@ -50,8 +48,6 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
                 "access-token",
                 "refresh-token"
         );
-
-        socialToken = SocialToken.createSocialToken("access-token", "refresh-token");
 
         persistedMember = TestMembers.createMember("kakao123", "냥_a3f8c2", "signupNickname");
         TestFixtures.setFieldValue(persistedMember, "id", 1L);
@@ -70,7 +66,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
 
         // When
-        Member result = onboardingService.signup(socialProfile, socialToken);
+        Member result = onboardingService.signup(socialProfile);
 
         // Then
         assertThat(result).isNotNull();
@@ -88,7 +84,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
 
         // When
-        Member result = onboardingService.signup(socialProfile, socialToken);
+        Member result = onboardingService.signup(socialProfile);
 
         // Then
         assertThat(result).isNotNull();
@@ -106,7 +102,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         given(memberRepository.save(memberCaptor.capture())).willReturn(persistedMember);
 
         // When
-        onboardingService.signup(socialProfile, socialToken);
+        onboardingService.signup(socialProfile);
 
         // Then
         String generatedName = memberCaptor.getValue().getMemberName();
@@ -124,7 +120,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         given(memberRepository.save(memberCaptor.capture())).willReturn(persistedMember);
 
         // When
-        onboardingService.signup(socialProfile, socialToken);
+        onboardingService.signup(socialProfile);
 
         // Then
         Member saved = memberCaptor.getValue();
@@ -132,27 +128,24 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         assertThat(saved.getProvider()).isEqualTo(socialProfile.getProvider());
         assertThat(saved.getSocialNickname()).isEqualTo(socialProfile.getNickname());
         assertThat(saved.getThumbnailImage()).isEqualTo(socialProfile.getProfileImageUrl());
-        assertThat(saved.getSocialToken()).isEqualTo(socialToken);
     }
 
     // ==================== syncExistingMember ====================
 
     @Test
-    @DisplayName("syncExistingMember - 닉네임·프로필·소셜토큰이 업데이트된다")
+    @DisplayName("syncExistingMember - 닉네임·프로필이 업데이트된다")
     void shouldSyncExistingMember() {
         // Given
         Member member = TestMembers.createMember("kakao-1", "tester", "oldNickname");
         TestFixtures.setFieldValue(member, "id", 1L);
-        SocialToken newToken = SocialToken.createSocialToken("new-access", "new-refresh");
 
         // When
-        Member result = onboardingService.syncExistingMember(member, "newNickname", "http://img/new.jpg", newToken);
+        Member result = onboardingService.syncExistingMember(member, "newNickname", "http://img/new.jpg");
 
         // Then
         assertThat(result).isSameAs(member);
         assertThat(member.getSocialNickname()).isEqualTo("newNickname");
         assertThat(member.getThumbnailImage()).isEqualTo("http://img/new.jpg");
-        assertThat(member.getSocialToken()).isEqualTo(newToken);
 
         verifyNoInteractions(memberRepository);
     }

@@ -55,17 +55,13 @@ class MemberCommandRepositoryTest {
         testSetting = Setting.createSetting();
         testEntityManager.persist(testSetting);
 
-        jaeik.bimillog.domain.auth.entity.SocialToken testSocialToken = jaeik.bimillog.domain.auth.entity.SocialToken.createSocialToken("test-access-token", "test-refresh-token");
-        testEntityManager.persist(testSocialToken);
-
         testMember = Member.createMember(
                 "12345678",
                 SocialProvider.KAKAO,
                 "TestNickname",
                 "https://test.com/profile.jpg",
                 "testUser123",
-                testSetting,
-                testSocialToken
+                testSetting
         );
         testEntityManager.persist(testMember);
         testEntityManager.flush();
@@ -100,17 +96,13 @@ class MemberCommandRepositoryTest {
         Setting otherSetting = Setting.createSetting();
         testEntityManager.persist(otherSetting);
 
-        jaeik.bimillog.domain.auth.entity.SocialToken otherSocialToken = jaeik.bimillog.domain.auth.entity.SocialToken.createSocialToken("other-access", "other-refresh");
-        testEntityManager.persist(otherSocialToken);
-
         Member otherMember = Member.createMember(
                 "87654321",
                 SocialProvider.KAKAO,
                 "OtherNickname",
                 "https://test.com/other.jpg",
                 "otherUser456",
-                otherSetting,
-                otherSocialToken
+                otherSetting
         );
         testEntityManager.persist(otherMember);
         testEntityManager.flush();

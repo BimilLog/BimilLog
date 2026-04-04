@@ -81,7 +81,6 @@ class FcmPushServiceIntegrationTest {
         // Given: 테스트용 회원 설정 및 저장 (연관 엔티티 먼저 저장)
         Member tempMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         testEntityManager.persistAndFlush(tempMember.getSetting());
-        testEntityManager.persistAndFlush(tempMember.getSocialToken());
 
         Member testMember = Member.createMember(
                 tempMember.getSocialId(),
@@ -89,8 +88,7 @@ class FcmPushServiceIntegrationTest {
                 tempMember.getSocialNickname(),
                 tempMember.getThumbnailImage(),
                 tempMember.getMemberName(),
-                tempMember.getSetting(),
-                tempMember.getSocialToken()
+                tempMember.getSetting()
         );
         testMember = testEntityManager.persistAndFlush(testMember);
         testMemberId = testMember.getId();
@@ -127,15 +125,13 @@ class FcmPushServiceIntegrationTest {
 
         // 새 회원 생성 (댓글 알림 비활성화)
         Member tempMember2 = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
-        testEntityManager.persistAndFlush(tempMember2.getSocialToken());
         Member disabledMember = Member.createMember(
                 tempMember2.getSocialId(),
                 tempMember2.getProvider(),
                 tempMember2.getSocialNickname(),
                 tempMember2.getThumbnailImage(),
                 tempMember2.getMemberName(),
-                disabledSetting,
-                tempMember2.getSocialToken()
+                disabledSetting
         );
         disabledMember = testEntityManager.persistAndFlush(disabledMember);
 

@@ -85,8 +85,6 @@ public class JwtFactory {
      *
      * @param userDetails 사용자 상세 정보
      * @return JWT 리프레시 토큰
-     * @author Jaeik
-     * @since 3.0.0
      */
     public String generateRefreshToken(CustomUserDetails userDetails) {
         long now = (new Date()).getTime();

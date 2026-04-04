@@ -25,7 +25,7 @@ interface ProfileBadgesProps {
 export const ProfileBadges = React.memo(({ userStats }: ProfileBadgesProps) => {
   // 받은 롤링페이퍼 조회
   const { data: myPaperData } = useMyRollingPaper();
-  const receivedPaperCount = myPaperData?.success ? myPaperData.data?.length || 0 : 0;
+  const receivedPaperCount = myPaperData?.success ? myPaperData.data?.myMessageDTOList?.length || 0 : 0;
 
   const {
     allBadges,

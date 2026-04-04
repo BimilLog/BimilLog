@@ -59,6 +59,7 @@ class MemberKakaoFriendServiceTest extends BaseUnitTest {
     private MemberFriendService memberFriendService;
 
     private final Member testMember = TestMembers.copyWithId(TestMembers.MEMBER_1, MEMBER_ID);
+    private final SocialToken testSocialToken = SocialToken.createSocialToken("test-access-token", "test-refresh-token", testMember);
 
     @Test
     @DisplayName("카카오 친구 목록 조회 시 가입자 이름을 매핑한다")
@@ -68,7 +69,7 @@ class MemberKakaoFriendServiceTest extends BaseUnitTest {
                 KakaoTestDataBuilder.createKakaoFriend(2L, "uuid-2", "친구2", "img2", true)
         );
         KakaoFriendsDTO response = KakaoTestDataBuilder.createKakaoFriendsResponse(kakaoFriends, 2, null, null, 1);
-        SocialToken socialToken = testMember.getSocialToken();
+        SocialToken socialToken = testSocialToken;
 
         given(memberToAuthAdapter.getSocialToken(MEMBER_ID)).willReturn(Optional.of(socialToken));
         given(kakaoFriendClient.getFriendList(socialToken.getAccessToken(), (int) DEFAULT_OFFSET, DEFAULT_LIMIT_VALUE)).willReturn(response);
@@ -85,7 +86,7 @@ class MemberKakaoFriendServiceTest extends BaseUnitTest {
     @DisplayName("친구 목록이 비어 있으면 이름 조회를 생략한다")
     void shouldSkipMemberLookupWhenNoFriends() {
         KakaoFriendsDTO emptyResponse = KakaoTestDataBuilder.createKakaoFriendsResponse(Collections.emptyList(), 0, null, null, 0);
-        SocialToken socialToken = testMember.getSocialToken();
+        SocialToken socialToken = testSocialToken;
 
         given(memberToAuthAdapter.getSocialToken(MEMBER_ID)).willReturn(Optional.of(socialToken));
         given(kakaoFriendClient.getFriendList(socialToken.getAccessToken(), (int) DEFAULT_OFFSET, DEFAULT_LIMIT_VALUE)).willReturn(emptyResponse);
@@ -100,7 +101,7 @@ class MemberKakaoFriendServiceTest extends BaseUnitTest {
     @DisplayName("limit이 null이면 기본값 10을 사용한다")
     void shouldUseDefaultPaginationWhenNull() {
         KakaoFriendsDTO response = KakaoTestDataBuilder.createKakaoFriendsResponse(Collections.emptyList(), 0, null, null, 0);
-        SocialToken socialToken = testMember.getSocialToken();
+        SocialToken socialToken = testSocialToken;
 
         given(memberToAuthAdapter.getSocialToken(MEMBER_ID)).willReturn(Optional.of(socialToken));
         given(kakaoFriendClient.getFriendList(socialToken.getAccessToken(), (int) DEFAULT_OFFSET, DEFAULT_LIMIT_VALUE)).willReturn(response);
@@ -132,7 +133,7 @@ class MemberKakaoFriendServiceTest extends BaseUnitTest {
     @Test
     @DisplayName("친구 조회 시 동의 오류가 발생하면 전용 에러로 변환한다")
     void shouldConvertConsentError() {
-        SocialToken socialToken = testMember.getSocialToken();
+        SocialToken socialToken = testSocialToken;
 
         given(memberToAuthAdapter.getSocialToken(MEMBER_ID)).willReturn(Optional.of(socialToken));
         given(kakaoFriendClient.getFriendList(socialToken.getAccessToken(), (int) DEFAULT_OFFSET, DEFAULT_LIMIT_VALUE))

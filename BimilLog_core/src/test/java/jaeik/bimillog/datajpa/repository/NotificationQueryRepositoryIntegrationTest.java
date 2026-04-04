@@ -55,29 +55,25 @@ class NotificationQueryRepositoryIntegrationTest {
     void setUp() {
         Member tempTargetMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         testEntityManager.persistAndFlush(tempTargetMember.getSetting());
-        testEntityManager.persistAndFlush(tempTargetMember.getSocialToken());
         targetMember = Member.createMember(
             tempTargetMember.getSocialId(),
             tempTargetMember.getProvider(),
             tempTargetMember.getSocialNickname(),
             tempTargetMember.getThumbnailImage(),
             tempTargetMember.getMemberName(),
-            tempTargetMember.getSetting(),
-            tempTargetMember.getSocialToken()
+            tempTargetMember.getSetting()
         );
         targetMember = testEntityManager.persistAndFlush(targetMember);
 
         Member tempOtherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
         testEntityManager.persistAndFlush(tempOtherMember.getSetting());
-        testEntityManager.persistAndFlush(tempOtherMember.getSocialToken());
         otherMember = Member.createMember(
             tempOtherMember.getSocialId(),
             tempOtherMember.getProvider(),
             tempOtherMember.getSocialNickname(),
             tempOtherMember.getThumbnailImage(),
             tempOtherMember.getMemberName(),
-            tempOtherMember.getSetting(),
-            tempOtherMember.getSocialToken()
+            tempOtherMember.getSetting()
         );
         otherMember = testEntityManager.persistAndFlush(otherMember);
     }

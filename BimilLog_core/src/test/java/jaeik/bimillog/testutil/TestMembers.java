@@ -1,6 +1,5 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.Setting;
@@ -30,8 +29,7 @@ public class TestMembers {
                 "테스트회원1",
                 "http://example.com/profile1.jpg",
                 "testUser1",
-                createAllEnabledSetting(),
-                createTestSocialToken()
+                createAllEnabledSetting()
         );
 
         MEMBER_2 = Member.createMember(
@@ -40,8 +38,7 @@ public class TestMembers {
                 "테스트회원2",
                 "http://example.com/profile2.jpg",
                 "testUser2",
-                createAllEnabledSetting(),
-                createTestSocialToken()
+                createAllEnabledSetting()
         );
     }
 
@@ -55,8 +52,7 @@ public class TestMembers {
                 socialNickname,
                 "http://example.com/profile.jpg",
                 memberName,
-                createAllEnabledSetting(),
-                createTestSocialToken()
+                createAllEnabledSetting()
         );
     }
 
@@ -70,8 +66,7 @@ public class TestMembers {
                 member.getSocialNickname(),
                 member.getThumbnailImage(),
                 member.getMemberName(),
-                cloneSetting(member.getSetting()),
-                createTestSocialToken()
+                cloneSetting(member.getSetting())
         );
         TestFixtures.setFieldValue(copied, "id", id);
         return copied;
@@ -101,8 +96,7 @@ public class TestMembers {
                     "관리자_" + uniqueId,
                     "http://example.com/admin.jpg",
                     "adminMember_" + uniqueId,
-                    createAllDisabledSetting(),
-                    createTestSocialToken()
+                    createAllDisabledSetting()
             );
             TestFixtures.setFieldValue(admin, "role", MemberRole.ADMIN);
             return admin;
@@ -175,13 +169,4 @@ public class TestMembers {
                 .build();
     }
 
-    /**
-     * 테스트용 SocialToken 생성
-     */
-    private static SocialToken createTestSocialToken() {
-        return SocialToken.createSocialToken(
-                "test-kakao-access-token",
-                "test-kakao-refresh-token"
-        );
-    }
 }

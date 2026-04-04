@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.friend.listener.FriendInteractionListener;
 import jaeik.bimillog.domain.friend.rebuild.FriendEventDlqService;
+import jaeik.bimillog.domain.friend.rebuild.FriendRebuildFlag;
 import jaeik.bimillog.domain.post.event.PostLikedEvent;
 import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.async.FriendAsyncConfig;
@@ -35,7 +36,7 @@ import static org.mockito.Mockito.*;
  * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
  */
 @DisplayName("FriendInteractionListener 재시도 테스트")
-@SpringBootTest(classes = {FriendInteractionListener.class, RetryConfig.class, AsyncConfig.class, FriendAsyncConfig.class})
+@SpringBootTest(classes = {FriendInteractionListener.class, RetryConfig.class, AsyncConfig.class, FriendAsyncConfig.class, FriendRebuildFlag.class})
 @Tag("springboot-nodb")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(properties = {

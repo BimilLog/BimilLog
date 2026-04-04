@@ -92,7 +92,6 @@ class CommentQueryRepositoryIntegrationTest {
         // 테스트용 사용자 생성 (연관 엔티티 먼저 저장)
         Member tempTestMember = TestMembers.createUniqueWithPrefix("test");
         jaeik.bimillog.domain.member.entity.Setting testSetting = settingRepository.save(tempTestMember.getSetting());
-        jaeik.bimillog.domain.auth.entity.SocialToken testSocialToken = socialTokenRepository.save(tempTestMember.getSocialToken());
 
         testMember = memberRepository.save(
             Member.createMember(
@@ -101,14 +100,12 @@ class CommentQueryRepositoryIntegrationTest {
                 tempTestMember.getSocialNickname(),
                 tempTestMember.getThumbnailImage(),
                 tempTestMember.getMemberName(),
-                testSetting,
-                testSocialToken
+                testSetting
             )
         );
 
         Member tempOtherMember = TestMembers.createUniqueWithPrefix("other");
         jaeik.bimillog.domain.member.entity.Setting otherSetting = settingRepository.save(tempOtherMember.getSetting());
-        jaeik.bimillog.domain.auth.entity.SocialToken otherSocialToken = socialTokenRepository.save(tempOtherMember.getSocialToken());
 
         otherMember = memberRepository.save(
             Member.createMember(
@@ -117,8 +114,7 @@ class CommentQueryRepositoryIntegrationTest {
                 tempOtherMember.getSocialNickname(),
                 tempOtherMember.getThumbnailImage(),
                 tempOtherMember.getMemberName(),
-                otherSetting,
-                otherSocialToken
+                otherSetting
             )
         );
 
@@ -189,7 +185,6 @@ class CommentQueryRepositoryIntegrationTest {
         for (int i = 0; i < 3; i++) {
             Member tempLikeMember = TestMembers.createUniqueWithPrefix("likeMember" + i);
             jaeik.bimillog.domain.member.entity.Setting likeSetting = settingRepository.save(tempLikeMember.getSetting());
-            jaeik.bimillog.domain.auth.entity.SocialToken likeSocialToken = socialTokenRepository.save(tempLikeMember.getSocialToken());
 
             Member likeMember = Member.createMember(
                 tempLikeMember.getSocialId(),
@@ -197,8 +192,7 @@ class CommentQueryRepositoryIntegrationTest {
                 tempLikeMember.getSocialNickname(),
                 tempLikeMember.getThumbnailImage(),
                 tempLikeMember.getMemberName(),
-                likeSetting,
-                likeSocialToken
+                likeSetting
             );
             memberRepository.save(likeMember);
 
@@ -242,7 +236,6 @@ class CommentQueryRepositoryIntegrationTest {
         for (int i = 0; i < 4; i++) {
             Member tempLikeMember = TestMembers.createUniqueWithPrefix("notLikeUser" + i);
             jaeik.bimillog.domain.member.entity.Setting likeSetting = settingRepository.save(tempLikeMember.getSetting());
-            jaeik.bimillog.domain.auth.entity.SocialToken likeSocialToken = socialTokenRepository.save(tempLikeMember.getSocialToken());
 
             Member likeMember = Member.createMember(
                 tempLikeMember.getSocialId(),
@@ -250,8 +243,7 @@ class CommentQueryRepositoryIntegrationTest {
                 tempLikeMember.getSocialNickname(),
                 tempLikeMember.getThumbnailImage(),
                 tempLikeMember.getMemberName(),
-                likeSetting,
-                likeSocialToken
+                likeSetting
             );
             memberRepository.save(likeMember);
 
@@ -394,7 +386,6 @@ class CommentQueryRepositoryIntegrationTest {
         for (int i = 0; i < 99; i++) {
             Member tempMember = TestMembers.createUniqueWithPrefix("user" + i);
             jaeik.bimillog.domain.member.entity.Setting setting = settingRepository.save(tempMember.getSetting());
-            jaeik.bimillog.domain.auth.entity.SocialToken socialToken = socialTokenRepository.save(tempMember.getSocialToken());
 
             Member likeMember = Member.createMember(
                     tempMember.getSocialId(),
@@ -402,8 +393,7 @@ class CommentQueryRepositoryIntegrationTest {
                     tempMember.getSocialNickname(),
                     tempMember.getThumbnailImage(),
                     tempMember.getMemberName(),
-                    setting,
-                    socialToken
+                    setting
             );
             memberRepository.save(likeMember);
 
@@ -418,7 +408,6 @@ class CommentQueryRepositoryIntegrationTest {
         for (int i = 100; i < 149; i++) {
             Member tempMember = TestMembers.createUniqueWithPrefix("user" + i);
             jaeik.bimillog.domain.member.entity.Setting setting = settingRepository.save(tempMember.getSetting());
-            jaeik.bimillog.domain.auth.entity.SocialToken socialToken = socialTokenRepository.save(tempMember.getSocialToken());
 
             Member likeMember = Member.createMember(
                     tempMember.getSocialId(),
@@ -426,8 +415,7 @@ class CommentQueryRepositoryIntegrationTest {
                     tempMember.getSocialNickname(),
                     tempMember.getThumbnailImage(),
                     tempMember.getMemberName(),
-                    setting,
-                    socialToken
+                    setting
             );
             memberRepository.save(likeMember);
 
@@ -442,7 +430,6 @@ class CommentQueryRepositoryIntegrationTest {
         for (int i = 150; i < 154; i++) {
             Member tempMember = TestMembers.createUniqueWithPrefix("user" + i);
             jaeik.bimillog.domain.member.entity.Setting setting = settingRepository.save(tempMember.getSetting());
-            jaeik.bimillog.domain.auth.entity.SocialToken socialToken = socialTokenRepository.save(tempMember.getSocialToken());
 
             Member likeMember = Member.createMember(
                     tempMember.getSocialId(),
@@ -450,8 +437,7 @@ class CommentQueryRepositoryIntegrationTest {
                     tempMember.getSocialNickname(),
                     tempMember.getThumbnailImage(),
                     tempMember.getMemberName(),
-                    setting,
-                    socialToken
+                    setting
             );
             memberRepository.save(likeMember);
 

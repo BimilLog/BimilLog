@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.auth.entity;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
+import jaeik.bimillog.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -10,11 +11,11 @@ import lombok.experimental.SuperBuilder;
 /**
  * <h2>소셜 토큰 엔티티</h2>
  * <p>사용자의 소셜 플랫폼 OAuth 토큰 정보를 저장하는 통합 엔티티</p>
- * <p>Member와 1:1 관계를 가지며, Member의 provider로 플랫폼을 구분합니다.</p>
+ * <p>SocialToken이 Member FK를 보유하는 단방향 관계입니다.</p>
  * <p>카카오, 네이버 등 모든 소셜 플랫폼의 토큰을 하나의 테이블로 관리합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.8.0
  */
 @Entity
 @SuperBuilder
@@ -28,6 +29,10 @@ public class SocialToken extends BaseEntity {
     @Column(name = "social_token_id")
     private Long id;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
     @Column(name = "access_token", length = 500)
     private String accessToken;
 
@@ -36,17 +41,18 @@ public class SocialToken extends BaseEntity {
 
     /**
      * <h3>소셜 토큰 생성</h3>
-     * <p>소셜 플랫폼의 OAuth 액세스 토큰과 리프레시 토큰으로 SocialToken 엔티티를 생성합니다.</p>
-     * <p>플랫폼 구분은 Member 엔티티의 provider 필드로 관리됩니다.</p>
+     * <p>소셜 플랫폼의 OAuth 액세스 토큰, 리프레시 토큰, 연관 Member로 SocialToken 엔티티를 생성합니다.</p>
      *
      * @param accessToken 소셜 플랫폼 액세스 토큰
      * @param refreshToken 소셜 플랫폼 리프레시 토큰
+     * @param member 연관 회원 엔티티
      * @return 생성된 SocialToken 엔티티
      */
-    public static SocialToken createSocialToken(String accessToken, String refreshToken) {
+    public static SocialToken createSocialToken(String accessToken, String refreshToken, Member member) {
         return SocialToken.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .member(member)
                 .build();
     }
 

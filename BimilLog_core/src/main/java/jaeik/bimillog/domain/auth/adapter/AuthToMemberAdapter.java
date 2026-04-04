@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.auth.adapter;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.service.MemberOnboardingService;
@@ -26,20 +25,19 @@ public class AuthToMemberAdapter {
 
     /**
      * <h3>기존 회원 정보 갱신</h3>
-     * <p>소셜 프로필에서 가져온 최신 닉네임, 이미지, 소셜 토큰을 Member 엔티티에 반영합니다.</p>
+     * <p>소셜 프로필에서 가져온 최신 닉네임, 이미지를 Member 엔티티에 반영합니다.</p>
      *
      * @param member 기존 회원 엔티티
      * @param newNickname 소셜 플랫폼에서 가져온 최신 닉네임
      * @param newProfileImage 소셜 플랫폼에서 가져온 최신 프로필 이미지 URL
-     * @param savedSocialToken 영속화된 소셜 토큰 엔티티
      * @return 갱신된 회원 엔티티
      */
-    public Member handleExistingMember(Member member, String newNickname, String newProfileImage, SocialToken savedSocialToken) {
-        return memberOnboardingService.syncExistingMember(member, newNickname, newProfileImage, savedSocialToken);
+    public Member handleExistingMember(Member member, String newNickname, String newProfileImage) {
+        return memberOnboardingService.syncExistingMember(member, newNickname, newProfileImage);
     }
 
-    public Member handleNewMember(SocialMemberProfile socialMemberProfile, SocialToken socialToken) {
-        return memberOnboardingService.signup(socialMemberProfile, socialToken);
+    public Member handleNewMember(SocialMemberProfile socialMemberProfile) {
+        return memberOnboardingService.signup(socialMemberProfile);
     }
 
     /**

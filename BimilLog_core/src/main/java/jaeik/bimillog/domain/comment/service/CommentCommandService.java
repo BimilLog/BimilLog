@@ -44,7 +44,6 @@ public class CommentCommandService {
     private final PostRepository postRepository;
     private final CommentToMemberAdapter commentToMemberAdapter;
     private final CommentRepository commentRepository;
-    private final CommentDeleteRepository commentDeleteRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentClosureRepository commentClosureRepository;
 
@@ -60,8 +59,6 @@ public class CommentCommandService {
      * @param parentId 부모 댓글 ID (대댓글인 경우)
      * @param content  댓글 내용
      * @param password 댓글 비밀번호 (익명 댓글인 경우)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void writeComment(Long memberId, Long postId, Long parentId, String content, Integer password) {
@@ -109,8 +106,6 @@ public class CommentCommandService {
      * @param memberId    로그인한 사용자 ID (null이면 익명 댓글 권한으로 검증)
      * @param content   새로운 댓글 내용
      * @param password  댓글 비밀번호 (익명 댓글인 경우)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void updateComment(Long commentId, Long memberId, String content, Integer password) {
@@ -127,8 +122,6 @@ public class CommentCommandService {
      * @param commentId 삭제할 댓글 ID
      * @param memberId    사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param password  댓글 비밀번호 (익명 댓글인 경우)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void deleteComment(Long commentId, Long memberId, Integer password) {
@@ -138,7 +131,8 @@ public class CommentCommandService {
         if (commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(commentId, 0)) {
             comment.softDelete(); // 더티 체킹으로 자동 업데이트
         } else {
-            commentDeleteRepository.deleteComment(commentId); // 어댑터 직접 호출로 하드 삭제
+            commentRepository.deleteClosuresByDescendantId(commentId);
+            commentRepository.hardDeleteComment(commentId);
         }
 
         // 댓글 수 DB 직접 반영
@@ -156,8 +150,6 @@ public class CommentCommandService {
      *
      * @param memberId    사용자 ID (로그인한 경우), null인 경우 예외 발생
      * @param commentId 추천/취소할 댓글 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void likeComment(Long memberId, Long commentId) {
@@ -197,8 +189,6 @@ public class CommentCommandService {
      * <p>자손이 없는 댓글: Port를 통한 하드 삭제</p>
      *
      * @param memberId 탈퇴하는 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void processUserCommentsOnWithdrawal(Long memberId) {
@@ -208,7 +198,8 @@ public class CommentCommandService {
             if (commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(comment.getId(), 0)) {
                 comment.anonymize(); // 더티 체킹으로 자동 업데이트
             } else {
-                commentDeleteRepository.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제
+                commentRepository.deleteClosuresByDescendantId(comment.getId());
+                commentRepository.hardDeleteComment(comment.getId());
             }
         }
     }
@@ -219,15 +210,14 @@ public class CommentCommandService {
      * <p>트랜잭션 내에서 실행되어 삭제 중 오류 발생 시 롤백됩니다.</p>
      *
      * @param postId 댓글을 삭제할 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void deleteCommentsByPost(Long postId) {
         List<Comment> userComments = commentRepository.findByPost_Id(postId);
 
         for (Comment comment : userComments) {
-            commentDeleteRepository.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제
+            commentRepository.deleteClosuresByDescendantId(comment.getId());
+            commentRepository.hardDeleteComment(comment.getId());
         }
     }
 

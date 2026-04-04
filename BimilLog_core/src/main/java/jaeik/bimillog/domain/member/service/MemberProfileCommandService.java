@@ -25,7 +25,7 @@ public class MemberProfileCommandService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
-        member.updateSettings(
+        member.getSetting().updateSettings(
                 newSetting.isMessageNotification(),
                 newSetting.isCommentNotification(),
                 newSetting.isPostFeaturedNotification(),

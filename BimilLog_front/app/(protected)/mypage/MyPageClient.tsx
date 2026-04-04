@@ -6,11 +6,11 @@ import { UserStatsSection, UserActivitySection, ProfileBadges } from "@/componen
 import { MyPageSkeleton } from "@/components/organisms/user/MyPageSkeleton";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import type { MyPageDTO } from "@/types";
-import type { RollingPaperMessage } from "@/types/domains/paper";
+import type { MyPaperDTO } from "@/types/domains/paper";
 
 interface MyPageClientProps {
   initialMyPageData?: MyPageDTO | null;
-  initialPaperData?: RollingPaperMessage[] | null;
+  initialPaperData?: MyPaperDTO | null;
 }
 
 export default function MyPageClient({ initialMyPageData, initialPaperData }: MyPageClientProps) {

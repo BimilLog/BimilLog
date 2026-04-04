@@ -50,6 +50,12 @@ export interface VisitMessage {
   y: number  // 그리드 Y 좌표 (0-based, 0부터 시작)
 }
 
+// 내 롤링페이퍼 조회 결과 타입 - 백엔드 MyPaperDTO 완전 호환
+export interface MyPaperDTO {
+  memberId: number
+  myMessageDTOList: RollingPaperMessage[]
+}
+
 // 방문용 롤링페이퍼 결과 타입 - 백엔드 VisitPaperDTO 완전 호환
 export interface VisitPaperResult {
   ownerId: number  // 롤링페이퍼 소유자 ID

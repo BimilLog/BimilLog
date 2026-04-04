@@ -52,12 +52,13 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(3))
-                .andExpect(jsonPath("$[*].content").exists())
-                .andExpect(jsonPath("$[*].x").exists())
-                .andExpect(jsonPath("$[*].y").exists())
-                .andExpect(jsonPath("$[*].decoType").exists());
+                .andExpect(jsonPath("$.memberId").value(testMember.getId()))
+                .andExpect(jsonPath("$.myMessageDTOList").isArray())
+                .andExpect(jsonPath("$.myMessageDTOList.length()").value(3))
+                .andExpect(jsonPath("$.myMessageDTOList[*].content").exists())
+                .andExpect(jsonPath("$.myMessageDTOList[*].x").exists())
+                .andExpect(jsonPath("$.myMessageDTOList[*].y").exists())
+                .andExpect(jsonPath("$.myMessageDTOList[*].decoType").exists());
 
         // Given - 케이스 2: 메시지가 없는 사용자
         Member emptyMember = saveMember(TestMembers.createUnique());
@@ -67,8 +68,8 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.myMessageDTOList").isArray())
+                .andExpect(jsonPath("$.myMessageDTOList.length()").value(0));
     }
     
     @Test

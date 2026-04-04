@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
@@ -24,8 +23,7 @@ public class MemberOnboardingService {
      * <h3>기존 회원 정보 동기화</h3>
      */
     @Transactional
-    public Member syncExistingMember(Member member, String newNickname, String newProfileImage, SocialToken savedSocialToken) {
-        member.updateSocialToken(savedSocialToken);
+    public Member syncExistingMember(Member member, String newNickname, String newProfileImage) {
         member.updateMemberInfo(newNickname, newProfileImage);
         return member;
     }
@@ -33,9 +31,10 @@ public class MemberOnboardingService {
     /**
      * <h3>신규 가입 처리</h3>
      * <p>임시 이름(냥_XXXXXX)을 자동 생성하여 회원을 등록합니다.</p>
+     * <p>SocialToken은 호출자(SocialLoginTransactionalService)가 Member 저장 후 별도로 생성합니다.</p>
      */
     @Transactional
-    public Member signup(SocialMemberProfile socialMemberProfile, SocialToken socialToken) {
+    public Member signup(SocialMemberProfile socialMemberProfile) {
         String memberName = generateUniqueTempName();
         Setting setting = Setting.createSetting();
         Member member = Member.createMember(
@@ -44,8 +43,7 @@ public class MemberOnboardingService {
                 socialMemberProfile.getNickname(),
                 socialMemberProfile.getProfileImageUrl(),
                 memberName,
-                setting,
-                socialToken
+                setting
         );
         return memberRepository.save(member);
     }

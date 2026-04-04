@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks';
 import { useMyRollingPaper } from '@/hooks/api/useMyRollingPaper';
 import { useRollingPaper } from '@/hooks/api/useRollingPaperQueries';
 import { localStorage } from '@/lib/utils/storage';
-import type { RollingPaperMessage, VisitMessage, VisitPaperResult } from '@/types/domains/paper';
+import type { MyPaperDTO, RollingPaperMessage, VisitMessage, VisitPaperResult } from '@/types/domains/paper';
 
 /**
  * 롤링페이퍼 데이터 조회 훅
@@ -58,8 +58,8 @@ export function useRollingPaperData(targetNickname?: string, initialPaperData?: 
       return activeQuery.data.data.visitMessageDTOList;
     }
 
-    // isOwner가 true인 경우 (본인의 롤링페이퍼) - RollingPaperMessage[]
-    return activeQuery.data.data as RollingPaperMessage[];
+    // isOwner가 true인 경우 (본인의 롤링페이퍼) - MyPaperDTO
+    return (activeQuery.data.data as MyPaperDTO).myMessageDTOList ?? [];
   }, [activeQuery.data, isOwner]);
 
   // ownerId 추출 로직

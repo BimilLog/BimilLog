@@ -5,11 +5,11 @@ import { useAuth } from "@/hooks";
 import { useUserStats } from "./useUserStats";
 import { logger } from '@/lib/utils/logger';
 import type { MyPageDTO } from "@/types";
-import type { RollingPaperMessage } from "@/types/domains/paper";
+import type { MyPaperDTO } from "@/types/domains/paper";
 
 interface UseMyPageOptions {
   initialMyPageData?: MyPageDTO | null;
-  initialPaperData?: RollingPaperMessage[] | null;
+  initialPaperData?: MyPaperDTO | null;
 }
 
 export function useMyPage(options?: UseMyPageOptions) {

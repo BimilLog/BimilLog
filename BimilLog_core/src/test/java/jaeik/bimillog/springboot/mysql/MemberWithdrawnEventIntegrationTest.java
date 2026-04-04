@@ -120,9 +120,6 @@ class MemberWithdrawnEventIntegrationTest {
     }
 
     private void persistAndFlush(Member member) {
-        if (member.getSocialToken() != null) {
-            entityManager.persist(member.getSocialToken());
-        }
         entityManager.persist(member);
         entityManager.flush();
         entityManager.clear(); // 영속성 컨텍스트 초기화
@@ -189,18 +186,17 @@ class MemberWithdrawnEventIntegrationTest {
     void userWithSocialToken_ShouldBeDeleted() {
         // Given: 소셜 토큰이 있는 회원
         Member memberWithToken = TestMembers.createUniqueWithPrefix("tokenTest");
+        persistAndFlush(memberWithToken);
 
-        // 소셜 토큰 생성
+        // 소셜 토큰 생성 및 저장 (Member 저장 후)
         SocialToken socialToken = SocialToken.createSocialToken(
                 "test-access-token",
-                "test-refresh-token"
+                "test-refresh-token",
+                memberWithToken
         );
-
-        // 소셜 토큰 저장 및 회원과 연결
         entityManager.persist(socialToken);
-        memberWithToken.updateSocialToken(socialToken);
-
-        persistAndFlush(memberWithToken);
+        entityManager.flush();
+        entityManager.clear();
 
         Long memberId = memberWithToken.getId();
 
