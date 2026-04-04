@@ -2,9 +2,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
-import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
@@ -12,12 +10,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class SocialWithdrawService {
     private final SocialStrategyAdapter socialStrategyAdapter;
-    private final AuthToMemberAdapter authToMemberAdapter;
+    private final SocialTokenService socialTokenService;
 
     /**
      * <h3>소셜 계정 연동 해제</h3>
@@ -32,10 +32,8 @@ public class SocialWithdrawService {
     public void unlinkSocialAccount(SocialProvider provider, String socialId, Long memberId) {
         log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}, 회원 ID: {}", provider, socialId, memberId);
 
-        // Member 조회 및 accessToken 추출
-        Member member = authToMemberAdapter.findById(memberId);
-        SocialToken socialToken = member.getSocialToken();
-        String accessToken = socialToken != null ? socialToken.getAccessToken() : null;
+        Optional<SocialToken> socialToken = socialTokenService.getSocialToken(memberId);
+        String accessToken = socialToken.map(SocialToken::getAccessToken).orElse(null);
 
         SocialStrategy strategy = socialStrategyAdapter.getStrategy(provider);
         strategy.unlink(socialId, accessToken);

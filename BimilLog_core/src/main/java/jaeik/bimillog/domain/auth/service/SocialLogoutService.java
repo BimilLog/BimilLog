@@ -1,9 +1,7 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
-import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -12,38 +10,39 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 /**
  * <h2>로그아웃 서비스</h2>
  * <p>사용자의 로그아웃 처리와 소셜 플랫폼 연동 해제를 담당하는 서비스입니다.</p>
  * <p>JWT 토큰 무효화, 소셜 플랫폼 로그아웃, 이벤트 발행</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.8.0
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SocialLogoutService {
     private final SocialStrategyAdapter socialStrategyAdapter;
-    private final AuthToMemberAdapter authToMemberAdapter;
+    private final SocialTokenService socialTokenService;
 
     /**
      * <h3>소셜 플랫폼 로그아웃</h3>
      * <p>사용자의 소셜 플랫폼 세션을 로그아웃 처리합니다.</p>
-     * <p>Member를 통해 소셜 토큰을 조회하여 소셜 플랫폼 API를 호출합니다.</p>
+     * <p>memberId로 소셜 토큰을 직접 조회하여 소셜 플랫폼 API를 호출합니다.</p>
      *
      * @param memberId 회원 ID
      * @param provider 소셜 플랫폼 제공자
      * @throws Exception 소셜 플랫폼 로그아웃 처리 중 예외 발생 시
      */
     public void socialLogout(Long memberId, SocialProvider provider) throws Exception {
-        Member member = authToMemberAdapter.findById(memberId);
-        SocialToken socialToken = member.getSocialToken();
-        if (socialToken == null) {
+        Optional<SocialToken> socialToken = socialTokenService.getSocialToken(memberId);
+        if (socialToken.isEmpty()) {
             throw new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN);
         }
         SocialStrategy strategy = socialStrategyAdapter.getStrategy(provider);
-        strategy.logout(socialToken.getAccessToken());
+        strategy.logout(socialToken.get().getAccessToken());
     }
 
     /**

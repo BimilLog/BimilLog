@@ -160,15 +160,12 @@ public abstract class BaseIntegrationTest {
     }
 
     /**
-     * Member의 연관 엔티티(Setting, SocialToken)만 먼저 persist (Member는 제외)
+     * Member의 연관 엔티티(Setting)만 먼저 persist (Member는 제외)
      * Member는 이후 memberRepository.save()로 저장됩니다.
      */
     protected void persistMemberDependencies(Member member) {
         if (member.getSetting() != null) {
             entityManagerDelegate.persist(member.getSetting());
-        }
-        if (member.getSocialToken() != null) {
-            entityManagerDelegate.persist(member.getSocialToken());
         }
     }
 

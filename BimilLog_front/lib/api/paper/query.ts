@@ -1,10 +1,10 @@
 import { apiClient } from '../client'
-import { RollingPaperMessage, VisitPaperResult, PopularPaperInfo } from '@/types/domains/paper'
+import { MyPaperDTO, VisitPaperResult, PopularPaperInfo } from '@/types/domains/paper'
 import { CursorPageResponse } from '@/types/common'
 
 export const paperQuery = {
   getMy: () =>
-    apiClient.get<RollingPaperMessage[]>("/api/paper"),
+    apiClient.get<MyPaperDTO>("/api/paper"),
 
   getByUserName: (userName: string) =>
     apiClient.get<VisitPaperResult>(`/api/paper/${encodeURIComponent(userName)}`),

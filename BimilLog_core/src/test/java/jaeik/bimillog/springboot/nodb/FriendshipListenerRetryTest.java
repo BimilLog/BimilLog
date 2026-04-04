@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.friend.listener.FriendshipListener;
 import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.event.FriendEvent.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.rebuild.FriendEventDlqService;
+import jaeik.bimillog.domain.friend.rebuild.FriendRebuildFlag;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +39,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("FriendshipListener 재시도 테스트")
 @SpringBootTest(classes = {
         FriendshipListener.class,
-        FriendshipListenerRetryTest.TestConfig.class
+        FriendshipListenerRetryTest.TestConfig.class,
+        FriendRebuildFlag.class
 })
 @Tag("springboot-nodb")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)

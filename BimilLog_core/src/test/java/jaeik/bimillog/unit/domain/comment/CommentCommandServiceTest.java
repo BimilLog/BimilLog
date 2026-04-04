@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.comment.entity.jpa.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.comment.repository.CommentClosureRepository;
-import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
 import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.comment.adapter.CommentToMemberAdapter;
@@ -58,7 +57,6 @@ class CommentCommandServiceTest extends BaseUnitTest {
     private static final Integer TEST_PASSWORD = 1234;
 
     @Mock private CommentRepository commentRepository;
-    @Mock private CommentDeleteRepository commentDeleteRepository;
     @Mock private CommentClosureRepository commentClosureRepository;
     @Mock private CommentLikeRepository commentLikeRepository;
     @Mock private CommentToMemberAdapter commentToMemberAdapter;
@@ -297,7 +295,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(commentRepository).findById(200L);
-        verify(commentDeleteRepository).deleteComment(200L);
+        verify(commentRepository).deleteClosuresByDescendantId(200L);
+        verify(commentRepository).hardDeleteComment(200L);
         verify(postRepository).decrementCommentCount(300L);
         verify(eventPublisher).publishEvent(any(CommentDeletedEvent.class));
     }
@@ -316,7 +315,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Then
         verify(commentRepository).findById(200L);
         verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(200L, 0);
-        verify(commentDeleteRepository, never()).deleteComment(any());
+        verify(commentRepository, never()).deleteClosuresByDescendantId(any());
+        verify(commentRepository, never()).hardDeleteComment(any());
         verify(postRepository).decrementCommentCount(300L);
         verify(eventPublisher).publishEvent(any(CommentDeletedEvent.class));
     }
@@ -388,7 +388,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(commentRepository).findById(300L);
-        verify(commentDeleteRepository).deleteComment(300L);
+        verify(commentRepository).deleteClosuresByDescendantId(300L);
+        verify(commentRepository).hardDeleteComment(300L);
         verify(postRepository).decrementCommentCount(300L);
         verify(eventPublisher).publishEvent(any(CommentDeletedEvent.class));
     }
@@ -408,7 +409,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(commentRepository).findById(300L);
-        verify(commentDeleteRepository, never()).deleteComment(any());
+        verify(commentRepository, never()).deleteClosuresByDescendantId(any());
+        verify(commentRepository, never()).hardDeleteComment(any());
     }
 
     @Test
@@ -428,7 +430,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Then
         verify(commentRepository).findById(400L);
         verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(400L, 0);
-        verify(commentDeleteRepository, never()).deleteComment(any());
+        verify(commentRepository, never()).deleteClosuresByDescendantId(any());
+        verify(commentRepository, never()).hardDeleteComment(any());
         verify(postRepository).decrementCommentCount(300L);
         verify(eventPublisher).publishEvent(any(CommentDeletedEvent.class));
     }
@@ -449,7 +452,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Then
         verify(commentRepository).findById(500L);
         verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(500L, 0);
-        verify(commentDeleteRepository, never()).deleteComment(any());
+        verify(commentRepository, never()).deleteClosuresByDescendantId(any());
+        verify(commentRepository, never()).hardDeleteComment(any());
         verify(postRepository).decrementCommentCount(300L);
         verify(eventPublisher).publishEvent(any(CommentDeletedEvent.class));
     }
@@ -472,7 +476,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(commentRepository).findById(600L);
-        verify(commentDeleteRepository, never()).deleteComment(any());
+        verify(commentRepository, never()).deleteClosuresByDescendantId(any());
+        verify(commentRepository, never()).hardDeleteComment(any());
     }
 
     // === 누락된 댓글 작성 테스트 케이스들 ===

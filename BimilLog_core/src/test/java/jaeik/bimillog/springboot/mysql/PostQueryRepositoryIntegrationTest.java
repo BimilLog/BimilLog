@@ -87,9 +87,6 @@ class PostQueryRepositoryIntegrationTest {
         if (testMember.getSetting() != null) {
             entityManager.persist(testMember.getSetting());
         }
-        if (testMember.getSocialToken() != null) {
-            entityManager.persist(testMember.getSocialToken());
-        }
         entityManager.persist(testMember);
         entityManager.flush();
 
@@ -163,9 +160,6 @@ class PostQueryRepositoryIntegrationTest {
         Member likeMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
         if (likeMember.getSetting() != null) {
             entityManager.persist(likeMember.getSetting());
-        }
-        if (likeMember.getSocialToken() != null) {
-            entityManager.persist(likeMember.getSocialToken());
         }
         entityManager.persist(likeMember);
         entityManager.flush();

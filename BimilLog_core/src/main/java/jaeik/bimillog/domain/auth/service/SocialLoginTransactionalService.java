@@ -26,7 +26,7 @@ import java.util.Optional;
  * <p>{@link SocialLoginService}로부터 소셜 인증 결과를 받아 트랜잭션 내에서 최종 로그인을 완료합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.8.0
  */
 @Service
 @RequiredArgsConstructor
@@ -36,6 +36,7 @@ public class SocialLoginTransactionalService {
     private final AuthToJwtAdapter authToJwtAdapter;
     private final AuthTokenRepository authTokenRepository;
     private final SocialTokenRepository socialTokenRepository;
+    private final SocialTokenQueryRepository socialTokenQueryRepository;
 
     /**
      * <h3>소셜 로그인 최종 처리</h3>
@@ -64,13 +65,10 @@ public class SocialLoginTransactionalService {
      * <h3>기존 회원 로그인 처리</h3>
      * <p>기존 회원의 로그인 요청을 처리하며, 다음 작업을 순차적으로 수행합니다:</p>
      * <ol>
-     *   <li>소셜 토큰 업데이트 또는 생성</li>
+     *   <li>소셜 토큰 업데이트 또는 신규 생성</li>
      *   <li>회원 프로필 업데이트 (닉네임, 프로필 이미지)</li>
      *   <li>AuthToken 생성 및 저장</li>
-     *   <li>FCM 토큰 등록</li>
-     *   <li>MemberDetail 생성</li>
      *   <li>JWT Access/Refresh 토큰 생성</li>
-     *   <li>JWT 토큰 값 반환</li>
      * </ol>
      *
      * @param existingMember       DB에 존재하는 기존 회원 엔티티
@@ -79,22 +77,19 @@ public class SocialLoginTransactionalService {
     private LoginResultDTO handleExistingMember(Member existingMember, SocialMemberProfile socialMemberProfile) {
         String accessToken = socialMemberProfile.getAccessToken();
         String refreshToken = socialMemberProfile.getRefreshToken();
-        String nickname = socialMemberProfile.getNickname();
-        String profileImageUrl = socialMemberProfile.getProfileImageUrl();
 
         // 1. 소셜 토큰 업데이트 또는 생성
-        SocialToken socialToken = existingMember.getSocialToken();
-        if (socialToken == null) {
-            // 소셜 토큰이 없으면 새로 생성 (이전 버전에서 로그아웃으로 삭제된 경우)
-            socialToken = SocialToken.createSocialToken(accessToken, refreshToken);
-            socialToken = socialTokenRepository.save(socialToken);
+        Optional<SocialToken> existingToken = socialTokenQueryRepository.findSocialTokenByMemberId(existingMember.getId());
+        if (existingToken.isEmpty()) {
+            SocialToken socialToken = SocialToken.createSocialToken(accessToken, refreshToken, existingMember);
+            socialTokenRepository.save(socialToken);
         } else {
-            // 소셜 토큰이 있으면 업데이트
-            socialToken.updateTokens(accessToken, refreshToken);
+            existingToken.get().updateTokens(accessToken, refreshToken);
         }
 
         // 2. 멤버 정보 업데이트
-        Member updateMember = authToMemberAdapter.handleExistingMember(existingMember, nickname, profileImageUrl, socialToken);
+        Member updateMember = authToMemberAdapter.handleExistingMember(
+                existingMember, socialMemberProfile.getNickname(), socialMemberProfile.getProfileImageUrl());
 
         List<String> tokens = loginProcess(updateMember);
         return LoginResultDTO.createLoginResult(tokens.getFirst(), tokens.get(1));
@@ -103,20 +98,23 @@ public class SocialLoginTransactionalService {
     /**
      * <h3>신규 회원 가입 처리</h3>
      * <p>임시 이름(냥_XXXXXX)을 자동 생성하여 즉시 회원가입 후 JWT 토큰을 발급합니다.</p>
+     * <p>Member를 먼저 저장한 뒤 SocialToken을 생성합니다 (FK 의존성).</p>
      *
      * @param socialMemberProfile  소셜 플랫폼에서 받은 사용자 프로필
      */
     private LoginResultDTO handleNewMember(SocialMemberProfile socialMemberProfile) {
-        SocialToken initialSocialToken = SocialToken.createSocialToken(
-                socialMemberProfile.getAccessToken(),
-                socialMemberProfile.getRefreshToken()
-        );
+        // 1. Member 먼저 저장 (SocialToken이 member_id FK를 가지므로)
+        Member persistedMember = authToMemberAdapter.handleNewMember(socialMemberProfile);
 
-        SocialToken persistedSocialToken = socialTokenRepository.save(initialSocialToken);
-        Member persistedMember = authToMemberAdapter.handleNewMember(socialMemberProfile, persistedSocialToken);
+        // 2. SocialToken 생성 및 저장
+        SocialToken socialToken = SocialToken.createSocialToken(
+                socialMemberProfile.getAccessToken(),
+                socialMemberProfile.getRefreshToken(),
+                persistedMember
+        );
+        socialTokenRepository.save(socialToken);
 
         List<String> tokens = loginProcess(persistedMember);
-
         return LoginResultDTO.createLoginResult(tokens.getFirst(), tokens.get(1));
     }
 

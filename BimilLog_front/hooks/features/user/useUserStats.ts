@@ -5,7 +5,7 @@ import { Member } from "@/lib/api";
 import { useMyPageInfo } from "@/hooks/api/useMyPageQueries";
 import { useMyRollingPaper } from "@/hooks/api/useMyRollingPaper";
 import type { MyPageDTO } from "@/types";
-import type { RollingPaperMessage } from "@/types/domains/paper";
+import type { MyPaperDTO } from "@/types/domains/paper";
 
 // ===== USER STATS =====
 interface UserStats {
@@ -18,7 +18,7 @@ interface UserStats {
 
 interface UseUserStatsOptions {
   initialMyPageData?: MyPageDTO | null;
-  initialPaperData?: RollingPaperMessage[] | null;
+  initialPaperData?: MyPaperDTO | null;
 }
 
 export function useUserStats(user: Member | null, options?: UseUserStatsOptions) {
@@ -53,7 +53,7 @@ export function useUserStats(user: Member | null, options?: UseUserStatsOptions)
       totalComments: memberActivityComment.writeComments.totalElements,
       totalLikedPosts: memberActivityPost.likedPosts.totalElements,
       totalLikedComments: memberActivityComment.likedComments.totalElements,
-      totalMessages: myPaperData?.success ? (myPaperData.data?.length || 0) : 0,
+      totalMessages: myPaperData?.success ? (myPaperData.data?.myMessageDTOList?.length || 0) : 0,
     };
   }, [mypageData, myPaperData]);
 

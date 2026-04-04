@@ -1,7 +1,9 @@
 package jaeik.bimillog.springboot.h2;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
+import jaeik.bimillog.domain.auth.repository.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
@@ -43,6 +45,9 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private AuthTokenRepository authTokenRepository;
+
+    @Autowired
+    private SocialTokenRepository socialTokenRepository;
 
     @Test
     @DisplayName("닉네임 중복 확인 통합 테스트 - 사용 가능/중복 모두 검증")
@@ -95,7 +100,10 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
         // Given - 테스트용 사용자 생성 및 저장
         Member member = TestMembers.createUnique();
         Member savedMember = saveMember(member);
-        
+
+        // 소셜 토큰 생성 및 저장
+        socialTokenRepository.save(SocialToken.createSocialToken("test-access-token", "test-refresh-token", savedMember));
+
         // 테스트용 토큰 생성 및 저장
         AuthToken authToken = AuthToken.createToken("test-refresh-TemporaryToken", savedMember);
         AuthToken savedAuthToken = authTokenRepository.save(authToken);
@@ -118,6 +126,9 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
         // Given
         Member member = TestMembers.createUnique();
         Member savedMember = saveMember(member);
+
+        // 소셜 토큰 생성 및 저장
+        socialTokenRepository.save(SocialToken.createSocialToken("test-access-token", "test-refresh-token", savedMember));
 
         AuthToken authToken = AuthToken.createToken("test-refresh-TemporaryToken", savedMember);
         AuthToken savedAuthToken = authTokenRepository.save(authToken);

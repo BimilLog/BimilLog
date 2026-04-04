@@ -5,7 +5,7 @@
 
 import { ApiResponse, PageResponse, CursorPageResponse } from '@/types/common'
 import { SimplePost } from '@/types/domains/post'
-import { PopularPaperInfo, RollingPaperMessage, VisitPaperResult } from '@/types/domains/paper'
+import { MyPaperDTO, PopularPaperInfo, VisitPaperResult } from '@/types/domains/paper'
 import { Friend, ReceivedFriendRequest, SentFriendRequest, RecommendedFriend } from '@/types/domains/friend'
 import { MyPageDTO } from '@/types/domains/mypage'
 import { Setting } from '@/types/domains/user'
@@ -171,7 +171,7 @@ export async function getMyPageInfoServer(page = 0, size = 10) {
 }
 
 export async function getMyRollingPaperServer() {
-  return authServerFetch<ApiResponse<RollingPaperMessage[]>>(`/api/paper`)
+  return authServerFetch<ApiResponse<MyPaperDTO>>(`/api/paper`)
 }
 
 // === 설정 관련 ===

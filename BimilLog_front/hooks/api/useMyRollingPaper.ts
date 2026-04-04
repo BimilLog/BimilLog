@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/tanstack-query/keys';
 import { paperQuery } from '@/lib/api';
 import { useAuth } from '@/hooks';
-import type { RollingPaperMessage } from '@/types/domains/paper';
+import type { MyPaperDTO } from '@/types/domains/paper';
 import type { ApiResponse } from '@/types/common';
 
 /**
@@ -10,7 +10,7 @@ import type { ApiResponse } from '@/types/common';
  */
 export const useMyRollingPaper = (
   enabled: boolean = true,
-  initialData?: RollingPaperMessage[] | null,
+  initialData?: MyPaperDTO | null,
 ) => {
   const { isAuthenticated } = useAuth();
 
@@ -26,7 +26,7 @@ export const useMyRollingPaper = (
     enabled: isAuthenticated && enabled,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    initialData: initialData ? { success: true, data: initialData } as ApiResponse<RollingPaperMessage[]> : undefined,
+    initialData: initialData ? { success: true, data: initialData } as ApiResponse<MyPaperDTO> : undefined,
     initialDataUpdatedAt: initialData ? Date.now() : undefined,
   });
 };

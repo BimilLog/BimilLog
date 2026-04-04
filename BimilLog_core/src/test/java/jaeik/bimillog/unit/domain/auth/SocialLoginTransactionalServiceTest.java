@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.auth.adapter.AuthToJwtAdapter;
 import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.repository.BlackListRepository;
+import jaeik.bimillog.domain.auth.repository.SocialTokenQueryRepository;
 import jaeik.bimillog.domain.auth.repository.SocialTokenRepository;
 import jaeik.bimillog.domain.auth.service.SocialLoginTransactionalService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -47,6 +48,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     @Mock private BlackListRepository blackListRepository;
     @Mock private AuthToJwtAdapter authToJwtAdapter;
     @Mock private SocialTokenRepository socialTokenRepository;
+    @Mock private SocialTokenQueryRepository socialTokenQueryRepository;
     @Mock private AuthTokenRepository authTokenRepository;
 
     @InjectMocks
@@ -80,7 +82,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     // ==================== 기존 회원 ====================
 
     @Test
-    @DisplayName("기존 회원 로그인 - 소셜 토큰이 있는 경우 JWT 발급 성공")
+    @DisplayName("기존 회원 로그인 - 소셜 토큰이 있는 경우 토큰 업데이트 후 JWT 발급 성공")
     void shouldFinishLoginForExistingMemberWithSocialToken() {
         // Given
         SocialMemberProfile profile = getTestMemberProfile();
@@ -90,12 +92,12 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
             TestFixtures.setFieldValue(existingMember.getSetting(), "id", 10L);
         }
 
-        SocialToken existingSocialToken = SocialToken.createSocialToken("old-access-token", "old-refresh-token");
-        TestFixtures.setFieldValue(existingMember, "socialToken", existingSocialToken);
+        SocialToken existingSocialToken = SocialToken.createSocialToken("old-access-token", "old-refresh-token", existingMember);
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
-        given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(existingSocialToken)))
+        given(socialTokenQueryRepository.findSocialTokenByMemberId(1L)).willReturn(Optional.of(existingSocialToken));
+        given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString()))
                 .willReturn(existingMember);
         stubAuthToken(existingMember);
         stubJwtAdapters();
@@ -109,12 +111,13 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
         verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
+        verify(socialTokenQueryRepository).findSocialTokenByMemberId(1L);
         verify(authToMemberAdapter).handleExistingMember(
-                eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(existingSocialToken));
+                eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()));
     }
 
     @Test
-    @DisplayName("기존 회원 로그인 - 소셜 토큰이 없는 경우(이전 버전 로그아웃) 신규 토큰 생성 후 JWT 발급")
+    @DisplayName("기존 회원 로그인 - 소셜 토큰이 없는 경우(로그아웃 후 재로그인) 신규 토큰 생성 후 JWT 발급")
     void shouldFinishLoginForExistingMemberWithoutSocialToken() {
         // Given
         SocialMemberProfile profile = getTestMemberProfile();
@@ -123,14 +126,14 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         if (existingMember.getSetting() != null) {
             TestFixtures.setFieldValue(existingMember.getSetting(), "id", 10L);
         }
-        TestFixtures.setFieldValue(existingMember, "socialToken", null);
 
-        SocialToken newSocialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        SocialToken newSocialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN, existingMember);
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
+        given(socialTokenQueryRepository.findSocialTokenByMemberId(1L)).willReturn(Optional.empty());
         given(socialTokenRepository.save(any(SocialToken.class))).willReturn(newSocialToken);
-        given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(newSocialToken)))
+        given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString()))
                 .willReturn(existingMember);
         stubAuthToken(existingMember);
         stubJwtAdapters();
@@ -144,7 +147,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
         verify(socialTokenRepository).save(any(SocialToken.class));
         verify(authToMemberAdapter).handleExistingMember(
-                eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(newSocialToken));
+                eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()));
     }
 
     // ==================== 신규 회원 ====================
@@ -154,14 +157,14 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     void shouldFinishLoginForNewMember() {
         // Given
         SocialMemberProfile profile = getTestMemberProfile();
-        SocialToken persistedSocialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
         Member newMember = TestMembers.createMember(TEST_SOCIAL_ID, "냥_a3f8c2", TEST_SOCIAL_NICKNAME);
         TestFixtures.setFieldValue(newMember, "id", 2L);
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.empty());
-        given(socialTokenRepository.save(any(SocialToken.class))).willReturn(persistedSocialToken);
-        given(authToMemberAdapter.handleNewMember(any(SocialMemberProfile.class), eq(persistedSocialToken))).willReturn(newMember);
+        given(authToMemberAdapter.handleNewMember(any(SocialMemberProfile.class))).willReturn(newMember);
+        given(socialTokenRepository.save(any(SocialToken.class))).willReturn(
+                SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN, newMember));
         stubAuthToken(newMember);
         stubJwtAdapters();
 
@@ -172,8 +175,8 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         assertThat(result.getJwtAccessToken()).isEqualTo("generated-access-token");
         assertThat(result.getJwtRefreshToken()).isEqualTo("generated-refresh-token");
 
+        verify(authToMemberAdapter).handleNewMember(any(SocialMemberProfile.class));
         verify(socialTokenRepository).save(any(SocialToken.class));
-        verify(authToMemberAdapter).handleNewMember(any(SocialMemberProfile.class), eq(persistedSocialToken));
         verify(authTokenRepository).save(any(AuthToken.class));
     }
 

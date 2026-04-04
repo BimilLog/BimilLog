@@ -1,8 +1,9 @@
 package jaeik.bimillog.unit.domain.auth;
 
-import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
+import jaeik.bimillog.domain.auth.service.SocialTokenService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -18,6 +19,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.util.Optional;
+
 import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_PROVIDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,7 +30,7 @@ import static org.mockito.Mockito.*;
 /**
  * SocialLogoutService 단위 테스트
  * <p>회원 ID와 소셜 제공자를 통해 소셜 플랫폼 로그아웃을 처리하는 흐름을 검증합니다.</p>
- * <p>회원 미존재 시 예외 발생, 소셜 전략 위임, 로그아웃 실패 시 예외 전파 등의 시나리오를 검증합니다.</p>
+ * <p>소셜 토큰 미존재 시 예외 발생, 소셜 전략 위임, 로그아웃 실패 시 예외 전파 등의 시나리오를 검증합니다.</p>
  */
 @DisplayName("SocialLogoutService 단위 테스트")
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -41,7 +44,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     private SocialStrategy kakaoStrategy;
 
     @Mock
-    private AuthToMemberAdapter authToMemberAdapter;
+    private SocialTokenService socialTokenService;
 
     @InjectMocks
     private SocialLogoutService socialLogoutService;
@@ -52,8 +55,9 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         // given
         Long memberId = 100L;
         Member member = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
+        SocialToken socialToken = SocialToken.createSocialToken("test-access-token", "test-refresh-token", member);
 
-        given(authToMemberAdapter.findById(memberId)).willReturn(member);
+        given(socialTokenService.getSocialToken(memberId)).willReturn(Optional.of(socialToken));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
 
         // when
@@ -67,15 +71,15 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("회원이 존재하지 않는 경우 예외 발생")
+    @DisplayName("소셜 토큰이 없는 경우 예외 발생")
     void shouldThrowException_WhenTokenNotFound() {
         // given
-        given(authToMemberAdapter.findById(100L)).willThrow(new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
+        given(socialTokenService.getSocialToken(100L)).willReturn(Optional.empty());
 
         // expect
         assertThatThrownBy(() -> socialLogoutService.socialLogout(100L, TEST_PROVIDER))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_NOT_FIND_TOKEN);
 
         verify(strategyRegistry, never()).getStrategy(any());
     }
@@ -86,8 +90,9 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         // given
         Long memberId = 100L;
         Member member = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
+        SocialToken socialToken = SocialToken.createSocialToken("test-access-token", "test-refresh-token", member);
 
-        given(authToMemberAdapter.findById(memberId)).willReturn(member);
+        given(socialTokenService.getSocialToken(memberId)).willReturn(Optional.of(socialToken));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
         doThrow(new RuntimeException("logout failed")).when(kakaoStrategy).logout(anyString());
 

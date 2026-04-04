@@ -1,7 +1,8 @@
 package jaeik.bimillog.unit.domain.auth;
 
-import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
+import jaeik.bimillog.domain.auth.service.SocialTokenService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -31,7 +34,7 @@ class SocialWithdrawServiceTest {
     private SocialStrategyAdapter strategyRegistryAdapter;
 
     @Mock
-    private AuthToMemberAdapter authToMemberAdapter;
+    private SocialTokenService socialTokenService;
 
     @Mock
     private SocialStrategy socialStrategy;
@@ -47,17 +50,17 @@ class SocialWithdrawServiceTest {
         String socialId = "12345";
         Long memberId = 1L;
         Member testMember = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
-        String accessToken = testMember.getSocialToken().getAccessToken();
+        SocialToken socialToken = SocialToken.createSocialToken("test-access-token", "test-refresh-token", testMember);
 
-        given(authToMemberAdapter.findById(memberId)).willReturn(testMember);
+        given(socialTokenService.getSocialToken(memberId)).willReturn(Optional.of(socialToken));
         given(strategyRegistryAdapter.getStrategy(provider)).willReturn(socialStrategy);
 
         // When
         socialWithdrawService.unlinkSocialAccount(provider, socialId, memberId);
 
         // Then
-        verify(authToMemberAdapter).findById(memberId);
+        verify(socialTokenService).getSocialToken(memberId);
         verify(strategyRegistryAdapter).getStrategy(provider);
-        verify(socialStrategy).unlink(socialId, accessToken);
+        verify(socialStrategy).unlink(socialId, socialToken.getAccessToken());
     }
 }

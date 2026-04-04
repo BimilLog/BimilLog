@@ -120,14 +120,6 @@ export default function HomeClient({ popularPapers }: HomeClientProps) {
             />
           </div>
 
-          {/* Popular Papers Section - Hidden on mobile */}
-          <div className="hidden lg:block">
-            <PopularPapersSection initialData={popularPapers} />
-          </div>
-        </div>
-
-        {/* Popular Papers Section - Visible on mobile only */}
-        <div className="lg:hidden mt-8">
           <PopularPapersSection initialData={popularPapers} />
         </div>
       </div>

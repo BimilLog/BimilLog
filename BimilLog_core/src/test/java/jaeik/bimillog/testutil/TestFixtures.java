@@ -19,9 +19,6 @@ import org.springframework.test.util.ReflectionTestUtils;
  *   <li>쿠키 및 토큰 생성</li>
  *   <li>Member 영속화 헬퍼 메서드</li>
  * </ul>
- *
- * @author Jaeik
- * @version 2.0.0
  */
 public class TestFixtures {
 
@@ -56,8 +53,7 @@ public class TestFixtures {
     }
 
     /**
-     * Member의 연관 엔티티(Setting, SocialToken)를 먼저 persist한 후 Member를 persist
-     * <p>Member 엔티티는 SocialToken에 Cascade 설정이 없어서 수동으로 영속화가 필요합니다.</p>
+     * Member의 연관 엔티티(Setting)를 먼저 persist한 후 Member를 persist
      * <p>Setting은 Cascade.PERSIST가 있지만, 명시적으로 먼저 persist하여 일관성을 유지합니다.</p>
      *
      * @param em EntityManager
@@ -66,9 +62,6 @@ public class TestFixtures {
     public static void persistMemberWithDependencies(EntityManager em, Member member) {
         if (member.getSetting() != null) {
             em.persist(member.getSetting());
-        }
-        if (member.getSocialToken() != null) {
-            em.persist(member.getSocialToken());
         }
         em.persist(member);
     }

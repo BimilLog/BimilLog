@@ -24,10 +24,8 @@ public interface SocialTokenRepository extends JpaRepository<SocialToken, Long> 
      * <p>회원 탈퇴 시 소셜 토큰을 삭제합니다.</p>
      *
      * @param memberId 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Modifying
-    @Query("DELETE FROM SocialToken st WHERE st.id IN (SELECT m.socialToken.id FROM Member m WHERE m.id = :memberId)")
+    @Query("DELETE FROM SocialToken st WHERE st.member.id = :memberId")
     void deleteByMemberId(@Param("memberId") Long memberId);
 }
