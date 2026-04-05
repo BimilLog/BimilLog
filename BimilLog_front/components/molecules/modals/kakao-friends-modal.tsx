@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import {
   Modal,
@@ -12,22 +11,13 @@ import {
   ListGroup,
   ListGroupItem,
   Badge,
-  TextInput
+  TextInput,
 } from "flowbite-react";
 import { getInitials } from "@/lib/utils/format";
-import {
-  Spinner,
-  EmptyState,
-  Alert
-} from "@/components";
-import { KakaoFriend } from "@/types/domains/user";
-import { logger } from '@/lib/utils/logger';
-import { redirectToKakaoConsentOnly } from "@/lib/auth/kakao";
+import { Spinner, EmptyState, Alert } from "@/components";
 import { Users, MessageCircle, RefreshCw, AlertCircle, Loader2, Search, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useInfiniteUserFriendList } from "@/hooks/api/useUserQueries";
-import { useDebounce } from "@/hooks/common/useDebounce";
 import { cn } from "@/lib/utils";
+import { useKakaoFriendsModal } from "@/hooks/features";
 
 interface KakaoFriendsModalProps {
   isOpen: boolean;
@@ -75,147 +65,23 @@ const KakaoFriendsModalLoading = () => (
  * 무한 스크롤로 모든 친구 목록 로드 가능
  */
 function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
-  // 무한 스크롤 친구 목록 조회 (TanStack Query)
   const {
-    data,
     isLoading,
-    isError,
-    error,
-    fetchNextPage,
-    hasNextPage,
     isFetchingNextPage,
-    refetch
-  } = useInfiniteUserFriendList(20, isOpen);
-
-  // 카카오 친구 목록 접근 동의가 필요한 상태 (scope 추가 필요)
-  const [needsConsent, setNeedsConsent] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // 검색 기능
-  const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
-
-  // Next.js 라우터 (친구 롤링페이퍼 페이지 이동용)
-  const router = useRouter();
-
-  // 무한 스크롤을 위한 ref
-  const observerTarget = useRef<HTMLDivElement>(null);
-
-  // 전체 친구 목록 (모든 페이지의 친구들을 하나의 배열로)
-  const allFriends: KakaoFriend[] = useMemo(() => {
-    return data?.pages.flatMap(page =>
-      page.success && page.data ? page.data.elements : []
-    ) || [];
-  }, [data?.pages]);
-
-  // 검색 필터링된 친구 목록
-  const filteredFriends = useMemo(() => {
-    if (!debouncedSearchQuery.trim()) {
-      return allFriends;
-    }
-    const query = debouncedSearchQuery.toLowerCase();
-    return allFriends.filter(friend =>
-      friend.profile_nickname.toLowerCase().includes(query) ||
-      (friend.memberName && friend.memberName.toLowerCase().includes(query))
-    );
-  }, [allFriends, debouncedSearchQuery]);
-
-  // 전체 친구 수
-  const totalCount = data?.pages[0]?.data?.total_count || 0;
-
-  // 에러 처리
-  useEffect(() => {
-    if (isError && error) {
-      const err = error as { message?: string };
-      const errMsg = err.message || "친구 목록을 가져올 수 없습니다.";
-
-      // 카카오 친구 목록 접근 동의가 필요한 경우 감지
-      const normalizedMessage = errMsg.replace(/[\s.]/g, "");
-      const consentKeywords = [
-        "카카오친구추가동의를해야합니다",   // 마침표/공백 제거 후 매칭
-        "insufficientscopes",              // 백엔드 원본 Kakao API 에러
-        "friendsconsent"                   // 추가 패턴
-      ];
-
-      if (consentKeywords.some((keyword) => normalizedMessage.toLowerCase().includes(keyword))) {
-        setNeedsConsent(true);
-        setErrorMessage("카카오 친구 목록 접근을 위해 추가 동의가 필요합니다.");
-      } else {
-        setErrorMessage(errMsg);
-      }
-    }
-  }, [isError, error]);
-
-  /**
-   * 카카오 친구 목록 동의 처리 함수
-   * 사용자 확인 후 카카오 동의 페이지로 리다이렉트 (로그아웃 없음)
-   * 동의 완료 후 자동으로 원래 페이지로 복귀
-   */
-  const handleConsentClick = () => {
-    try {
-      // 사용자에게 동의 프로세스 안내
-      const confirmed = window.confirm(
-        "카카오 친구 목록 접근 권한을 받기 위해 카카오 동의 페이지로 이동합니다.\n\n" +
-          "동의 완료 후 자동으로 이 페이지로 돌아옵니다."
-      );
-
-      if (confirmed) {
-        redirectToKakaoConsentOnly();
-      }
-    } catch (err) {
-      logger.error("카카오 동의 처리 실패:", err);
-      setErrorMessage(
-        err instanceof Error
-          ? err.message
-          : "동의 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
-      );
-    }
-  };
-
-  // 무한 스크롤 IntersectionObserver 설정
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    const target = observerTarget.current;
-    if (target) {
-      observer.observe(target);
-    }
-
-    return () => {
-      if (target) {
-        observer.unobserve(target);
-      }
-    };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  /**
-   * 친구의 롤링페이퍼 페이지로 이동하는 핸들러
-   * memberName을 URL 인코딩하여 안전한 라우팅 보장
-   */
-  const handleVisitRollingPaper = (memberName: string) => {
-    if (memberName) {
-      // 친구 롤링페이퍼 페이지로 라우팅 후 모달 닫기
-      router.push(`/rolling-paper/${encodeURIComponent(memberName)}`);
-      onClose();
-    }
-  };
-
-  // 모달이 닫힐 때 검색어 초기화
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchQuery("");
-      setNeedsConsent(false);
-      setErrorMessage(null);
-    }
-  }, [isOpen]);
-
+    hasNextPage,
+    refetch,
+    allFriends,
+    filteredFriends,
+    totalCount,
+    needsConsent,
+    errorMessage,
+    searchQuery,
+    setSearchQuery,
+    debouncedSearchQuery,
+    observerTarget,
+    handleConsentClick,
+    handleVisitRollingPaper,
+  } = useKakaoFriendsModal(isOpen, onClose);
 
   return (
     <Modal show={isOpen} onClose={onClose} size="lg">
@@ -255,7 +121,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
               </Badge>
             )}
             {debouncedSearchQuery && (
-              <span className="text-xs text-gray-500">“{searchQuery}” 검색 결과</span>
+              <span className="text-xs text-gray-500">"{searchQuery}" 검색 결과</span>
             )}
           </div>
           <div className="relative">
@@ -425,12 +291,9 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
  * SSR 환경에서 카카오 API 호출 문제를 방지하기 위해
  * 클라이언트 사이드에서만 렌더링되도록 설정
  */
-const KakaoFriendsModal = dynamic(
-  () => Promise.resolve(KakaoFriendsModalContent),
-  {
-    ssr: false,
-    loading: () => <KakaoFriendsModalLoading />,
-  }
-);
+const KakaoFriendsModal = dynamic(() => Promise.resolve(KakaoFriendsModalContent), {
+  ssr: false,
+  loading: () => <KakaoFriendsModalLoading />,
+});
 
 export { KakaoFriendsModal };

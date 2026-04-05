@@ -12,3 +12,4 @@ export { usePasswordModal } from './usePasswordModal';
 export type { PasswordModalMode, PasswordModalState, UsePasswordModalReturn } from './usePasswordModal';
 export { useToast } from './useToast';
 export { useBrowserGuide, BrowserGuideProvider } from './useBrowserGuide';
+export { useMediaQuery } from './useMediaQuery';
