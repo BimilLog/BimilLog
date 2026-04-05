@@ -47,6 +47,30 @@ public class FriendRequestQueryRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
+    // 받은 친구 요청 조회
+    public Page<FriendReceiverRequest> findAllByReceiveId(Long memberId, Pageable pageable) {
+        List<FriendReceiverRequest> content = jpaQueryFactory
+                .select(Projections.constructor(FriendReceiverRequest.class,
+                        friendRequest.id,
+                        member.id,
+                        member.memberName))
+                .from(friendRequest)
+                .join(friendRequest.sender, member)
+                .where(friendRequest.receiver.id.eq(memberId))
+                .orderBy(friendRequest.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = jpaQueryFactory
+                .select(friendRequest.count())
+                .from(friendRequest)
+                .where(friendRequest.receiver.id.eq(memberId))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0);
+    }
+
     /**
      * 보낸 요청 + 받은 요청의 상대방 ID를 모두 조회합니다.
      * 추천 친구 필터링용으로, 이미 요청이 오간 사람을 제외하기 위해 사용됩니다.
@@ -67,30 +91,6 @@ public class FriendRequestQueryRepository {
         Set<Long> result = new HashSet<>(receiverIds);
         result.addAll(senderIds);
         return result;
-    }
-
-    // 받은 친구 요청 조회
-    public Page<FriendReceiverRequest> findAllByReceiveId(Long memberId, Pageable pageable) {
-        List<FriendReceiverRequest> content =  jpaQueryFactory
-                .select(Projections.constructor(FriendReceiverRequest.class,
-                        friendRequest.id,
-                        member.id,
-                        member.memberName))
-                .from(friendRequest)
-                .join(friendRequest.sender, member)
-                .where(friendRequest.receiver.id.eq(memberId))
-                .orderBy(friendRequest.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        Long total = jpaQueryFactory
-                .select(friendRequest.count())
-                .from(friendRequest)
-                .where(friendRequest.receiver.id.eq(memberId))
-                .fetchOne();
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
 }

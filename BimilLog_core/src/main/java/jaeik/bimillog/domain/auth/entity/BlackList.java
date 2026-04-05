@@ -35,7 +35,7 @@ public class BlackList extends BaseEntity{
     private String socialId;
 
     /**
-     * <h2>블랙리스트 엔티티 생성</h2>
+     * <h3>블랙리스트 엔티티 생성</h3>
      * <p>소셜 ID와 제공자 정보를 기반으로 블랙리스트 엔티티를 생성</p>
      *
      * @param socialId 소셜 ID

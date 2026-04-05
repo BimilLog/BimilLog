@@ -35,13 +35,13 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AdminCommandService {
-    private final ApplicationEventPublisher eventPublisher;
+    private final BlacklistService blacklistService;
     private final ReportRepository reportRepository;
     private final AdminQueryRepository adminQueryRepository;
     private final MemberRepository memberRepository;
     private final AdminToPostAdapter adminToPostAdapter;
     private final AdminToCommentAdapter adminToCommentAdapter;
-    private final BlacklistService blacklistService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>신고 및 건의사항 접수</h3>
@@ -51,8 +51,6 @@ public class AdminCommandService {
      * @param reportType 신고 유형 (POST, COMMENT, ERROR, IMPROVEMENT)
      * @param targetId 신고 대상 ID (POST/COMMENT 신고 시 필수, ERROR/IMPROVEMENT 시 null 허용)
      * @param content 신고 내용 및 상세 설명
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void createReport(Long memberId, ReportType reportType, Long targetId, String content) {
@@ -69,8 +67,6 @@ public class AdminCommandService {
      *
      * @param reportType 신고 유형 (POST, COMMENT만 허용, ERROR/IMPROVEMENT는 예외 발생)
      * @param targetId 신고 대상 ID (게시글 ID 또는 댓글 ID)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void banUser(ReportType reportType, Long targetId) {
@@ -87,8 +83,6 @@ public class AdminCommandService {
      *
      * @param reportType 신고 유형 (POST, COMMENT만 허용, ERROR/IMPROVEMENT는 예외 발생)
      * @param targetId 신고 대상 ID (게시글 ID 또는 댓글 ID)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void forceWithdrawUser(ReportType reportType, Long targetId) {
@@ -103,8 +97,6 @@ public class AdminCommandService {
      * <p>회원 탈퇴 시 신고 이력은 유지하면서 reporter 연관만 제거합니다.</p>
      *
      * @param memberId 탈퇴한 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void anonymizeReporterByUserId(Long memberId) {
@@ -124,8 +116,6 @@ public class AdminCommandService {
      * @param reportType 신고 유형 (POST, COMMENT만 허용)
      * @param targetId 신고 대상 ID (게시글 ID 또는 댓글 ID)
      * @return Member 신고 대상 사용자 엔티티
-     * @author Jaeik
-     * @since 2.0.0
      */
     private Member resolveUser(ReportType reportType, Long targetId) {
         Member member = switch (reportType) {

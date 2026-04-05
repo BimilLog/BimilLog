@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.auth.adapter.AuthToJwtAdapter;
 import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.repository.BlackListRepository;
-import jaeik.bimillog.domain.auth.repository.SocialTokenQueryRepository;
 import jaeik.bimillog.domain.auth.repository.SocialTokenRepository;
 import jaeik.bimillog.domain.auth.service.SocialLoginTransactionalService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -48,7 +47,6 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     @Mock private BlackListRepository blackListRepository;
     @Mock private AuthToJwtAdapter authToJwtAdapter;
     @Mock private SocialTokenRepository socialTokenRepository;
-    @Mock private SocialTokenQueryRepository socialTokenQueryRepository;
     @Mock private AuthTokenRepository authTokenRepository;
 
     @InjectMocks
@@ -96,7 +94,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
-        given(socialTokenQueryRepository.findSocialTokenByMemberId(1L)).willReturn(Optional.of(existingSocialToken));
+        given(socialTokenRepository.findByMemberId(1L)).willReturn(Optional.of(existingSocialToken));
         given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString()))
                 .willReturn(existingMember);
         stubAuthToken(existingMember);
@@ -111,7 +109,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
         verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
-        verify(socialTokenQueryRepository).findSocialTokenByMemberId(1L);
+        verify(socialTokenRepository).findByMemberId(1L);
         verify(authToMemberAdapter).handleExistingMember(
                 eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()));
     }
@@ -131,7 +129,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
-        given(socialTokenQueryRepository.findSocialTokenByMemberId(1L)).willReturn(Optional.empty());
+        given(socialTokenRepository.findByMemberId(1L)).willReturn(Optional.empty());
         given(socialTokenRepository.save(any(SocialToken.class))).willReturn(newSocialToken);
         given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString()))
                 .willReturn(existingMember);

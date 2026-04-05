@@ -15,6 +15,8 @@ export * from './user'; // User domain specific hooks
 
 // UI & Interaction hooks
 export * from './useNotifications';
+export * from './useNotificationBell';
+export * from './useKakaoFriendsModal';
 
 // Admin hooks
 export * from './admin';

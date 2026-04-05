@@ -2,7 +2,6 @@ package jaeik.bimillog.springboot.nodb;
 
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
-import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.auth.listener.MemberLogoutListener;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.SseService;
@@ -29,7 +28,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.time.Duration;
 import java.util.stream.Stream;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
@@ -53,9 +51,6 @@ class MemberLogoutListenerRetryTest {
     private MemberLogoutListener listener;
 
     @MockitoBean
-    private SocialLogoutService socialLogoutService;
-
-    @MockitoBean
     private SseService sseService;
 
     @MockitoBean
@@ -65,7 +60,7 @@ class MemberLogoutListenerRetryTest {
 
     @BeforeEach
     void setUp() {
-        Mockito.reset(socialLogoutService, sseService, authTokenService);
+        Mockito.reset(sseService, authTokenService);
     }
 
     @ParameterizedTest(name = "{0} 발생 시 3회 재시도")
@@ -127,18 +122,16 @@ class MemberLogoutListenerRetryTest {
         // Given
         MemberLoggedOutEvent event = new MemberLoggedOutEvent(1L, 100L, provider);
         doNothing().when(sseService).deleteEmitters(anyLong(), anyLong());
-        doNothing().when(socialLogoutService).socialLogout(anyLong(), any(SocialProvider.class));
         doNothing().when(authTokenService).deleteTokens(anyLong(), anyLong());
 
         // When
         listener.memberLogout(event);
 
-        // Then: 비동기 완료 대기 - SSE 연결 정리, 소셜 로그아웃, 토큰 삭제 검증
+        // Then: 비동기 완료 대기 - SSE 연결 정리, 토큰 삭제 검증
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(sseService, times(1)).deleteEmitters(1L, 100L);
-                    verify(socialLogoutService, times(1)).socialLogout(1L, provider);
                     verify(authTokenService, times(1)).deleteTokens(1L, 100L);
                 });
     }

@@ -2,8 +2,8 @@ package jaeik.bimillog.unit.domain.auth;
 
 import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
+import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.auth.service.SocialTokenService;
-import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
@@ -40,7 +40,7 @@ class SocialWithdrawServiceTest {
     private SocialStrategy socialStrategy;
 
     @InjectMocks
-    private SocialWithdrawService socialWithdrawService;
+    private SocialLogoutService socialLogoutService;
 
     @Test
     @DisplayName("전략 조회와 연동 해제 호출")
@@ -56,7 +56,7 @@ class SocialWithdrawServiceTest {
         given(strategyRegistryAdapter.getStrategy(provider)).willReturn(socialStrategy);
 
         // When
-        socialWithdrawService.unlinkSocialAccount(provider, socialId, memberId);
+        socialLogoutService.unlinkSocialAccount(provider, socialId, memberId);
 
         // Then
         verify(socialTokenService).getSocialToken(memberId);

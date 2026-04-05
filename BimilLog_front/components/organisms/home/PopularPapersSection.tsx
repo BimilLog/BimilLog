@@ -29,7 +29,7 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = memo(({
   };
 
   return (
-    <section className="lg:w-[400px] lg:min-w-[400px] lg:flex-shrink-0">
+    <section className="lg:w-[400px] lg:flex-shrink-0 h-full">
       <Card className="h-full">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -69,49 +69,49 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = memo(({
               </div>
             ) : (
               data.content.map((paper) => (
-                <div key={paper.memberId} className="space-y-2">
-                  <div className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
-                    <div
-                      className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center text-base font-bold flex-shrink-0",
-                        paper.rank === 1 && "bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 text-black shadow-lg",
-                        paper.rank === 2 && "bg-gradient-to-br from-gray-200 via-gray-300 to-gray-400 text-black shadow-lg",
-                        paper.rank === 3 && "bg-gradient-to-br from-orange-300 via-orange-400 to-orange-500 text-black shadow-lg",
-                        paper.rank > 3 && "bg-white text-gray-900 font-semibold border border-gray-300"
-                      )}
-                    >
-                      {paper.rank}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">
-                        {paper.memberName}님의 롤링페이퍼
-                      </p>
-                    </div>
-
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => handlePaperClick(paper.memberName)}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 flex-shrink-0"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      <span className="ml-1 text-sm">롤링페이퍼</span>
-                    </Button>
+                <div
+                  key={paper.memberId}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+                >
+                  <div
+                    className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center text-base font-bold flex-shrink-0",
+                      paper.rank === 1 && "bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 text-black shadow-lg",
+                      paper.rank === 2 && "bg-gradient-to-br from-gray-200 via-gray-300 to-gray-400 text-black shadow-lg",
+                      paper.rank === 3 && "bg-gradient-to-br from-orange-300 via-orange-400 to-orange-500 text-black shadow-lg",
+                      paper.rank > 3 && "bg-white text-gray-900 font-semibold border border-gray-300"
+                    )}
+                  >
+                    {paper.rank}
                   </div>
 
-                  <div className="flex items-center gap-2 pl-3">
-                    <div className="flex items-center gap-1 px-1.5 py-1 bg-muted rounded text-xs text-foreground">
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>최근 메시지 수: {paper.recentMessageCount}개</span>
-                    </div>
-                    <div className="flex items-center gap-1 px-1.5 py-1 bg-purple-100 dark:bg-purple-900 rounded text-xs">
-                      <TrendingUp className="w-3.5 h-3.5 text-purple-600 dark:text-purple-300" />
-                      <span className="font-medium text-purple-600 dark:text-purple-300">
-                        {paper.popularityScore.toFixed(1)}점
-                      </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {paper.memberName}님의 롤링페이퍼
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-1 px-1.5 py-0.5 bg-muted rounded text-xs text-foreground">
+                        <MessageSquare className="w-3 h-3" />
+                        <span>{paper.recentMessageCount}개</span>
+                      </div>
+                      <div className="flex items-center gap-1 px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900 rounded text-xs">
+                        <TrendingUp className="w-3 h-3 text-purple-600 dark:text-purple-300" />
+                        <span className="font-medium text-purple-600 dark:text-purple-300">
+                          {paper.popularityScore.toFixed(1)}점
+                        </span>
+                      </div>
                     </div>
                   </div>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => handlePaperClick(paper.memberName)}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 flex-shrink-0"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="ml-1 text-sm">롤링페이퍼</span>
+                  </Button>
                 </div>
               ))
             )}

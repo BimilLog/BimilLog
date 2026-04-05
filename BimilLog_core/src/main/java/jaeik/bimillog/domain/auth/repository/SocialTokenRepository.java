@@ -2,6 +2,8 @@ package jaeik.bimillog.domain.auth.repository;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,18 +16,20 @@ import org.springframework.stereotype.Repository;
  * <p>Member와 1:1 관계를 가지므로 Member를 통해 직접 접근합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.8.0
  */
 @Repository
 public interface SocialTokenRepository extends JpaRepository<SocialToken, Long> {
 
     /**
-     * <h3>사용자 ID로 소셜 토큰 삭제</h3>
-     * <p>회원 탈퇴 시 소셜 토큰을 삭제합니다.</p>
-     *
-     * @param memberId 사용자 ID
+     * 사용자 ID로 소셜 토큰 삭제
      */
     @Modifying
     @Query("DELETE FROM SocialToken st WHERE st.member.id = :memberId")
     void deleteByMemberId(@Param("memberId") Long memberId);
+
+    /**
+     * 사용자 ID로 소셜 토큰 조회
+     */
+    Optional<SocialToken> findByMemberId(Long memberId);
 }
