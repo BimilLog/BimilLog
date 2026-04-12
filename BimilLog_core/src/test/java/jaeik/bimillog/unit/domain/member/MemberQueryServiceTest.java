@@ -29,8 +29,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
 
 /**
  * <h2>MemberQueryService 테스트</h2>
@@ -125,7 +125,7 @@ class MemberQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("findAllMembers - 캐시 미스 → DB 조회 후 캐시 저장")
+    @DisplayName("findAllMembers - 캐시 미스 → DB 조회 후 올바른 page/size로 캐시 저장")
     void shouldFallbackToDb_WhenCacheMiss() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
@@ -142,11 +142,11 @@ class MemberQueryServiceTest extends BaseUnitTest {
         assertThat(result.getContent()).hasSize(5);
         verify(redisMemberAdapter).getMemberByPage(0, 10);
         verify(memberRepository).findAll(pageable);
-        verify(redisMemberAdapter).saveMemberPage(anyInt(), anyInt(), any());
+        verify(redisMemberAdapter).saveMemberPage(eq(0), eq(10), any());
     }
 
     @Test
-    @DisplayName("findAllMembers - 캐시 미스 + DB 빈 결과 → 빈 페이지, 캐시 저장 시도")
+    @DisplayName("findAllMembers - 캐시 미스 + DB 빈 결과 → 빈 페이지, 올바른 page/size로 캐시 저장 시도")
     void shouldReturnEmptyPage_WhenCacheMissAndDbEmpty() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
@@ -160,28 +160,25 @@ class MemberQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result.isEmpty()).isTrue();
         verify(memberRepository).findAll(pageable);
-        verify(redisMemberAdapter).saveMemberPage(anyInt(), anyInt(), any());
+        verify(redisMemberAdapter).saveMemberPage(eq(0), eq(10), any());
     }
 
     @Test
-    @DisplayName("findAllMembers - 현재 루프 버그로 인해 getMemberByPage는 항상 빈 페이지 반환 → 항상 DB 조회")
-    void shouldAlwaysHitDb_BecauseGetMemberByPageAlwaysReturnsEmpty() {
-        // Given: RedisMemberAdapter의 실제 루프 버그로 인해 캐시 조회 시 항상 빈 페이지 반환
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Member> dbMembers = createMembersWithIds(3);
+    @DisplayName("findAllMembers - page=2, size=20 요청 시 올바른 page/size로 캐시 저장")
+    void shouldSaveWithCorrectPageAndSize_WhenDifferentPagable() {
+        // Given
+        Pageable pageable = PageRequest.of(2, 20);
+        List<Member> dbMembers = createMembersWithIds(5);
         Page<Member> dbPage = new PageImpl<>(dbMembers, pageable, dbMembers.size());
 
-        // getMemberByPage는 현재 항상 빈 페이지 반환 (루프 버그)
-        given(redisMemberAdapter.getMemberByPage(0, 10)).willReturn(Page.empty());
+        given(redisMemberAdapter.getMemberByPage(2, 20)).willReturn(Page.empty());
         given(memberRepository.findAll(pageable)).willReturn(dbPage);
 
-        // When: 동일한 요청을 여러 번 해도
-        memberQueryService.findAllMembers(pageable);
-        memberQueryService.findAllMembers(pageable);
+        // When
         memberQueryService.findAllMembers(pageable);
 
-        // Then: 캐시가 동작하지 않아 DB를 3번 모두 조회
-        verify(memberRepository, org.mockito.Mockito.times(3)).findAll(pageable);
+        // Then: page=2, size=20 그대로 전달되는지 확인
+        verify(redisMemberAdapter).saveMemberPage(eq(2), eq(20), any());
     }
 
     // ==================== 헬퍼 ====================

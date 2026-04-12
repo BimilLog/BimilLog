@@ -41,7 +41,6 @@ public class MemberCacheScheduler {
     /**
      * TTL 1분보다 10초 빠른 50초 주기로 갱신하여 캐시를 항상 Warm 상태로 유지
      */
-    @Scheduled(fixedDelay = 50_000)
     @Transactional(readOnly = true)
     public void refreshMemberCache() {
         List<SimpleMemberDTO> members = memberRepository.findAllSimpleMembersOrderByCreatedAtDesc();

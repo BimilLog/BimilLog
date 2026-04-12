@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
@@ -32,11 +33,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class RedisMemberAdapterIntegrationTest {
 
+    private static final String MEMBER_KEY_PREFIX = "member:page:";
+
     @Autowired
     private RedisMemberAdapter redisMemberAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @AfterEach
     void tearDown() {
@@ -154,6 +160,164 @@ class RedisMemberAdapterIntegrationTest {
 
         // Then: 빈 리스트는 저장 루프 자체가 실행 안 됨 → 캐시 미스 → 빈 페이지
         assertThat(result.isEmpty()).isTrue();
+    }
+
+    // ==================== size 변동 시나리오 (BASE_SIZE=10 기반 키 합산) ====================
+
+    @Test
+    @DisplayName("size=20 page=0 → member:page:0 + member:page:1 합산 반환")
+    void shouldMergeTwoKeys_WhenSize20Page0() {
+        // Given: BASE_SIZE=10 단위로 저장
+        redisMemberAdapter.saveMemberPage(0, 10, createMembers(20));
+
+        // When
+        Page<SimpleMemberDTO> result = redisMemberAdapter.getMemberByPage(0, 20);
+
+        // Then: key:0(1~10) + key:1(11~20) 합산 → 20개
+        assertThat(result.getContent()).hasSize(20);
+        assertThat(result.getContent().get(0).getMemberId()).isEqualTo(1L);
+        assertThat(result.getContent().get(19).getMemberId()).isEqualTo(20L);
+    }
+
+    @Test
+    @DisplayName("size=30 page=0 → member:page:0/1/2 합산 반환")
+    void shouldMergeThreeKeys_WhenSize30Page0() {
+        // Given
+        redisMemberAdapter.saveMemberPage(0, 10, createMembers(30));
+
+        // When
+        Page<SimpleMemberDTO> result = redisMemberAdapter.getMemberByPage(0, 30);
+
+        // Then: key:0 + key:1 + key:2 합산 → 30개
+        assertThat(result.getContent()).hasSize(30);
+        assertThat(result.getContent().get(0).getMemberId()).isEqualTo(1L);
+        assertThat(result.getContent().get(29).getMemberId()).isEqualTo(30L);
+    }
+
+    @Test
+    @DisplayName("size=20 page=1 → member:page:2 + member:page:3 합산 반환 (절대 위치 20~39)")
+    void shouldMergeCorrectKeys_WhenSize20Page1() {
+        // Given: 40개 저장 → key:0(1~10), key:1(11~20), key:2(21~30), key:3(31~40)
+        redisMemberAdapter.saveMemberPage(0, 10, createMembers(40));
+
+        // When: page=1, size=20 → 절대 위치 20~39
+        Page<SimpleMemberDTO> result = redisMemberAdapter.getMemberByPage(1, 20);
+
+        // Then: key:2 + key:3 합산 → 20개 (memberId 21~40)
+        assertThat(result.getContent()).hasSize(20);
+        assertThat(result.getContent().get(0).getMemberId()).isEqualTo(21L);
+        assertThat(result.getContent().get(19).getMemberId()).isEqualTo(40L);
+    }
+
+    @Test
+    @DisplayName("size=30 page=1 → member:page:3/4/5 합산 반환 (절대 위치 30~59)")
+    void shouldMergeCorrectKeys_WhenSize30Page1() {
+        // Given: 60개 저장 → key:0~5
+        redisMemberAdapter.saveMemberPage(0, 10, createMembers(60));
+
+        // When: page=1, size=30 → 절대 위치 30~59
+        Page<SimpleMemberDTO> result = redisMemberAdapter.getMemberByPage(1, 30);
+
+        // Then: key:3 + key:4 + key:5 합산 → 30개 (memberId 31~60)
+        assertThat(result.getContent()).hasSize(30);
+        assertThat(result.getContent().get(0).getMemberId()).isEqualTo(31L);
+        assertThat(result.getContent().get(29).getMemberId()).isEqualTo(60L);
+    }
+
+    @Test
+    @DisplayName("size=20 DB폴백 저장 후 size=10으로 조회 → 각 페이지 정상 반환")
+    void shouldReadWithSize10_AfterSavedWithSize20() {
+        // Given: size=20 DB폴백으로 page=0 저장 → key:0(1~10), key:1(11~20)
+        redisMemberAdapter.saveMemberPage(0, 20, createMembers(20));
+
+        // When: size=10으로 각 페이지 조회
+        Page<SimpleMemberDTO> page0 = redisMemberAdapter.getMemberByPage(0, 10);
+        Page<SimpleMemberDTO> page1 = redisMemberAdapter.getMemberByPage(1, 10);
+
+        // Then: 키가 BASE_SIZE 단위이므로 size=10 조회도 정상
+        assertThat(page0.getContent()).hasSize(10);
+        assertThat(page0.getContent().get(0).getMemberId()).isEqualTo(1L);
+        assertThat(page1.getContent()).hasSize(10);
+        assertThat(page1.getContent().get(0).getMemberId()).isEqualTo(11L);
+    }
+
+    // ==================== Redis 키 이름 검증 ====================
+
+    @Test
+    @DisplayName("saveMemberPage - page=0, 10개 저장 시 member:page:0 키에만 저장")
+    void shouldWriteToCorrectKey_WhenPage0Size10() {
+        // Given
+        List<SimpleMemberDTO> members = createMembers(10);
+
+        // When
+        redisMemberAdapter.saveMemberPage(0, 10, members);
+
+        // Then: "member:page:0" 에만 데이터 존재
+        assertThat(stringRedisTemplate.hasKey(MEMBER_KEY_PREFIX + "0")).isTrue();
+        assertThat(stringRedisTemplate.hasKey(MEMBER_KEY_PREFIX + "1")).isFalse();
+    }
+
+    @Test
+    @DisplayName("saveMemberPage - page=0, 25개 저장 시 member:page:0/1/2 에 분산 저장")
+    void shouldWriteToCorrectKeys_WhenTwentyFiveItemsSaved() {
+        // Given
+        List<SimpleMemberDTO> members = createMembers(25);
+
+        // When
+        redisMemberAdapter.saveMemberPage(0, 10, members);
+
+        // Then: 0~9 → :0, 10~19 → :1, 20~24 → :2
+        assertThat(stringRedisTemplate.hasKey(MEMBER_KEY_PREFIX + "0")).isTrue();
+        assertThat(stringRedisTemplate.hasKey(MEMBER_KEY_PREFIX + "1")).isTrue();
+        assertThat(stringRedisTemplate.hasKey(MEMBER_KEY_PREFIX + "2")).isTrue();
+        assertThat(stringRedisTemplate.hasKey(MEMBER_KEY_PREFIX + "3")).isFalse();
+    }
+
+    @Test
+    @DisplayName("saveMemberPage - page=2로 저장 시 member:page:2 에 저장 (page 오프셋 반영)")
+    void shouldApplyPageOffset_WhenStartPageIsTwo() {
+        // Given
+        List<SimpleMemberDTO> members = createMembers(10);
+
+        // When: page=2부터 저장
+        redisMemberAdapter.saveMemberPage(2, 10, members);
+
+        // Then: :0, :1 은 비어있고 :2 에만 저장
+        assertThat(stringRedisTemplate.hasKey(MEMBER_KEY_PREFIX + "0")).isFalse();
+        assertThat(stringRedisTemplate.hasKey(MEMBER_KEY_PREFIX + "1")).isFalse();
+        assertThat(stringRedisTemplate.hasKey(MEMBER_KEY_PREFIX + "2")).isTrue();
+    }
+
+    @Test
+    @DisplayName("getMemberByPage - 저장된 키와 조회 키가 일치 → page=0 저장 후 page=0 조회 성공")
+    void shouldReadFromMatchingKey_SavePage0GetPage0() {
+        // Given
+        redisMemberAdapter.saveMemberPage(0, 10, createMembers(10));
+
+        // When: page=0 조회
+        Page<SimpleMemberDTO> page0 = redisMemberAdapter.getMemberByPage(0, 10);
+        // page=1 은 저장 안 했으므로 미스
+        Page<SimpleMemberDTO> page1 = redisMemberAdapter.getMemberByPage(1, 10);
+
+        // Then
+        assertThat(page0.isEmpty()).isFalse();
+        assertThat(page1.isEmpty()).isTrue();
+    }
+
+    @Test
+    @DisplayName("getMemberByPage - page=1로 저장 후 page=0 조회 → 미스, page=1 조회 → 히트")
+    void shouldReadFromMatchingKey_SavePage1GetPage1() {
+        // Given: page=1 위치에 저장
+        redisMemberAdapter.saveMemberPage(1, 10, createMembers(10));
+
+        // When
+        Page<SimpleMemberDTO> page0 = redisMemberAdapter.getMemberByPage(0, 10);
+        Page<SimpleMemberDTO> page1 = redisMemberAdapter.getMemberByPage(1, 10);
+
+        // Then: page=0 은 미스, page=1 은 히트
+        assertThat(page0.isEmpty()).isTrue();
+        assertThat(page1.isEmpty()).isFalse();
+        assertThat(page1.getContent()).hasSize(10);
     }
 
     // ==================== 헬퍼 ====================

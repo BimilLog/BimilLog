@@ -7,9 +7,7 @@ services:
       - "6380:6379"
     mem_limit: 120m
     cpus: 1.0
-    command: redis-server --maxmemory 100mb --maxmemory-policy allkeys-lru
-    volumes:
-      - redis-data-local:/data
+    command: redis-server --maxmemory 100mb --maxmemory-policy allkeys-lru --save ""
     networks:
       - bimillog-local
     healthcheck:
@@ -220,7 +218,6 @@ networks:
     driver: bridge
 
 volumes:
-  redis-data-local:
   prometheus-data-local:
   grafana-data-local:
   scouter-data-local:

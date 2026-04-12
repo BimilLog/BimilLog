@@ -91,10 +91,10 @@ public class LogFilter extends OncePerRequestFilter {
         }
 
         if (userContext.authenticated()) {
-            log.info("회원 요청 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, Status: {}, Duration: {}ms, 유저 ID: {}, 제공자: {}",
+            log.debug("회원 요청 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, Status: {}, Duration: {}ms, 유저 ID: {}, 제공자: {}",
                     ip, safeReferer, uri, method, status, durationMs, userContext.userId(), userContext.provider());
         } else {
-            log.info("비회원 요청 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, Status: {}, Duration: {}ms",
+            log.debug("비회원 요청 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, Status: {}, Duration: {}ms",
                     ip, safeReferer, uri, method, status, durationMs);
         }
     }
