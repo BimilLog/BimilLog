@@ -52,7 +52,7 @@ public class RedisMemberAdapter {
 
                 merged.addAll(list);
             } catch (Exception e) {
-                log.warn("회원 캐시 레디스 역직렬화 오류");
+                log.warn("회원 캐시 레디스 역직렬화 오류", e);
             }
         }
 
@@ -80,7 +80,7 @@ public class RedisMemberAdapter {
                 String memberInfo = objectMapper.writeValueAsString(subList);
                 redisTemplate.opsForValue().set(MEMBER_KEY + (i + page), memberInfo, MEMBER_TTL, TimeUnit.MINUTES);
             } catch (Exception e) {
-                log.warn("유저 캐시 직렬화 실패");
+                log.warn("유저 캐시 직렬화 실패", e);
             }
         }
     }

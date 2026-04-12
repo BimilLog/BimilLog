@@ -108,4 +108,12 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
      */
     @Query("SELECT m.id FROM Member m WHERE m.id NOT IN :excludeIds ORDER BY m.createdAt DESC LIMIT 10")
     List<Long> getNeedMemberIds(@Param("excludeIds") Set<Long> excludeIds);
+
+    /**
+     * <h3>전체 회원 DTO 조회 (캐시 워밍 전용)</h3>
+     * <p>실험용 - 앱 기동 시 Redis 캐시 사전 적재에 사용합니다.</p>
+     * <p>createdAt DESC 정렬로 JMeter 요청과 동일한 순서를 보장합니다.</p>
+     */
+    @Query("SELECT new jaeik.bimillog.domain.member.dto.SimpleMemberDTO(m.id, m.memberName) FROM Member m ORDER BY m.createdAt DESC")
+    List<SimpleMemberDTO> findAllSimpleMembersOrderByCreatedAtDesc();
 }
