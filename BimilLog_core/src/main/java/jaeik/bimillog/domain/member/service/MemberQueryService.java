@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.member.repository.SettingRepository;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.member.MemberCacheResult;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -119,22 +120,35 @@ public class MemberQueryService {
     public Page<SimpleMemberDTO> findAllMembers(Pageable pageable) {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
-        Page<SimpleMemberDTO> memberByPage = redisMemberAdapter.getMemberByPage(page, size);
-        if (memberByPage.isEmpty()) {
-            boolean lock = redisMemberAdapter.lock(page, size);
-            if (!lock) {
-                try {
-                    Thread.sleep(50);
-                    return redisMemberAdapter.getMemberByPage(page, size);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+
+        MemberCacheResult result = redisMemberAdapter.getMemberByPageWithPER(page, size);
+
+        return switch (result.type()) {
+            case HIT -> result.data();
+
+            case EARLY_REFRESH -> {
+                // PER 트리거: 락 없이 즉시 DB 조회 → 캐시 갱신
+                Page<SimpleMemberDTO> fresh = memberRepository.findAll(pageable).map(SimpleMemberDTO::fromMember);
+                redisMemberAdapter.saveMemberPage(page, size, fresh.getContent());
+                yield fresh;
             }
 
-            memberByPage = memberRepository.findAll(pageable).map(SimpleMemberDTO::fromMember);
-            redisMemberAdapter.saveMemberPage(page, size, memberByPage.getContent());
-        }
-        return memberByPage;
+            case MISS -> {
+                // 캐시 미스: 기존 분산락 흐름
+                boolean lock = redisMemberAdapter.lock(page, size);
+                if (!lock) {
+                    try {
+                        Thread.sleep(50);
+                        yield redisMemberAdapter.getMemberByPage(page, size);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                Page<SimpleMemberDTO> fresh = memberRepository.findAll(pageable).map(SimpleMemberDTO::fromMember);
+                redisMemberAdapter.saveMemberPage(page, size, fresh.getContent());
+                yield fresh;
+            }
+        };
     }
 
     /**
