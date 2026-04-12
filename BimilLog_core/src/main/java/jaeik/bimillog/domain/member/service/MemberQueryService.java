@@ -121,6 +121,16 @@ public class MemberQueryService {
         int size = pageable.getPageSize();
         Page<SimpleMemberDTO> memberByPage = redisMemberAdapter.getMemberByPage(page, size);
         if (memberByPage.isEmpty()) {
+            boolean lock = redisMemberAdapter.lock(page, size);
+            if (!lock) {
+                try {
+                    Thread.sleep(50);
+                    return redisMemberAdapter.getMemberByPage(page, size);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
             memberByPage = memberRepository.findAll(pageable).map(SimpleMemberDTO::fromMember);
             redisMemberAdapter.saveMemberPage(page, size, memberByPage.getContent());
         }

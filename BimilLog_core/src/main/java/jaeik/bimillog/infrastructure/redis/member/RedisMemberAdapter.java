@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +50,8 @@ public class RedisMemberAdapter {
             try {
                 List<SimpleMemberDTO> list = objectMapper.readValue(
                         memberInfo,
-                        new TypeReference<>() {}
+                        new TypeReference<>() {
+                        }
                 );
                 merged.addAll(list);
             } catch (Exception e) {
@@ -99,5 +101,25 @@ public class RedisMemberAdapter {
             currentKey++;
             currentOffset = 0; // 두 번째 키부터는 오프셋 0
         }
+    }
+
+    public boolean lock(int page, int size) {
+        String lockKey = "member:lock";
+        int start = page * size;
+        int end = start + size - 1;
+        int startKey = start / BASE_SIZE;
+        int endKey = end / BASE_SIZE;
+
+        List<String> acquired = new ArrayList<>();
+        for (int i = startKey; i <= endKey; i++) {
+            String key = lockKey + i;
+            Boolean locked = redisTemplate.opsForValue().setIfAbsent(key, "lock", Duration.ofSeconds(10));
+            if (Boolean.FALSE.equals(locked)) {
+                redisTemplate.delete(acquired); // 부분 획득 롤백
+                return false;
+            }
+            acquired.add(key);
+        }
+        return true;
     }
 }
