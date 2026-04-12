@@ -80,13 +80,13 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @BeforeEach
     void setUp() {
         adminCommandService = new AdminCommandService(
-                eventPublisher,
+                blacklistService,
                 reportRepository,
                 adminQueryRepository,
                 memberRepository,
                 adminToPostAdapter,
                 adminToCommentAdapter,
-                blacklistService
+                eventPublisher
         );
     }
 

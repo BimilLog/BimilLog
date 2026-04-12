@@ -192,7 +192,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .findFirst()
                 .orElseThrow();
         
-        CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(existingComment.getId());
+        CommentReqDTO requestDto = createDeleteCommentReqDTO(existingComment.getId());
         
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
         
@@ -327,7 +327,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 testPost, anotherMember, "다른 사용자의 댓글");
         commentRepository.save(otherUserComment);
         
-        CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(otherUserComment.getId());
+        CommentReqDTO requestDto = createDeleteCommentReqDTO(otherUserComment.getId());
         
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember); // 현재 사용자
         
@@ -353,7 +353,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     private CommentReqDTO anonymousDeleteCommentReqDTO(Long commentId, Integer password) {
-        CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(commentId);
+        CommentReqDTO requestDto = createDeleteCommentReqDTO(commentId);
         requestDto.setPassword(password);
         return requestDto;
     }
@@ -366,5 +366,18 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
             entityManagerDelegate.flush();
             entityManagerDelegate.clear();
         }
+    }
+
+    /**
+     * <h3>테스트용 댓글 삭제 요청 DTO 생성</h3>
+     * <p>댓글 삭제에 사용할 요청 DTO를 생성합니다.</p>
+     *
+     * @param commentId 삭제할 댓글 ID
+     * @return CommentReqDTO 테스트용 댓글 삭제 요청 DTO
+     */
+    private static CommentReqDTO createDeleteCommentReqDTO(Long commentId) {
+        CommentReqDTO requestDto = new CommentReqDTO();
+        requestDto.setId(commentId);
+        return requestDto;
     }
 }

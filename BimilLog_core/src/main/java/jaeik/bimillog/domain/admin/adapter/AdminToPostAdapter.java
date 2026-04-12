@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.admin.adapter;
 
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -35,7 +36,7 @@ public class AdminToPostAdapter {
     /**
      * <h3>PostId 목록으로 Post 리스트 반환</h3>
      */
-    public List<Post> findAllByIds(List<Long> postIds) {
+    public List<PostSimpleDetail> findAllByIds(List<Long> postIds) {
         return postQueryService.findAllByIds(postIds);
     }
 }

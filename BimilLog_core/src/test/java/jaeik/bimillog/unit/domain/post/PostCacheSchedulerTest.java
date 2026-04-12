@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.post.scheduler.FeaturedPostScheduler;
 import jaeik.bimillog.domain.post.scheduler.PostCacheScheduler;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -28,9 +27,7 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>PostCacheScheduler 테스트</h2>
  * <p>게시글 캐시 동기화 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>공지/첫 페이지/실시간 인기글 캐시 갱신 흐름을 검증합니다.</p>
- *
- * @author Jaeik
+ * <p>공지/첫 페이지 캐시 갱신 흐름을 검증합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostCacheScheduler 테스트")
@@ -39,9 +36,6 @@ class PostCacheSchedulerTest {
 
     @Mock
     private RedisPostListUpdateAdapter redisPostListUpdateAdapter;
-
-    @Mock
-    private RedisPostRealTimeAdapter redisPostRealTimeAdapter;
 
     @Mock
     private PostQueryRepository postQueryRepository;
@@ -58,7 +52,6 @@ class PostCacheSchedulerTest {
     void setUp() {
         postCacheScheduler = new PostCacheScheduler(
                 redisPostListUpdateAdapter,
-                redisPostRealTimeAdapter,
                 postQueryRepository,
                 postRepository,
                 featuredPostScheduler
@@ -136,29 +129,6 @@ class PostCacheSchedulerTest {
 
         // Then
         verify(redisPostListUpdateAdapter).replaceList(eq(RedisKey.FIRST_PAGE_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
-    }
-
-    // ==================== 실시간 인기글 ====================
-
-    @Test
-    @DisplayName("실시간 인기글 캐시 갱신 - 성공 (ZSet top ID → DB → JSON LIST 교체)")
-    void shouldRefreshRealtimePopularPosts_WhenZSetHasData() {
-        // Given
-        List<Long> topIds = List.of(3L, 1L, 5L);
-        PostSimpleDetail post1 = createPostSimpleDetail(3L, "실시간인기글1", 1L);
-        PostSimpleDetail post2 = createPostSimpleDetail(1L, "실시간인기글2", 2L);
-        PostSimpleDetail post3 = createPostSimpleDetail(5L, "실시간인기글3", 3L);
-        List<PostSimpleDetail> posts = List.of(post1, post2, post3);
-
-        given(redisPostRealTimeAdapter.getRangePostId()).willReturn(topIds);
-        given(postRepository.findAllByIds(topIds)).willReturn(
-                posts.stream().map(p -> mock(Post.class)).toList());
-
-        // When
-        postCacheScheduler.refreshRealtimePopularPosts();
-
-        // Then
-        verify(redisPostListUpdateAdapter).replaceList(eq(RedisKey.POST_REALTIME_JSON_KEY), anyList(), eq(RedisKey.DEFAULT_CACHE_TTL));
     }
 
     // 테스트 유틸리티 메서드들

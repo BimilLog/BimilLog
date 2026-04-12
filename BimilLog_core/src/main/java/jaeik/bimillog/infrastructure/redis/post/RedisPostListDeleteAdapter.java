@@ -16,10 +16,10 @@ import java.util.List;
  * <h2>JSON LIST 범용 Redis 어댑터</h2>
  * <p>게시글 캐시를 LIST에 JSON 문자열로 직접 저장합니다.</p>
  * <p>카운트 필드(조회수/추천수/댓글수)를 제외한 정적 필드만 저장합니다.</p>
- * <p>모든 메서드에 key 파라미터를 받아 다양한 캐시(첫페이지, 주간, 레전드, 공지, 실시간)에 범용적으로 사용합니다.</p>
+ * <p>모든 메서드에 key 파라미터를 받아 다양한 캐시(첫페이지, 주간, 레전드, 공지)에 범용적으로 사용합니다.</p>
  *
  * @author Jaeik
- * @version 2.8.0
+ * @version 2.9.0
  */
 @Component
 @Slf4j
@@ -32,8 +32,7 @@ public class RedisPostListDeleteAdapter {
 
     private static final List<String> CACHE_KEYS = List.of(
             RedisKey.POST_WEEKLY_JSON_KEY,
-            RedisKey.POST_LEGEND_JSON_KEY,
-            RedisKey.POST_REALTIME_JSON_KEY
+            RedisKey.POST_LEGEND_JSON_KEY
     );
 
     /**
@@ -59,7 +58,7 @@ public class RedisPostListDeleteAdapter {
 
     /**
      * <h3>글 삭제 시 캐시 일괄 제거</h3>
-     * <p>주간/레전드/실시간 리스트에서 해당 게시글을 제거합니다.</p>
+     * <p>주간/레전드 리스트에서 해당 게시글을 제거합니다.</p>
      * <p>공지는 공지 해제 후 별도 삭제, 첫 페이지는 보충 로직이 필요하므로 별도 처리합니다.</p>
      */
     public void removePostFromCacheLists(Long postId) {

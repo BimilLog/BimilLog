@@ -24,7 +24,6 @@ import java.util.function.Supplier;
  *   <li>REALTIME_FALLBACK : 실시간 인기글 Redis/Caffeine 전체 장애 시 DB 폴백용</li>
  *   <li>MEMBER_POSTS : 회원 작성 게시글 조회 (memberConditionFn으로 memberId 조건 제공)</li>
  *   <li>TITLE / WRITER / TITLE_CONTENT : 검색 타입 (prefixConditionFn / partialConditionFn으로 쿼리 조건 제공)</li>
- *   <li>CAFFEINE_REALTIME : 카페인 폴백용 (idsConditionFn으로 postId 목록 조건 제공)</li>
  *   <li>LIKED_POSTS : 회원 추천 게시글 조회 (idsConditionFn으로 postId 목록 조건 제공)</li>
  * </ul>
  */
@@ -92,11 +91,6 @@ public enum PostQueryType {
             query -> QPost.post.title.contains(query).or(QPost.post.content.contains(query)),
             null,
             new OrderSpecifier[]{QPost.post.id.desc()}, -1, -1),
-
-    CAFFEINE_REALTIME(
-            null, null, null, null,
-            QPost.post.id::in,
-            new OrderSpecifier[]{QPost.post.id.desc()}, -1, 5),
 
     LIKED_POSTS(
             null, null, null, null,
