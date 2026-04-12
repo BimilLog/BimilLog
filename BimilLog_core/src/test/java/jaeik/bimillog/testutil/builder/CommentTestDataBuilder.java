@@ -27,18 +27,4 @@ public class CommentTestDataBuilder {
     public static Comment createComment(Post post, Member member, String content) {
         return Comment.createComment(post, member, content, null);
     }
-
-    /**
-     * <h3>테스트용 댓글 삭제 요청 DTO 생성</h3>
-     * <p>댓글 삭제에 사용할 요청 DTO를 생성합니다.</p>
-     *
-     * @param commentId 삭제할 댓글 ID
-     * @return CommentReqDTO 테스트용 댓글 삭제 요청 DTO
-     */
-    public static CommentReqDTO createDeleteCommentReqDTO(Long commentId) {
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setId(commentId);
-        return requestDto;
-    }
-
 }

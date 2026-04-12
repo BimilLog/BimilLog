@@ -3,10 +3,8 @@ package jaeik.bimillog.domain.post.service;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryType;
-import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.util.PostUtil;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
@@ -100,8 +98,9 @@ public class RealtimePostCacheService {
             orderMap.put(postIds.get(i), i);
         }
 
-        List<PostSimpleDetail> postList = postQueryRepository.findByIdsFetchMember(postIds);
-        postList.sort(Comparator.comparingInt(post -> orderMap.get(post.getId())));
+        List<PostSimpleDetail> postList = postQueryRepository.findByIdsFetchMember(postIds).stream()
+                .sorted(Comparator.comparingInt(post -> orderMap.get(post.getId())))
+                .toList();
         return postUtil.paginate(postList, DEFAULT_PAGEABLE);
     }
 }

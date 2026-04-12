@@ -24,13 +24,12 @@ import java.util.Map;
 @TestConfiguration
 public class TestSocialLoginAdapterConfig {
 
-    private static final TestSocialStrategy TEST_STRATEGY = new TestSocialStrategy();
     private static final TestKakaoApiClient TEST_KAKAO_API_CLIENT = new TestKakaoApiClient();
 
     @Bean
     @Primary
     public SocialStrategyAdapter testGlobalSocialStrategyAdapter() {
-        return new SocialStrategyAdapter(Collections.singletonList(TEST_STRATEGY));
+        return new SocialStrategyAdapter(Collections.singletonList(new TestSocialStrategy()));
     }
 
     @Bean

@@ -185,26 +185,23 @@ class CacheUpdateListenerLocalIntegrationTest {
     }
 
     @Test
-    @DisplayName("handlePostRemoved - 주간/레전드/실시간 캐시에서도 해당 글이 제거됨")
+    @DisplayName("handlePostRemoved - 주간/레전드 캐시에서도 해당 글이 제거됨")
     void handlePostRemoved_shouldRemovePostFromCacheLists() {
-        // Given: 여러 캐시 리스트에 글 저장
+        // Given: 주간/레전드 캐시 리스트에 글 저장 (실시간은 ZSet만 관리, JSON LIST 없음)
         String json = toJsonSilent(buildPost(TEST_POST_ID, "삭제될 글"));
         stringRedisTemplate.opsForList().rightPush(RedisKey.POST_WEEKLY_JSON_KEY, json);
         stringRedisTemplate.opsForList().rightPush(RedisKey.POST_LEGEND_JSON_KEY, json);
-        stringRedisTemplate.opsForList().rightPush(RedisKey.POST_REALTIME_JSON_KEY, json);
 
         // When
         cacheUpdateListener.handlePostRemoved(new PostRemovedEvent(TEST_POST_ID));
         waitForAsync();
 
-        // Then: 모든 캐시에서 제거됨
+        // Then: 주간/레전드 캐시에서 제거됨
         List<String> weekly = stringRedisTemplate.opsForList().range(RedisKey.POST_WEEKLY_JSON_KEY, 0, -1);
         List<String> legend = stringRedisTemplate.opsForList().range(RedisKey.POST_LEGEND_JSON_KEY, 0, -1);
-        List<String> realtime = stringRedisTemplate.opsForList().range(RedisKey.POST_REALTIME_JSON_KEY, 0, -1);
 
         assertThat(weekly).noneMatch(item -> item.contains("\"id\":" + TEST_POST_ID));
         assertThat(legend).noneMatch(item -> item.contains("\"id\":" + TEST_POST_ID));
-        assertThat(realtime).noneMatch(item -> item.contains("\"id\":" + TEST_POST_ID));
     }
 
     // ==================== 헬퍼 ====================
