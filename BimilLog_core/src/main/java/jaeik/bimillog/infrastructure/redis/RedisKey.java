@@ -15,10 +15,6 @@ public final class RedisKey {
     public static final Double INTERACTION_SCORE_LIMIT = 9.5;
     public static final Double INTERACTION_SCORE_DECAY_RATE = 0.95;
 
-
-    private RedisKey() {
-    }
-
     // ==================== 공통 TTL ====================
 
     public static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(24).plusMinutes(30);

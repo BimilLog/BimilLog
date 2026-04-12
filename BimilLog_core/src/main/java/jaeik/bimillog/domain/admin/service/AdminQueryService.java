@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.admin.adapter.AdminToCommentAdapter;
 import jaeik.bimillog.domain.admin.adapter.AdminToPostAdapter;
 import jaeik.bimillog.domain.comment.entity.jpa.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.entity.jpa.Post;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -59,32 +59,27 @@ public class AdminQueryService {
                 .filter(r -> r.getReportType() == ReportType.COMMENT)
                 .map(Report::getTargetId).toList();
 
-        List<Post> posts = adminToPostAdapter.findAllByIds(postIds);
-        List<Comment> comments = adminToCommentAdapter.findAllByIds(commentIds);
+        Map<Long, PostSimpleDetail> postMaps = adminToPostAdapter.findAllByIds(postIds).stream()
+                .collect(Collectors.toMap(PostSimpleDetail::getId, p -> p));
 
-        Map<Long, Member> postMaps = posts.stream().collect(Collectors.toMap(
-                Post::getId,
-                Post::getMember
-        ));
-
-        Map<Long, Member> commentMaps = comments.stream().collect(Collectors.toMap(
-                Comment::getId,
-                Comment::getMember
-        ));
+        Map<Long, Member> commentMaps = adminToCommentAdapter.findAllByIds(commentIds).stream()
+                .collect(Collectors.toMap(Comment::getId, Comment::getMember));
 
         return mappingReports(reports, postMaps, commentMaps);
     }
 
     // 신고 DTO 매핑
-    private Page<ReportDTO> mappingReports(Page<Report> reports, Map<Long, Member> postMaps, Map<Long, Member> commentMaps) {
+    private Page<ReportDTO> mappingReports(Page<Report> reports, Map<Long, PostSimpleDetail> postMaps, Map<Long, Member> commentMaps) {
         return reports.map(report -> {
-            Member targetAuthor = null;
             if (report.getReportType() == ReportType.POST) {
-                targetAuthor = postMaps.get(report.getTargetId());
+                PostSimpleDetail post = postMaps.get(report.getTargetId());
+                return ReportDTO.from(report,
+                        post != null ? post.getMemberId() : null,
+                        post != null ? post.getMemberName() : null);
             } else if (report.getReportType() == ReportType.COMMENT) {
-                targetAuthor = commentMaps.get(report.getTargetId());
+                return ReportDTO.from(report, commentMaps.get(report.getTargetId()));
             }
-            return ReportDTO.from(report, targetAuthor);
+            return ReportDTO.from(report, (Member) null);
         });
     }
 }

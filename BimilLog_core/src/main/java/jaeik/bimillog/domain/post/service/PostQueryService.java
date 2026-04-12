@@ -160,7 +160,7 @@ public class PostQueryService {
     /**
      * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
      */
-    public List<Post> findAllByIds(List<Long> postIds) {
-        return postRepository.findAllByIds(postIds);
+    public List<PostSimpleDetail> findAllByIds(List<Long> postIds) {
+        return postQueryRepository.findByIdsFetchMember(postIds);
     }
 }

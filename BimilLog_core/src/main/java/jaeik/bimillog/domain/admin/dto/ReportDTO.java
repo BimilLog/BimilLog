@@ -87,6 +87,12 @@ public class ReportDTO {
      * @since 2.0.0
      */
     public static ReportDTO from(Report report, Member targetAuthor) {
+        return from(report,
+                targetAuthor != null ? targetAuthor.getId() : null,
+                targetAuthor != null ? targetAuthor.getMemberName() : null);
+    }
+
+    public static ReportDTO from(Report report, Long targetAuthorId, String targetAuthorName) {
         Member reporter = report.getReporter();
         return ReportDTO.builder()
                 .id(report.getId())
@@ -94,8 +100,8 @@ public class ReportDTO {
                 .reporterName(reporter != null ? reporter.getMemberName() : "익명")
                 .reportType(report.getReportType())
                 .targetId(report.getTargetId())
-                .targetAuthorId(targetAuthor != null ? targetAuthor.getId() : null)
-                .targetAuthorName(targetAuthor != null ? targetAuthor.getMemberName() : "익명")
+                .targetAuthorId(targetAuthorId)
+                .targetAuthorName(targetAuthorName != null ? targetAuthorName : "익명")
                 .content(report.getContent())
                 .createdAt(report.getCreatedAt())
                 .build();

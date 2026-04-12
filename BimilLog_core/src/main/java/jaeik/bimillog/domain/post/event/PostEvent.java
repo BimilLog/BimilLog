@@ -5,8 +5,6 @@ import jaeik.bimillog.domain.global.event.RealtimeScoreEvent;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 
-import java.util.List;
-
 /**
  * <h2>게시글 도메인 이벤트</h2>
  * <p>게시글 도메인에서 발생하는 모든 이벤트를 정의합니다.</p>
@@ -40,14 +38,6 @@ public interface PostEvent {
      * @param updatedPost 수정된 게시글 요약 정보
      */
     record PostModifiedEvent(Long postId, PostSimpleDetail updatedPost) implements PostEvent {}
-
-    /**
-     * <h3>실시간 인기글 캐시 리빌드 이벤트</h3>
-     * <p>ZSet과 JSON LIST의 ID 순서가 불일치할 때 비동기 갱신을 트리거하기 위한 이벤트</p>
-     *
-     * @param postIds 새로운 실시간 인기글 ID 목록 (ZSet 기준)
-     */
-    record RealtimeCacheRebuildEvent(List<Long> postIds) implements PostEvent {}
 
     /**
      * <h3>인기글 등극 이벤트</h3>

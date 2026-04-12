@@ -8,6 +8,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.core.types.Projections;
+import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.entity.jpa.QPostLike;
@@ -41,26 +42,6 @@ public class PostQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
     private static final QPost post = QPost.post;
     private static final QPostLike postLike = QPostLike.postLike;
-
-    /**
-     * PostSimpleDetail 프로젝션의 공통 base query 생성
-     */
-    private JPAQuery<PostSimpleDetail> postSimpleDetailQuery() {
-        return jpaQueryFactory
-                .select(Projections.constructor(PostSimpleDetail.class,
-                        post.id,
-                        post.title,
-                        post.views,
-                        post.likeCount,
-                        post.createdAt,
-                        post.member.id,
-                        post.memberName,
-                        post.commentCount,
-                        post.isWeekly,
-                        post.isLegend,
-                        post.isNotice))
-                .from(post);
-    }
 
     /**
      * <h3>게시판 게시글 조회 (Cursor 기반)</h3>
@@ -154,5 +135,33 @@ public class PostQueryRepository {
                 .set(field, field.add(delta))
                 .where(post.id.in(counts.keySet()))
                 .execute();
+    }
+
+    public List<PostSimpleDetail> findByIdsFetchMember(List<Long> ids) {
+        return postSimpleDetailQuery()
+                .where(post.id.in(ids))
+                .leftJoin(post.member)
+                .where(post.id.in(ids))
+                .fetch();
+    }
+
+    /**
+     * PostSimpleDetail 프로젝션의 공통 base query 생성
+     */
+    private JPAQuery<PostSimpleDetail> postSimpleDetailQuery() {
+        return jpaQueryFactory
+                .select(Projections.constructor(PostSimpleDetail.class,
+                        post.id,
+                        post.title,
+                        post.views,
+                        post.likeCount,
+                        post.createdAt,
+                        post.member.id,
+                        post.memberName,
+                        post.commentCount,
+                        post.isWeekly,
+                        post.isLegend,
+                        post.isNotice))
+                .from(post);
     }
 }

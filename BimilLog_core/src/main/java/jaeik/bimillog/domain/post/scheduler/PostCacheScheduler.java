@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.RedisKey;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostListUpdateAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostRealTimeAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
@@ -35,7 +34,6 @@ import java.util.List;
 @Slf4j
 public class PostCacheScheduler {
     private final RedisPostListUpdateAdapter redisPostListUpdateAdapter;
-    private final RedisPostRealTimeAdapter redisPostRealTimeAdapter;
     private final PostQueryRepository postQueryRepository;
     private final PostRepository postRepository;
     private final FeaturedPostScheduler featuredPostScheduler;
@@ -45,7 +43,6 @@ public class PostCacheScheduler {
         log.info("앱 기동 시 캐시 워밍 시작");
         try { refreshFirstPageCache(); } catch (Exception e) { log.warn("첫 페이지 캐시 워밍 실패: {}", e.getMessage(), e); }
         try { refreshNoticePosts(); } catch (Exception e) { log.warn("공지사항 캐시 워밍 실패: {}", e.getMessage(), e); }
-        try { refreshRealtimePopularPosts(); } catch (Exception e) { log.warn("실시간 인기글 캐시 워밍 실패: {}", e.getMessage(), e); }
         try { featuredPostScheduler.queryAndReplaceCache("WEEKLY", PostQueryType.WEEKLY_SCHEDULER, RedisKey.POST_WEEKLY_JSON_KEY); } catch (Exception e) { log.warn("주간 인기글 캐시 워밍 실패: {}", e.getMessage(), e); }
         try { featuredPostScheduler.queryAndReplaceCache("LEGEND", PostQueryType.LEGEND_SCHEDULER, RedisKey.POST_LEGEND_JSON_KEY); } catch (Exception e) { log.warn("전설 게시글 캐시 워밍 실패: {}", e.getMessage(), e); }
         log.info("앱 기동 시 캐시 워밍 완료");
@@ -63,19 +60,6 @@ public class PostCacheScheduler {
     public void refreshFirstPageCache() {
         List<PostSimpleDetail> posts = postQueryRepository.findBoardPostsByCursor(null, RedisKey.FIRST_PAGE_SIZE);
         replaceIfNotEmpty("첫 페이지", RedisKey.FIRST_PAGE_JSON_KEY, posts);
-    }
-
-    @Scheduled(cron = "0 0 3 * * *")
-    @Retryable(retryFor = Exception.class, maxAttempts = 6, backoff = @Backoff(delay = 2000, multiplier = 4))
-    public void refreshRealtimePopularPosts() {
-        List<Long> topIds = redisPostRealTimeAdapter.getRangePostId();
-        if (topIds.isEmpty()) {
-            log.info("실시간 인기글에 대한 게시글이 없어 캐시 갱신을 건너뜁니다.");
-            return;
-        }
-        List<PostSimpleDetail> posts = postRepository.findAllByIds(topIds).stream()
-                .map(PostSimpleDetail::from).toList();
-        replaceIfNotEmpty("실시간 인기글", RedisKey.POST_REALTIME_JSON_KEY, posts);
     }
 
     @Recover

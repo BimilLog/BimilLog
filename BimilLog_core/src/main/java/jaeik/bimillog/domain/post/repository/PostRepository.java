@@ -102,12 +102,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void setLegendFlag(@Param("ids") List<Long> ids);
 
     /**
-     * <h3>ID 목록으로 Post 리스트 반환 (member fetch join)</h3>
-     */
-    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.member WHERE p.id IN :ids")
-    List<Post> findAllByIds(@Param("ids") List<Long> ids);
-
-    /**
      * <h3>공지 게시글 목록 조회 (ID 내림차순)</h3>
      */
     List<Post> findByIsNoticeTrueOrderByIdDesc();
