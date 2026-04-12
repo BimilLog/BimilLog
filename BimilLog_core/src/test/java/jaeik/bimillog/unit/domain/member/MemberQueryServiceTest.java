@@ -1,22 +1,35 @@
 package jaeik.bimillog.unit.domain.member;
 
+import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
+import jaeik.bimillog.domain.member.repository.MemberQueryRepository;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.domain.member.repository.SettingRepository;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -32,7 +45,16 @@ import static org.mockito.Mockito.verify;
 class MemberQueryServiceTest extends BaseUnitTest {
 
     @Mock
+    private MemberQueryRepository memberQueryRepository;
+
+    @Mock
+    private MemberRepository memberRepository;
+
+    @Mock
     private SettingRepository settingRepository;
+
+    @Mock
+    private RedisMemberAdapter redisMemberAdapter;
 
     @InjectMocks
     private MemberQueryService memberQueryService;
@@ -77,5 +99,102 @@ class MemberQueryServiceTest extends BaseUnitTest {
                 .hasMessage(ErrorCode.MEMBER_SETTINGS_NOT_FOUND.getMessage());
 
         verify(settingRepository).findById(settingId);
+    }
+
+    // ==================== findAllMembers ====================
+
+    @Test
+    @DisplayName("findAllMembers - 캐시 히트 → DB 조회 없이 캐시 반환")
+    void shouldReturnFromCache_WhenCacheHit() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        List<SimpleMemberDTO> cached = createSimpleMembers(10);
+        Page<SimpleMemberDTO> cachedPage = new PageImpl<>(cached, pageable, cached.size());
+
+        given(redisMemberAdapter.getMemberByPage(0, 10)).willReturn(cachedPage);
+
+        // When
+        Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(10);
+        assertThat(result.getContent().get(0).getMemberId()).isEqualTo(1L);
+        verify(redisMemberAdapter).getMemberByPage(0, 10);
+        verify(memberRepository, never()).findAll(any(Pageable.class));
+        verify(redisMemberAdapter, never()).saveMemberPage(anyInt(), anyInt(), any());
+    }
+
+    @Test
+    @DisplayName("findAllMembers - 캐시 미스 → DB 조회 후 캐시 저장")
+    void shouldFallbackToDb_WhenCacheMiss() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Member> dbMembers = createMembersWithIds(5);
+        Page<Member> dbPage = new PageImpl<>(dbMembers, pageable, dbMembers.size());
+
+        given(redisMemberAdapter.getMemberByPage(0, 10)).willReturn(Page.empty());
+        given(memberRepository.findAll(pageable)).willReturn(dbPage);
+
+        // When
+        Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(5);
+        verify(redisMemberAdapter).getMemberByPage(0, 10);
+        verify(memberRepository).findAll(pageable);
+        verify(redisMemberAdapter).saveMemberPage(anyInt(), anyInt(), any());
+    }
+
+    @Test
+    @DisplayName("findAllMembers - 캐시 미스 + DB 빈 결과 → 빈 페이지, 캐시 저장 시도")
+    void shouldReturnEmptyPage_WhenCacheMissAndDbEmpty() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+
+        given(redisMemberAdapter.getMemberByPage(0, 10)).willReturn(Page.empty());
+        given(memberRepository.findAll(pageable)).willReturn(Page.empty());
+
+        // When
+        Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
+
+        // Then
+        assertThat(result.isEmpty()).isTrue();
+        verify(memberRepository).findAll(pageable);
+        verify(redisMemberAdapter).saveMemberPage(anyInt(), anyInt(), any());
+    }
+
+    @Test
+    @DisplayName("findAllMembers - 현재 루프 버그로 인해 getMemberByPage는 항상 빈 페이지 반환 → 항상 DB 조회")
+    void shouldAlwaysHitDb_BecauseGetMemberByPageAlwaysReturnsEmpty() {
+        // Given: RedisMemberAdapter의 실제 루프 버그로 인해 캐시 조회 시 항상 빈 페이지 반환
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Member> dbMembers = createMembersWithIds(3);
+        Page<Member> dbPage = new PageImpl<>(dbMembers, pageable, dbMembers.size());
+
+        // getMemberByPage는 현재 항상 빈 페이지 반환 (루프 버그)
+        given(redisMemberAdapter.getMemberByPage(0, 10)).willReturn(Page.empty());
+        given(memberRepository.findAll(pageable)).willReturn(dbPage);
+
+        // When: 동일한 요청을 여러 번 해도
+        memberQueryService.findAllMembers(pageable);
+        memberQueryService.findAllMembers(pageable);
+        memberQueryService.findAllMembers(pageable);
+
+        // Then: 캐시가 동작하지 않아 DB를 3번 모두 조회
+        verify(memberRepository, org.mockito.Mockito.times(3)).findAll(pageable);
+    }
+
+    // ==================== 헬퍼 ====================
+
+    private List<SimpleMemberDTO> createSimpleMembers(int count) {
+        return IntStream.rangeClosed(1, count)
+                .mapToObj(i -> new SimpleMemberDTO((long) i, "member" + i))
+                .toList();
+    }
+
+    private List<Member> createMembersWithIds(int count) {
+        return IntStream.rangeClosed(1, count)
+                .mapToObj(i -> createTestMemberWithId((long) i))
+                .toList();
     }
 }

@@ -25,6 +25,11 @@ public class RedisMemberAdapter {
     private static final String MEMBER_KEY = "member:page:";
     private static final int MEMBER_TTL = 1;
 
+    /**
+     * 멤버 캐시를 페이징 하여 반환
+     * 0 ~ 9 0페이지
+     * 0 ~ 29 1,2,3 페이지
+     */
     public Page<SimpleMemberDTO> getMemberByPage(int page, int size) {
         int start = (page) * size;
         int end = start + size - 1;
@@ -32,7 +37,7 @@ public class RedisMemberAdapter {
         int endPage = (end / size);
 
         List<SimpleMemberDTO> merged = new ArrayList<>();
-        for (int i = startPage; i < endPage; i++) {
+        for (int i = startPage; i <= endPage; i++) {
             String memberInfo = redisTemplate.opsForValue().get(MEMBER_KEY + i);
 
             if (memberInfo == null) {
@@ -59,6 +64,9 @@ public class RedisMemberAdapter {
         return new PageImpl<>(content, pageable, content.size());
     }
 
+    /**
+     * 멤버 캐시 삽입
+     */
     public void saveMemberPage(int page, int size, List<SimpleMemberDTO> dto) {
         int total = dto.size();
         int pageCount = (int) Math.ceil((double) total / size);
