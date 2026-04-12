@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.member.repository.SettingRepository;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,7 @@ import java.util.Optional;
  * <h2>사용자 조회 서비스</h2>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.9.0
  */
 @Service
 @RequiredArgsConstructor
@@ -33,6 +34,7 @@ public class MemberQueryService {
     private final MemberQueryRepository memberQueryRepository;
     private final MemberRepository memberRepository;
     private final SettingRepository settingRepository;
+    private final RedisMemberAdapter redisMemberAdapter;
 
     /**
      * <h3>ID로 사용자 조회</h3>
@@ -109,16 +111,21 @@ public class MemberQueryService {
 
     /**
      * <h3>모든 회원 페이지 조회</h3>
-     * <p>페이지 정보에 따라 전체 회원 목록을 조회합니다.</p>
+     * <p>캐시를 조회한다. 캐시가 없으면 DB에서 조회 후 갱신하고 반환한다.</p>
      *
      * @param pageable 페이지 정보
      * @return Page<Member> 조회된 회원 페이지
-     * @since 2.1.0
-     * @author Jaeik
      */
     @Transactional(readOnly = true)
     public Page<SimpleMemberDTO> findAllMembers(Pageable pageable) {
-        return memberRepository.findAll(pageable).map(SimpleMemberDTO::fromMember);
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+        Page<SimpleMemberDTO> memberByPage = redisMemberAdapter.getMemberByPage(page, size);
+        if (memberByPage.isEmpty()) {
+            memberByPage = memberRepository.findAll(pageable).map(SimpleMemberDTO::fromMember);
+            redisMemberAdapter.saveMemberPage(page, size, memberByPage.getContent());
+        }
+        return memberByPage;
     }
 
     /**
