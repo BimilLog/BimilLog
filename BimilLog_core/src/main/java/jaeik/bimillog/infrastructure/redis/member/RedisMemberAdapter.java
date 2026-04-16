@@ -12,11 +12,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -64,12 +61,11 @@ public class RedisMemberAdapter {
                 List.of(key)
         );
 
-        if (result == null || result.isEmpty()) {
+        if (result == null || result.isEmpty() || result.getFirst() == null) {
             return Optional.empty();
         }
 
-        Object o = result.get(1);
-        Double computeTTL = (Double) o;
+        Double computeTTL = ((Long) result.get(1)).doubleValue();
 
         try {
             List<SimpleMemberDTO> list = objectMapper.readValue((String) result.getFirst(), new TypeReference<>() {});
