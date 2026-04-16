@@ -21,6 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * <h2>사용자 조회 서비스</h2>
@@ -35,6 +40,7 @@ public class MemberQueryService {
     private final MemberRepository memberRepository;
     private final SettingRepository settingRepository;
     private final RedisMemberAdapter redisMemberAdapter;
+    private final ConcurrentHashMap<String, CompletableFuture<Page<SimpleMemberDTO>>> inFlight = new ConcurrentHashMap<>();
 
     /**
      * <h3>ID로 사용자 조회</h3>
@@ -120,11 +126,38 @@ public class MemberQueryService {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
         Page<SimpleMemberDTO> memberByPage = redisMemberAdapter.getMemberByPage(page, size);
-        if (memberByPage.isEmpty()) {
-            memberByPage = memberQueryRepository.findAllMembers(pageable);
-            redisMemberAdapter.saveMemberPage(page, size, memberByPage.getContent());
+        if (!memberByPage.isEmpty()) {
+            return memberByPage;
         }
-        return memberByPage;
+
+        String flightKey = page + ":" + size;
+        CompletableFuture<Page<SimpleMemberDTO>> newFuture = new CompletableFuture<>();
+        CompletableFuture<Page<SimpleMemberDTO>> existing = inFlight.putIfAbsent(flightKey, newFuture);
+
+        if (existing != null) {
+            try {
+                return existing.get(5, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                return redisMemberAdapter.getMemberByPage(page, size);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e.getCause());
+            }
+        }
+
+        try {
+            Page<SimpleMemberDTO> result = memberQueryRepository.findAllMembers(pageable);
+            redisMemberAdapter.saveMemberPage(page, size, result.getContent());
+            newFuture.complete(result);
+            return result;
+        } catch (Exception e) {
+            newFuture.completeExceptionally(e);
+            throw e;
+        } finally {
+            inFlight.remove(flightKey, newFuture);
+        }
     }
 
     /**

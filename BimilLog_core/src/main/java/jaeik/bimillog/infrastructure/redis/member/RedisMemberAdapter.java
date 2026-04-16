@@ -41,13 +41,13 @@ public class RedisMemberAdapter {
 
     public void saveMemberPage(int page, int size, List<SimpleMemberDTO> dto) {
         String key = String.format(MEMBER_KEY, page, size);
-        int value = ThreadLocalRandom.current().nextInt(-10, 11);
-
+        int jitter = ThreadLocalRandom.current().nextInt(-10, 11);
         try {
             String memberInfo = objectMapper.writeValueAsString(dto);
-            redisTemplate.opsForValue().set(key, memberInfo, MEMBER_TTL + value, TimeUnit.SECONDS);
+            redisTemplate.opsForValue().set(key, memberInfo, MEMBER_TTL + jitter, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.warn("유저 캐시 직렬화 실패");
         }
     }
+
 }
