@@ -136,9 +136,9 @@ public class MemberQueryService {
             CacheMemberDTO cacheMemberDTO = cacheResult.get();
             Page<SimpleMemberDTO> simpleMemberDTOPage = cacheMemberDTO.getSimpleMemberDTOPage();
             Double computeTTL = cacheMemberDTO.getComputeTTL();
-            double random = ThreadLocalRandom.current().nextDouble(-10, 11);
+            double random = ThreadLocalRandom.current().nextDouble(0.0001, 1);
 
-            if ((COMPUTE_TIME * BETA * Math.log(random)) > computeTTL) { // PER 조건 만족
+            if ((COMPUTE_TIME * BETA * Math.log(random)) < -computeTTL) { // PER 조건 만족
                 eventPublisher.publishEvent(new MemberCacheRefreshEvent(pageable));
             }
 
@@ -152,9 +152,9 @@ public class MemberQueryService {
 
         if (existing != null) {
             try {
-                existing.get(5, TimeUnit.SECONDS);
+                return existing.get(5, TimeUnit.SECONDS);
             } catch (ExecutionException | InterruptedException | TimeoutException e) {
-                redisMemberAdapter.getMemberByPage(page, size);
+                return redisMemberAdapter.getMemberByPage(page, size);
             }
         }
 
