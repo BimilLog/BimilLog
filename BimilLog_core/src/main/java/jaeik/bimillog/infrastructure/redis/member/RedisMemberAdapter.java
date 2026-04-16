@@ -12,10 +12,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +24,8 @@ public class RedisMemberAdapter {
     private final ObjectMapper objectMapper;
     private static final String MEMBER_KEY = "member:page:%d:size:%d";
     private static final int MEMBER_TTL = 60;
-
+    private static final double COMPUTE_TIME = 0.1; // 예상 DB 조회 시간 (초)
+    private static final double BETA = 20.0;        // PER 베타 값
 
     @SuppressWarnings("rawtypes")
     private static final DefaultRedisScript<List> PER_SCRIPT;
@@ -35,18 +33,29 @@ public class RedisMemberAdapter {
     static {
         PER_SCRIPT = new DefaultRedisScript<>();
         PER_SCRIPT.setScriptText("""
-                
-                local key   = KEYS[1] -- 키
-                
-                -- TTL 검사 TTL이 만료되었으면 바로 null을 반환
+                local t = redis.call('TIME')
+                math.randomseed(tonumber(t[1]) * 1000000 + tonumber(t[2]))
+
+                local key   = KEYS[1]
+                local delta = tonumber(ARGV[1])
+                local beta  = tonumber(ARGV[2])
+
+                local val = redis.call('GET', key)
+                if val == false then
+                    return nil
+                end
+
                 local ttl = redis.call('TTL', key)
                 if ttl < 0 then
                     return nil
                 end
-                
-                -- TTL이 남아있으면 TTL과 함께 캐시 반환
-                local val = redis.call('GET', key)
-                return {val, ttl}
+
+                local gap = delta * beta * (-math.log(math.random()))
+                if gap > ttl then
+                    return {"1"}
+                end
+
+                return {"0", val}
                 """);
         PER_SCRIPT.setResultType(List.class);
     }
@@ -56,29 +65,32 @@ public class RedisMemberAdapter {
      * <p>GET + TTL + 갱신 판단을 Lua 스크립트로 원자적으로 수행합니다.</p>
      */
     @SuppressWarnings("unchecked")
-    public Optional<CacheMemberDTO> getMemberByPageWithPER(int page, int size) {
+    public MemberCacheResult getMemberByPageWithPER(int page, int size) {
         String key = String.format(MEMBER_KEY, page, size);
 
         List<Object> result = (List<Object>) redisTemplate.execute(
                 PER_SCRIPT,
-                List.of(key)
+                List.of(key),
+                String.valueOf(COMPUTE_TIME),
+                String.valueOf(BETA)
         );
 
         if (result == null || result.isEmpty()) {
-            return Optional.empty();
+            return MemberCacheResult.miss();
         }
 
-        Object o = result.get(1);
-        Double computeTTL = (Double) o;
+        if ("1".equals(result.getFirst())) {
+            return MemberCacheResult.earlyRefresh();
+        }
 
         try {
-            List<SimpleMemberDTO> list = objectMapper.readValue((String) result.getFirst(), new TypeReference<>() {});
-            Page<SimpleMemberDTO> simpleMemberDTOS = new PageImpl<>(list, PageRequest.of(page, size), list.size());
-            return Optional.of(CacheMemberDTO.from(simpleMemberDTOS, computeTTL));
+            List<SimpleMemberDTO> list = objectMapper.readValue(
+                    (String) result.get(1), new TypeReference<>() {});
+            return MemberCacheResult.hit(new PageImpl<>(list, PageRequest.of(page, size), list.size()));
         } catch (Exception e) {
-            log.warn("회원 캐시 레디스 조회 오류");
+            log.warn("회원 캐시 레디스 역직렬화 오류");
+            return MemberCacheResult.miss();
         }
-        return Optional.empty();
     }
 
     public Page<SimpleMemberDTO> getMemberByPage(int page, int size) {
@@ -88,8 +100,7 @@ public class RedisMemberAdapter {
             return Page.empty();
         }
         try {
-            List<SimpleMemberDTO> list = objectMapper.readValue(memberInfo, new TypeReference<>() {
-            });
+            List<SimpleMemberDTO> list = objectMapper.readValue(memberInfo, new TypeReference<>() {});
             return new PageImpl<>(list, PageRequest.of(page, size), list.size());
         } catch (Exception e) {
             log.warn("회원 캐시 레디스 역직렬화 오류");
@@ -99,9 +110,10 @@ public class RedisMemberAdapter {
 
     public void saveMemberPage(int page, int size, List<SimpleMemberDTO> dto) {
         String key = String.format(MEMBER_KEY, page, size);
+        int jitter = ThreadLocalRandom.current().nextInt(-10, 11);
         try {
             String memberInfo = objectMapper.writeValueAsString(dto);
-            redisTemplate.opsForValue().set(key, memberInfo, MEMBER_TTL, TimeUnit.SECONDS);
+            redisTemplate.opsForValue().set(key, memberInfo, MEMBER_TTL + jitter, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.warn("유저 캐시 직렬화 실패");
         }
