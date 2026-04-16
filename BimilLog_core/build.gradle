@@ -35,6 +35,10 @@ springBoot {
     buildInfo()
 }
 
+bootRun {
+    jvmArgs '-Djdk.tracePinnedThreads=short'
+}
+
 repositories {
     mavenCentral()
 }

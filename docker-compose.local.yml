@@ -7,9 +7,7 @@ services:
       - "6380:6379"
     mem_limit: 120m
     cpus: 1.0
-    command: redis-server --maxmemory 100mb --maxmemory-policy allkeys-lru
-    volumes:
-      - redis-data-local:/data
+    command: redis-server --maxmemory 100mb --maxmemory-policy allkeys-lru --save ""
     networks:
       - bimillog-local
     healthcheck:
@@ -42,11 +40,12 @@ services:
     # 운영 서버 시뮬레이션: 1GB RAM, 1 CPU 코어
     mem_limit: 1g
     memswap_limit: 2g
+    cpus: 1.0
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
       - SPRING_PROFILES_ACTIVE=local
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/bimillogTest?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/bimillog2?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${LOCAL_MYSQL_PASSWORD}
       - SPRING_DATA_REDIS_HOST=redis
@@ -110,7 +109,7 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.time=90d'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
     depends_on:
@@ -213,14 +212,13 @@ services:
     depends_on:
       - backend
     command: >
-      -n -t /tests/realtime-detail-load-test.jmx -JBACKEND_HOST=backend -l /results/realtime-detail-load.jtl -e -o /results/realtime-detail-report
+      -n -t /tests/member-load-test.jmx -JBACKEND_HOST=backend -l /results/member-load.jtl -e -o /results/member-report
 
 networks:
   bimillog-local:
     driver: bridge
 
 volumes:
-  redis-data-local:
   prometheus-data-local:
   grafana-data-local:
   scouter-data-local:

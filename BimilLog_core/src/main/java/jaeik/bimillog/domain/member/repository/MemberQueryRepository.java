@@ -7,11 +7,15 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.auth.entity.QAuthToken;
 import jaeik.bimillog.domain.friend.dto.RecommendedFriendDTO.MemberInfo;
+import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QSetting;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +41,29 @@ public class MemberQueryRepository {
     private final QMember member = QMember.member;
     private final QSetting setting = QSetting.setting;
     private final QAuthToken authToken = QAuthToken.authToken;
+
+    /**
+     * <h3>전체 회원 페이지 조회</h3>
+     */
+    @Transactional(readOnly = true)
+    public Page<SimpleMemberDTO> findAllMembers(Pageable pageable) {
+        List<SimpleMemberDTO> content = jpaQueryFactory
+                .select(Projections.constructor(SimpleMemberDTO.class,
+                        member.id,
+                        member.memberName))
+                .from(member)
+                .orderBy(member.id.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = jpaQueryFactory
+                .select(member.count())
+                .from(member)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0);
+    }
 
     /**
      * <h3>주어진 순서대로 사용자 이름 조회</h3>
