@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +23,7 @@ public class RedisMemberAdapter {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private static final String MEMBER_KEY = "member:page:%d:size:%d";
+    private static final String LOCK_KEY = "member:lock:%d:size:%d";
     private static final int MEMBER_TTL = 60;
 
     public Page<SimpleMemberDTO> getMemberByPage(int page, int size) {
@@ -41,11 +43,18 @@ public class RedisMemberAdapter {
 
     public void saveMemberPage(int page, int size, List<SimpleMemberDTO> dto) {
         String key = String.format(MEMBER_KEY, page, size);
+        int jitter = ThreadLocalRandom.current().nextInt(-10, 11);
         try {
             String memberInfo = objectMapper.writeValueAsString(dto);
-            redisTemplate.opsForValue().set(key, memberInfo, MEMBER_TTL, TimeUnit.SECONDS);
+            redisTemplate.opsForValue().set(key, memberInfo, MEMBER_TTL + jitter, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.warn("유저 캐시 직렬화 실패");
         }
+    }
+
+    public boolean lock(int page, int size) {
+        String key = String.format(LOCK_KEY, page, size);
+        Boolean locked = redisTemplate.opsForValue().setIfAbsent(key, "lock", Duration.ofSeconds(10));
+        return Boolean.TRUE.equals(locked);
     }
 }
