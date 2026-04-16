@@ -7,9 +7,7 @@ services:
       - "6380:6379"
     mem_limit: 120m
     cpus: 1.0
-    command: redis-server --maxmemory 100mb --maxmemory-policy allkeys-lru
-    volumes:
-      - redis-data-local:/data
+    command: redis-server --maxmemory 100mb --maxmemory-policy allkeys-lru --save ""
     networks:
       - bimillog-local
     healthcheck:
@@ -46,7 +44,7 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - SPRING_PROFILES_ACTIVE=local
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/bimillogTest?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/bimillog2?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=${LOCAL_MYSQL_PASSWORD}
       - SPRING_DATA_REDIS_HOST=redis
