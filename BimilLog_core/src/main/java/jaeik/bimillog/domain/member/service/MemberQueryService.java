@@ -44,7 +44,7 @@ public class MemberQueryService {
     private final ConcurrentHashMap<String, CompletableFuture<Page<SimpleMemberDTO>>> inFlight = new ConcurrentHashMap<>();
 
     private static final double COMPUTE_TIME = 0.1; // 예상 DB 조회 시간 (초)
-    private static final double BETA = 20.0;        // PER 베타 값
+    private static final double BETA = 40.0;        // PER 베타 값
 
     /**
      * <h3>ID로 사용자 조회</h3>
