@@ -26,7 +26,7 @@ public class PostAsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(3);
         executor.setMaxPoolSize(6);
-        executor.setQueueCapacity(13);
+        executor.setQueueCapacity(10);
         executor.setThreadNamePrefix("realtime-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
@@ -42,7 +42,7 @@ public class PostAsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(9);
-        executor.setQueueCapacity(14);
+        executor.setQueueCapacity(12);
         executor.setThreadNamePrefix("cache-count-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
@@ -59,7 +59,7 @@ public class PostAsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(8);
-        executor.setQueueCapacity(13);
+        executor.setQueueCapacity(12);
         executor.setThreadNamePrefix("cache-refresh-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
@@ -77,7 +77,7 @@ public class PostAsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(1);
         executor.setMaxPoolSize(2);
-        executor.setQueueCapacity(5);
+        executor.setQueueCapacity(4);
         executor.setThreadNamePrefix("circuit-sync-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);

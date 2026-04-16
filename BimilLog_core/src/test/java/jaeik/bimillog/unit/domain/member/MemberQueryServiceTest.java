@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.member.repository.SettingRepository;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.member.MemberCacheResult;
+import jaeik.bimillog.infrastructure.redis.member.CacheMemberDTO;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -54,6 +55,9 @@ class MemberQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private RedisMemberAdapter redisMemberAdapter;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private MemberQueryService memberQueryService;
@@ -103,14 +107,16 @@ class MemberQueryServiceTest extends BaseUnitTest {
     // ==================== findAllMembers ====================
 
     @Test
-    @DisplayName("findAllMembers - PER HIT → 캐시 반환, DB/락/저장 미호출")
+    @DisplayName("findAllMembers - 캐시 히트, TTL 충분 → 캐시 반환, DB/저장 미호출")
     void shouldReturnFromCache_WhenCacheHit() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
         List<SimpleMemberDTO> cached = createSimpleMembers(10);
         Page<SimpleMemberDTO> cachedPage = new PageImpl<>(cached, pageable, cached.size());
+        // TTL이 충분히 큰 값 → PER 조건 미충족 (갱신 이벤트 미발행)
+        CacheMemberDTO cacheDto = CacheMemberDTO.from(cachedPage, 3600.0);
 
-        given(redisMemberAdapter.getMemberByPageWithPER(0, 10)).willReturn(MemberCacheResult.hit(cachedPage));
+        given(redisMemberAdapter.getMemberByPageWithPER(0, 10)).willReturn(Optional.of(cacheDto));
 
         // When
         Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
@@ -119,83 +125,80 @@ class MemberQueryServiceTest extends BaseUnitTest {
         assertThat(result.getContent()).hasSize(10);
         assertThat(result.getContent().get(0).getMemberId()).isEqualTo(1L);
         verify(redisMemberAdapter).getMemberByPageWithPER(0, 10);
-        verify(memberRepository, never()).findAll(any(Pageable.class));
-        verify(redisMemberAdapter, never()).lock(anyInt(), anyInt());
+        verify(memberQueryRepository, never()).findAllMembers(any(Pageable.class));
         verify(redisMemberAdapter, never()).saveMemberPage(anyInt(), anyInt(), any());
     }
 
     @Test
-    @DisplayName("findAllMembers - PER EARLY_REFRESH → 락 없이 DB 조회 후 캐시 갱신")
-    void shouldReturnFreshData_WhenPERTriggered() {
+    @DisplayName("findAllMembers - PER 조건 충족 (TTL 임박) → 캐시 반환 + 갱신 이벤트 발행")
+    void shouldPublishRefreshEvent_WhenPERConditionMet() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        List<Member> dbMembers = createMembersWithIds(10);
-        Page<Member> dbPage = new PageImpl<>(dbMembers, pageable, dbMembers.size());
+        List<SimpleMemberDTO> cached = createSimpleMembers(10);
+        Page<SimpleMemberDTO> cachedPage = new PageImpl<>(cached, pageable, cached.size());
+        // TTL이 0에 가까우면 PER 공식 gap > TTL 조건이 반드시 충족됨
+        CacheMemberDTO cacheDto = CacheMemberDTO.from(cachedPage, 0.0);
 
-        given(redisMemberAdapter.getMemberByPageWithPER(0, 10)).willReturn(MemberCacheResult.earlyRefresh());
-        given(memberRepository.findAll(pageable)).willReturn(dbPage);
+        given(redisMemberAdapter.getMemberByPageWithPER(0, 10)).willReturn(Optional.of(cacheDto));
 
         // When
         Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(10);
-        verify(redisMemberAdapter, never()).lock(anyInt(), anyInt());
-        verify(memberRepository).findAll(pageable);
-        verify(redisMemberAdapter).saveMemberPage(eq(0), eq(10), any());
+        verify(eventPublisher).publishEvent(any());
+        verify(memberQueryRepository, never()).findAllMembers(any(Pageable.class));
     }
 
     @Test
-    @DisplayName("findAllMembers - MISS → 분산락 획득 후 DB 조회, 올바른 page/size로 캐시 저장")
+    @DisplayName("findAllMembers - 캐시 미스 → 싱글플라이트로 DB 조회 후 캐시 저장")
     void shouldFallbackToDb_WhenCacheMiss() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        List<Member> dbMembers = createMembersWithIds(5);
-        Page<Member> dbPage = new PageImpl<>(dbMembers, pageable, dbMembers.size());
+        List<SimpleMemberDTO> dbMembers = createSimpleMembers(5);
+        Page<SimpleMemberDTO> dbPage = new PageImpl<>(dbMembers, pageable, dbMembers.size());
 
-        given(redisMemberAdapter.getMemberByPageWithPER(0, 10)).willReturn(MemberCacheResult.miss());
-        given(redisMemberAdapter.lock(0, 10)).willReturn(true);
-        given(memberRepository.findAll(pageable)).willReturn(dbPage);
+        given(redisMemberAdapter.getMemberByPageWithPER(0, 10)).willReturn(Optional.empty());
+        given(memberQueryRepository.findAllMembers(pageable)).willReturn(dbPage);
 
         // When
         Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(5);
-        verify(memberRepository).findAll(pageable);
+        verify(memberQueryRepository).findAllMembers(pageable);
         verify(redisMemberAdapter).saveMemberPage(eq(0), eq(10), any());
     }
 
     @Test
-    @DisplayName("findAllMembers - MISS + DB 빈 결과 → 빈 페이지, 올바른 page/size로 캐시 저장 시도")
+    @DisplayName("findAllMembers - 캐시 미스 + DB 빈 결과 → 빈 페이지, 캐시 저장 시도")
     void shouldReturnEmptyPage_WhenCacheMissAndDbEmpty() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
+        Page<SimpleMemberDTO> emptyPage = Page.empty(pageable);
 
-        given(redisMemberAdapter.getMemberByPageWithPER(0, 10)).willReturn(MemberCacheResult.miss());
-        given(redisMemberAdapter.lock(0, 10)).willReturn(true);
-        given(memberRepository.findAll(pageable)).willReturn(Page.empty());
+        given(redisMemberAdapter.getMemberByPageWithPER(0, 10)).willReturn(Optional.empty());
+        given(memberQueryRepository.findAllMembers(pageable)).willReturn(emptyPage);
 
         // When
         Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
 
         // Then
         assertThat(result.isEmpty()).isTrue();
-        verify(memberRepository).findAll(pageable);
+        verify(memberQueryRepository).findAllMembers(pageable);
         verify(redisMemberAdapter).saveMemberPage(eq(0), eq(10), any());
     }
 
     @Test
-    @DisplayName("findAllMembers - page=2, size=20 MISS → 올바른 page/size로 캐시 저장")
+    @DisplayName("findAllMembers - page=2, size=20 캐시 미스 → 올바른 page/size로 캐시 저장")
     void shouldSaveWithCorrectPageAndSize_WhenDifferentPagable() {
         // Given
         Pageable pageable = PageRequest.of(2, 20);
-        List<Member> dbMembers = createMembersWithIds(5);
-        Page<Member> dbPage = new PageImpl<>(dbMembers, pageable, dbMembers.size());
+        List<SimpleMemberDTO> dbMembers = createSimpleMembers(5);
+        Page<SimpleMemberDTO> dbPage = new PageImpl<>(dbMembers, pageable, dbMembers.size());
 
-        given(redisMemberAdapter.getMemberByPageWithPER(2, 20)).willReturn(MemberCacheResult.miss());
-        given(redisMemberAdapter.lock(2, 20)).willReturn(true);
-        given(memberRepository.findAll(pageable)).willReturn(dbPage);
+        given(redisMemberAdapter.getMemberByPageWithPER(2, 20)).willReturn(Optional.empty());
+        given(memberQueryRepository.findAllMembers(pageable)).willReturn(dbPage);
 
         // When
         memberQueryService.findAllMembers(pageable);
