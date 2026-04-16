@@ -12,6 +12,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -21,7 +22,7 @@ public class RedisMemberAdapter {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private static final String MEMBER_KEY = "member:page:%d:size:%d";
-    private static final int MEMBER_TTL = 1;
+    private static final int MEMBER_TTL = 60;
 
     public Page<SimpleMemberDTO> getMemberByPage(int page, int size) {
         String key = String.format(MEMBER_KEY, page, size);
@@ -40,9 +41,11 @@ public class RedisMemberAdapter {
 
     public void saveMemberPage(int page, int size, List<SimpleMemberDTO> dto) {
         String key = String.format(MEMBER_KEY, page, size);
+        int value = ThreadLocalRandom.current().nextInt(-10, 11);
+
         try {
             String memberInfo = objectMapper.writeValueAsString(dto);
-            redisTemplate.opsForValue().set(key, memberInfo, MEMBER_TTL, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(key, memberInfo, MEMBER_TTL + value, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.warn("유저 캐시 직렬화 실패");
         }
