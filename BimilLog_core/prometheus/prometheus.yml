@@ -15,7 +15,7 @@ scrape_configs:
           environment: 'prod'
           service: 'backend'
     scrape_interval: 1s
-    scrape_timeout: 2s
+    scrape_timeout: 1s
 
   # Prometheus 자체 모니터링
   - job_name: 'prometheus'
