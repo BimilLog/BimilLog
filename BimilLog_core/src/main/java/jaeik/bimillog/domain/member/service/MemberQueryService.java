@@ -121,7 +121,7 @@ public class MemberQueryService {
         int size = pageable.getPageSize();
         Page<SimpleMemberDTO> memberByPage = redisMemberAdapter.getMemberByPage(page, size);
         if (memberByPage.isEmpty()) {
-            memberByPage = memberRepository.findAll(pageable).map(SimpleMemberDTO::fromMember);
+            memberByPage = memberQueryRepository.findAllMembers(pageable);
             redisMemberAdapter.saveMemberPage(page, size, memberByPage.getContent());
         }
         return memberByPage;
