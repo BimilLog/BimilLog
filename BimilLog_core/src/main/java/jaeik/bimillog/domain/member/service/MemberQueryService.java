@@ -5,28 +5,27 @@ import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.member.event.MemberCacheRefreshEvent;
 import jaeik.bimillog.domain.member.repository.MemberQueryRepository;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.domain.member.repository.SettingRepository;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.member.MemberCacheResult;
+import jaeik.bimillog.infrastructure.redis.member.CacheMemberDTO;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * <h2>사용자 조회 서비스</h2>
@@ -41,7 +40,11 @@ public class MemberQueryService {
     private final MemberRepository memberRepository;
     private final SettingRepository settingRepository;
     private final RedisMemberAdapter redisMemberAdapter;
+    private final ApplicationEventPublisher eventPublisher;
     private final ConcurrentHashMap<String, CompletableFuture<Page<SimpleMemberDTO>>> inFlight = new ConcurrentHashMap<>();
+
+    private static final double COMPUTE_TIME = 0.1; // 예상 DB 조회 시간 (초)
+    private static final double BETA = 20.0;        // PER 베타 값
 
     /**
      * <h3>ID로 사용자 조회</h3>
@@ -93,8 +96,8 @@ public class MemberQueryService {
      *
      * @param settingId 설정 ID
      * @return 설정 엔티티
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @Transactional(readOnly = true)
     public Setting findBySettingId(Long settingId) {
@@ -126,47 +129,48 @@ public class MemberQueryService {
     public Page<SimpleMemberDTO> findAllMembers(Pageable pageable) {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
+        // - (0.1 * 20 * 로그 (랜덤)) > 남은 시간
+        Optional<CacheMemberDTO> cacheResult = redisMemberAdapter.getMemberByPageWithPER(page, size);
 
-        MemberCacheResult cacheResult = redisMemberAdapter.getMemberByPageWithPER(page, size);
+        if (cacheResult.isPresent()) {
+            CacheMemberDTO cacheMemberDTO = cacheResult.get();
+            Page<SimpleMemberDTO> simpleMemberDTOPage = cacheMemberDTO.getSimpleMemberDTOPage();
+            Double computeTTL = cacheMemberDTO.getComputeTTL();
+            double random = ThreadLocalRandom.current().nextDouble(-10, 11);
 
-        return switch (cacheResult.type()) {
-            case HIT -> cacheResult.data();
-
-            case EARLY_REFRESH -> {
-                // PER 트리거: TTL 만료 전 선제 갱신 (락 없이 즉시 DB 조회)
-                Page<SimpleMemberDTO> fresh = memberQueryRepository.findAllMembers(pageable);
-                redisMemberAdapter.saveMemberPage(page, size, fresh.getContent());
-                yield fresh;
+            if ((COMPUTE_TIME * BETA * Math.log(random)) > computeTTL) { // PER 조건 만족
+                eventPublisher.publishEvent(new MemberCacheRefreshEvent(pageable));
             }
 
-            case MISS -> {
-                // 캐시 미스: 싱글플라이트로 DB 조회 중복 방지
-                String flightKey = page + ":" + size;
-                CompletableFuture<Page<SimpleMemberDTO>> newFuture = new CompletableFuture<>();
-                CompletableFuture<Page<SimpleMemberDTO>> existing = inFlight.putIfAbsent(flightKey, newFuture);
+            return simpleMemberDTOPage; // 반환
+        }
 
-                if (existing != null) {
-                    try {
-                        yield existing.get(5, TimeUnit.SECONDS);
-                    } catch (ExecutionException | InterruptedException | TimeoutException e) {
-                        yield redisMemberAdapter.getMemberByPage(page, size);
-                    }
-                }
+        // 캐시 만료 시 싱글 플라이트
+        String flightKey = page + ":" + size;
+        CompletableFuture<Page<SimpleMemberDTO>> newFuture = new CompletableFuture<>();
+        CompletableFuture<Page<SimpleMemberDTO>> existing = inFlight.putIfAbsent(flightKey, newFuture);
 
-                try {
-                    Page<SimpleMemberDTO> fresh = memberQueryRepository.findAllMembers(pageable);
-                    redisMemberAdapter.saveMemberPage(page, size, fresh.getContent());
-                    newFuture.complete(fresh);
-                    yield fresh;
-                } catch (Exception e) {
-                    newFuture.completeExceptionally(e);
-                    throw e;
-                } finally {
-                    inFlight.remove(flightKey, newFuture);
-                }
+        if (existing != null) {
+            try {
+                existing.get(5, TimeUnit.SECONDS);
+            } catch (ExecutionException | InterruptedException | TimeoutException e) {
+                redisMemberAdapter.getMemberByPage(page, size);
             }
-        };
+        }
+
+        try {
+            Page<SimpleMemberDTO> fresh = memberQueryRepository.findAllMembers(pageable);
+            redisMemberAdapter.saveMemberPage(page, size, fresh.getContent());
+            newFuture.complete(fresh);
+            return fresh;
+        } catch (Exception e) {
+            newFuture.completeExceptionally(e);
+            throw e;
+        } finally {
+            inFlight.remove(flightKey, newFuture);
+        }
     }
+
 
     /**
      * <h3>사용자명 검색</h3>
