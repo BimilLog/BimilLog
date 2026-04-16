@@ -137,13 +137,8 @@ public class MemberQueryService {
         if (existing != null) {
             try {
                 return existing.get(5, TimeUnit.SECONDS);
-            } catch (TimeoutException e) {
+            } catch (ExecutionException | InterruptedException | TimeoutException e) {
                 return redisMemberAdapter.getMemberByPage(page, size);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e.getCause());
             }
         }
 
