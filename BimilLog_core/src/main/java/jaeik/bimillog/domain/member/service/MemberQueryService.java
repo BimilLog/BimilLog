@@ -116,7 +116,6 @@ public class MemberQueryService {
      * @param pageable 페이지 정보
      * @return Page<Member> 조회된 회원 페이지
      */
-    @Transactional(readOnly = true)
     public Page<SimpleMemberDTO> findAllMembers(Pageable pageable) {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
