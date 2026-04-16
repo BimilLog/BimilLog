@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.member.repository.SettingRepository;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.member.MemberCacheResult;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -125,34 +126,46 @@ public class MemberQueryService {
     public Page<SimpleMemberDTO> findAllMembers(Pageable pageable) {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
-        Page<SimpleMemberDTO> memberByPage = redisMemberAdapter.getMemberByPage(page, size);
-        if (!memberByPage.isEmpty()) {
-            return memberByPage;
-        }
 
-        String flightKey = page + ":" + size;
-        CompletableFuture<Page<SimpleMemberDTO>> newFuture = new CompletableFuture<>();
-        CompletableFuture<Page<SimpleMemberDTO>> existing = inFlight.putIfAbsent(flightKey, newFuture);
+        MemberCacheResult cacheResult = redisMemberAdapter.getMemberByPageWithPER(page, size);
 
-        if (existing != null) {
-            try {
-                return existing.get(5, TimeUnit.SECONDS);
-            } catch (ExecutionException | InterruptedException | TimeoutException e) {
-                return redisMemberAdapter.getMemberByPage(page, size);
+        return switch (cacheResult.type()) {
+            case HIT -> cacheResult.data();
+
+            case EARLY_REFRESH -> {
+                // PER 트리거: TTL 만료 전 선제 갱신 (락 없이 즉시 DB 조회)
+                Page<SimpleMemberDTO> fresh = memberQueryRepository.findAllMembers(pageable);
+                redisMemberAdapter.saveMemberPage(page, size, fresh.getContent());
+                yield fresh;
             }
-        }
 
-        try {
-            Page<SimpleMemberDTO> result = memberQueryRepository.findAllMembers(pageable);
-            redisMemberAdapter.saveMemberPage(page, size, result.getContent());
-            newFuture.complete(result);
-            return result;
-        } catch (Exception e) {
-            newFuture.completeExceptionally(e);
-            throw e;
-        } finally {
-            inFlight.remove(flightKey, newFuture);
-        }
+            case MISS -> {
+                // 캐시 미스: 싱글플라이트로 DB 조회 중복 방지
+                String flightKey = page + ":" + size;
+                CompletableFuture<Page<SimpleMemberDTO>> newFuture = new CompletableFuture<>();
+                CompletableFuture<Page<SimpleMemberDTO>> existing = inFlight.putIfAbsent(flightKey, newFuture);
+
+                if (existing != null) {
+                    try {
+                        yield existing.get(5, TimeUnit.SECONDS);
+                    } catch (ExecutionException | InterruptedException | TimeoutException e) {
+                        yield redisMemberAdapter.getMemberByPage(page, size);
+                    }
+                }
+
+                try {
+                    Page<SimpleMemberDTO> fresh = memberQueryRepository.findAllMembers(pageable);
+                    redisMemberAdapter.saveMemberPage(page, size, fresh.getContent());
+                    newFuture.complete(fresh);
+                    yield fresh;
+                } catch (Exception e) {
+                    newFuture.completeExceptionally(e);
+                    throw e;
+                } finally {
+                    inFlight.remove(flightKey, newFuture);
+                }
+            }
+        };
     }
 
     /**
