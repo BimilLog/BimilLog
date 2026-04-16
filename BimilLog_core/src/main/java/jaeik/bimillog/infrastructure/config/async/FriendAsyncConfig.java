@@ -43,7 +43,7 @@ public class FriendAsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(8);
-        executor.setQueueCapacity(20);
+        executor.setQueueCapacity(8);
         executor.setThreadNamePrefix("rebuild-producer-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(120);
@@ -60,7 +60,7 @@ public class FriendAsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2);
         executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(10);
+        executor.setQueueCapacity(4);
         executor.setThreadNamePrefix("rebuild-consumer-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(120);
@@ -77,7 +77,7 @@ public class FriendAsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(8);
-        executor.setQueueCapacity(10);
+        executor.setQueueCapacity(8);
         executor.setThreadNamePrefix("interaction-producer-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(120);
@@ -94,7 +94,7 @@ public class FriendAsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(1);
         executor.setMaxPoolSize(2);
-        executor.setQueueCapacity(5);
+        executor.setQueueCapacity(3);
         executor.setThreadNamePrefix("interaction-consumer-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(120);
