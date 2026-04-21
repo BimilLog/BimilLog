@@ -99,6 +99,24 @@ public class SseRepository {
      * @author Jaeik
      * @since 2.3.0
      */
+    /**
+     * <h3>로컬 이미터 보유 여부</h3>
+     * <p>현재 인스턴스가 해당 사용자의 SSE 이미터를 보유하고 있는지 확인합니다.</p>
+     * <p>Redis Pub/Sub 구독자가 수신한 메시지를 실제 전송할지 결정할 때 사용합니다.</p>
+     *
+     * @param memberId 사용자 ID
+     * @return 로컬에 이미터가 하나라도 있으면 true
+     */
+    public boolean hasEmitter(Long memberId) {
+        String prefix = memberId + "_";
+        for (String key : emitters.keySet()) {
+            if (key.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void send(SseMessage sseMessage) {
         String prefix = sseMessage.memberId() + "_";
         emitters.forEach((emitterId, emitter) -> {
