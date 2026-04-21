@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.friend.event.FriendEvent.FriendRequestEvent;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.listener.NotificationSaveListener;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
+import jaeik.bimillog.domain.notification.service.NotificationEventCallback;
 import jaeik.bimillog.domain.paper.event.PaperEvent.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostEvent.PostFeaturedEvent;
 import jaeik.bimillog.infrastructure.config.async.AsyncConfig;
@@ -26,6 +27,7 @@ import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Duration;
 import java.util.stream.Stream;
@@ -33,6 +35,7 @@ import java.util.stream.Stream;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 
@@ -47,7 +50,8 @@ import static org.mockito.Mockito.*;
 @TestPropertySource(properties = {
         "retry.max-attempts=3",
         "retry.backoff.delay=10",
-        "retry.backoff.multiplier=1.0"
+        "retry.backoff.multiplier=1.0",
+        "url=http://localhost:3000"
 })
 class NotificationSaveListenerRetryTest {
 
@@ -58,86 +62,86 @@ class NotificationSaveListenerRetryTest {
     private NotificationCommandService notificationCommandService;
 
     private static final int MAX_ATTEMPTS = 3;
+    private static final String BASE_URL = "http://localhost:3000";
 
     @BeforeEach
     void setUp() {
         Mockito.reset(notificationCommandService);
+        ReflectionTestUtils.setField(listener, "baseUrl", BASE_URL);
     }
 
     @ParameterizedTest(name = "{0} 발생 시 3회 재시도 - 댓글 알림")
     @MethodSource("provideRetryableExceptions")
     @DisplayName("댓글 작성 알림 저장 - DB 예외 발생 시 재시도")
     void handleCommentCreatedEvent_shouldRetryOnDatabaseExceptions(String exceptionName, RuntimeException exception) {
-        // Given
         CommentCreatedEvent event = CommentCreatedEvent.of(1L, "작성자", 2L, 100L);
         willThrow(exception)
-                .given(notificationCommandService).saveCommentNotification(anyLong(), anyString(), anyLong());
+                .given(notificationCommandService)
+                .saveNotification(anyLong(), any(NotificationType.class), anyString(), anyString(), any(NotificationEventCallback.class));
 
-        // When: 비동기로 실행되며 @Recover 메서드가 있으므로 예외가 외부로 전파되지 않음
         listener.handleCommentCreatedEvent(event);
 
-        // Then: 비동기 완료 대기 후 재시도 횟수만큼 호출되었는지 검증
+        String expectedMessage = "작성자님이 댓글을 남겼습니다!";
+        String expectedUrl = BASE_URL + "/board/post/100";
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(notificationCommandService, times(MAX_ATTEMPTS))
-                        .saveCommentNotification(1L, "작성자", 100L));
+                        .saveNotification(eq(1L), eq(NotificationType.COMMENT), eq(expectedMessage), eq(expectedUrl), any(NotificationEventCallback.class)));
     }
 
     @ParameterizedTest(name = "{0} 발생 시 3회 재시도 - 롤링페이퍼 알림")
     @MethodSource("provideRetryableExceptions")
     @DisplayName("롤링페이퍼 알림 저장 - DB 예외 발생 시 재시도")
     void handleRollingPaperEvent_shouldRetryOnDatabaseExceptions(String exceptionName, RuntimeException exception) {
-        // Given
         RollingPaperEvent event = new RollingPaperEvent(1L, "작성자");
         willThrow(exception)
-                .given(notificationCommandService).saveMessageNotification(anyLong(), anyString());
+                .given(notificationCommandService)
+                .saveNotification(anyLong(), any(NotificationType.class), anyString(), anyString(), any(NotificationEventCallback.class));
 
-        // When: 비동기로 실행되며 @Recover 메서드가 있으므로 예외가 외부로 전파되지 않음
         listener.handleRollingPaperEvent(event);
 
-        // Then: 비동기 완료 대기 후 재시도 횟수만큼 호출되었는지 검증
+        String expectedMessage = "롤링페이퍼에 메시지가 작성되었어요!";
+        String expectedUrl = BASE_URL + "/rolling-paper/작성자";
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(notificationCommandService, times(MAX_ATTEMPTS))
-                        .saveMessageNotification(1L, "작성자"));
+                        .saveNotification(eq(1L), eq(NotificationType.MESSAGE), eq(expectedMessage), eq(expectedUrl), any(NotificationEventCallback.class)));
     }
 
     @ParameterizedTest(name = "{0} 발생 시 3회 재시도 - 인기글 알림")
     @MethodSource("provideRetryableExceptions")
     @DisplayName("인기글 알림 저장 - DB 예외 발생 시 재시도")
     void handlePostFeaturedEvent_shouldRetryOnDatabaseExceptions(String exceptionName, RuntimeException exception) {
-        // Given
         PostFeaturedEvent event = new PostFeaturedEvent(1L, "인기글 등극!", 100L, NotificationType.POST_FEATURED_WEEKLY, "테스트 게시글");
         willThrow(exception)
-                .given(notificationCommandService).savePopularNotification(anyLong(), anyString(), anyLong(), any(NotificationType.class), anyString());
+                .given(notificationCommandService)
+                .saveNotification(anyLong(), any(NotificationType.class), anyString(), anyString(), any(NotificationEventCallback.class));
 
-        // When: 비동기로 실행되며 @Recover 메서드가 있으므로 예외가 외부로 전파되지 않음
         listener.handlePostFeaturedEvent(event);
 
-        // Then: 비동기 완료 대기 후 재시도 횟수만큼 호출되었는지 검증
+        String expectedUrl = BASE_URL + "/board/post/100";
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(notificationCommandService, times(MAX_ATTEMPTS))
-                        .savePopularNotification(1L, "인기글 등극!", 100L, NotificationType.POST_FEATURED_WEEKLY, "테스트 게시글"));
+                        .saveNotification(eq(1L), eq(NotificationType.POST_FEATURED_WEEKLY), eq("인기글 등극!"), eq(expectedUrl), any(NotificationEventCallback.class)));
     }
 
     @ParameterizedTest(name = "{0} 발생 시 3회 재시도 - 친구 알림")
     @MethodSource("provideRetryableExceptions")
     @DisplayName("친구 알림 저장 - DB 예외 발생 시 재시도")
     void handleFriendEvent_shouldRetryOnDatabaseExceptions(String exceptionName, RuntimeException exception) {
-        // Given
         FriendRequestEvent event = new FriendRequestEvent(1L, "친구 요청이 도착했습니다!", "친구이름");
         willThrow(exception)
-                .given(notificationCommandService).saveFriendNotification(anyLong(), anyString(), anyString());
+                .given(notificationCommandService)
+                .saveNotification(anyLong(), any(NotificationType.class), anyString(), anyString(), any(NotificationEventCallback.class));
 
-        // When: 비동기로 실행되며 @Recover 메서드가 있으므로 예외가 외부로 전파되지 않음
         listener.handleFriendEvent(event);
 
-        // Then: 비동기 완료 대기 후 재시도 횟수만큼 호출되었는지 검증
+        String expectedUrl = BASE_URL + "/friends?tab=received";
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(notificationCommandService, times(MAX_ATTEMPTS))
-                        .saveFriendNotification(1L, "친구 요청이 도착했습니다!", "친구이름"));
+                        .saveNotification(eq(1L), eq(NotificationType.FRIEND), eq("친구 요청이 도착했습니다!"), eq(expectedUrl), any(NotificationEventCallback.class)));
     }
 
     private static Stream<Arguments> provideRetryableExceptions() {
@@ -154,71 +158,63 @@ class NotificationSaveListenerRetryTest {
     @Test
     @DisplayName("댓글 알림 - 2회 실패 후 3회차에 성공")
     void handleCommentCreatedEvent_shouldSucceedAfterTwoFailures() {
-        // Given
         CommentCreatedEvent event = CommentCreatedEvent.of(1L, "작성자", 2L, 100L);
         willThrow(new DataAccessResourceFailureException("실패"))
                 .willThrow(new QueryTimeoutException("타임아웃"))
                 .willDoNothing()
-                .given(notificationCommandService).saveCommentNotification(1L, "작성자", 100L);
+                .given(notificationCommandService)
+                .saveNotification(anyLong(), any(NotificationType.class), anyString(), anyString(), any(NotificationEventCallback.class));
 
-        // When
         listener.handleCommentCreatedEvent(event);
 
-        // Then: 비동기 완료 대기
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(notificationCommandService, times(3))
-                        .saveCommentNotification(1L, "작성자", 100L));
+                        .saveNotification(eq(1L), eq(NotificationType.COMMENT), anyString(), anyString(), any(NotificationEventCallback.class)));
     }
 
     @Test
     @DisplayName("댓글 알림 - 1회 성공 시 재시도 없음")
     void handleCommentCreatedEvent_shouldNotRetryOnSuccess() {
-        // Given
         CommentCreatedEvent event = CommentCreatedEvent.of(1L, "작성자", 2L, 100L);
-        doNothing().when(notificationCommandService).saveCommentNotification(anyLong(), anyString(), anyLong());
+        doNothing().when(notificationCommandService)
+                .saveNotification(anyLong(), any(NotificationType.class), anyString(), anyString(), any(NotificationEventCallback.class));
 
-        // When
         listener.handleCommentCreatedEvent(event);
 
-        // Then: 비동기 완료 대기
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(notificationCommandService, times(1))
-                        .saveCommentNotification(1L, "작성자", 100L));
+                        .saveNotification(eq(1L), eq(NotificationType.COMMENT), anyString(), anyString(), any(NotificationEventCallback.class)));
     }
 
     @Test
     @DisplayName("롤링페이퍼 알림 - 1회 성공 시 재시도 없음")
     void handleRollingPaperEvent_shouldNotRetryOnSuccess() {
-        // Given
         RollingPaperEvent event = new RollingPaperEvent(1L, "작성자");
-        doNothing().when(notificationCommandService).saveMessageNotification(anyLong(), anyString());
+        doNothing().when(notificationCommandService)
+                .saveNotification(anyLong(), any(NotificationType.class), anyString(), anyString(), any(NotificationEventCallback.class));
 
-        // When
         listener.handleRollingPaperEvent(event);
 
-        // Then: 비동기 완료 대기
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(notificationCommandService, times(1))
-                        .saveMessageNotification(1L, "작성자"));
+                        .saveNotification(eq(1L), eq(NotificationType.MESSAGE), anyString(), anyString(), any(NotificationEventCallback.class)));
     }
 
     @Test
     @DisplayName("인기글 알림 - 1회 성공 시 재시도 없음")
     void handlePostFeaturedEvent_shouldNotRetryOnSuccess() {
-        // Given
         PostFeaturedEvent event = new PostFeaturedEvent(1L, "주간 인기글!", 100L, NotificationType.POST_FEATURED_WEEKLY, "테스트 게시글");
-        doNothing().when(notificationCommandService).savePopularNotification(anyLong(), anyString(), anyLong(), any(NotificationType.class), anyString());
+        doNothing().when(notificationCommandService)
+                .saveNotification(anyLong(), any(NotificationType.class), anyString(), anyString(), any(NotificationEventCallback.class));
 
-        // When
         listener.handlePostFeaturedEvent(event);
 
-        // Then: 비동기 완료 대기
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(notificationCommandService, times(1))
-                        .savePopularNotification(1L, "주간 인기글!", 100L, NotificationType.POST_FEATURED_WEEKLY, "테스트 게시글"));
+                        .saveNotification(eq(1L), eq(NotificationType.POST_FEATURED_WEEKLY), eq("주간 인기글!"), anyString(), any(NotificationEventCallback.class)));
     }
 }
