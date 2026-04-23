@@ -198,6 +198,21 @@ services:
       - bimillog-local
     restart: unless-stopped
 
+  # cAdvisor (Container Resource Monitoring)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: bimillog-cadvisor-local
+    ports:
+      - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - bimillog-local
+    privileged: true
+
   # JMeter (Load Testing)
   jmeter:
     image: justb4/jmeter:latest
