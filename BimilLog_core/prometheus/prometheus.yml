@@ -9,7 +9,7 @@ scrape_configs:
   - job_name: 'bimillog-backend'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['backend:8080']  # Docker 컨테이너 이름으로 접근 (메인 포트)
+      - targets: ['backend:8081']  # 액추에이터 전용 포트 (메인 스레드풀과 분리)
         labels:
           application: 'bimillog'
           environment: 'prod'
