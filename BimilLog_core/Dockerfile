@@ -56,8 +56,8 @@ ENTRYPOINT ["java", \
     "-Dspring.profiles.active=local", \
     "-Xms1g", \
     "-Xmx1g", \
+    "-Xmn400m", \
     "-Dfile.encoding=UTF-8", \
     "-Duser.timezone=Asia/Seoul", \
     "-XX:+HeapDumpOnOutOfMemoryError", \
-    "-Xlog:safepoint", \
     "-jar", "app.jar"]
