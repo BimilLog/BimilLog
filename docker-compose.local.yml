@@ -36,6 +36,7 @@ services:
     ports:
       - "8080:8080"
     # 운영 서버 시뮬레이션: 1GB RAM, 1 CPU 코어
+    cpus: 1.0
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
