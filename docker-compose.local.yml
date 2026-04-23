@@ -210,7 +210,9 @@ services:
 
   # JMeter (Load Testing)
   jmeter:
-    image: justb4/jmeter:latest
+    build:
+      context: ./performance/jmeter
+      dockerfile: Dockerfile
     container_name: bimillog-jmeter-local
     profiles:
       - loadtest
