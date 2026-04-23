@@ -54,8 +54,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
 # Scouter agent is attached via JAVA_TOOL_OPTIONS env var in docker-compose
 ENTRYPOINT ["java", \
     "-Dspring.profiles.active=local", \
-    "-Xms400m", \
-    "-Xmx400m", \
+    "-Xms1g", \
+    "-Xmx1g", \
     "-Dfile.encoding=UTF-8", \
     "-Duser.timezone=Asia/Seoul", \
     "-XX:+HeapDumpOnOutOfMemoryError", \
