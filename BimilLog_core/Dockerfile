@@ -58,5 +58,6 @@ ENTRYPOINT ["java", \
     "-Xmx1g", \
     "-Dfile.encoding=UTF-8", \
     "-Duser.timezone=Asia/Seoul", \
+    "-Djdk.tracePinnedThreads=short", \
     "-XX:+HeapDumpOnOutOfMemoryError", \
     "-jar", "app.jar"]
