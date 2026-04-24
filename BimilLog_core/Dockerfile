@@ -60,4 +60,5 @@ ENTRYPOINT ["java", \
     "-Duser.timezone=Asia/Seoul", \
     "-Djdk.tracePinnedThreads=short", \
     "-XX:+HeapDumpOnOutOfMemoryError", \
+    "-XX:HeapDumpPath=/app/logs/", \
     "-jar", "app.jar"]
