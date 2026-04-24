@@ -3,14 +3,13 @@ package jaeik.bimillog.springboot.mysql.redis;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter;
+import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter.CachedMemberPage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -51,31 +50,33 @@ class RedisMemberAdapterLocalIntegrationTest {
     // ==================== 캐시 저장 / 조회 ====================
 
     @Test
-    @DisplayName("saveMemberPage - 저장 후 getMemberByPage 로 동일 데이터 조회")
-    void saveAndGet_shouldReturnCachedMembers() {
+    @DisplayName("saveMemberPage - 저장 후 lookup 으로 동일 데이터 조회")
+    void saveAndLookup_shouldReturnCachedMembers() {
         // Given
         int page = 0, size = 10;
         List<SimpleMemberDTO> members = buildMembers(1L, 2L, 3L);
 
         // When
         redisMemberAdapter.saveMemberPage(page, size, members);
-        Page<SimpleMemberDTO> result = redisMemberAdapter.getMemberByPage(page, size);
+        CachedMemberPage result = redisMemberAdapter.lookup(page, size);
 
         // Then
-        assertThat(result.getContent()).hasSize(3);
-        assertThat(result.getContent().get(0).getMemberId()).isEqualTo(1L);
-        assertThat(result.getContent().get(1).getMemberId()).isEqualTo(2L);
-        assertThat(result.getContent().get(2).getMemberId()).isEqualTo(3L);
+        assertThat(result).isNotNull();
+        assertThat(result.data()).hasSize(3);
+        assertThat(result.data().get(0).getMemberId()).isEqualTo(1L);
+        assertThat(result.data().get(1).getMemberId()).isEqualTo(2L);
+        assertThat(result.data().get(2).getMemberId()).isEqualTo(3L);
+        assertThat(result.isStale()).isFalse();
     }
 
     @Test
-    @DisplayName("getMemberByPage - 캐시 미스 시 Page.empty() 반환")
-    void get_whenCacheMiss_shouldReturnEmpty() {
+    @DisplayName("lookup - 캐시 미스 시 null 반환")
+    void lookup_whenCacheMiss_shouldReturnNull() {
         // When
-        Page<SimpleMemberDTO> result = redisMemberAdapter.getMemberByPage(99, 10);
+        CachedMemberPage result = redisMemberAdapter.lookup(99, 10);
 
         // Then
-        assertThat(result.isEmpty()).isTrue();
+        assertThat(result).isNull();
     }
 
     // ==================== (page, size) 조합별 독립 캐시 ====================
@@ -92,14 +93,14 @@ class RedisMemberAdapterLocalIntegrationTest {
         redisMemberAdapter.saveMemberPage(0, 20, members20);
 
         // Then: size=10 캐시
-        Page<SimpleMemberDTO> result10 = redisMemberAdapter.getMemberByPage(0, 10);
-        assertThat(result10.getContent()).hasSize(2);
-        assertThat(result10.getContent().get(0).getMemberId()).isEqualTo(10L);
+        CachedMemberPage result10 = redisMemberAdapter.lookup(0, 10);
+        assertThat(result10.data()).hasSize(2);
+        assertThat(result10.data().get(0).getMemberId()).isEqualTo(10L);
 
         // Then: size=20 캐시 (별도 키라 섞이지 않음)
-        Page<SimpleMemberDTO> result20 = redisMemberAdapter.getMemberByPage(0, 20);
-        assertThat(result20.getContent()).hasSize(3);
-        assertThat(result20.getContent().get(0).getMemberId()).isEqualTo(20L);
+        CachedMemberPage result20 = redisMemberAdapter.lookup(0, 20);
+        assertThat(result20.data()).hasSize(3);
+        assertThat(result20.data().get(0).getMemberId()).isEqualTo(20L);
     }
 
     @Test
@@ -114,11 +115,11 @@ class RedisMemberAdapterLocalIntegrationTest {
         redisMemberAdapter.saveMemberPage(1, 10, page1Members);
 
         // Then
-        Page<SimpleMemberDTO> result0 = redisMemberAdapter.getMemberByPage(0, 10);
-        assertThat(result0.getContent().get(0).getMemberId()).isEqualTo(1L);
+        CachedMemberPage result0 = redisMemberAdapter.lookup(0, 10);
+        assertThat(result0.data().get(0).getMemberId()).isEqualTo(1L);
 
-        Page<SimpleMemberDTO> result1 = redisMemberAdapter.getMemberByPage(1, 10);
-        assertThat(result1.getContent().get(0).getMemberId()).isEqualTo(3L);
+        CachedMemberPage result1 = redisMemberAdapter.lookup(1, 10);
+        assertThat(result1.data().get(0).getMemberId()).isEqualTo(3L);
     }
 
     @Test
@@ -130,9 +131,9 @@ class RedisMemberAdapterLocalIntegrationTest {
         redisMemberAdapter.saveMemberPage(0, 30, buildMembers(30L));
 
         // Then
-        assertThat(redisMemberAdapter.getMemberByPage(0, 10).getContent().get(0).getMemberId()).isEqualTo(10L);
-        assertThat(redisMemberAdapter.getMemberByPage(0, 20).getContent().get(0).getMemberId()).isEqualTo(20L);
-        assertThat(redisMemberAdapter.getMemberByPage(0, 30).getContent().get(0).getMemberId()).isEqualTo(30L);
+        assertThat(redisMemberAdapter.lookup(0, 10).data().get(0).getMemberId()).isEqualTo(10L);
+        assertThat(redisMemberAdapter.lookup(0, 20).data().get(0).getMemberId()).isEqualTo(20L);
+        assertThat(redisMemberAdapter.lookup(0, 30).data().get(0).getMemberId()).isEqualTo(30L);
     }
 
     // ==================== 캐시 키 포맷 검증 ====================
@@ -155,18 +156,17 @@ class RedisMemberAdapterLocalIntegrationTest {
     // ==================== Pageable 메타데이터 ====================
 
     @Test
-    @DisplayName("반환된 Page의 pageNumber와 pageSize가 요청값과 일치한다")
-    void pageMetadata_shouldMatchRequest() {
+    @DisplayName("저장된 캐시의 데이터 사이즈가 입력과 일치한다")
+    void savedDataSize_shouldMatchInput() {
         // Given
         redisMemberAdapter.saveMemberPage(2, 20, buildMembers(100L, 101L));
 
         // When
-        Page<SimpleMemberDTO> result = redisMemberAdapter.getMemberByPage(2, 20);
+        CachedMemberPage result = redisMemberAdapter.lookup(2, 20);
 
         // Then
-        assertThat(result.getPageable().getPageNumber()).isEqualTo(2);
-        assertThat(result.getPageable().getPageSize()).isEqualTo(20);
-        assertThat(result.getContent()).hasSize(2);
+        assertThat(result).isNotNull();
+        assertThat(result.data()).hasSize(2);
     }
 
     // ==================== 헬퍼 ====================

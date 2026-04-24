@@ -12,8 +12,11 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter;
+import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter.CachedMemberPage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +43,7 @@ public class MemberQueryService {
     private final MemberRepository memberRepository;
     private final SettingRepository settingRepository;
     private final RedisMemberAdapter redisMemberAdapter;
+    private final MemberCacheRefresher memberCacheRefresher;
     private final ConcurrentHashMap<String, CompletableFuture<Page<SimpleMemberDTO>>> inFlight = new ConcurrentHashMap<>();
 
     /**
@@ -125,20 +129,28 @@ public class MemberQueryService {
     public Page<SimpleMemberDTO> findAllMembers(Pageable pageable) {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
-        Page<SimpleMemberDTO> memberByPage = redisMemberAdapter.getMemberByPage(page, size);
-        if (!memberByPage.isEmpty()) {
-            return memberByPage;
+        String flightKey = page + ":" + size;
+
+        CachedMemberPage cached = redisMemberAdapter.lookup(page, size);
+        if (cached != null) {
+            Page<SimpleMemberDTO> data = toPage(cached, page, size);
+            if (cached.isStale()) {
+                CompletableFuture<Page<SimpleMemberDTO>> marker = CompletableFuture.completedFuture(data);
+                if (inFlight.putIfAbsent(flightKey, marker) == null) {
+                    memberCacheRefresher.refresh(page, size, () -> inFlight.remove(flightKey, marker));
+                }
+            }
+            return data;
         }
 
-        String flightKey = page + ":" + size;
         CompletableFuture<Page<SimpleMemberDTO>> newFuture = new CompletableFuture<>();
         CompletableFuture<Page<SimpleMemberDTO>> existing = inFlight.putIfAbsent(flightKey, newFuture);
-
         if (existing != null) {
             try {
                 return existing.get(5, TimeUnit.SECONDS);
             } catch (ExecutionException | InterruptedException | TimeoutException e) {
-                return redisMemberAdapter.getMemberByPage(page, size);
+                CachedMemberPage again = redisMemberAdapter.lookup(page, size);
+                return again != null ? toPage(again, page, size) : Page.empty();
             }
         }
 
@@ -153,6 +165,10 @@ public class MemberQueryService {
         } finally {
             inFlight.remove(flightKey, newFuture);
         }
+    }
+
+    private static Page<SimpleMemberDTO> toPage(CachedMemberPage cached, int page, int size) {
+        return new PageImpl<>(cached.data(), PageRequest.of(page, size), cached.data().size());
     }
 
     /**
