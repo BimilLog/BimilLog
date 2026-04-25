@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * <h2>공통 비동기 처리 설정</h2>
@@ -37,6 +38,7 @@ public class AsyncConfig {
         executor.setQueueCapacity(12);
         executor.setThreadNamePrefix("member-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
         executor.setAwaitTerminationSeconds(60);
         executor.initialize();
         return executor;

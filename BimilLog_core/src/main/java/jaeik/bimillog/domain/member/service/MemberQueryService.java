@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -45,6 +46,7 @@ public class MemberQueryService {
     private final RedisMemberAdapter redisMemberAdapter;
     private final MemberCacheRefresher memberCacheRefresher;
     private final ConcurrentHashMap<String, CompletableFuture<Page<SimpleMemberDTO>>> inFlight = new ConcurrentHashMap<>();
+    private final Set<String> softRefreshing = ConcurrentHashMap.newKeySet();
 
     /**
      * <h3>ID로 사용자 조회</h3>
@@ -133,16 +135,16 @@ public class MemberQueryService {
 
         CachedMemberPage cached = redisMemberAdapter.lookup(page, size);
         if (cached != null) {
-            Page<SimpleMemberDTO> data = toPage(cached, page, size);
-            if (cached.isStale()) {
-                CompletableFuture<Page<SimpleMemberDTO>> marker = CompletableFuture.completedFuture(data);
-                if (inFlight.putIfAbsent(flightKey, marker) == null) {
-                    memberCacheRefresher.refresh(page, size, () -> inFlight.remove(flightKey, marker));
-                }
+            Page<SimpleMemberDTO> data = new PageImpl<>(cached.data(), PageRequest.of(page, size), cached.data().size());
+            if (cached.isStale() && softRefreshing.add(flightKey)) {
+                memberCacheRefresher.refresh(page, size, () -> softRefreshing.remove(flightKey));
             }
             return data;
         }
+        return singleFlight(pageable, flightKey, page, size);
+    }
 
+    private Page<SimpleMemberDTO> singleFlight(Pageable pageable, String flightKey, int page, int size) {
         CompletableFuture<Page<SimpleMemberDTO>> newFuture = new CompletableFuture<>();
         CompletableFuture<Page<SimpleMemberDTO>> existing = inFlight.putIfAbsent(flightKey, newFuture);
         if (existing != null) {
@@ -150,7 +152,9 @@ public class MemberQueryService {
                 return existing.get(5, TimeUnit.SECONDS);
             } catch (ExecutionException | InterruptedException | TimeoutException e) {
                 CachedMemberPage again = redisMemberAdapter.lookup(page, size);
-                return again != null ? toPage(again, page, size) : Page.empty();
+                return again != null ?
+                        new PageImpl<>(again.data(), PageRequest.of(page, size), again.data().size())
+                        : Page.empty();
             }
         }
 
@@ -165,10 +169,6 @@ public class MemberQueryService {
         } finally {
             inFlight.remove(flightKey, newFuture);
         }
-    }
-
-    private static Page<SimpleMemberDTO> toPage(CachedMemberPage cached, int page, int size) {
-        return new PageImpl<>(cached.data(), PageRequest.of(page, size), cached.data().size());
     }
 
     /**
