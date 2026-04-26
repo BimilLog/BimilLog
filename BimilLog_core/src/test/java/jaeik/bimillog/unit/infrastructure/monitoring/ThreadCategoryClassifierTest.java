@@ -15,8 +15,8 @@ class ThreadCategoryClassifierTest {
     private final ThreadCategoryClassifier classifier = new ThreadCategoryClassifier();
 
     @Test
-    @DisplayName("http-nio- prefix 스레드는 톰캣으로 분류된다")
-    void classifyTomcatPrefix() {
+    @DisplayName("http-nio- prefix 스레드의 스택이 비어있으면 TOMCAT_IDLE로 분류된다")
+    void classifyTomcatPrefixWithEmptyStackReturnsIdle() {
         ThreadCategory result = classifier.classify("http-nio-8080-exec-1", new StackTraceElement[0]);
 
         assertThat(result).isEqualTo(ThreadCategory.TOMCAT_IDLE);
