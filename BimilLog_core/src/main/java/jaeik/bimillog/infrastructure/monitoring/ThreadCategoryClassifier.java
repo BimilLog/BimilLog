@@ -1,5 +1,7 @@
 package jaeik.bimillog.infrastructure.monitoring;
 
+import org.springframework.stereotype.Component;
+
 import java.util.Set;
 
 /**
@@ -10,6 +12,7 @@ import java.util.Set;
  * @author Jaeik
  * @version 2.8.0
  */
+@Component
 public class ThreadCategoryClassifier {
 
     private static final String TOMCAT_PREFIX = "http-nio-";
