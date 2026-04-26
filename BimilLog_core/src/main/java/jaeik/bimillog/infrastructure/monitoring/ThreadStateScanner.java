@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.monitoring;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -39,7 +38,6 @@ public class ThreadStateScanner {
     private final AtomicInteger systemCount = new AtomicInteger();
     private final Map<Thread.State, AtomicInteger> tomcatBusyByState = new EnumMap<>(Thread.State.class);
 
-    @Autowired
     public ThreadStateScanner(MeterRegistry meterRegistry, ThreadCategoryClassifier classifier) {
         this.meterRegistry = meterRegistry;
         this.classifier = classifier;
