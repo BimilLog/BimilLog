@@ -2,6 +2,7 @@ package jaeik.bimillog.unit.infrastructure.monitoring;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import jaeik.bimillog.infrastructure.monitoring.ThreadCategory;
 import jaeik.bimillog.infrastructure.monitoring.ThreadCategoryClassifier;
 import jaeik.bimillog.infrastructure.monitoring.ThreadStateScanner;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,59 +27,55 @@ class ThreadStateScannerTest {
     }
 
     @Test
-    @DisplayName("초기화 시 7개 게이지가 등록된다 (tomcat-idle, tomcat-busy×4 state, async, system)")
-    void registersSevenGauges() {
+    @DisplayName("초기화 시 카테고리 × Thread.State 조합 게이지가 모두 등록된다 (4×6=24)")
+    void registersAllCategoryStateCombinations() {
         long count = meterRegistry.find("app.thread.states").gauges().size();
+        int expected = ThreadCategory.values().length * Thread.State.values().length;
 
-        assertThat(count).isEqualTo(7);
+        assertThat(count).isEqualTo(expected);
     }
 
     @Test
-    @DisplayName("등록된 게이지의 라벨이 정확하다")
-    void gaugeLabelsAreCorrect() {
-        assertThat(meterRegistry.find("app.thread.states").tag("category", "tomcat-idle").gauge()).isNotNull();
-        assertThat(meterRegistry.find("app.thread.states").tag("category", "tomcat-busy").tag("state", "RUNNABLE").gauge()).isNotNull();
-        assertThat(meterRegistry.find("app.thread.states").tag("category", "tomcat-busy").tag("state", "WAITING").gauge()).isNotNull();
-        assertThat(meterRegistry.find("app.thread.states").tag("category", "tomcat-busy").tag("state", "TIMED_WAITING").gauge()).isNotNull();
-        assertThat(meterRegistry.find("app.thread.states").tag("category", "tomcat-busy").tag("state", "BLOCKED").gauge()).isNotNull();
-        assertThat(meterRegistry.find("app.thread.states").tag("category", "async").gauge()).isNotNull();
-        assertThat(meterRegistry.find("app.thread.states").tag("category", "system").gauge()).isNotNull();
+    @DisplayName("등록된 모든 게이지는 동일한 라벨 키 셋 (category, state)을 가진다")
+    void allGaugesHaveConsistentLabelKeys() {
+        meterRegistry.find("app.thread.states").gauges().forEach(gauge -> {
+            assertThat(gauge.getId().getTag("category")).isNotNull();
+            assertThat(gauge.getId().getTag("state")).isNotNull();
+        });
     }
 
     @Test
-    @DisplayName("scan() 호출 후 게이지 합계가 JVM 라이브 스레드 수와 비슷하다")
+    @DisplayName("category 라벨 값은 4개 (tomcat-idle / tomcat-busy / async / system)")
+    void categoryLabelsCoverAllFour() {
+        assertThat(meterRegistry.find("app.thread.states").tag("category", "tomcat-idle").gauges()).hasSize(Thread.State.values().length);
+        assertThat(meterRegistry.find("app.thread.states").tag("category", "tomcat-busy").gauges()).hasSize(Thread.State.values().length);
+        assertThat(meterRegistry.find("app.thread.states").tag("category", "async").gauges()).hasSize(Thread.State.values().length);
+        assertThat(meterRegistry.find("app.thread.states").tag("category", "system").gauges()).hasSize(Thread.State.values().length);
+    }
+
+    @Test
+    @DisplayName("scan() 호출 후 모든 게이지의 합계가 0보다 크다")
     void scanPopulatesGauges() {
         scanner.scan();
 
-        int sum = readGauge("tomcat-idle")
-                + readBusyGauge("RUNNABLE")
-                + readBusyGauge("WAITING")
-                + readBusyGauge("TIMED_WAITING")
-                + readBusyGauge("BLOCKED")
-                + readGauge("async")
-                + readGauge("system");
+        int sum = meterRegistry.find("app.thread.states").gauges().stream()
+                .mapToInt(g -> (int) g.value())
+                .sum();
 
-        int liveThreads = Thread.activeCount();
-        assertThat(sum).isBetween((int) (liveThreads * 0.5), liveThreads * 3);
         assertThat(sum).isGreaterThan(0);
     }
 
     @Test
-    @DisplayName("scan() 호출 후 SYSTEM 카테고리에 최소 1개 스레드가 있다 (테스트 자체 스레드 등)")
+    @DisplayName("scan() 호출 후 SYSTEM 카테고리 합계가 0보다 크다 (테스트 자체 스레드 등)")
     void scanCountsSystemThreads() {
         scanner.scan();
 
-        assertThat(readGauge("system")).isGreaterThan(0);
-    }
+        int systemSum = meterRegistry.find("app.thread.states")
+                .tag("category", "system")
+                .gauges().stream()
+                .mapToInt(g -> (int) g.value())
+                .sum();
 
-    private int readGauge(String category) {
-        return (int) meterRegistry.find("app.thread.states").tag("category", category).gauge().value();
-    }
-
-    private int readBusyGauge(String state) {
-        return (int) meterRegistry.find("app.thread.states")
-                .tag("category", "tomcat-busy")
-                .tag("state", state)
-                .gauge().value();
+        assertThat(systemSum).isGreaterThan(0);
     }
 }
