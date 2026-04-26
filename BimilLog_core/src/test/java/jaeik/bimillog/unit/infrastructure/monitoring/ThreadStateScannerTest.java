@@ -27,7 +27,7 @@ class ThreadStateScannerTest {
     }
 
     @Test
-    @DisplayName("초기화 시 카테고리 × Thread.State 조합 게이지가 모두 등록된다 (4×6=24)")
+    @DisplayName("초기화 시 카테고리 × Thread.State 조합 게이지가 모두 등록된다 (3×6=18)")
     void registersAllCategoryStateCombinations() {
         long count = meterRegistry.find("app.thread.states").gauges().size();
         int expected = ThreadCategory.values().length * Thread.State.values().length;
@@ -45,10 +45,9 @@ class ThreadStateScannerTest {
     }
 
     @Test
-    @DisplayName("category 라벨 값은 4개 (tomcat-idle / tomcat-busy / async / system)")
-    void categoryLabelsCoverAllFour() {
-        assertThat(meterRegistry.find("app.thread.states").tag("category", "tomcat-idle").gauges()).hasSize(Thread.State.values().length);
-        assertThat(meterRegistry.find("app.thread.states").tag("category", "tomcat-busy").gauges()).hasSize(Thread.State.values().length);
+    @DisplayName("category 라벨 값은 3개 (tomcat / async / system)")
+    void categoryLabelsCoverAllThree() {
+        assertThat(meterRegistry.find("app.thread.states").tag("category", "tomcat").gauges()).hasSize(Thread.State.values().length);
         assertThat(meterRegistry.find("app.thread.states").tag("category", "async").gauges()).hasSize(Thread.State.values().length);
         assertThat(meterRegistry.find("app.thread.states").tag("category", "system").gauges()).hasSize(Thread.State.values().length);
     }
