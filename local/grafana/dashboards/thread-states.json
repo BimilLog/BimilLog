@@ -1,0 +1,134 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "expr": "app_thread_states{category=\"tomcat-idle\"}", "legendFormat": "tomcat-idle", "refId": "A" },
+        { "expr": "sum(app_thread_states{category=\"tomcat-busy\"})", "legendFormat": "tomcat-busy", "refId": "B" },
+        { "expr": "app_thread_states{category=\"async\"}", "legendFormat": "async", "refId": "C" },
+        { "expr": "app_thread_states{category=\"system\"}", "legendFormat": "system", "refId": "D" },
+        { "expr": "tomcat_threads_config_max_threads{name=\"http-nio-8080\"}", "legendFormat": "tomcat max-threads", "refId": "E" }
+      ],
+      "title": "Thread Categories (stacked) — tomcat-busy 합계 + tomcat max-threads 기준선",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 40,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 9 },
+      "id": 2,
+      "options": {
+        "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "expr": "app_thread_states{category=\"tomcat-busy\", state=\"RUNNABLE\"}", "legendFormat": "RUNNABLE", "refId": "A" },
+        { "expr": "app_thread_states{category=\"tomcat-busy\", state=\"TIMED_WAITING\"}", "legendFormat": "TIMED_WAITING (Future.get 등)", "refId": "B" },
+        { "expr": "app_thread_states{category=\"tomcat-busy\", state=\"WAITING\"}", "legendFormat": "WAITING", "refId": "C" },
+        { "expr": "app_thread_states{category=\"tomcat-busy\", state=\"BLOCKED\"}", "legendFormat": "BLOCKED", "refId": "D" }
+      ],
+      "title": "Tomcat Busy 분해 — Thread.State별 (병목 위치 식별)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.7 },
+              { "color": "red", "value": 0.9 }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 18 },
+      "id": 3,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        {
+          "expr": "sum(app_thread_states{category=~\"tomcat-.*\"}) / tomcat_threads_config_max_threads{name=\"http-nio-8080\"}",
+          "legendFormat": "tomcat 풀 점유율",
+          "refId": "A"
+        }
+      ],
+      "title": "Tomcat Pool 점유율 (busy+idle 합 / max-threads)",
+      "type": "gauge"
+    }
+  ],
+  "refresh": "1s",
+  "schemaVersion": 39,
+  "tags": ["bimillog", "load-test"],
+  "templating": { "list": [] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "BimilLog Thread States",
+  "uid": "bimillog-thread-states",
+  "version": 1,
+  "weekStart": ""
+}
