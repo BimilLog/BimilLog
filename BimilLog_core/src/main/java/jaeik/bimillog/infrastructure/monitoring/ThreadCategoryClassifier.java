@@ -6,8 +6,8 @@ import java.util.Set;
 
 /**
  * <h2>스레드 분류기</h2>
- * <p>스레드 이름 prefix와 스택 최상단 프레임을 보고 {@link ThreadCategory}를 판별한다.</p>
- * <p>순수 함수 — 외부 상태 의존 없이 단위 테스트 가능하다.</p>
+ * <p>스레드 이름 prefix만으로 {@link ThreadCategory}를 판별한다.</p>
+ * <p>톰캣 풀 안/밖 구분은 Spring Boot Actuator의 {@code tomcat_threads_*} 메트릭으로 위임한다.</p>
  *
  * @author Jaeik
  * @version 2.8.0
@@ -16,19 +16,6 @@ import java.util.Set;
 public class ThreadCategoryClassifier {
 
     private static final String TOMCAT_PREFIX = "http-nio-";
-
-    /**
-     * 톰캣 스레드가 풀 안에서 작업을 대기할 때 스택 최상단에 나타나는 클래스들.
-     */
-    private static final Set<String> TOMCAT_IDLE_TOP_CLASSES = Set.of(
-            "org.apache.tomcat.util.threads.TaskQueue",
-            "java.util.concurrent.LinkedBlockingQueue"
-    );
-
-    /**
-     * 톰캣 풀 안 대기 시 호출되는 메서드 이름.
-     */
-    private static final Set<String> TOMCAT_IDLE_TOP_METHODS = Set.of("poll", "take");
 
     /**
      * 비동기 풀 스레드 이름 prefix 화이트리스트.
@@ -54,13 +41,13 @@ public class ThreadCategoryClassifier {
             "circuit-sync-"
     );
 
-    public ThreadCategory classify(String threadName, StackTraceElement[] stack) {
+    public ThreadCategory classify(String threadName) {
         if (threadName == null) {
             return ThreadCategory.SYSTEM;
         }
 
         if (threadName.startsWith(TOMCAT_PREFIX)) {
-            return classifyTomcat(stack);
+            return ThreadCategory.TOMCAT;
         }
 
         for (String prefix : ASYNC_PREFIXES) {
@@ -70,21 +57,5 @@ public class ThreadCategoryClassifier {
         }
 
         return ThreadCategory.SYSTEM;
-    }
-
-    private ThreadCategory classifyTomcat(StackTraceElement[] stack) {
-        if (stack == null || stack.length == 0) {
-            return ThreadCategory.TOMCAT_IDLE;
-        }
-
-        StackTraceElement top = stack[0];
-        boolean idleTopClass = TOMCAT_IDLE_TOP_CLASSES.contains(top.getClassName());
-        boolean idleTopMethod = TOMCAT_IDLE_TOP_METHODS.contains(top.getMethodName());
-
-        if (idleTopClass && idleTopMethod) {
-            return ThreadCategory.TOMCAT_IDLE;
-        }
-
-        return ThreadCategory.TOMCAT_BUSY;
     }
 }

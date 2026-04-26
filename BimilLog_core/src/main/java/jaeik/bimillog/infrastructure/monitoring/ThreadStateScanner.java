@@ -17,8 +17,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * (카테고리 × Thread.State) 조합으로 집계한 뒤 Micrometer 게이지로 노출한다.</p>
  *
  * <p>모든 게이지는 동일한 라벨 키 셋 {@code (category, state)}을 가진다.
- * Prometheus는 같은 메트릭 이름의 시리즈들이 라벨 키 셋이 일치해야 모두 노출하므로,
- * 카테고리 4개 × {@link Thread.State} 6개 = 24개 게이지를 모두 등록한다 (값이 0이어도).</p>
+ * 카테고리 3개 × {@link Thread.State} 6개 = 18개 게이지를 모두 등록한다 (값이 0이어도).</p>
+ *
+ * <p>톰캣 풀 안/밖(idle/busy) 구분은 Spring Boot Actuator의 {@code tomcat_threads_*} 메트릭으로 위임한다.</p>
  *
  * <p>{@code monitoring.thread-scanner.enabled=true}일 때만 빈으로 등록된다.</p>
  *
@@ -36,9 +37,6 @@ public class ThreadStateScanner {
     private final MeterRegistry meterRegistry;
     private final ThreadCategoryClassifier classifier;
 
-    /**
-     * 카테고리 × Thread.State 조합별 카운터. 모든 조합이 미리 채워져 있다.
-     */
     private final Map<ThreadCategory, EnumMap<Thread.State, AtomicInteger>> gauges = new EnumMap<>(ThreadCategory.class);
 
     public ThreadStateScanner(MeterRegistry meterRegistry, ThreadCategoryClassifier classifier) {
@@ -74,13 +72,10 @@ public class ThreadStateScanner {
             counts.put(category, stateCounts);
         }
 
-        Map<Thread, StackTraceElement[]> traces = Thread.getAllStackTraces();
-        for (Map.Entry<Thread, StackTraceElement[]> entry : traces.entrySet()) {
-            Thread thread = entry.getKey();
-            ThreadCategory category = classifier.classify(thread.getName(), entry.getValue());
-            Thread.State state = thread.getState();
-            counts.get(category).merge(state, 1, Integer::sum);
-        }
+        Thread.getAllStackTraces().keySet().forEach(thread -> {
+            ThreadCategory category = classifier.classify(thread.getName());
+            counts.get(category).merge(thread.getState(), 1, Integer::sum);
+        });
 
         counts.forEach((category, stateCounts) ->
                 stateCounts.forEach((state, count) ->
@@ -89,8 +84,7 @@ public class ThreadStateScanner {
 
     private static String toLabel(ThreadCategory category) {
         return switch (category) {
-            case TOMCAT_IDLE -> "tomcat-idle";
-            case TOMCAT_BUSY -> "tomcat-busy";
+            case TOMCAT -> "tomcat";
             case ASYNC -> "async";
             case SYSTEM -> "system";
         };

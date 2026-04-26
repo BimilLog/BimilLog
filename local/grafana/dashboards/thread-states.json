@@ -15,12 +15,12 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "drawStyle": "line",
-            "fillOpacity": 30,
+            "fillOpacity": 20,
             "lineInterpolation": "linear",
-            "lineWidth": 1,
+            "lineWidth": 2,
             "pointSize": 5,
             "showPoints": "never",
-            "stacking": { "group": "A", "mode": "normal" }
+            "stacking": { "group": "A", "mode": "none" }
           },
           "mappings": [],
           "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
@@ -35,13 +35,12 @@
         "tooltip": { "mode": "multi", "sort": "desc" }
       },
       "targets": [
-        {
-          "expr": "sum by (category) (app_thread_states)",
-          "legendFormat": "{{category}}",
-          "refId": "A"
-        }
+        { "expr": "tomcat_threads_config_max_threads", "legendFormat": "max-threads", "refId": "A" },
+        { "expr": "tomcat_threads_current_threads", "legendFormat": "current (풀 크기)", "refId": "B" },
+        { "expr": "tomcat_threads_busy_threads", "legendFormat": "busy (풀 밖에서 일하는 중)", "refId": "C" },
+        { "expr": "tomcat_threads_current_threads - tomcat_threads_busy_threads", "legendFormat": "idle (풀 안 대기)", "refId": "D" }
       ],
-      "title": "스레드 카테고리별 합계 (tomcat-idle / tomcat-busy / async / system)",
+      "title": "Tomcat 풀 상태 (Spring Boot Actuator) — max / current / busy / idle",
       "type": "timeseries"
     },
     {
@@ -53,7 +52,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "drawStyle": "line",
-            "fillOpacity": 40,
+            "fillOpacity": 30,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -74,12 +73,12 @@
       },
       "targets": [
         {
-          "expr": "sum by (state) (app_thread_states)",
-          "legendFormat": "{{state}}",
+          "expr": "sum by (category) (app_thread_states)",
+          "legendFormat": "{{category}}",
           "refId": "A"
         }
       ],
-      "title": "전체 스레드 Thread.State별 분해 (RUNNABLE / WAITING / TIMED_WAITING / BLOCKED / NEW / TERMINATED)",
+      "title": "스레드 카테고리별 합계 (tomcat / async / system)",
       "type": "timeseries"
     },
     {
@@ -112,12 +111,12 @@
       },
       "targets": [
         {
-          "expr": "sum by (state) (app_thread_states{category=\"tomcat-busy\"})",
+          "expr": "sum by (state) (app_thread_states)",
           "legendFormat": "{{state}}",
           "refId": "A"
         }
       ],
-      "title": "Tomcat 풀 밖 스레드 Thread.State별 분해 (병목 위치 식별)",
+      "title": "전체 스레드 Thread.State별 분해 (RUNNABLE / WAITING / TIMED_WAITING / BLOCKED / NEW / TERMINATED)",
       "type": "timeseries"
     }
   ],
@@ -130,6 +129,6 @@
   "timezone": "",
   "title": "BimilLog Thread States",
   "uid": "bimillog-thread-states",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
