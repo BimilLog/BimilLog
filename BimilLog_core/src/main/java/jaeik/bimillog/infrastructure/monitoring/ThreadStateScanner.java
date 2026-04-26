@@ -17,9 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * (카테고리 × Thread.State) 조합으로 집계한 뒤 Micrometer 게이지로 노출한다.</p>
  *
  * <p>모든 게이지는 동일한 라벨 키 셋 {@code (category, state)}을 가진다.
- * 카테고리 3개 × {@link Thread.State} 6개 = 18개 게이지를 모두 등록한다 (값이 0이어도).</p>
- *
- * <p>톰캣 풀 안/밖(idle/busy) 구분은 Spring Boot Actuator의 {@code tomcat_threads_*} 메트릭으로 위임한다.</p>
+ * 카테고리 4개 × {@link Thread.State} 6개 = 24개 게이지를 모두 등록한다 (값이 0이어도).</p>
  *
  * <p>{@code monitoring.thread-scanner.enabled=true}일 때만 빈으로 등록된다.</p>
  *
@@ -72,10 +70,12 @@ public class ThreadStateScanner {
             counts.put(category, stateCounts);
         }
 
-        Thread.getAllStackTraces().keySet().forEach(thread -> {
-            ThreadCategory category = classifier.classify(thread.getName());
+        Map<Thread, StackTraceElement[]> traces = Thread.getAllStackTraces();
+        for (Map.Entry<Thread, StackTraceElement[]> entry : traces.entrySet()) {
+            Thread thread = entry.getKey();
+            ThreadCategory category = classifier.classify(thread.getName(), entry.getValue());
             counts.get(category).merge(thread.getState(), 1, Integer::sum);
-        });
+        }
 
         counts.forEach((category, stateCounts) ->
                 stateCounts.forEach((state, count) ->
@@ -84,7 +84,8 @@ public class ThreadStateScanner {
 
     private static String toLabel(ThreadCategory category) {
         return switch (category) {
-            case TOMCAT -> "tomcat";
+            case TOMCAT_IDLE -> "tomcat-idle";
+            case TOMCAT_BUSY -> "tomcat-busy";
             case ASYNC -> "async";
             case SYSTEM -> "system";
         };

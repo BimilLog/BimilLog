@@ -28,7 +28,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "options": {
         "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
@@ -65,7 +65,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 9 },
       "id": 2,
       "options": {
         "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
@@ -78,7 +78,7 @@
           "refId": "A"
         }
       ],
-      "title": "스레드 카테고리별 합계 (tomcat / async / system)",
+      "title": "스레드 카테고리별 합계 (tomcat-idle / tomcat-busy / async / system)",
       "type": "timeseries"
     },
     {
@@ -103,7 +103,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 18 },
       "id": 3,
       "options": {
         "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
@@ -118,6 +118,82 @@
       ],
       "title": "전체 스레드 Thread.State별 분해 (RUNNABLE / WAITING / TIMED_WAITING / BLOCKED / NEW / TERMINATED)",
       "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 40,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 27 },
+      "id": 4,
+      "options": {
+        "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "expr": "app_thread_states{category=\"tomcat-idle\"}",
+          "legendFormat": "{{state}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Tomcat-idle (풀 안 대기 워커) Thread.State별 분해",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 40,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 36 },
+      "id": 5,
+      "options": {
+        "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "expr": "app_thread_states{category=\"tomcat-busy\"}",
+          "legendFormat": "{{state}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Tomcat-busy (풀 밖 처리 중 워커) Thread.State별 분해 (병목 위치 식별)",
+      "type": "timeseries"
     }
   ],
   "refresh": "1s",
@@ -129,6 +205,6 @@
   "timezone": "",
   "title": "BimilLog Thread States",
   "uid": "bimillog-thread-states",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }

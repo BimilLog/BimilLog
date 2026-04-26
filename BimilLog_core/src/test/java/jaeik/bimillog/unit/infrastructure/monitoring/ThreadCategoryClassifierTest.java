@@ -15,10 +15,61 @@ class ThreadCategoryClassifierTest {
     private final ThreadCategoryClassifier classifier = new ThreadCategoryClassifier();
 
     @Test
-    @DisplayName("http-nio- prefix 스레드는 TOMCAT으로 분류된다")
-    void classifyTomcatPrefix() {
-        assertThat(classifier.classify("http-nio-8080-exec-1")).isEqualTo(ThreadCategory.TOMCAT);
-        assertThat(classifier.classify("http-nio-8080-exec-7")).isEqualTo(ThreadCategory.TOMCAT);
+    @DisplayName("톰캣 워커 스택이 비어있으면 TOMCAT_IDLE로 분류된다")
+    void classifyTomcatWorkerWithEmptyStackReturnsIdle() {
+        ThreadCategory result = classifier.classify("http-nio-8080-exec-1", new StackTraceElement[0]);
+
+        assertThat(result).isEqualTo(ThreadCategory.TOMCAT_IDLE);
+    }
+
+    @Test
+    @DisplayName("톰캣 워커 스택 최상단이 TaskQueue.poll이면 TOMCAT_IDLE로 분류된다")
+    void classifyTomcatIdleByStackTop() {
+        StackTraceElement[] stack = {
+                new StackTraceElement("org.apache.tomcat.util.threads.TaskQueue", "poll", "TaskQueue.java", 100),
+                new StackTraceElement("java.util.concurrent.ThreadPoolExecutor", "getTask", "ThreadPoolExecutor.java", 1000)
+        };
+
+        ThreadCategory result = classifier.classify("http-nio-8080-exec-3", stack);
+
+        assertThat(result).isEqualTo(ThreadCategory.TOMCAT_IDLE);
+    }
+
+    @Test
+    @DisplayName("톰캣 워커 스택 최상단이 LinkedBlockingQueue.take면 TOMCAT_IDLE로 분류된다")
+    void classifyTomcatIdleByLinkedBlockingQueue() {
+        StackTraceElement[] stack = {
+                new StackTraceElement("java.util.concurrent.LinkedBlockingQueue", "take", "LinkedBlockingQueue.java", 433),
+                new StackTraceElement("java.util.concurrent.ThreadPoolExecutor", "getTask", "ThreadPoolExecutor.java", 1000)
+        };
+
+        ThreadCategory result = classifier.classify("http-nio-8080-exec-7", stack);
+
+        assertThat(result).isEqualTo(ThreadCategory.TOMCAT_IDLE);
+    }
+
+    @Test
+    @DisplayName("톰캣 워커가 요청 처리 중(스택 최상단이 큐가 아님)이면 TOMCAT_BUSY로 분류된다")
+    void classifyTomcatBusyWhenProcessingRequest() {
+        StackTraceElement[] stack = {
+                new StackTraceElement("jaeik.bimillog.domain.member.service.MemberQueryService", "getProfile", "MemberQueryService.java", 50),
+                new StackTraceElement("org.springframework.web.servlet.DispatcherServlet", "doDispatch", "DispatcherServlet.java", 1000)
+        };
+
+        ThreadCategory result = classifier.classify("http-nio-8080-exec-5", stack);
+
+        assertThat(result).isEqualTo(ThreadCategory.TOMCAT_BUSY);
+    }
+
+    @Test
+    @DisplayName("톰캣 NIO 인프라 스레드(워커가 아닌 http-nio-* 스레드)는 SYSTEM으로 분류된다")
+    void classifyTomcatNioInfrastructureAsSystem() {
+        assertThat(classifier.classify("http-nio-8080-Acceptor", new StackTraceElement[0]))
+                .isEqualTo(ThreadCategory.SYSTEM);
+        assertThat(classifier.classify("http-nio-8080-ClientPoller", new StackTraceElement[0]))
+                .isEqualTo(ThreadCategory.SYSTEM);
+        assertThat(classifier.classify("http-nio-8080-BlockPoller", new StackTraceElement[0]))
+                .isEqualTo(ThreadCategory.SYSTEM);
     }
 
     @Test
@@ -43,22 +94,27 @@ class ThreadCategoryClassifierTest {
         };
 
         for (String name : asyncPrefixes) {
-            assertThat(classifier.classify(name)).as("prefix=%s", name).isEqualTo(ThreadCategory.ASYNC);
+            ThreadCategory result = classifier.classify(name, new StackTraceElement[0]);
+            assertThat(result).as("prefix=%s", name).isEqualTo(ThreadCategory.ASYNC);
         }
     }
 
     @Test
     @DisplayName("매칭되지 않는 스레드는 SYSTEM으로 분류된다")
     void classifySystemFallback() {
-        assertThat(classifier.classify("HikariPool-1-housekeeper")).isEqualTo(ThreadCategory.SYSTEM);
-        assertThat(classifier.classify("lettuce-eventExecutorLoop-1-1")).isEqualTo(ThreadCategory.SYSTEM);
-        assertThat(classifier.classify("ForkJoinPool.commonPool-worker-1")).isEqualTo(ThreadCategory.SYSTEM);
-        assertThat(classifier.classify("scheduling-1")).isEqualTo(ThreadCategory.SYSTEM);
+        assertThat(classifier.classify("HikariPool-1-housekeeper", new StackTraceElement[0]))
+                .isEqualTo(ThreadCategory.SYSTEM);
+        assertThat(classifier.classify("lettuce-eventExecutorLoop-1-1", new StackTraceElement[0]))
+                .isEqualTo(ThreadCategory.SYSTEM);
+        assertThat(classifier.classify("ForkJoinPool.commonPool-worker-1", new StackTraceElement[0]))
+                .isEqualTo(ThreadCategory.SYSTEM);
+        assertThat(classifier.classify("scheduling-1", new StackTraceElement[0]))
+                .isEqualTo(ThreadCategory.SYSTEM);
     }
 
     @Test
     @DisplayName("null 스레드명은 SYSTEM으로 분류된다")
     void classifyNullThreadName() {
-        assertThat(classifier.classify(null)).isEqualTo(ThreadCategory.SYSTEM);
+        assertThat(classifier.classify(null, new StackTraceElement[0])).isEqualTo(ThreadCategory.SYSTEM);
     }
 }
