@@ -5,6 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+  /* z-index 토큰 (popover/카드 stacking) */
+  --z-card-stack: 1;
+  --z-popover: 50;
+
   /* 비밀로그 브랜드 컬러 */
   --color-brand-pink-50: oklch(0.98 0.015 336);
   --color-brand-pink-100: oklch(0.95 0.03 336);
@@ -176,6 +180,14 @@
 
 /* 비밀로그 브랜드 유틸리티 클래스 */
 @layer utilities {
+  /* z-index 토큰 유틸리티 (B-M6: 인라인 style 제거) */
+  .z-card-stack {
+    z-index: var(--z-card-stack);
+  }
+  .z-popover {
+    z-index: var(--z-popover);
+  }
+
   /* Gray 색상 유틸리티 클래스 */
   .bg-gray-800 {
     background-color: var(--color-gray-800);

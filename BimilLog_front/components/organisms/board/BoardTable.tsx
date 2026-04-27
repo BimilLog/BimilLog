@@ -10,6 +10,7 @@ import {
   ThumbsUp,
   Eye,
   User,
+  Search,
 } from "lucide-react";
 import { FeaturedBadges } from "@/components/organisms/board/featured-badge";
 import {
@@ -179,16 +180,31 @@ const BoardTableRow = memo<TableRowProps>(({
   );
 });
 
-// 모바일용 카드 컴포넌트
+// 모바일용 카드 컴포넌트 (A-4: 카드 전체가 Link로 어포던스 강화)
 const BoardMobileCard = memo<TableRowProps>(({
   post,
   index,
   isRead,
   showRanking
 }) => {
+  // popover 트리거 클릭이 부모 카드 링크 라우팅을 막도록 stopPropagation
+  const stopPropagation = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <Card variant="elevated" className="transition-all hover:shadow-brand-md overflow-visible relative isolation-auto">
-      <div className="p-3">
+    <Card
+      data-testid="board-mobile-card"
+      variant="elevated"
+      className="relative transition-all hover:shadow-brand-md overflow-visible isolation-auto"
+    >
+      {/* 카드 전체를 덮는 invisible Link (좌상단 ~ 우하단) */}
+      <Link
+        href={`/board/post/${post.id}`}
+        aria-label={post.title}
+        className="absolute inset-0 z-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary"
+      />
+      <div className="relative z-10 p-3 pointer-events-none">
         <div className="mb-1.5 flex items-start justify-between">
           <div className="flex-1">
             {/* 순위 표시 (인기글 탭에서만) */}
@@ -201,13 +217,12 @@ const BoardMobileCard = memo<TableRowProps>(({
               <FeaturedBadges weekly={post.weekly} legend={post.legend} notice={post.notice} />
             </div>
 
-            {/* 제목 */}
-            <Link
-              href={`/board/post/${post.id}`}
+            {/* 제목 (overlay link로 클릭 처리되므로 시각적 텍스트만) */}
+            <h3
               className={`block text-sm font-semibold transition-colors line-clamp-2 ${
                 isRead
                   ? 'text-muted-foreground'
-                  : 'text-foreground hover:text-purple-600 dark:hover:text-purple-300'
+                  : 'text-foreground'
               }`}
             >
               {post.title}
@@ -216,38 +231,49 @@ const BoardMobileCard = memo<TableRowProps>(({
                   [{post.commentCount}]
                 </span>
               )}
-            </Link>
+            </h3>
           </div>
         </div>
 
         {/* 하단 정보 */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 min-w-0">
             {post.memberName && post.memberName !== "익명" ? (
-              <UserActionPopover
-                memberName={post.memberName}
-                trigger={
-                  <button className="inline-flex max-w-20 cursor-pointer items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300">
-                    <User className="w-3 h-3" />
-                    <span>{post.memberName}</span>
-                  </button>
-                }
-                placement="bottom"
-              />
+              <span
+                className="pointer-events-auto"
+                onClick={stopPropagation}
+                onKeyDown={stopPropagation}
+                role="presentation"
+              >
+                <UserActionPopover
+                  memberName={post.memberName}
+                  memberId={post.memberId}
+                  trigger={
+                    <button
+                      className="inline-flex max-w-32 cursor-pointer items-center gap-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300"
+                      aria-label={`작성자 ${post.memberName}`}
+                    >
+                      <User className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">작성자 {post.memberName}</span>
+                    </button>
+                  }
+                  placement="bottom"
+                />
+              </span>
             ) : (
-              <span className="inline-flex max-w-20 items-center space-x-1 truncate text-gray-500 dark:text-gray-400">
-                <User className="w-3 h-3" />
-                <span>{post.memberName || "익명"}</span>
+              <span className="inline-flex max-w-32 items-center gap-1 truncate text-muted-foreground">
+                <User className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{post.memberName || "익명"}</span>
               </span>
             )}
-            <span>{formatDate(post.createdAt)}</span>
+            <span className="text-xs flex-shrink-0">{formatDate(post.createdAt)}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="flex items-center gap-1 text-xs">
               <ThumbsUp className="w-3 h-3" />
               {post.likeCount}
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 text-xs">
               <Eye className="w-3 h-3" />
               {post.viewCount}
             </span>
@@ -297,6 +323,38 @@ export const BoardTable = memo<BoardTableProps>(({
     return <BoardTableSkeleton rows={6} showRanking={showRanking} />;
   }
 
+  // 빈 상태일 때 한 번만 노출 (B-M4: data-testid 중복 방지)
+  if (posts.length === 0) {
+    return (
+      <Card variant="elevated">
+        <div className="p-8 text-center text-muted-foreground">
+          {isSearching ? (
+            <div
+              data-testid="board-empty-state"
+              className="flex flex-col items-center gap-2"
+            >
+              <Search className="h-10 w-10 stroke-muted-foreground" />
+              <span className="font-medium text-foreground">검색 결과가 없습니다</span>
+              <span className="text-sm">검색어를 변경해보세요</span>
+            </div>
+          ) : variant === "all" ? (
+            <span>게시글이 없습니다.</span>
+          ) : variant === "legend" ? (
+            <div className="flex flex-col items-center gap-2">
+              <span className="font-medium text-foreground">아직 등록된 레전드 글이 없습니다</span>
+              <span className="text-sm">역대 최고 인기글이 선정되면 여기에 표시됩니다</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <span className="font-medium text-foreground">아직 인기글이 없어요</span>
+              <span className="text-sm">게시글을 작성하고 좋아요를 받아보세요!</span>
+            </div>
+          )}
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <>
       {/* 데스크톱 테이블 */}
@@ -315,52 +373,9 @@ export const BoardTable = memo<BoardTableProps>(({
             </TableRow>
           </TableHead>
           <TableBody className="divide-y divide-gray-100 dark:divide-slate-800">
-            {posts.length > 0 ? (
-              posts.map((post, index) => (
-                <BoardTableRow
-                  key={post.id}
-                  post={post}
-                  index={index}
-                  variant={variant}
-                  isRead={readStatus[post.id] || false}
-                  showRanking={showRanking}
-                  enablePopover={enablePopover}
-                />
-              ))
-            ) : (
-              <TableRow className="bg-white dark:bg-slate-900/70">
-                <TableCell
-                  colSpan={6}
-                  className="py-12 text-center"
-                >
-                  {isSearching ? (
-                    <span className="text-gray-500 dark:text-gray-400">검색 결과가 없습니다.</span>
-                  ) : variant === "all" ? (
-                    <span className="text-gray-500 dark:text-gray-400">게시글이 없습니다.</span>
-                  ) : variant === "legend" ? (
-                    <div className="flex flex-col items-center gap-2 text-brand-secondary dark:text-gray-300">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">아직 등록된 레전드 글이 없습니다</span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">역대 최고 인기글이 선정되면 여기에 표시됩니다</span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 text-brand-secondary dark:text-gray-300">
-                      <span className="font-medium text-gray-700 dark:text-gray-200">아직 인기글이 없어요 😊</span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">게시글을 작성하고 좋아요를 받아보세요!</span>
-                    </div>
-                  )}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* 모바일 카드 */}
-      <div className="space-y-3 sm:hidden overflow-visible">
-        {posts.length > 0 ? (
-          posts.map((post, index) => (
-            <div key={post.id} style={{ zIndex: posts.length - index }} className="relative">
-              <BoardMobileCard
+            {posts.map((post, index) => (
+              <BoardTableRow
+                key={post.id}
                 post={post}
                 index={index}
                 variant={variant}
@@ -368,29 +383,25 @@ export const BoardTable = memo<BoardTableProps>(({
                 showRanking={showRanking}
                 enablePopover={enablePopover}
               />
-            </div>
-          ))
-        ) : (
-          <Card variant="elevated">
-            <div className="p-8 text-center text-brand-secondary dark:text-gray-300">
-              {isSearching ? (
-                <span>검색 결과가 없습니다.</span>
-              ) : variant === "all" ? (
-                <span>게시글이 없습니다.</span>
-              ) : variant === "legend" ? (
-                <div className="flex flex-col items-center gap-2">
-                  <span className="font-medium text-gray-700 dark:text-gray-200">아직 등록된 레전드 글이 없습니다</span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">역대 최고 인기글이 선정되면 여기에 표시됩니다</span>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <span className="font-medium text-gray-700 dark:text-gray-200">아직 인기글이 없어요 😊</span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">게시글을 작성하고 좋아요를 받아보세요!</span>
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* 모바일 카드 */}
+      <div className="space-y-3 sm:hidden overflow-visible">
+        {posts.map((post, index) => (
+          <div key={post.id} className="relative isolation-auto z-card-stack">
+            <BoardMobileCard
+              post={post}
+              index={index}
+              variant={variant}
+              isRead={readStatus[post.id] || false}
+              showRanking={showRanking}
+              enablePopover={enablePopover}
+            />
+          </div>
+        ))}
       </div>
     </>
   );

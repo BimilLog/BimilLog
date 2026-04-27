@@ -115,7 +115,7 @@ export const NoticeList = memo(({ posts }: NoticeListProps) => {
         </CardContent>
       </Card>
       <div className="sm:hidden space-y-3 overflow-visible">
-      {posts.map((notice, index) => {
+      {posts.map((notice) => {
         const trimmedName = notice.memberName?.trim();
         const authorName =
           trimmedName && trimmedName.length > 0 ? trimmedName : "익명";
@@ -124,8 +124,7 @@ export const NoticeList = memo(({ posts }: NoticeListProps) => {
         return (
           <div
             key={notice.id}
-            style={{ zIndex: posts.length - index }}
-            className="relative"
+            className="relative isolation-auto z-card-stack"
           >
             <Card
               variant="elevated"
@@ -154,7 +153,7 @@ export const NoticeList = memo(({ posts }: NoticeListProps) => {
                     trigger="click"
                     placement="bottom"
                     theme={{
-                      base: "z-[9999] absolute",
+                      base: "z-popover absolute",
                     }}
                     content={
                       <div className="w-56 p-3">

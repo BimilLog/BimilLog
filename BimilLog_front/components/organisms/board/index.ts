@@ -4,7 +4,6 @@ export { default as BoardClientWithErrorBoundary } from './BoardClientWithErrorB
 export { BoardSearch } from './board-search';
 export { NoticeList } from './notice-list';
 export { BoardPagination } from './board-pagination';
-export { BoardHeader } from './BoardHeader';
 export { BoardTabs } from './BoardTabs';
 export { BoardTable } from './BoardTable';
 

@@ -25,7 +25,10 @@ export const BoardPagination = memo(({
   };
 
   return (
-    <div className="flex items-center justify-center mt-8">
+    <div
+      data-testid="board-pagination"
+      className="flex items-center justify-center mt-8"
+    >
       <Pagination
         currentPage={flowbiteCurrentPage}
         totalPages={totalPages}
@@ -36,20 +39,21 @@ export const BoardPagination = memo(({
         className="text-sm"
         theme={{
           pages: {
-            base: "xs:mt-0 mt-2 inline-flex items-center -space-x-px",
+            base: "xs:mt-0 mt-2 inline-flex items-center gap-1",
             showIcon: "inline-flex",
             previous: {
-              base: "ml-0 flex min-w-[3rem] items-center justify-center gap-1 rounded-l-lg border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
+              base: "ml-0 flex min-h-[44px] min-w-[44px] items-center justify-center gap-1 rounded-l-lg border border-border bg-card px-4 py-3 text-muted-foreground leading-tight hover:bg-accent hover:text-foreground",
               icon: "h-5 w-5"
             },
             next: {
-              base: "flex min-w-[3rem] items-center justify-center gap-1 rounded-r-lg border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
+              base: "flex min-h-[44px] min-w-[44px] items-center justify-center gap-1 rounded-r-lg border border-border bg-card px-4 py-3 text-muted-foreground leading-tight hover:bg-accent hover:text-foreground",
               icon: "h-5 w-5"
             },
             selector: {
-              base: "flex min-w-[3rem] items-center justify-center border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
-              active: "border-blue-500 bg-blue-500 text-white hover:bg-blue-500 hover:text-white dark:border-blue-400 dark:bg-blue-500",
-              disabled: "cursor-not-allowed text-gray-400 dark:text-gray-600"
+              base: "flex min-h-[44px] min-w-[44px] items-center justify-center border border-border bg-card px-4 py-3 text-muted-foreground leading-tight hover:bg-accent hover:text-foreground",
+              active:
+                "border-purple-500 bg-purple-500 text-white hover:bg-purple-500 hover:text-white dark:border-purple-400 dark:bg-purple-500",
+              disabled: "cursor-not-allowed text-muted-foreground/60"
             }
           }
         }}

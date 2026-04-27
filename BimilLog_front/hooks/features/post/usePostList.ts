@@ -81,13 +81,11 @@ export function useInfinitePostList(options: UseInfinitePostListOptions = {}) {
   }, [searchQuery.data?.data?.totalElements]);
 
   // URL 검색어 변경 시 동기화
+  // 의도: URL이 변할 때만 동기화. 사용자가 직접 입력 중인 값은 덮어쓰지 않음.
   useEffect(() => {
-    if (searchTerm !== initialSearchTerm) {
-      setSearchTerm(initialSearchTerm);
-    }
-    if (searchType !== initialSearchType) {
-      setSearchType(initialSearchType);
-    }
+    setSearchTerm(initialSearchTerm);
+    setSearchType(initialSearchType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialSearchTerm, initialSearchType]);
 
   // 게시글 목록 통합
@@ -115,6 +113,14 @@ export function useInfinitePostList(options: UseInfinitePostListOptions = {}) {
     isFetchingNextPage: listQuery.isFetchingNextPage,
     // 검색용 페이지네이션
     searchPagination: actualSearch ? searchPagination : null,
+    // 검색 결과 카운트 (A-2)
+    searchTotalElements: actualSearch
+      ? searchQuery.data?.data?.totalElements ?? 0
+      : undefined,
+    // 검색 중 spinner 노출용 (A-3)
+    isSearchFetching: actualSearch
+      ? searchQuery.isFetching || searchQuery.isLoading
+      : false,
     // 검색 관련
     searchTerm,
     setSearchTerm,
