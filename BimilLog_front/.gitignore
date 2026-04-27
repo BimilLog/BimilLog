@@ -52,3 +52,8 @@ public/workbox-*.js
 public/workbox-*.js.map
 public/worker-*.js
 public/worker-*.js.map
+
+# Playwright
+playwright-report/
+test-results/
+/e2e/.cache/
