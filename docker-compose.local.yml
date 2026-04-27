@@ -5,8 +5,6 @@ services:
     container_name: bimillog-redis-local
     ports:
       - "6380:6379"
-    mem_limit: 120m
-    cpus: 1.0
     command: redis-server --maxmemory 100mb --maxmemory-policy allkeys-lru --save ""
     networks:
       - bimillog-local
@@ -37,9 +35,7 @@ services:
     container_name: bimillog-backend-local
     ports:
       - "8080:8080"
-    # 운영 서버 시뮬레이션: 1GB RAM, 1 CPU 코어
-    mem_limit: 1g
-    memswap_limit: 2g
+      - "8082:8081"  # 액추에이터 전용 포트 (호스트 8082 → 컨테이너 8081)
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -212,27 +208,30 @@ services:
       - bimillog-local
     privileged: true
 
-  # JMeter (Load Testing)
-  jmeter:
-    image: justb4/jmeter:latest
-    container_name: bimillog-jmeter-local
-    profiles:
-      - loadtest
-    volumes:
-      - ./performance/jmeter:/tests
-      - ./performance/results:/results
-    networks:
-      - bimillog-local
-    depends_on:
-      - backend
-    command: >
-      -n -t /tests/member-load-test.jmx -JBACKEND_HOST=backend -l /results/member-load.jtl -e -o /results/member-report
+#  # JMeter (Load Testing)
+#  jmeter:
+#    build:
+#      context: ./performance/jmeter
+#      dockerfile: Dockerfile
+#    container_name: bimillog-jmeter-local
+#    profiles:
+#      - loadtest
+#    volumes:
+#      - ./performance/jmeter:/tests
+#      - ./performance/results:/results
+#    networks:
+#      - bimillog-local
+#    depends_on:
+#      - backend
+#    command: >
+#      -n -t /tests/member-load-test.jmx -JBACKEND_HOST=backend -l /results/member-load.jtl -e -o /results/member-report
 
 networks:
   bimillog-local:
     driver: bridge
 
 volumes:
+  redis-data-local:
   prometheus-data-local:
   grafana-data-local:
   scouter-data-local:
