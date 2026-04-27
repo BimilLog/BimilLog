@@ -5,27 +5,31 @@ import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.event.MemberCacheRefreshEvent;
 import jaeik.bimillog.domain.member.repository.MemberQueryRepository;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.domain.member.repository.SettingRepository;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.member.CacheMemberDTO;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter;
+import jaeik.bimillog.infrastructure.redis.member.RedisMemberAdapter.CachedMemberPage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * <h2>사용자 조회 서비스</h2>
@@ -40,11 +44,9 @@ public class MemberQueryService {
     private final MemberRepository memberRepository;
     private final SettingRepository settingRepository;
     private final RedisMemberAdapter redisMemberAdapter;
-    private final ApplicationEventPublisher eventPublisher;
+    private final MemberCacheRefresher memberCacheRefresher;
     private final ConcurrentHashMap<String, CompletableFuture<Page<SimpleMemberDTO>>> inFlight = new ConcurrentHashMap<>();
-
-    private static final double COMPUTE_TIME = 0.1; // 예상 DB 조회 시간 (초)
-    private static final double BETA = 20.0;        // PER 베타 값
+    private final Set<String> softRefreshing = ConcurrentHashMap.newKeySet();
 
     /**
      * <h3>ID로 사용자 조회</h3>
@@ -96,8 +98,8 @@ public class MemberQueryService {
      *
      * @param settingId 설정 ID
      * @return 설정 엔티티
-     * @author Jaeik
      * @since 2.0.0
+     * @author Jaeik
      */
     @Transactional(readOnly = true)
     public Setting findBySettingId(Long settingId) {
@@ -129,40 +131,38 @@ public class MemberQueryService {
     public Page<SimpleMemberDTO> findAllMembers(Pageable pageable) {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
-        // - (0.1 * 20 * 로그 (랜덤)) > 남은 시간
-        Optional<CacheMemberDTO> cacheResult = redisMemberAdapter.getMemberByPageWithPER(page, size);
-
-        if (cacheResult.isPresent()) {
-            CacheMemberDTO cacheMemberDTO = cacheResult.get();
-            Page<SimpleMemberDTO> simpleMemberDTOPage = cacheMemberDTO.getSimpleMemberDTOPage();
-            Double computeTTL = cacheMemberDTO.getComputeTTL();
-            double random = ThreadLocalRandom.current().nextDouble(0.0001, 1);
-
-            if ((COMPUTE_TIME * BETA * Math.log(random)) < -computeTTL) { // PER 조건 만족
-                eventPublisher.publishEvent(new MemberCacheRefreshEvent(pageable));
-            }
-
-            return simpleMemberDTOPage; // 반환
-        }
-
-        // 캐시 만료 시 싱글 플라이트
         String flightKey = page + ":" + size;
+
+        CachedMemberPage cached = redisMemberAdapter.lookup(page, size);
+        if (cached != null) {
+            Page<SimpleMemberDTO> data = new PageImpl<>(cached.data(), PageRequest.of(page, size), cached.data().size());
+            if (cached.isStale() && softRefreshing.add(flightKey)) {
+                memberCacheRefresher.refresh(page, size, () -> softRefreshing.remove(flightKey));
+            }
+            return data;
+        }
+        return singleFlight(pageable, flightKey, page, size);
+    }
+
+    private Page<SimpleMemberDTO> singleFlight(Pageable pageable, String flightKey, int page, int size) {
         CompletableFuture<Page<SimpleMemberDTO>> newFuture = new CompletableFuture<>();
         CompletableFuture<Page<SimpleMemberDTO>> existing = inFlight.putIfAbsent(flightKey, newFuture);
-
         if (existing != null) {
             try {
                 return existing.get(5, TimeUnit.SECONDS);
             } catch (ExecutionException | InterruptedException | TimeoutException e) {
-                return redisMemberAdapter.getMemberByPage(page, size);
+                CachedMemberPage again = redisMemberAdapter.lookup(page, size);
+                return again != null ?
+                        new PageImpl<>(again.data(), PageRequest.of(page, size), again.data().size())
+                        : Page.empty();
             }
         }
 
         try {
-            Page<SimpleMemberDTO> fresh = memberQueryRepository.findAllMembers(pageable);
-            redisMemberAdapter.saveMemberPage(page, size, fresh.getContent());
-            newFuture.complete(fresh);
-            return fresh;
+            Page<SimpleMemberDTO> result = memberQueryRepository.findAllMembers(pageable);
+            redisMemberAdapter.saveMemberPage(page, size, result.getContent());
+            newFuture.complete(result);
+            return result;
         } catch (Exception e) {
             newFuture.completeExceptionally(e);
             throw e;
@@ -170,7 +170,6 @@ public class MemberQueryService {
             inFlight.remove(flightKey, newFuture);
         }
     }
-
 
     /**
      * <h3>사용자명 검색</h3>

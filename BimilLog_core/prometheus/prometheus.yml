@@ -9,7 +9,7 @@ scrape_configs:
   - job_name: 'bimillog-backend'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['backend:8080']  # Docker 컨테이너 이름으로 접근 (메인 포트)
+      - targets: ['backend:8081']  # 액추에이터 전용 포트 (메인 스레드풀과 분리)
         labels:
           application: 'bimillog'
           environment: 'prod'
@@ -34,6 +34,17 @@ scrape_configs:
           environment: 'prod'
           service: 'node-exporter'
           instance: 'backend-server'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # 컨테이너 리소스 모니터링 (cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          application: 'bimillog'
+          environment: 'local'
+          service: 'cadvisor'
     scrape_interval: 15s
     scrape_timeout: 10s
 
