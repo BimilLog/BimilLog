@@ -25,40 +25,40 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableRetry
 public class AsyncConfig {
 
-//    /**
-//     * 멤버 로그아웃, 회원탈퇴, 밴 전용 스레드 풀
-//     * <p>회원 상태 변경 시 발생하는 정리 작업을 처리합니다.</p>
-//     * <p>SSE 연결 해제, 토큰 삭제, 소셜 계정 연동 해제 등의 작업을 포함합니다.</p>
-//     */
-//    @Bean(name = "memberEventExecutor")
-//    public Executor memberEventExecutor() {
-//        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-//        executor.setCorePoolSize(3);
-//        executor.setMaxPoolSize(6);
-//        executor.setQueueCapacity(12);
-//        executor.setThreadNamePrefix("member-event-");
-//        executor.setWaitForTasksToCompleteOnShutdown(true);
-//        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
-//        executor.setAwaitTerminationSeconds(60);
-//        executor.initialize();
-//        return executor;
-//    }
+    /**
+     * 멤버 로그아웃, 회원탈퇴, 밴 전용 스레드 풀
+     * <p>회원 상태 변경 시 발생하는 정리 작업을 처리합니다.</p>
+     * <p>SSE 연결 해제, 토큰 삭제, 소셜 계정 연동 해제 등의 작업을 포함합니다.</p>
+     */
+    @Bean(name = "memberEventExecutor")
+    public Executor memberEventExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(3);
+        executor.setMaxPoolSize(6);
+        executor.setQueueCapacity(12);
+        executor.setThreadNamePrefix("member-event-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        executor.setAwaitTerminationSeconds(60);
+        executor.initialize();
+        return executor;
+    }
 
-//    /**
-//     * 신고 전용 스레드 풀
-//     * <p>신고 저장 이벤트를 처리합니다.</p>
-//     * <p>빈도는 낮지만 데이터 무결성이 중요합니다.</p>
-//     */
-//    @Bean(name = "reportEventExecutor")
-//    public Executor reportEventExecutor() {
-//        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-//        executor.setCorePoolSize(1);
-//        executor.setMaxPoolSize(3);
-//        executor.setQueueCapacity(5);
-//        executor.setThreadNamePrefix("report-event-");
-//        executor.setWaitForTasksToCompleteOnShutdown(true);
-//        executor.setAwaitTerminationSeconds(60);
-//        executor.initialize();
-//        return executor;
-//    }
+    /**
+     * 신고 전용 스레드 풀
+     * <p>신고 저장 이벤트를 처리합니다.</p>
+     * <p>빈도는 낮지만 데이터 무결성이 중요합니다.</p>
+     */
+    @Bean(name = "reportEventExecutor")
+    public Executor reportEventExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(3);
+        executor.setQueueCapacity(5);
+        executor.setThreadNamePrefix("report-event-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.initialize();
+        return executor;
+    }
 }
