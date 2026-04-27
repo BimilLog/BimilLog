@@ -67,7 +67,7 @@ const NAVBAR_THEME = {
     }
   },
   toggle: {
-    base: "inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600",
+    base: "inline-flex items-center justify-center min-h-touch min-w-touch p-3 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600",
     icon: "w-6 h-6"
   }
 } as const;
@@ -112,7 +112,11 @@ export const AuthHeader = React.memo(() => {
           </>
         ) : null}
 
-        <NavbarToggle className="md:hidden" />
+        <NavbarToggle
+          className="md:hidden"
+          aria-label="메뉴"
+          data-testid="header-menu-toggle"
+        />
       </div>
 
       <NavbarCollapse className="basis-full md:basis-auto md:order-1 md:flex md:items-center md:gap-6 md:mx-auto">

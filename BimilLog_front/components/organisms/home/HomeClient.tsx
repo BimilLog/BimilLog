@@ -46,6 +46,7 @@ export default function HomeClient({ popularPapers }: HomeClientProps) {
   }, [searchParams, router]);
 
   // 알림 권한 요청 모달 표시 로직
+  // - 첫 진입(첫 방문)에서는 노출하지 않고, 두 번째 세션 진입 또는 1시간 경과 시에만 노출
   useEffect(() => {
     // 로그인되어 있고, 모바일/태블릿이고, 스킵하지 않았을 때만 표시
     if (isAuthenticated && user && isMobileOrTablet() && !isKakaoInAppBrowser()) {
@@ -66,14 +67,29 @@ export default function HomeClient({ popularPapers }: HomeClientProps) {
 
       const skipUntil = localStorage.getItem("notification_permission_skipped");
       const shouldShow = !skipUntil || Date.now() > parseInt(skipUntil);
+      if (!shouldShow) return;
 
-      if (shouldShow) {
-        // 1초 후에 모달 표시 (페이지 로드 직후 바로 뜨는 것 방지)
-        const timer = setTimeout(() => {
-          setIsNotificationModalOpen(true);
-        }, 1000);
-        return () => clearTimeout(timer);
+      // 첫 방문 시각을 기록하고, 두 번째 세션 또는 1시간 이상 경과한 경우에만 노출
+      const FIRST_VISIT_KEY = "notification_first_visit_at";
+      const firstVisitRaw = localStorage.getItem(FIRST_VISIT_KEY);
+      if (!firstVisitRaw) {
+        // 첫 진입: 시간만 기록하고 모달은 절대 띄우지 않음
+        localStorage.setItem(FIRST_VISIT_KEY, Date.now().toString());
+        return;
       }
+
+      const firstVisit = parseInt(firstVisitRaw, 10);
+      const ONE_HOUR_MS = 60 * 60 * 1000;
+      if (Number.isNaN(firstVisit) || Date.now() - firstVisit < ONE_HOUR_MS) {
+        // 첫 방문 후 1시간 이내라면 노출 보류
+        return;
+      }
+
+      // 두 번째 세션(또는 1시간 이상 경과) → 1.5초 뒤에 모달 표시
+      const timer = setTimeout(() => {
+        setIsNotificationModalOpen(true);
+      }, 1500);
+      return () => clearTimeout(timer);
     }
   }, [isAuthenticated, user]);
 
@@ -107,7 +123,7 @@ export default function HomeClient({ popularPapers }: HomeClientProps) {
   };
 
   return (
-    <MainLayout className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+    <MainLayout className="bg-brand-gradient">
       {/* Hero Section with Popular Papers */}
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">

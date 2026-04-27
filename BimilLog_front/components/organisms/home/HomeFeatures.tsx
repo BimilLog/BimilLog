@@ -1,45 +1,61 @@
-import { memo } from "react";
 import { Card, CardContent } from "@/components";
-import { Heart, MessageSquare, Users } from "lucide-react";
+import { LogIn, Share2, MailOpen } from "lucide-react";
 
-export const HomeFeatures: React.FC = memo(() => {
-  const features = [
-    {
-      icon: Heart,
-      title: "익명 메시지 쓰기",
-      description:
-        "친구들의 롤링페이퍼에 메시지를 남겨보세요",
-      gradient: "bg-pink-500",
-    },
-    {
-      icon: Users,
-      title: "간단한 소셜 로그인",
-      description: "간단하게 가입해서 롤링페이퍼에 친구들의 메시지를 받아보세요",
-      gradient: "bg-orange-500",
-    },
-    {
-      icon: MessageSquare,
-      title: "커뮤니티",
-      description: "다른 사용자들과 소통하고 인기글을 확인해보세요",
-      gradient: "bg-green-500",
-    },
-  ];
+interface FeatureStep {
+  step: 1 | 2 | 3;
+  icon: typeof LogIn;
+  title: string;
+  description: string;
+  gradient: string;
+}
 
+const FEATURE_STEPS: FeatureStep[] = [
+  {
+    step: 1,
+    icon: LogIn,
+    title: "카카오로 로그인",
+    description: "1초만에 가입하고 내 롤링페이퍼를 만들어보세요",
+    gradient: "bg-brand-pink-500",
+  },
+  {
+    step: 2,
+    icon: Share2,
+    title: "내 롤링페이퍼 링크 공유",
+    description: "친구들에게 카카오톡으로 내 롤링페이퍼 링크를 공유하세요",
+    gradient: "bg-brand-purple-500",
+  },
+  {
+    step: 3,
+    icon: MailOpen,
+    title: "익명 메시지 받기",
+    description: "친구들이 남긴 따뜻하고 솔직한 익명 메시지를 확인하세요",
+    gradient: "bg-brand-indigo-500",
+  },
+];
+
+export const HomeFeatures: React.FC = () => {
   return (
-    <section className="container mx-auto px-4 py-16">
+    <section
+      data-testid="home-features"
+      className="container mx-auto px-4 py-16"
+    >
       <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-brand-primary">
         비밀로그 사용법
       </h2>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {features.map((feature, index) => {
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        {FEATURE_STEPS.map((feature) => {
           const IconComponent = feature.icon;
           return (
             <Card
-              key={index}
+              key={feature.step}
               variant="elevated"
+              data-step={feature.step}
               className="hover:shadow-brand-xl transition-shadow"
             >
               <CardContent className="p-6 text-center">
+                <div className="text-xs font-bold tracking-wider text-brand-secondary mb-3">
+                  {feature.step}단계
+                </div>
                 <div
                   className={`w-12 h-12 ${feature.gradient} rounded-full flex items-center justify-center mx-auto mb-4`}
                 >
@@ -56,6 +72,6 @@ export const HomeFeatures: React.FC = memo(() => {
       </div>
     </section>
   );
-});
+};
 
 HomeFeatures.displayName = "HomeFeatures";
