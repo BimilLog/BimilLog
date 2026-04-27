@@ -56,7 +56,7 @@ public class PaperQueryService {
 
         List<Message> messages = paperQueryRepository.getMessageList(member.getId());
         VisitPaperDTO visitPaperDTO = VisitPaperDTO.createVisitPaperDTO(member.getId(), messages);
-//        eventPublisher.publishEvent(new PaperViewedEvent(member.getId()));
+        eventPublisher.publishEvent(new PaperViewedEvent(member.getId()));
         return visitPaperDTO;
     }
 }
