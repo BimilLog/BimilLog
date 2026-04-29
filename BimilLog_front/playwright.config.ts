@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config as loadEnv } from 'dotenv';
+import path from 'node:path';
+
+loadEnv({ path: path.resolve(__dirname, '..', '.env.uiux-test-accounts') });
 
 const baseMobile = {
   ...devices['Desktop Chrome'],
