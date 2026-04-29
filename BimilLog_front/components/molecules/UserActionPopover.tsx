@@ -82,7 +82,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
       message: `${memberName}님에게 친구 요청을 보내시겠습니까?`,
       confirmText: "보내기",
       cancelText: "취소",
-      icon: <UserPlus className="h-8 w-8 stroke-purple-600 fill-purple-100" />,
+      icon: <UserPlus className="h-8 w-8 stroke-stamp-red fill-stamp-red/10" />,
     });
 
     if (confirmed) {
@@ -235,7 +235,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-300"
+                className="w-full justify-start text-stamp-red hover:text-stamp-red hover:bg-stamp-red/10 border-stamp-red/40"
                 onClick={handleSendRequest}
                 disabled={isPending || !finalMemberId}
               >

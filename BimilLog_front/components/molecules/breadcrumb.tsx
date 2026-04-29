@@ -37,7 +37,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
       />
       <FlowbiteBreadcrumb
         aria-label="Breadcrumb navigation"
-        className="mb-4 bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 px-4 py-3 rounded-xl shadow-sm backdrop-blur-sm border border-purple-100 dark:border-gray-700"
+        className="mb-4 bg-paper-aged dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm backdrop-blur-sm border border-ink-soft dark:border-gray-700"
       >
         {items.map((item, index) => (
           <FlowbiteBreadcrumbItem

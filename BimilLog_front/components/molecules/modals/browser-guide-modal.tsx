@@ -80,7 +80,7 @@ function BrowserGuideModalContent({
     <Modal show={effectiveShow} onClose={() => handleClose("session")} size="md">
       <ModalHeader className="text-center">
         <div className="flex flex-col items-center">
-          <Smartphone className="w-10 h-10 mb-3 text-indigo-600" />
+          <Smartphone className="w-10 h-10 mb-3 text-postal-navy" />
           <span className="text-xl font-bold text-brand-primary">
             더 나은 이용을 위해 앱으로 설치해보세요!
           </span>
@@ -94,12 +94,12 @@ function BrowserGuideModalContent({
         {/* 플랫폼별 홍보 문구 */}
         {isIOS ? (
           // iOS: PWA 앱 홍보
-          <div className="bg-blue-50 p-6 rounded-lg text-center">
-            <Smartphone className="w-16 h-16 mx-auto mb-4 text-blue-600" />
-            <h3 className="font-bold text-blue-900 mb-2 text-lg">
+          <div className="bg-paper-aged border border-postal-navy/20 p-6 rounded-lg text-center">
+            <Smartphone className="w-16 h-16 mx-auto mb-4 text-postal-navy" />
+            <h3 className="font-bold text-postal-navy mb-2 text-lg">
               iPhone/iPad 전용 앱
             </h3>
-            <p className="text-sm text-blue-700 leading-relaxed">
+            <p className="text-sm text-ink-soft leading-relaxed">
               Safari 브라우저에서 홈 화면에 추가하여<br />
               네이티브 앱처럼 사용할 수 있습니다.
             </p>
@@ -135,7 +135,7 @@ function BrowserGuideModalContent({
         {/* 메인 액션 버튼 (확인) */}
         <Button
           onClick={handleConfirm}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+          className="w-full bg-stamp-red hover:bg-stamp-red/90 text-white"
         >
           {isIOS ? "앱 설치 방법 보기" : "플레이스토어에서 다운로드"}
         </Button>

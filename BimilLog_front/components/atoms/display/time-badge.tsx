@@ -52,7 +52,7 @@ export const TimeBadge: React.FC<TimeBadgeProps> = React.memo(({
   const popoverContent = (
     <div className="p-3 space-y-2 min-w-[200px]">
       <div className="flex items-center gap-2 text-gray-800">
-        <Calendar className="w-4 h-4 stroke-purple-600 fill-purple-100" />
+        <Calendar className="w-4 h-4 stroke-stamp-red fill-stamp-red/10" />
         <span className="text-sm font-medium">{exactDate}</span>
       </div>
       <div className="flex items-center gap-2 text-gray-600">

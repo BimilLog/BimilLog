@@ -19,19 +19,19 @@ const badgeVariants = cva(
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         info:
-          "border-blue-200 bg-blue-50 text-blue-700 [a&]:hover:bg-blue-100",
+          "border-postal-navy/20 bg-postal-navy/10 text-postal-navy [a&]:hover:bg-postal-navy/20",
         gray:
           "border-gray-200 bg-gray-50 text-gray-700 [a&]:hover:bg-gray-100",
         purple:
-          "border-purple-200 bg-purple-50 text-purple-700 [a&]:hover:bg-purple-100",
+          "border-stamp-red/20 bg-stamp-red/10 text-stamp-red [a&]:hover:bg-stamp-red/20",
         indigo:
-          "border-indigo-200 bg-indigo-50 text-indigo-700 [a&]:hover:bg-indigo-100",
+          "border-postal-navy/20 bg-paper-100 text-postal-navy [a&]:hover:bg-postal-navy/10",
         success:
           "border-green-200 bg-green-50 text-green-700 [a&]:hover:bg-green-100",
         warning:
           "border-yellow-200 bg-yellow-50 text-yellow-700 [a&]:hover:bg-yellow-100",
         pink:
-          "border-pink-200 bg-pink-50 text-pink-700 [a&]:hover:bg-pink-100",
+          "border-stamp-red/20 bg-paper-aged text-stamp-red [a&]:hover:bg-stamp-red/10",
       },
       size: {
         default: "px-2 py-0.5 text-xs",

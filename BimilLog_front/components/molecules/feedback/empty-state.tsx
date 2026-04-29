@@ -120,15 +120,15 @@ export const EmptyState = React.memo<EmptyStateProps>(({
     if (!IconComponent) return null;
 
     const colorClasses = {
-      posts: "stroke-indigo-600 fill-indigo-100",
+      posts: "stroke-postal-navy fill-postal-navy/10",
       comments: "stroke-green-600 fill-green-100",
-      "liked-posts": "stroke-red-500 fill-red-100",
-      "liked-comments": "stroke-blue-500 fill-blue-100",
-      messages: "stroke-red-500 fill-red-100",
-      search: "stroke-purple-600 fill-purple-100",
+      "liked-posts": "stroke-stamp-red fill-stamp-red/10",
+      "liked-comments": "stroke-postal-navy fill-postal-navy/10",
+      messages: "stroke-stamp-red fill-stamp-red/10",
+      search: "stroke-stamp-red fill-stamp-red/10",
       error: "stroke-red-600 fill-red-100",
-      offline: "stroke-blue-600 fill-blue-100",
-      custom: "stroke-purple-600 fill-purple-100"
+      offline: "stroke-postal-navy fill-postal-navy/10",
+      custom: "stroke-stamp-red fill-stamp-red/10"
     };
 
     const colorClass = colorClasses[type] || colorClasses.custom;
@@ -146,17 +146,17 @@ export const EmptyState = React.memo<EmptyStateProps>(({
           className
         )}
       >
-        {/* 메인 일러스트레이션 */}
+        {/* 메인 일러스트레이션 — 종이 위 우표 모티브 */}
         <div className="mb-8 relative">
-          <div className="w-24 h-24 mx-auto mb-6 bg-brand-button dark:bg-purple-600 rounded-3xl flex items-center justify-center shadow-brand-lg animate-pulse-cute">
-            <div className="text-white dark:text-gray-100 text-2xl">{icon}</div>
+          <div className="w-24 h-24 mx-auto mb-6 bg-paper-aged border-2 border-dashed border-stamp-red/40 dark:bg-stamp-red/20 rounded-3xl flex items-center justify-center shadow-brand-lg animate-pulse-cute">
+            <div className="text-stamp-red dark:text-gray-100 text-2xl">{icon}</div>
           </div>
 
-          {/* 귀여운 장식 도트들 */}
+          {/* 종이 데코: stamp-red / postal-navy / seal-gold 도트 */}
           <div className="flex items-center justify-center space-x-2">
-            <div className="w-2 h-2 bg-pink-300 rounded-full animate-bounce-cute"></div>
-            <div className="w-3 h-3 bg-purple-300 rounded-full animate-bounce-cute" style={{ animationDelay: "0.2s" }}></div>
-            <div className="w-2 h-2 bg-indigo-300 rounded-full animate-bounce-cute" style={{ animationDelay: "0.4s" }}></div>
+            <div className="w-2 h-2 bg-stamp-red/50 rounded-full animate-bounce-cute"></div>
+            <div className="w-3 h-3 bg-postal-navy/40 rounded-full animate-bounce-cute" style={{ animationDelay: "0.2s" }}></div>
+            <div className="w-2 h-2 bg-seal-gold rounded-full animate-bounce-cute" style={{ animationDelay: "0.4s" }}></div>
           </div>
         </div>
 
@@ -214,16 +214,16 @@ export const EmptyState = React.memo<EmptyStateProps>(({
         className
       )}
     >
-      {/* 일러스트레이션 영역 */}
+      {/* 일러스트레이션 영역 — 종이 봉투 톤 */}
       <div className="mb-6">
-        <div className="w-20 h-20 mx-auto mb-4 bg-brand-gradient dark:bg-gradient-to-br dark:from-purple-600 dark:to-pink-600 rounded-full flex items-center justify-center shadow-brand-lg">
-          <div className="text-brand-primary dark:text-gray-100">{icon}</div>
+        <div className="w-20 h-20 mx-auto mb-4 bg-paper-aged border-2 border-dashed border-stamp-red/30 dark:bg-stamp-red/15 rounded-full flex items-center justify-center shadow-brand-lg">
+          <div className="text-stamp-red dark:text-gray-100">{icon}</div>
         </div>
-        {/* 장식용 도트들 (모바일에서는 숨김) */}
+        {/* 장식 도트 */}
         <div className="hidden md:flex items-center justify-center space-x-1">
-          <div className="w-2 h-2 bg-pink-200 rounded-full"></div>
-          <div className="w-2 h-2 bg-purple-200 rounded-full"></div>
-          <div className="w-2 h-2 bg-indigo-200 rounded-full"></div>
+          <div className="w-2 h-2 bg-stamp-red/30 rounded-full"></div>
+          <div className="w-2 h-2 bg-postal-navy/30 rounded-full"></div>
+          <div className="w-2 h-2 bg-seal-gold rounded-full"></div>
         </div>
       </div>
 
