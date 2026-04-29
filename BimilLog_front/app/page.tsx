@@ -105,6 +105,7 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd),
         }}
+        suppressHydrationWarning
       />
       <HomeClient popularPapers={popularPapers} />
     </>

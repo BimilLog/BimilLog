@@ -45,12 +45,12 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = memo(({
       data-testid="popular-papers-section"
       className="lg:w-[400px] lg:flex-shrink-0 h-full"
     >
-      <Card className="h-full">
+      <Card className="h-full bg-paper-card border border-ink-soft washi-tape">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 bg-brand-button rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-paper-button rounded-full flex items-center justify-center shadow-brand-sm">
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-xl font-bold text-foreground">
+          <h2 className="font-display text-xl font-bold text-ink dark:text-foreground">
             실시간 인기 롤링페이퍼
           </h2>
         </div>

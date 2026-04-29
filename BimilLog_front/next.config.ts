@@ -7,7 +7,6 @@ const pwaConfig = {
     register: true,
     skipWaiting: true,
     disable: process.env.NODE_ENV === "development",
-    // @ts-ignore
     importScripts: ["/firebase-messaging-sw.js"],
     buildExcludes: [/app-build-manifest\.json$/],
     runtimeCaching: [
@@ -49,6 +48,8 @@ const pwaConfig = {
 const nextConfig = withPWA(pwaConfig)({
     output: 'standalone',
     outputFileTracingRoot: path.join(__dirname, '../'),
+    // Next.js 15 dev overlay 의 "N issues" 빨간 배지 숨김 (디자인 평가/스크린샷 시 방해 제거)
+    devIndicators: false,
     webpack: (config, { dev, isServer }) => {
         if (dev && !isServer) {
             // HMR 관련 파일 시스템 감시 설정 개선.

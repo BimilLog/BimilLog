@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/hooks";
 import {
@@ -89,18 +88,21 @@ export const AuthHeader = React.memo<AuthHeaderProps>(({ disableSticky = false }
     <Navbar
       data-toast-anchor
       fluid
-      className={`${disableSticky ? "relative" : "sticky top-0"} z-50 border-b border-border bg-background/80 backdrop-blur-sm transition-colors duration-300`}
+      className={`${disableSticky ? "relative" : "sticky top-0"} z-50 border-b border-ink-soft dark:border-border bg-paper-soft/85 dark:bg-background/80 backdrop-blur-sm transition-colors duration-300`}
       theme={NAVBAR_THEME}
     >
-      <NavbarBrand as={Link} href="/">
-        <Image
-          src="/log.png"
-          alt="비밀로그"
-          width={150}
-          height={48}
-          className="h-10 sm:h-12 w-auto object-contain mr-3"
-          priority
-        />
+      {/* 단순 워드마크 — 종이 톤 + display 폰트 + ink 단색.
+          기존 핑크 박스/로고 이미지 제거로 좌상단 가독성 확보 */}
+      <NavbarBrand as={Link} href="/" aria-label="비밀로그 홈">
+        <span className="flex items-center gap-2 mr-3">
+          <span
+            aria-hidden="true"
+            className="inline-block w-2.5 h-2.5 rounded-full bg-stamp-red shadow-[0_0_0_3px_rgba(199,62,62,0.18)]"
+          />
+          <span className="font-display text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-gray-100">
+            비밀로그
+          </span>
+        </span>
       </NavbarBrand>
 
       <div className="flex items-center gap-2 sm:gap-3 md:ml-auto md:order-2">

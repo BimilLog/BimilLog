@@ -123,12 +123,12 @@ export default function HomeClient({ popularPapers }: HomeClientProps) {
   };
 
   return (
-    <MainLayout className="bg-brand-gradient">
-      {/* Hero Section with Popular Papers */}
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+    <MainLayout>
+      {/* Hero Section with Popular Papers — 1180 max + 좌우 floating illustration 은 BaseLayout 에서 */}
+      <div className="container-paper px-4 py-10 md:py-16">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch">
           {/* Hero Section - 최소 높이 고정으로 CLS 방지 */}
-          <div className="flex-1 min-h-[280px] md:min-h-[320px]">
+          <div className="flex-1 min-h-[280px] md:min-h-[360px]">
             <HomeHero
               isAuthenticated={isAuthenticated}
               provider={provider}

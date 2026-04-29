@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components";
 import { Bug } from "lucide-react";
 import { errorLogger } from "@/lib/error-logger";
@@ -11,25 +11,32 @@ import { errorLogger } from "@/lib/error-logger";
  */
 export function TestCrashButton() {
   const [isVisible, setIsVisible] = useState(false);
+  const isDev = process.env.NODE_ENV === "development";
 
-  // 개발 모드가 아니면 렌더링하지 않음
-  if (process.env.NODE_ENV !== "development") {
+  useEffect(() => {
+    if (!isDev) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.altKey && (e.key === "d" || e.key === "D")) {
+        e.preventDefault();
+        setIsVisible((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [isDev]);
+
+  if (!isDev) {
     return null;
   }
 
-  // Ctrl + Shift + D 키 조합으로 버튼 토글
-  if (typeof window !== "undefined") {
-    window.addEventListener("keydown", (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key === "D") {
-        setIsVisible((prev) => !prev);
-      }
-    });
-  }
-
   if (!isVisible) {
+    // 디자인 평가/스크린샷 노이즈 제거: hover 시에만 안내 노출
     return (
-      <div className="fixed bottom-4 right-4 text-xs text-gray-500">
-        Ctrl + Shift + D로 테스트 버튼 표시
+      <div
+        className="fixed bottom-2 right-2 text-[10px] text-gray-400/40 hover:text-gray-500/90 transition-opacity select-none pointer-events-auto"
+        aria-hidden="true"
+      >
+        <span className="opacity-30 hover:opacity-100">·</span>
       </div>
     );
   }
@@ -90,7 +97,7 @@ export function TestCrashButton() {
         ))}
       </div>
       <p className="text-xs text-gray-500 mt-3">
-        Ctrl + Shift + D로 닫기
+        Ctrl + Alt + D로 닫기
       </p>
     </div>
   );

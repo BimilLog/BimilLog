@@ -92,7 +92,7 @@ export const BoardSearch = memo(({
     <>
       <Card
         variant="default"
-        className="mb-6 p-4 bg-white backdrop-blur-none dark:bg-slate-900/70 dark:text-gray-100"
+        className="mb-6 p-4 bg-paper-card border border-ink-soft backdrop-blur-none dark:bg-slate-900/70 dark:text-gray-100"
       >
         <div
           data-testid="board-search-row"
@@ -121,8 +121,8 @@ export const BoardSearch = memo(({
             </Dropdown>
           </div>
 
-          {/* 검색 입력 영역 */}
-          <div className="flex-1">
+          {/* 검색 입력 영역 — 데스크톱 너무 길어지지 않도록 max-w 제한 */}
+          <div className="flex-1 md:max-w-2xl">
             <div className="flex items-center border border-border rounded-lg bg-card overflow-hidden transition-all hover:border-brand-secondary/50 focus-within:border-brand-secondary focus-within:ring-2 focus-within:ring-brand-secondary/20">
               {/* 데스크톱: type 드롭다운을 input 좌측 inline (B-M1: 모바일에서는 hidden) */}
               <div className="hidden md:block">

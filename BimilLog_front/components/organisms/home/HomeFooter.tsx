@@ -28,16 +28,17 @@ export const HomeFooter: React.FC = React.memo(() => {
   };
 
   return (
-    <Footer container className="bg-background rounded-none shadow-sm border-t border-border">
+    <Footer container className="bg-paper-soft rounded-none shadow-sm border-t border-ink-soft dark:bg-background dark:border-border">
       <div className="w-full">
         <div className="w-full space-y-8">
           {/* Brand Section */}
           <div>
-            <Link href="/" className="flex items-center mb-4">
-              <span className="text-2xl font-bold text-foreground">비밀로그</span>
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <span aria-hidden="true" className="inline-block w-2 h-2 rounded-full bg-stamp-red shadow-[0_0_0_3px_rgba(199,62,62,0.18)]" />
+              <span className="font-display text-2xl font-bold text-ink dark:text-foreground">비밀로그</span>
             </Link>
-            <p className="text-sm text-muted-foreground max-w-xs">
-              익명으로 마음을 전하는 특별한 공간
+            <p className="text-sm text-ink-soft dark:text-muted-foreground max-w-xs">
+              익명으로 마음을 전하는 종이 한 장의 공간
             </p>
           </div>
 

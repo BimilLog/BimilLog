@@ -67,20 +67,21 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
   return (
     <header
       data-testid="paper-header"
-      className={`bg-white/80 backdrop-blur-md border-b ${className}`}
+      className={`bg-paper-soft/85 backdrop-blur-md border-b border-ink-soft ${className}`}
     >
       <div className="px-4 py-2.5">
-        <div className="max-w-screen-xl mx-auto">
+        <div className="container-paper">
           {/* 단일 레이아웃: 모바일/데스크톱 모두 동일한 element 를 사용하고
               내부 텍스트만 viewport 에 따라 토글한다. (이중 testid 제거 + sticky 영역 단일화) */}
           <div className="flex items-center justify-between gap-2 md:gap-3 flex-wrap md:flex-nowrap">
             <div className="flex items-center space-x-2 flex-1 min-w-0">
-              <div className="w-10 h-10 md:w-11 md:h-11 bg-brand-button rounded-lg flex items-center justify-center shadow-sm shrink-0">
+              <div className="w-10 h-10 md:w-11 md:h-11 bg-paper-button rounded-md flex items-center justify-center shadow-brand-sm shrink-0">
                 <MessageSquare className="w-5 h-5 stroke-white fill-white/30" aria-hidden="true" />
               </div>
               <div className="min-w-[44px] flex-1">
-                <h1 className="font-bold text-gray-900 text-base md:text-xl truncate">
-                  {nickname}님의 롤링페이퍼
+                <h1 className="text-ink dark:text-gray-100 text-base md:text-xl truncate">
+                  <span className="font-handwriting font-bold text-stamp-red mr-1">{nickname}</span>
+                  <span className="font-display">님의 롤링페이퍼</span>
                 </h1>
               </div>
             </div>

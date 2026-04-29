@@ -253,66 +253,99 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
   }, [isMobile, setCurrentPage]);
 
   return (
-    <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
-      {/* 종이 배경 */}
+    <div className={`relative container-paper mb-6 md:mb-8 ${className}`}>
+      {/* 종이 배경 — cream/parchment + grain */}
       <div
-        className="relative min-h-[600px] md:min-h-[700px] bg-gradient-to-br from-sky-100 via-cyan-50 to-blue-100 dark:bg-gradient-to-br dark:from-sky-900 dark:via-cyan-900 dark:to-blue-900 rounded-2xl md:rounded-3xl shadow-xl md:shadow-2xl border-2 md:border-4 border-sky-200 dark:border-sky-700 backdrop-blur-sm"
+        className="relative min-h-[600px] md:min-h-[700px] bg-paper rounded-xl md:rounded-2xl shadow-brand-lg border border-ink-soft"
       >
 
         {/* 제목 영역 */}
-        <div className="pt-6 md:pt-8 pb-4 md:pb-6 px-4 md:px-20 text-center">
+        <div className="pt-6 md:pt-10 pb-4 md:pb-6 px-4 md:px-20 text-center">
           <div className="relative">
-            {/* 예쁜 제목 카드 */}
-            <div className="bg-gradient-to-r from-sky-100/90 via-cyan-100/90 to-blue-100/90 dark:from-sky-800/90 dark:via-cyan-800/90 dark:to-blue-800/90 rounded-3xl p-6 md:p-8 shadow-xl border-2 border-white/80 dark:border-sky-600/80 backdrop-blur-md mb-6 relative overflow-hidden">
-              {/* 배경 장식 */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
-
-              <h1 className="text-xl md:text-4xl font-extrabold mb-4 flex items-center justify-center gap-3 relative z-10">
-                <span className="text-sky-700 dark:text-sky-300 font-extrabold transform hover:scale-105 transition-transform duration-300 drop-shadow-sm">
-                  {nickname}님의 롤링페이퍼
+            {/* 편지지 톤 제목 카드 */}
+            <div className="bg-paper-card rounded-2xl p-6 md:p-8 shadow-brand-md border border-ink-soft mb-6 relative overflow-hidden washi-tape">
+              <h1 className="text-2xl md:text-4xl mb-4 flex items-center justify-center gap-3 relative z-10">
+                <span className="font-handwriting font-bold text-stamp-red">
+                  {nickname}
+                </span>
+                <span className="font-display font-bold text-ink dark:text-sky-300">
+                  님의 롤링페이퍼
                 </span>
               </h1>
 
               {/* 메시지 수 카드 */}
-              <div className="inline-flex items-center gap-3 bg-white/80 dark:bg-sky-900/80 px-5 py-3 rounded-full shadow-lg border-2 border-sky-200 dark:border-sky-600 relative z-10 backdrop-blur-sm">
-                <Mail className="w-4 h-4 md:w-6 md:h-6 stroke-sky-500 dark:stroke-sky-400 fill-sky-200 dark:fill-sky-900 animate-bounce drop-shadow-sm" />
-                <span className="text-sky-800 dark:text-sky-300 text-sm md:text-lg font-bold tracking-wide">
-                  총 {messages.length}개의 메시지
+              <div className="inline-flex items-center gap-3 bg-paper-soft px-5 py-2.5 rounded-full border border-ink-soft relative z-10">
+                <Mail className="w-4 h-4 md:w-5 md:h-5 stroke-stamp-red" />
+                <span className="font-display text-ink text-sm md:text-base font-semibold tracking-wide">
+                  총 {messages.length}통의 편지
                 </span>
-                <Sparkles className="w-4 h-4 md:w-6 md:h-6 stroke-yellow-500 fill-yellow-100 animate-pulse drop-shadow-sm" />
+                <Sparkles className="w-4 h-4 md:w-5 md:h-5 stroke-[var(--color-seal-gold,#C99B5C)]" />
               </div>
             </div>
 
           </div>
         </div>
 
-        {/* 빈 상태 CTA: 메시지가 0개일 때 큰 안내 영역 노출 */}
+        {/* 빈 상태 CTA: 메시지가 0개일 때 큰 안내 영역 노출 (3종 세트: 일러스트 + 카피 + primary CTA) */}
         {messages.length === 0 && (
           <div
             data-testid="paper-empty-state"
-            className="mx-4 md:mx-20 mb-6 p-6 md:p-8 rounded-2xl bg-white/70 dark:bg-sky-900/40 border-2 border-dashed border-sky-300 dark:border-sky-600 text-center backdrop-blur-sm"
+            className="mx-4 md:mx-20 mb-6 p-8 md:p-12 rounded-2xl bg-paper-card border-dashed-paper text-center"
           >
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-brand-button flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <MessageSquare className="w-7 h-7 md:w-8 md:h-8 stroke-white fill-white/30" aria-hidden="true" />
+            {/* 큰 편지 일러스트 */}
+            <div className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-5 relative animate-paper-float">
+              <svg viewBox="0 0 120 120" className="w-full h-full">
+                <rect x="14" y="34" width="92" height="62" rx="4" fill="#FFFDF7" stroke="#2A1F1A" strokeWidth="2.5" />
+                <polyline points="14,34 60,72 106,34" fill="none" stroke="#2A1F1A" strokeWidth="2.5" />
+                <circle cx="92" cy="50" r="9" fill="#C73E3E" />
+                <text x="92" y="54" textAnchor="middle" fontSize="9" fill="#FFFDF7" fontFamily="serif" fontWeight="700">FIRST</text>
+                <line x1="22" y1="20" x2="34" y2="32" stroke="#C73E3E" strokeWidth="2" strokeLinecap="round" />
+                <line x1="40" y1="14" x2="46" y2="26" stroke="#C73E3E" strokeWidth="2" strokeLinecap="round" />
+              </svg>
             </div>
-            <h2 className="text-lg md:text-xl font-bold text-sky-800 dark:text-sky-200 mb-2">
-              아직 메시지가 비어 있어요
+            <h2 className="font-display text-xl md:text-2xl font-bold text-ink dark:text-sky-200 mb-2">
+              아직 도착한 편지가 없어요
             </h2>
-            <p className="text-sm md:text-base text-sky-700 dark:text-sky-300 leading-relaxed">
+            <p className="font-body text-sm md:text-base text-ink-soft dark:text-sky-300 leading-relaxed max-w-md mx-auto">
               {isOwner
-                ? '친구들에게 롤링페이퍼 링크를 공유하고 첫 메시지를 받아보세요.'
-                : `${nickname}님에게 첫 메시지를 남겨보세요.`}
+                ? '친구들에게 롤링페이퍼 링크를 공유하고 첫 편지를 받아보세요.'
+                : `${nickname}님에게 첫 편지를 남겨보세요. 한 줄의 마음이 큰 응원이 됩니다.`}
             </p>
             {!isOwner && (
-              <p className="mt-3 text-xs md:text-sm text-sky-600 dark:text-sky-400">
-                아래 그리드에서 빈 칸을 눌러 메시지를 작성할 수 있어요.
-              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  // 첫 빈 셀로 스크롤 + 모달 오픈
+                  const firstEmpty = document.querySelector<HTMLElement>('[data-testid="grid-cell"]:not([data-locked])');
+                  firstEmpty?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  firstEmpty?.click();
+                }}
+                className="mt-5 inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md bg-paper-button text-white font-semibold shadow-brand-sm hover:bg-paper-hover transition-colors"
+              >
+                <MessageSquare className="w-5 h-5 mr-2" />첫 메시지 남기기
+              </button>
+            )}
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof navigator !== 'undefined' && 'clipboard' in navigator) {
+                    navigator.clipboard?.writeText(window.location.href);
+                  }
+                }}
+                className="mt-5 inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md bg-paper-button text-white font-semibold shadow-brand-sm hover:bg-paper-hover transition-colors"
+              >
+                <MessageSquare className="w-5 h-5 mr-2" />링크 복사하고 친구에게 공유
+              </button>
             )}
           </div>
         )}
 
-        {/* 메시지 그리드 */}
-        <div data-testid="paper-grid-container" className="px-4 md:px-20 pb-4 md:pb-6">
+        {/* 메시지 그리드 — 빈 상태일 때는 fade-out 처리 */}
+        <div
+          data-testid="paper-grid-container"
+          className={`px-4 md:px-20 pb-4 md:pb-6 ${messages.length === 0 ? 'opacity-30 pointer-events-none mask-fade-bottom' : ''}`}
+        >
           {/* 페이지 네비게이션 */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-4 mb-4">

@@ -129,8 +129,7 @@ function BoardClient({ initialData }: BoardClientProps) {
 
   return (
     <MainLayout
-      className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]"
-      containerClassName="container mx-auto px-4"
+      containerClassName="container-paper px-4"
     >
       <main className="pb-8">
         <Breadcrumb
