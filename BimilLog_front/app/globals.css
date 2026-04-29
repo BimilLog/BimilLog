@@ -291,11 +291,104 @@
   .text-stamp-red {
     color: var(--color-stamp-red, #C73E3E);
   }
+  .text-postal-navy {
+    color: var(--color-postal-navy, #1F3A68);
+  }
+  .text-seal-gold {
+    color: var(--color-seal-gold, #C99B5C);
+  }
+  .bg-stamp-red {
+    background-color: var(--color-stamp-red, #C73E3E);
+  }
+  .bg-stamp-red\/10 {
+    background-color: color-mix(in oklab, var(--color-stamp-red, #C73E3E) 10%, transparent);
+  }
+  .bg-stamp-red\/20 {
+    background-color: color-mix(in oklab, var(--color-stamp-red, #C73E3E) 20%, transparent);
+  }
+  .bg-stamp-red\/30 {
+    background-color: color-mix(in oklab, var(--color-stamp-red, #C73E3E) 30%, transparent);
+  }
+  .bg-postal-navy {
+    background-color: var(--color-postal-navy, #1F3A68);
+  }
+  .bg-postal-navy\/10 {
+    background-color: color-mix(in oklab, var(--color-postal-navy, #1F3A68) 10%, transparent);
+  }
+  .bg-postal-navy\/20 {
+    background-color: color-mix(in oklab, var(--color-postal-navy, #1F3A68) 20%, transparent);
+  }
+  .bg-seal-gold {
+    background-color: var(--color-seal-gold, #C99B5C);
+  }
+  .bg-paper-50 {
+    background-color: var(--color-paper-50, #FBF7EE);
+  }
+  .bg-paper-100 {
+    background-color: var(--color-paper-100, #F6EFDE);
+  }
+  .bg-paper-200 {
+    background-color: var(--color-paper-200, #ECE0C2);
+  }
+  .bg-paper-aged {
+    background-color: #F1E6CC;
+  }
+  .border-stamp-red {
+    border-color: var(--color-stamp-red, #C73E3E);
+  }
+  .border-stamp-red\/20 {
+    border-color: color-mix(in oklab, var(--color-stamp-red, #C73E3E) 20%, transparent);
+  }
+  .border-stamp-red\/30 {
+    border-color: color-mix(in oklab, var(--color-stamp-red, #C73E3E) 30%, transparent);
+  }
+  .border-stamp-red\/40 {
+    border-color: color-mix(in oklab, var(--color-stamp-red, #C73E3E) 40%, transparent);
+  }
+  .border-stamp-red\/60 {
+    border-color: color-mix(in oklab, var(--color-stamp-red, #C73E3E) 60%, transparent);
+  }
+  .border-postal-navy\/20 {
+    border-color: color-mix(in oklab, var(--color-postal-navy, #1F3A68) 20%, transparent);
+  }
+  .border-postal-navy\/30 {
+    border-color: color-mix(in oklab, var(--color-postal-navy, #1F3A68) 30%, transparent);
+  }
+  .ring-stamp-red {
+    --tw-ring-color: var(--color-stamp-red, #C73E3E);
+  }
+  .focus-visible\:ring-stamp-red:focus-visible {
+    --tw-ring-color: var(--color-stamp-red, #C73E3E);
+  }
+  .focus-visible\:ring-postal-navy:focus-visible {
+    --tw-ring-color: var(--color-postal-navy, #1F3A68);
+  }
   .border-ink {
     border-color: var(--color-ink-900, #2A1F1A);
   }
   .border-ink-soft {
     border-color: rgba(42, 31, 26, 0.15);
+  }
+  .hover\:text-stamp-red:hover {
+    color: var(--color-stamp-red, #C73E3E);
+  }
+  .hover\:text-postal-navy:hover {
+    color: var(--color-postal-navy, #1F3A68);
+  }
+  .hover\:bg-stamp-red:hover {
+    background-color: var(--color-stamp-red, #C73E3E);
+  }
+  .hover\:bg-stamp-red\/10:hover {
+    background-color: color-mix(in oklab, var(--color-stamp-red, #C73E3E) 10%, transparent);
+  }
+  .hover\:bg-postal-navy\/10:hover {
+    background-color: color-mix(in oklab, var(--color-postal-navy, #1F3A68) 10%, transparent);
+  }
+  .hover\:border-stamp-red:hover {
+    border-color: var(--color-stamp-red, #C73E3E);
+  }
+  .hover\:border-stamp-red\/60:hover {
+    border-color: color-mix(in oklab, var(--color-stamp-red, #C73E3E) 60%, transparent);
   }
 
   /* 폰트 토큰 유틸 */

@@ -22,19 +22,19 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+        <div className="min-h-screen flex items-center justify-center bg-paper">
           <div className="text-center max-w-md mx-auto p-4">
-            <h1 className="text-4xl font-bold text-brand-primary mb-4">
+            <h1 className="font-display text-4xl font-bold text-ink mb-4 tracking-tight">
               앱에 문제가 발생했어요
             </h1>
-            <p className="text-brand-muted mb-8">
+            <p className="font-body text-ink-soft mb-8">
               죄송합니다. 예상치 못한 오류가 발생했습니다.
               <br />
               페이지를 새로고침해주세요.
             </p>
             <button
               onClick={() => reset()}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-3 bg-stamp-red text-white rounded-lg hover:bg-stamp-red/90 transition-colors font-medium shadow-brand-md"
             >
               다시 시도하기
             </button>

@@ -29,16 +29,31 @@ export default function SignUpPage() {
 
   return (
     <AuthLayout>
-      <Card variant="elevated">
-        <CardHeader className="text-center pb-2">
-          <CardTitle className="text-2xl font-bold text-brand-primary">
+      <Card variant="elevated" className="bg-paper-card border-2 border-ink-soft shadow-brand-lg max-w-md mx-auto">
+        <CardHeader className="text-center pb-2 washi-tape pt-6">
+          <CardTitle className="font-display text-2xl md:text-3xl font-bold text-stamp-red dark:text-foreground tracking-tight">
             회원가입
           </CardTitle>
-          <CardDescription className="text-brand-muted">
+          <CardDescription className="font-body text-ink-soft dark:text-muted-foreground">
             나만의 롤링페이퍼를 만들어보세요
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
+          {/* 가입 베네핏 */}
+          <ul className="space-y-3 mb-2">
+            <li className="flex items-start gap-2 text-sm font-body text-ink-soft dark:text-muted-foreground">
+              <span className="text-stamp-red mt-0.5">·</span>
+              <span>나만의 비밀 롤링페이퍼 개설</span>
+            </li>
+            <li className="flex items-start gap-2 text-sm font-body text-ink-soft dark:text-muted-foreground">
+              <span className="text-stamp-red mt-0.5">·</span>
+              <span>친구의 따뜻한 메시지를 받아보세요</span>
+            </li>
+            <li className="flex items-start gap-2 text-sm font-body text-ink-soft dark:text-muted-foreground">
+              <span className="text-stamp-red mt-0.5">·</span>
+              <span>실시간 알림과 활동 점수 확인</span>
+            </li>
+          </ul>
           <Button
             className="w-full h-12 bg-yellow-400 hover:bg-yellow-500 text-brand-primary font-semibold text-base"
             onClick={() => login()}
@@ -54,11 +69,11 @@ export default function SignUpPage() {
           </Button>
 
           <div className="text-center">
-            <p className="text-sm text-brand-muted">
+            <p className="text-sm font-body text-ink-soft dark:text-muted-foreground">
               이미 계정이 있으신가요?{" "}
               <Link
                 href="/login"
-                className="text-purple-600 hover:text-purple-700 font-medium"
+                className="text-postal-navy hover:text-stamp-red font-medium underline underline-offset-2"
               >
                 로그인
               </Link>

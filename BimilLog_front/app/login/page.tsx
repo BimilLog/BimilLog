@@ -79,7 +79,7 @@ export default function LoginPage() {
         { title: "로그인", href: "/login" },
       ]}
     >
-      <Card className="max-w-sm mx-auto bg-cyan-50 dark:bg-cyan-950 border-cyan-200 dark:border-cyan-800">
+      <Card className="max-w-sm mx-auto bg-paper-card dark:bg-gray-900 border-2 border-ink-soft dark:border-gray-700 shadow-brand-lg">
         {/* URL 파라미터로 전달된 에러가 있을 경우에만 에러 메시지 표시 */}
         {errorMessage && (
           <div className="mb-4">
@@ -89,7 +89,7 @@ export default function LoginPage() {
                 <p className="text-sm">{errorMessage}</p>
                 <button
                   onClick={handleLogin}
-                  className="text-sm font-medium text-purple-600 hover:text-purple-700 underline"
+                  className="text-sm font-medium text-postal-navy hover:text-stamp-red underline underline-offset-2"
                 >
                   다시 로그인하기
                 </button>
@@ -98,17 +98,17 @@ export default function LoginPage() {
           </div>
         )}
 
-        <div className="mb-6 text-center">
-          <div className="inline-flex items-center justify-center rounded-2xl border border-cyan-100 bg-white/90 px-6 py-3 text-xl font-semibold text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+        <div className="mb-6 text-center washi-tape pt-4">
+          <h2 className="font-display text-2xl font-bold text-stamp-red dark:text-foreground tracking-tight">
             비밀로그 시작하기
-          </div>
-          <p className="mt-3 text-muted-foreground">나만의 롤링페이퍼를 만들어 보세요</p>
+          </h2>
+          <p className="mt-3 font-body text-ink-soft dark:text-muted-foreground">나만의 롤링페이퍼를 만들어 보세요</p>
         </div>
 
         <ul className="my-7 space-y-5">
           <li className="flex space-x-3">
             <svg
-              className="h-5 w-5 shrink-0 text-pink-600 dark:text-pink-500"
+              className="h-5 w-5 shrink-0 text-stamp-red dark:text-stamp-red"
               fill="currentColor"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
@@ -123,7 +123,7 @@ export default function LoginPage() {
           </li>
           <li className="flex space-x-3">
             <svg
-              className="h-5 w-5 shrink-0 text-pink-600 dark:text-pink-500"
+              className="h-5 w-5 shrink-0 text-stamp-red dark:text-stamp-red"
               fill="currentColor"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
@@ -138,7 +138,7 @@ export default function LoginPage() {
           </li>
           <li className="flex space-x-3">
             <svg
-              className="h-5 w-5 shrink-0 text-pink-600 dark:text-pink-500"
+              className="h-5 w-5 shrink-0 text-stamp-red dark:text-stamp-red"
               fill="currentColor"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
@@ -153,7 +153,7 @@ export default function LoginPage() {
           </li>
           <li className="flex space-x-3">
             <svg
-              className="h-5 w-5 shrink-0 text-pink-600 dark:text-pink-500"
+              className="h-5 w-5 shrink-0 text-stamp-red dark:text-stamp-red"
               fill="currentColor"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
@@ -168,7 +168,7 @@ export default function LoginPage() {
           </li>
           <li className="flex space-x-3">
             <svg
-              className="h-5 w-5 shrink-0 text-pink-600 dark:text-pink-500"
+              className="h-5 w-5 shrink-0 text-stamp-red dark:text-stamp-red"
               fill="currentColor"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"

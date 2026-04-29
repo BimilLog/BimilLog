@@ -15,11 +15,11 @@ const RecentVisits = dynamic(
   {
     ssr: false, // 서버사이드 렌더링 비활성화 (로컬스토리지 사용으로 인해)
     loading: () => (
-      <div className="bg-white rounded-xl shadow-brand-sm border border-gray-100 p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded-lg mb-4 w-32"></div>
+      <div className="bg-paper-card rounded-xl shadow-brand-sm border border-ink-soft p-6 animate-pulse">
+        <div className="h-6 bg-paper-200/40 rounded-lg mb-4 w-32"></div>
         <div className="space-y-3">
-          <div className="h-16 bg-gray-200 rounded-lg"></div>
-          <div className="h-16 bg-gray-200 rounded-lg"></div>
+          <div className="h-16 bg-paper-200/40 rounded-lg"></div>
+          <div className="h-16 bg-paper-200/40 rounded-lg"></div>
         </div>
       </div>
     )
@@ -32,11 +32,11 @@ const AllUsersList = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bg-white rounded-xl shadow-brand-sm border border-gray-100 p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded-lg mb-4 w-32"></div>
+      <div className="bg-paper-card rounded-xl shadow-brand-sm border border-ink-soft p-6 animate-pulse">
+        <div className="h-6 bg-paper-200/40 rounded-lg mb-4 w-32"></div>
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-gray-200 rounded-lg"></div>
+            <div key={i} className="h-16 bg-paper-200/40 rounded-lg"></div>
           ))}
         </div>
       </div>
@@ -84,19 +84,19 @@ export function VisitClient() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-gradient">
+    <div className="min-h-screen bg-paper">
       {/* Auth Header */}
       <AuthHeader />
 
       {/* Page Header - 모바일 최적화 */}
-      <header data-toast-anchor className="sticky top-0 z-40 bg-card/80 backdrop-blur-md border-b border-border">
+      <header data-toast-anchor className="sticky top-0 z-40 bg-paper-card/90 backdrop-blur-md border-b border-ink-soft">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-stamp-red rounded-lg flex items-center justify-center flex-shrink-0">
                 <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <h1 className="text-base sm:text-xl font-bold text-foreground whitespace-nowrap">
+              <h1 className="font-display text-base sm:text-xl font-bold text-ink dark:text-foreground whitespace-nowrap tracking-tight">
                 롤링페이퍼 방문
               </h1>
             </div>
@@ -138,15 +138,15 @@ export function VisitClient() {
 
         {/* Info Section */}
         <div className="mt-8 text-center">
-          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div className="bg-paper-aged dark:bg-gray-900 border border-postal-navy/30 dark:border-postal-navy/50 rounded-lg p-4">
             <div className="flex items-start space-x-2">
-              <Heart className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800 dark:text-blue-200">
-                <p className="font-medium mb-1 flex items-center space-x-2">
+              <Heart className="w-5 h-5 text-stamp-red mt-0.5 flex-shrink-0" />
+              <div className="text-sm font-body text-ink dark:text-gray-200">
+                <p className="font-display font-semibold mb-1 flex items-center space-x-2 text-postal-navy dark:text-postal-navy">
                   <Mail className="w-4 h-4" />
                   <span>익명으로 메시지를 남겨보세요!</span>
                 </p>
-                <p>
+                <p className="text-ink-soft dark:text-gray-300">
                   로그인 없이도 누구나 따뜻한 메시지를 남길 수 있어요. 다양한
                   귀여운 디자인으로 메시지를 꾸며보세요!
                 </p>

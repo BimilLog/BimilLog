@@ -139,7 +139,7 @@ export const AllUsersList = memo(({ searchKeyword = "" }: AllUsersListProps) => 
                         memberName={member.memberName}
                         memberId={member.memberId}
                         trigger={
-                          <button className="font-medium text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 hover:underline transition-colors inline-flex items-center space-x-1">
+                          <button className="font-medium text-gray-900 dark:text-gray-100 hover:text-postal-navy dark:hover:text-postal-navy hover:underline transition-colors inline-flex items-center space-x-1">
                             <User className="w-3 h-3" />
                             <span>{member.memberName}</span>
                           </button>
