@@ -132,7 +132,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
     <div
       id={`comment-${comment.id}`}
       className={`${
-        depth > 0 ? "border-l-2 border-purple-300 dark:border-purple-600 pl-2" : ""
+        depth > 0 ? "border-l-2 border-stamp-red/40 dark:border-stamp-red/60 pl-2" : ""
       } transition-colors duration-500`}
       style={{ marginLeft: `${marginLeft}px` }}
       aria-label={depth > 0 ? "답글" : "댓글"}
@@ -158,14 +158,14 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               <div className="flex items-center gap-2 min-w-0">
                 {/* 대댓글인 경우 아이콘 표시 */}
                 {depth > 0 && (
-                  <CornerDownRight className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                  <CornerDownRight className="w-4 h-4 text-postal-navy flex-shrink-0" />
                 )}
                 {comment.memberName && comment.memberName !== "익명" ? (
                   <UserActionPopover
                     memberName={comment.memberName}
                     memberId={comment.memberId}
                     trigger={
-                      <button className="font-semibold text-sm sm:text-base hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
+                      <button className="font-semibold text-sm sm:text-base hover:text-postal-navy hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
                         <User className="w-3 h-3 flex-shrink-0" />
                         <span className="truncate">{comment.memberName}</span>
                       </button>
@@ -184,7 +184,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
 
             {/* 부모 댓글 작성자 표시 (대댓글인 경우) */}
             {depth > 0 && parentUserName && (
-              <div className="text-sm text-purple-600 dark:text-purple-400 mb-2">
+              <div className="text-sm text-postal-navy dark:text-stamp-red mb-2">
                 @{parentUserName}
               </div>
             )}
@@ -253,7 +253,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               variant="ghost"
               size="sm"
               onClick={() => setIsRepliesExpanded(!isRepliesExpanded)}
-              className="w-full text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 flex items-center justify-center gap-2"
+              className="w-full text-postal-navy dark:text-stamp-red hover:text-stamp-red dark:hover:text-stamp-red hover:bg-stamp-red/10 dark:hover:bg-stamp-red/20 flex items-center justify-center gap-2"
             >
               {isRepliesExpanded ? (
                 <>

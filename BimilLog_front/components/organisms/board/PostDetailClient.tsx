@@ -146,8 +146,8 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   // 게시글이 없는 경우
   if (!post) {
     return (
-      <div className="min-h-screen bg-brand-gradient flex items-center justify-center">
-        <p>게시글을 찾을 수 없습니다.</p>
+      <div className="min-h-screen bg-paper flex items-center justify-center">
+        <p className="text-ink">게시글을 찾을 수 없습니다.</p>
       </div>
     );
   }
@@ -156,12 +156,12 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   const rootCommentCount = getRootCommentCount(comments);
 
   return (
-    <div className="min-h-screen bg-brand-gradient">
+    <div className="min-h-screen bg-paper">
       {/* 읽기 진행률 바 */}
       {progress > 0 && (
-        <div className="fixed top-0 left-0 right-0 z-[60] h-1 bg-gray-200">
+        <div className="fixed top-0 left-0 right-0 z-[60] h-1 bg-paper-200">
           <div
-            className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
+            className="h-full bg-stamp-red transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>

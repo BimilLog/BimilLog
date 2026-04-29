@@ -22,11 +22,11 @@ export const PopularComments: React.FC<PopularCommentsProps> = memo(({
   }
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 shadow-brand-lg mb-6">
+    <Card className="bg-paper-aged border-stamp-red/30 shadow-brand-lg mb-6">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-blue-700">
-          <MessageSquare className="w-5 h-5 stroke-blue-600 fill-blue-100" />
-          <span className="text-base sm:text-lg">인기 댓글</span>
+        <CardTitle className="flex items-center gap-2 text-stamp-red">
+          <MessageSquare className="w-5 h-5 stroke-stamp-red fill-paper-100" />
+          <span className="text-base sm:text-lg font-display">인기 댓글</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">

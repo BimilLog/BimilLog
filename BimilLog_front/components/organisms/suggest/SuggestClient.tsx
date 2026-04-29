@@ -41,14 +41,14 @@ const suggestionTypes = [
     label: "기능 개선 제안",
     description: "새로운 기능이나 기존 기능 개선 아이디어",
     icon: Lightbulb,
-    color: "bg-blue-500",
+    color: "bg-postal-navy",
   },
   {
     value: "ERROR" as const,
     label: "오류 신고",
     description: "버그, 오작동, 기술적 문제 신고",
     icon: Bug,
-    color: "bg-red-500",
+    color: "bg-stamp-red",
   },
 ];
 
@@ -133,7 +133,7 @@ const SuggestClient = memo(function SuggestClient() {
         <div className="max-w-4xl mx-auto">
           {/* 건의 종류 선택 */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-brand-primary mb-6 text-center">
+            <h2 className="font-display text-2xl font-bold text-ink mb-6 text-center">
               어떤 종류의 건의사항인가요?
             </h2>
             <div className="grid md:grid-cols-2 gap-4">
@@ -146,8 +146,8 @@ const SuggestClient = memo(function SuggestClient() {
                     key={type.value}
                     className={`cursor-pointer transition-all border-2 hover:shadow-brand-lg ${
                       isSelected
-                        ? "border-purple-500 shadow-brand-lg bg-purple-50"
-                        : "border-gray-200 hover:border-gray-300 bg-white/80"
+                        ? "border-stamp-red shadow-brand-lg bg-paper-aged ring-2 ring-stamp-red/30"
+                        : "border-ink-soft hover:border-stamp-red/40 bg-paper-50/80"
                     } backdrop-blur-sm`}
                     onClick={() => setSuggestionType(type.value)}
                   >
@@ -172,21 +172,21 @@ const SuggestClient = memo(function SuggestClient() {
 
           {/* 건의 폼 */}
           {suggestionType && (
-            <Card className="border-0 shadow-brand-xl bg-white/90 backdrop-blur-sm">
+            <Card className="border border-ink-soft shadow-brand-xl bg-paper-50/90 backdrop-blur-sm">
               <CardHeader className="text-center">
                 <div className="flex items-center justify-center space-x-3 mb-2">
                   {selectedType && (
                     <div
-                      className={`w-10 h-10 bg-gradient-to-r ${selectedType.color} rounded-full flex items-center justify-center`}
+                      className={`w-10 h-10 ${selectedType.color} rounded-full flex items-center justify-center`}
                     >
-                      <selectedType.icon className="w-5 h-5 text-white" />
+                      <selectedType.icon className="w-5 h-5 text-paper-50" />
                     </div>
                   )}
-                  <CardTitle className="text-2xl text-brand-primary">
+                  <CardTitle className="font-display text-2xl text-ink">
                     {selectedType?.label}
                   </CardTitle>
                 </div>
-                <p className="text-brand-muted">{selectedType?.description}</p>
+                <p className="text-ink-soft">{selectedType?.description}</p>
               </CardHeader>
 
               <CardContent className="space-y-6">
@@ -195,9 +195,9 @@ const SuggestClient = memo(function SuggestClient() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="content"
-                      className="text-sm font-medium text-brand-primary"
+                      className="text-sm font-medium text-ink-soft"
                     >
-                      건의 내용 <span className="text-red-500">*</span>
+                      건의 내용 <span className="text-stamp-red">*</span>
                     </Label>
                     <Textarea
                       id="content"
@@ -206,7 +206,7 @@ const SuggestClient = memo(function SuggestClient() {
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
                       required
                       rows={8}
-                      className="border-gray-300 focus:border-purple-500 focus:ring-purple-500 resize-none"
+                      className="border-ink-soft focus:border-stamp-red focus:ring-stamp-red resize-none"
                       maxLength={500}
                     />
                     <div className="flex justify-between items-center">
@@ -223,11 +223,11 @@ const SuggestClient = memo(function SuggestClient() {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 py-3 text-lg font-semibold"
+                    className="w-full bg-stamp-red text-paper-50 hover:bg-stamp-red/90 py-3 text-lg font-semibold"
                   >
                     {isSubmitting ? (
                       <div className="flex items-center justify-center space-x-2">
-                        <Spinner size="sm" className="text-white" />
+                        <Spinner size="sm" className="text-paper-50" />
                         <span>접수 중...</span>
                       </div>
                     ) : (
@@ -243,13 +243,13 @@ const SuggestClient = memo(function SuggestClient() {
           )}
 
           {/* 안내 사항 */}
-          <Card variant="soft" className="mt-8 border-0 shadow-brand-lg">
+          <Card variant="soft" className="mt-8 border border-ink-soft shadow-brand-lg bg-paper-aged">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-brand-primary mb-3 flex items-center space-x-2">
-                <FileText className="w-5 h-5 text-blue-600" />
+              <h3 className="font-display text-lg font-semibold text-ink mb-3 flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-postal-navy" />
                 <span>건의하기 안내</span>
               </h3>
-              <ul className="space-y-2 text-sm text-brand-muted">
+              <ul className="space-y-2 text-sm text-ink-soft">
                 <li>
                   • 바라는 기능이나 기능 개선에 대한 제안을 해주세요.
                 </li>

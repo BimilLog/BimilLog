@@ -71,7 +71,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
 
   return (
     <div
-      className="p-3 sm:p-4 rounded-lg border border-blue-100 bg-white/70 backdrop-blur-sm transition-all duration-200 cursor-pointer hover:bg-white/90 hover:shadow-brand-md dark:border-blue-900/40 dark:bg-slate-900/70 dark:hover:bg-slate-900/90"
+      className="p-3 sm:p-4 rounded-lg border border-stamp-red/20 bg-paper-50/80 backdrop-blur-sm transition-all duration-200 cursor-pointer hover:bg-paper-50 hover:shadow-brand-md dark:border-stamp-red/30 dark:bg-slate-900/70 dark:hover:bg-slate-900/90"
       onClick={() => onCommentClick(comment.id)}
     >
       {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
@@ -102,7 +102,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
                 </div>
               }
             >
-              <button className="inline-flex items-center space-x-1 truncate text-sm font-semibold text-blue-800 transition-colors hover:text-purple-600 hover:underline sm:text-base dark:text-blue-300 dark:hover:text-purple-300">
+              <button className="inline-flex items-center space-x-1 truncate text-sm font-semibold text-postal-navy transition-colors hover:text-stamp-red hover:underline sm:text-base dark:text-paper-100 dark:hover:text-stamp-red">
                 <User className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">{comment.memberName}</span>
               </button>
@@ -146,7 +146,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
                 {/* 답글 버튼 */}
                 <FlowbiteButton
                   size="xs"
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
+                  className="bg-stamp-red text-paper-50 hover:bg-stamp-red/90"
                   onClick={(e) => {
                     e.stopPropagation();
                     onReplyTo(comment);
@@ -173,8 +173,8 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
               </div>
 
       {/* 클릭 안내 */}
-      <div className="mt-3 border-t border-blue-100 pt-2 dark:border-blue-900/40">
-        <p className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-300">
+      <div className="mt-3 border-t border-stamp-red/20 pt-2 dark:border-stamp-red/30">
+        <p className="flex items-center gap-1 text-xs font-medium text-postal-navy dark:text-paper-100">
           원본 댓글로 이동하기
         </p>
       </div>

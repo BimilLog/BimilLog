@@ -5,7 +5,7 @@ import { LegalDocumentHeader } from "@/components/organisms/common/LegalDocument
 
 export default function PrivacyPage() {
   return (
-    <CleanLayout className="bg-paper dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
+    <CleanLayout className="bg-paper">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="bg-paper-card rounded-2xl shadow-brand-xl border border-ink-soft overflow-hidden">
           <LegalDocumentHeader title="개인정보 처리방침" />

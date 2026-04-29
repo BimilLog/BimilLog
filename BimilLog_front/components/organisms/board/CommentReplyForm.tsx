@@ -30,8 +30,8 @@ export const CommentReplyForm: React.FC<CommentReplyFormProps> = React.memo(({
   setReplyPassword,
 }) => {
   return (
-    <div className="mt-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700 space-y-3">
-      <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+    <div className="mt-4 p-3 sm:p-4 bg-paper-aged dark:bg-postal-navy/20 rounded-lg border border-postal-navy/30 dark:border-postal-navy/40 space-y-3">
+      <h4 className="text-sm font-semibold text-postal-navy dark:text-paper-100">
         {targetUserName}님에게 답글 작성
       </h4>
       {/* 비로그인 사용자는 비밀번호 입력 필요 */}

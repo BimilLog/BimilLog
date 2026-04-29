@@ -52,7 +52,7 @@ export const BoardPagination = memo(({
             selector: {
               base: "flex min-h-[44px] min-w-[44px] items-center justify-center border border-border bg-card px-4 py-3 text-muted-foreground leading-tight hover:bg-accent hover:text-foreground",
               active:
-                "border-purple-500 bg-purple-500 text-white hover:bg-purple-500 hover:text-white dark:border-purple-400 dark:bg-purple-500",
+                "border-stamp-red bg-stamp-red text-paper-50 hover:bg-stamp-red hover:text-paper-50 dark:border-stamp-red dark:bg-stamp-red",
               disabled: "cursor-not-allowed text-muted-foreground/60"
             }
           }

@@ -76,7 +76,7 @@ const BoardTableRow = memo<TableRowProps>(({
       {/* 순위 또는 번호 */}
       <TableCell className="text-center font-medium text-foreground">
         {showRanking ? (
-          <span className="text-lg font-bold text-purple-600">
+          <span className="font-display text-lg font-bold text-stamp-red">
             {index + 1}
           </span>
         ) : (
@@ -93,12 +93,12 @@ const BoardTableRow = memo<TableRowProps>(({
             className={`block line-clamp-2 font-semibold transition-colors ${
               isRead
                 ? 'text-muted-foreground'
-                : 'text-foreground hover:text-purple-600 dark:hover:text-purple-300'
+                : 'text-foreground hover:text-postal-navy dark:hover:text-stamp-red'
             }`}
           >
             {post.title}
             {post.commentCount > 0 && (
-              <span className="ml-2 text-purple-500 font-normal">
+              <span className="ml-2 text-stamp-red font-normal">
                 [{post.commentCount}]
               </span>
             )}
@@ -113,7 +113,7 @@ const BoardTableRow = memo<TableRowProps>(({
             memberName={post.memberName}
             memberId={post.memberId}
             trigger={
-              <button className="inline-flex max-w-20 items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:hover:text-purple-300">
+              <button className="inline-flex max-w-20 items-center space-x-1 truncate transition-colors hover:text-postal-navy hover:underline dark:hover:text-stamp-red">
                 <User className="w-3 h-3" />
                 <span>{post.memberName}</span>
               </button>
@@ -142,7 +142,7 @@ const BoardTableRow = memo<TableRowProps>(({
             content={
               <div className="p-3 min-w-[180px]">
                 <div className="mb-2 flex items-center gap-2">
-                  <ThumbsUp className="w-4 h-4 text-purple-600 dark:text-purple-300" />
+                  <ThumbsUp className="w-4 h-4 text-stamp-red dark:text-stamp-red" />
                   <span className="text-sm font-semibold text-foreground">좋아요 통계</span>
                 </div>
                 <div className="space-y-1 text-xs text-muted-foreground">
@@ -153,7 +153,7 @@ const BoardTableRow = memo<TableRowProps>(({
                   {showRanking && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">순위:</span>
-                      <span className="font-medium text-purple-600 dark:text-purple-300">#{index + 1}</span>
+                      <span className="font-medium text-stamp-red dark:text-stamp-red">#{index + 1}</span>
                     </div>
                   )}
                 </div>
@@ -211,7 +211,7 @@ const BoardMobileCard = memo<TableRowProps>(({
             {/* 순위 표시 (인기글 탭에서만) */}
             <div className="flex items-center gap-2 mb-1.5">
               {showRanking && (
-                <span className="text-lg font-bold text-purple-600 dark:text-purple-300">
+                <span className="font-display text-lg font-bold text-stamp-red dark:text-stamp-red">
                   #{index + 1}
                 </span>
               )}
@@ -228,7 +228,7 @@ const BoardMobileCard = memo<TableRowProps>(({
             >
               {post.title}
               {post.commentCount > 0 && (
-                <span className="ml-2 text-purple-500 font-normal">
+                <span className="ml-2 text-stamp-red font-normal">
                   [{post.commentCount}]
                 </span>
               )}
@@ -251,7 +251,7 @@ const BoardMobileCard = memo<TableRowProps>(({
                   memberId={post.memberId}
                   trigger={
                     <button
-                      className="inline-flex max-w-32 cursor-pointer items-center gap-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300"
+                      className="inline-flex max-w-32 cursor-pointer items-center gap-1 truncate transition-colors hover:text-postal-navy hover:underline dark:text-gray-200 dark:hover:text-stamp-red"
                       aria-label={`작성자 ${post.memberName}`}
                     >
                       <User className="w-3 h-3 flex-shrink-0" />

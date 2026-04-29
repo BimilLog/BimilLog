@@ -24,7 +24,7 @@ export const NoticeList = memo(({ posts }: NoticeListProps) => {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full table-fixed text-sm md:text-base">
-            <thead className="bg-purple-50 text-purple-600 dark:bg-[#1a1030] dark:text-purple-200">
+            <thead className="bg-paper-aged text-stamp-red dark:bg-[#1a1030] dark:text-stamp-red">
               <tr className="text-left">
                 <th className="w-20 px-4 py-3 text-center">구분</th>
                 <th className="px-4 py-3">제목</th>
@@ -48,7 +48,7 @@ export const NoticeList = memo(({ posts }: NoticeListProps) => {
                 return (
                   <tr
                     key={notice.id}
-                    className="border-b border-border bg-card transition-colors hover:bg-purple-50/60 dark:hover:bg-[#201b3d]"
+                    className="border-b border-border bg-card transition-colors hover:bg-paper-aged/60 dark:hover:bg-[#201b3d]"
                   >
                     <td className="px-4 py-3 text-center">
                       <Badge
@@ -62,12 +62,12 @@ export const NoticeList = memo(({ posts }: NoticeListProps) => {
                     <td className="px-4 py-3 align-middle">
                       <Link
                         href={`/board/post/${notice.id}`}
-                        className="group flex items-center gap-2 font-semibold text-foreground hover:text-purple-600 dark:hover:text-purple-300"
+                        className="group flex items-center gap-2 font-semibold text-foreground hover:text-postal-navy dark:hover:text-stamp-red"
                       >
                         <span className="line-clamp-1">
                           {notice.title}
                           {notice.commentCount > 0 && (
-                            <span className="ml-2 text-purple-500 font-normal">
+                            <span className="ml-2 text-stamp-red font-normal">
                               [{notice.commentCount}]
                             </span>
                           )}
@@ -81,7 +81,7 @@ export const NoticeList = memo(({ posts }: NoticeListProps) => {
                       {hasAuthorLink ? (
                         <Link
                           href={`/rolling-paper/${encodeURIComponent(authorName)}`}
-                          className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-muted-foreground hover:text-purple-600 hover:underline dark:hover:text-purple-300"
+                          className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-muted-foreground hover:text-postal-navy hover:underline dark:hover:text-stamp-red"
                           title={`${authorName}님의 롤링페이퍼 보기`}
                         >
                           <User className="h-4 w-4" />
@@ -130,7 +130,7 @@ export const NoticeList = memo(({ posts }: NoticeListProps) => {
               variant="elevated"
               className="relative p-3 gap-1 overflow-visible shadow-sm isolation-auto"
             >
-              <div className="flex items-center justify-between text-xs text-purple-500 dark:text-purple-300">
+              <div className="flex items-center justify-between text-xs text-stamp-red dark:text-stamp-red">
                 <Badge variant="info" icon={Megaphone}>
                   공지
                 </Badge>
@@ -138,11 +138,11 @@ export const NoticeList = memo(({ posts }: NoticeListProps) => {
               </div>
               <Link
                 href={`/board/post/${notice.id}`}
-                className="mt-2 block text-base font-semibold text-foreground hover:text-purple-600 dark:hover:text-purple-300"
+                className="mt-2 block text-base font-semibold text-foreground hover:text-postal-navy dark:hover:text-stamp-red"
               >
                 {notice.title}
                 {notice.commentCount > 0 && (
-                  <span className="ml-2 text-purple-500 font-normal">
+                  <span className="ml-2 text-stamp-red font-normal">
                     [{notice.commentCount}]
                   </span>
                 )}
@@ -174,7 +174,7 @@ export const NoticeList = memo(({ posts }: NoticeListProps) => {
                   >
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 text-left transition-colors text-foreground hover:text-purple-600 hover:underline dark:hover:text-purple-300"
+                      className="inline-flex items-center gap-1 text-left transition-colors text-foreground hover:text-postal-navy hover:underline dark:hover:text-stamp-red"
                       title={`${authorName}님의 롤링페이퍼 보기`}
                     >
                       <User className="h-4 w-4" />

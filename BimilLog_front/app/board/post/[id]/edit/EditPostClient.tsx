@@ -36,7 +36,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
+      <div className="min-h-screen bg-paper dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
         <AuthHeader />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
@@ -49,7 +49,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
+      <div className="min-h-screen bg-paper dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
         <AuthHeader />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <p className="text-brand-muted">게시글 정보를 찾을 수 없습니다.</p>
@@ -72,11 +72,11 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
+      <div className="min-h-screen bg-paper dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
         <AuthHeader />
 
         {/* Header (모바일 최적화) */}
-        <header data-toast-anchor className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
+        <header data-toast-anchor className="sticky top-0 z-50 bg-paper-50/80 backdrop-blur-md border-b border-ink-soft">
           <div className="container mx-auto px-4 py-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               {/* 좌측: 뒤로가기 및 제목 */}
@@ -99,17 +99,17 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                     variant="outline"
                     size="sm"
                     onClick={() => setIsPreview(!isPreview)}
-                    className="bg-white"
+                    className="bg-paper-50"
                   >
-                    <Eye className="w-4 h-4 stroke-purple-600 fill-purple-100" />
+                    <Eye className="w-4 h-4 stroke-postal-navy fill-paper-100" />
                   </Button>
                   <Button
                     size="sm"
                     onClick={handleSubmit}
                     disabled={isSubmitting || !isFormValid}
-                    className="bg-gradient-to-r from-pink-500 to-purple-600"
+                    className="bg-stamp-red text-paper-50 hover:bg-stamp-red/90"
                   >
-                    <Save className="w-4 h-4 stroke-green-600 fill-green-100" />
+                    <Save className="w-4 h-4 stroke-paper-50 fill-stamp-red/40" />
                   </Button>
                 </div>
               </div>
@@ -120,17 +120,17 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                 <Button
                   variant="outline"
                   onClick={() => setIsPreview(!isPreview)}
-                  className="bg-white"
+                  className="bg-paper-50"
                 >
-                  <Eye className="w-4 h-4 mr-2 stroke-purple-600 fill-purple-100" />
+                  <Eye className="w-4 h-4 mr-2 stroke-postal-navy fill-paper-100" />
                   {isPreview ? "편집" : "미리보기"}
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting || !isFormValid}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600"
+                  className="bg-stamp-red text-paper-50 hover:bg-stamp-red/90"
                 >
-                  <Save className="w-4 h-4 mr-2 stroke-green-600 fill-green-100" />
+                  <Save className="w-4 h-4 mr-2 stroke-paper-50 fill-stamp-red/40" />
                   {isSubmitting ? "수정 중..." : "수정완료"}
                 </Button>
               </div>
@@ -142,7 +142,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Save className="w-5 h-5 stroke-purple-600 fill-purple-100" />
+                <Save className="w-5 h-5 stroke-stamp-red fill-paper-100" />
                 <span>게시글 수정</span>
               </CardTitle>
             </CardHeader>
@@ -163,7 +163,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                       placeholder="제목을 입력하세요"
                       value={title}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
-                      className="text-lg font-medium border-2 border-gray-200 focus:border-purple-400"
+                      className="text-lg font-medium border-2 border-ink-soft focus:border-stamp-red"
                     />
                   </div>
 
@@ -193,7 +193,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                         placeholder="게시글 수정을 위한 비밀번호를 입력하세요"
                         value={guestPassword}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGuestPassword(e.target.value)}
-                        className="border-2 border-gray-200 focus:border-purple-400"
+                        className="border-2 border-ink-soft focus:border-stamp-red"
                       />
                       <p className="text-xs text-brand-secondary">
                         게시글 작성 시 설정한 비밀번호를 입력해주세요.
@@ -202,10 +202,10 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                   )}
 
                   {/* 작성자 정보 */}
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="p-4 bg-paper-aged border border-postal-navy/30 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">
+                      <div className="w-8 h-8 bg-stamp-red rounded-full flex items-center justify-center">
+                        <span className="text-paper-50 text-sm font-bold">
                           {post.memberName?.charAt(0) || "?"}
                         </span>
                       </div>

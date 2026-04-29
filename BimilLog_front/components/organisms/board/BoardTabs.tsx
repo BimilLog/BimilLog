@@ -130,9 +130,9 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
             }
           },
           fullWidth: {
-            base: "flex-1 rounded-none first:rounded-l-lg last:rounded-r-lg",
+            base: "flex-1 rounded-none first:rounded-l-lg last:rounded-r-lg border-b-2 border-transparent",
             active: {
-              on: "bg-white text-purple-600 dark:bg-gray-700 dark:text-purple-400",
+              on: "bg-paper-50 text-stamp-red border-b-2 border-stamp-red dark:bg-gray-700 dark:text-stamp-red",
               off: "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
             }
           }
@@ -159,7 +159,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <ClipboardList className="w-5 h-5 text-blue-500" />
+                <ClipboardList className="w-5 h-5 text-postal-navy" />
                 <span>
                   {isSearching && searchTerm ? `'${searchTerm}' 검색 결과` : "전체 게시판"}
                 </span>
@@ -186,7 +186,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Flame className="w-5 h-5 text-red-500" />
+                <Flame className="w-5 h-5 text-stamp-red" />
                 <span>실시간 인기글</span>
               </CardTitle>
             </CardHeader>
@@ -207,7 +207,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <TrendingUp className="w-5 h-5 text-orange-500" />
+                <TrendingUp className="w-5 h-5 text-seal-gold" />
                 <span>주간 인기글</span>
               </CardTitle>
             </CardHeader>
@@ -228,7 +228,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Sparkles className="w-5 h-5 text-purple-500" />
+                <Sparkles className="w-5 h-5 text-stamp-red" />
                 <span>레전드 글</span>
               </CardTitle>
             </CardHeader>

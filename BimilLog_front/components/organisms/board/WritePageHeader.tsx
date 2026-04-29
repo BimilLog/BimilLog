@@ -44,20 +44,20 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = memo(({
                 variant="outline"
                 size="sm"
                 onClick={onTogglePreview}
-                className="bg-white dark:bg-slate-900/80"
+                className="bg-paper-50 dark:bg-slate-900/80"
               >
-                <Eye className="w-4 h-4 stroke-purple-600 fill-purple-100" />
+                <Eye className="w-4 h-4 stroke-postal-navy fill-paper-100" />
               </Button>
               <Button
                 size="sm"
                 onClick={onSubmit}
                 disabled={isSubmitting}
                 aria-disabled={!isFormValid}
-                className={`bg-gradient-to-r from-pink-500 to-purple-600 ${
+                className={`bg-stamp-red text-paper-50 hover:bg-stamp-red/90 ${
                   !isFormValid ? 'opacity-80' : ''
                 }`}
               >
-                <Save className="w-4 h-4 stroke-green-600 fill-green-100" />
+                <Save className="w-4 h-4 stroke-paper-50 fill-stamp-red/40" />
               </Button>
             </div>
           </div>
@@ -67,20 +67,20 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = memo(({
             <Button
               variant="outline"
               onClick={onTogglePreview}
-              className="bg-white dark:bg-slate-900/80"
+              className="bg-paper-50 dark:bg-slate-900/80"
             >
-              <Eye className="w-4 h-4 mr-2 stroke-purple-600 fill-purple-100" />
+              <Eye className="w-4 h-4 mr-2 stroke-postal-navy fill-paper-100" />
               {isPreview ? "편집" : "미리보기"}
             </Button>
             <Button
               onClick={onSubmit}
               disabled={isSubmitting}
               aria-disabled={!isFormValid}
-              className={`bg-gradient-to-r from-pink-500 to-purple-600 ${
+              className={`bg-stamp-red text-paper-50 hover:bg-stamp-red/90 ${
                 !isFormValid ? 'opacity-80' : ''
               }`}
             >
-              <Save className="w-4 h-4 mr-2 stroke-green-600 fill-green-100" />
+              <Save className="w-4 h-4 mr-2 stroke-paper-50 fill-stamp-red/40" />
               {isSubmitting ? "작성 중..." : "작성완료"}
             </Button>
           </div>

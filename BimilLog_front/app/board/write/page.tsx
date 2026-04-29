@@ -57,7 +57,7 @@ export default function WritePostPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-brand-gradient">
+      <div className="min-h-screen bg-paper">
         <AuthHeader />
         <div className="flex items-center justify-center flex-1 min-h-[calc(100vh-80px)]">
           <div className="flex flex-col items-center">
@@ -72,7 +72,7 @@ export default function WritePostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-gradient">
+    <div className="min-h-screen bg-paper">
       <AuthHeader />
 
       {/* 비로그인 안내 (B-M5) */}

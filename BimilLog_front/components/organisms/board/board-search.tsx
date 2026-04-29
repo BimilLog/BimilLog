@@ -195,9 +195,9 @@ export const BoardSearch = memo(({
                 size="icon"
                 onClick={executeSearch}
                 aria-label="검색"
-                className="border-0 rounded-none border-l border-border hover:bg-brand-secondary/10"
+                className="border-0 rounded-none border-l border-border hover:bg-stamp-red/10"
               >
-                <Search className="w-5 h-5 stroke-blue-600 fill-blue-100" />
+                <Search className="w-5 h-5 stroke-stamp-red fill-paper-100" />
               </Button>
             </div>
           </div>
@@ -243,8 +243,8 @@ export const BoardSearch = memo(({
             data-testid="anonymous-write-info-modal"
             className="text-center"
           >
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-purple-50 dark:bg-purple-900/30">
-              <AlertCircle className="h-8 w-8 stroke-purple-600 fill-purple-100" />
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-paper-aged border border-stamp-red/30 dark:bg-stamp-red/20">
+              <AlertCircle className="h-8 w-8 stroke-stamp-red fill-paper-100" />
             </div>
             <h3 className="mb-3 text-lg font-bold text-foreground">
               로그인하면 더 편리해요
