@@ -2,7 +2,7 @@
 
 import React, { useMemo, memo, useCallback, useState } from "react";
 import { Modal, ModalBody, ModalHeader } from "flowbite-react";
-import { Plus, ChevronLeft, ChevronRight, Sparkles, Mail, MessageSquare } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Sparkles, Mail, MessageSquare, Lock } from "lucide-react";
 import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { MessageForm } from "@/components/organisms/rolling-paper/MessageForm";
@@ -28,11 +28,27 @@ const GridCell = memo(({ actualX, actualY, message, isHighlighted, isOwner, onCl
     onClick(actualX, actualY);
   }, [onClick, actualX, actualY]);
 
+  // 접근성: 셀의 의미를 스크린리더에 전달하는 aria-label
+  const ariaLabel = message
+    ? `${actualY + 1}행 ${actualX + 1}열, 메시지 보기`
+    : isOwner
+    ? `${actualY + 1}행 ${actualX + 1}열, 빈 칸 (작성 불가)`
+    : `${actualY + 1}행 ${actualX + 1}열, 빈 칸, 메시지 작성하기`;
+
+  const isDisabled = isOwner && !message;
+
   return (
-    <div
+    <button
+      type="button"
       onClick={handleClick}
+      disabled={isDisabled}
+      aria-label={ariaLabel}
+      data-testid="grid-cell"
+      data-x={actualX}
+      data-y={actualY}
+      data-locked={message && !isOwner ? 'true' : undefined}
       className={`
-        aspect-square rounded-lg md:rounded-xl border-2 md:border-3 flex items-center justify-center transition-all duration-300 relative
+        aspect-square rounded-lg md:rounded-xl border-2 md:border-3 flex items-center justify-center transition-all duration-300 relative focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2
         ${
           isHighlighted
             ? "border-4 border-green-400 bg-gradient-to-br from-green-100 to-emerald-100 animate-pulse shadow-xl shadow-green-200 cursor-pointer"
@@ -51,15 +67,26 @@ const GridCell = memo(({ actualX, actualY, message, isHighlighted, isOwner, onCl
     >
       {message ? (
         <div className="relative">
+          {/* 셀 애니메이션 축소: DecoIcon 의 bounce 만 사용. animate-ping (yellow dot) 은 제거하여 한 셀에 두 애니메이션이 겹치지 않도록 함. */}
           <DecoIcon
             decoType={message.decoType}
             size="lg"
             showBackground={true}
             animate="bounce"
           />
-          <div className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-300 rounded-full animate-ping"></div>
+          {/* 비-소유자(방문자) 시점에서는 잠금 뱃지 노출 - 본인이 아니면 content/anonymity 미노출이므로 잠긴 메시지임을 표시 */}
+          {!isOwner && (
+            <span
+              data-testid="grid-cell-locked"
+              data-locked="true"
+              className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 w-3 h-3 md:w-3.5 md:h-3.5 rounded-full bg-white/95 border border-gray-300 flex items-center justify-center shadow-sm"
+              aria-label="잠긴 메시지"
+            >
+              <Lock className="w-2 h-2 md:w-2.5 md:h-2.5 stroke-gray-600" aria-hidden="true" />
+            </span>
+          )}
           {isHighlighted && (
-            <div className="absolute inset-0 bg-green-300 rounded-full opacity-50 animate-ping"></div>
+            <div className="absolute inset-0 bg-green-300 rounded-full opacity-50 animate-pulse"></div>
           )}
         </div>
       ) : isOwner ? (
@@ -69,12 +96,9 @@ const GridCell = memo(({ actualX, actualY, message, isHighlighted, isOwner, onCl
           <Plus
             className="w-4 h-4 md:w-5 md:h-5 transition-colors text-sky-400 dark:text-sky-500 group-hover:text-sky-600 dark:group-hover:text-sky-400"
           />
-          <div
-            className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-30 transition-opacity animate-pulse bg-sky-200"
-          ></div>
         </div>
       )}
-    </div>
+    </button>
   );
 });
 
@@ -183,8 +207,10 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
         } else {
           onError?.(`이미 메시지가 있는 위치입니다 (${positionInfo}). 아래에서 가까운 빈 위치를 선택해주세요.`);
         }
-      } else if (errorMessage.includes('x는 0~11') || errorMessage.includes('y는 0~9')) {
-        onError?.(`잘못된 위치입니다 (${positionInfo}, x: ${actualX}, y: ${actualY})`);
+      } else if (errorMessage.includes('x는 0~11') || errorMessage.includes('y는 0~9') || /0\s*~\s*\d+/.test(errorMessage)) {
+        // raw 좌표 범위 표현(0~11, 0~9 등)은 사용자에게 노출하지 않고
+        // 페이지/행/칸 형태의 사용자 친화적 메시지로 대체
+        onError?.(`선택한 위치(${positionInfo})에 메시지를 작성할 수 없습니다. 다른 위치를 선택해주세요.`);
       } else {
         onError?.("메시지 추가에 실패했습니다. 다시 시도해주세요.");
       }
@@ -234,7 +260,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
       >
 
         {/* 제목 영역 */}
-        <div className="pt-6 md:pt-8 pb-4 md:pb-6 px-12 md:px-20 text-center">
+        <div className="pt-6 md:pt-8 pb-4 md:pb-6 px-4 md:px-20 text-center">
           <div className="relative">
             {/* 예쁜 제목 카드 */}
             <div className="bg-gradient-to-r from-sky-100/90 via-cyan-100/90 to-blue-100/90 dark:from-sky-800/90 dark:via-cyan-800/90 dark:to-blue-800/90 rounded-3xl p-6 md:p-8 shadow-xl border-2 border-white/80 dark:border-sky-600/80 backdrop-blur-md mb-6 relative overflow-hidden">
@@ -260,8 +286,33 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
           </div>
         </div>
 
+        {/* 빈 상태 CTA: 메시지가 0개일 때 큰 안내 영역 노출 */}
+        {messages.length === 0 && (
+          <div
+            data-testid="paper-empty-state"
+            className="mx-4 md:mx-20 mb-6 p-6 md:p-8 rounded-2xl bg-white/70 dark:bg-sky-900/40 border-2 border-dashed border-sky-300 dark:border-sky-600 text-center backdrop-blur-sm"
+          >
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-brand-button flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <MessageSquare className="w-7 h-7 md:w-8 md:h-8 stroke-white fill-white/30" aria-hidden="true" />
+            </div>
+            <h2 className="text-lg md:text-xl font-bold text-sky-800 dark:text-sky-200 mb-2">
+              아직 메시지가 비어 있어요
+            </h2>
+            <p className="text-sm md:text-base text-sky-700 dark:text-sky-300 leading-relaxed">
+              {isOwner
+                ? '친구들에게 롤링페이퍼 링크를 공유하고 첫 메시지를 받아보세요.'
+                : `${nickname}님에게 첫 메시지를 남겨보세요.`}
+            </p>
+            {!isOwner && (
+              <p className="mt-3 text-xs md:text-sm text-sky-600 dark:text-sky-400">
+                아래 그리드에서 빈 칸을 눌러 메시지를 작성할 수 있어요.
+              </p>
+            )}
+          </div>
+        )}
+
         {/* 메시지 그리드 */}
-        <div className="px-12 md:px-20 pb-4 md:pb-6">
+        <div data-testid="paper-grid-container" className="px-4 md:px-20 pb-4 md:pb-6">
           {/* 페이지 네비게이션 */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-4 mb-4">

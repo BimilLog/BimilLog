@@ -99,7 +99,7 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = React.memo(({
         ownerId={ownerId}
         isOwner={isOwner}
         onShowMessages={isOwner ? () => setIsMessageListOpen(true) : undefined}
-        className="sticky top-[68px] sm:top-[80px] z-40"
+        className="sticky top-0 z-40"
       />
 
       <div className="container mx-auto px-2 md:px-4">

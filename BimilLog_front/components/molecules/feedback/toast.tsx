@@ -87,6 +87,9 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
   if (toast.type === 'feedback' && (toast.action || toast.undoAction)) {
     return (
       <div
+        role="alert"
+        aria-live="polite"
+        data-testid="toast"
         className={cn(
           "transition-all duration-300 ease-in-out",
           isVisible && !isLeaving

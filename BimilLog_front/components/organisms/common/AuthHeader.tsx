@@ -72,7 +72,12 @@ const NAVBAR_THEME = {
   }
 } as const;
 
-export const AuthHeader = React.memo(() => {
+interface AuthHeaderProps {
+  // sticky 비활성화 플래그: 같은 페이지 내 다른 sticky 헤더가 있을 때 합산 높이를 줄이기 위해 사용
+  disableSticky?: boolean;
+}
+
+export const AuthHeader = React.memo<AuthHeaderProps>(({ disableSticky = false }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [mounted, setMounted] = React.useState(false);
 
@@ -84,7 +89,7 @@ export const AuthHeader = React.memo(() => {
     <Navbar
       data-toast-anchor
       fluid
-      className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm transition-colors duration-300"
+      className={`${disableSticky ? "relative" : "sticky top-0"} z-50 border-b border-border bg-background/80 backdrop-blur-sm transition-colors duration-300`}
       theme={NAVBAR_THEME}
     >
       <NavbarBrand as={Link} href="/">
