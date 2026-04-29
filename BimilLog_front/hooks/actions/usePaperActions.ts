@@ -31,7 +31,16 @@ export function useCreateMessageAction() {
     }
   ) => {
     startTransition(async () => {
-      const result = await createMessageAction(data)
+      // 백엔드 무응답 등으로 Server Action 이 응답하지 않을 때 사용자에게 빠르게 피드백을 주기 위해
+      // 8초 타임아웃을 걸어 강제로 에러 토스트를 노출한다.
+      const TIMEOUT_MS = 4000
+      const timeoutPromise = new Promise<{ success: false; error: string }>((resolve) => {
+        setTimeout(
+          () => resolve({ success: false, error: '메시지 작성에 실패했습니다. 잠시 후 다시 시도해주세요.' }),
+          TIMEOUT_MS,
+        )
+      })
+      const result = await Promise.race([createMessageAction(data), timeoutPromise])
 
       if (result.success) {
         // 캐시 무효화
@@ -47,8 +56,19 @@ export function useCreateMessageAction() {
         showToast({ type: 'success', message: result.message || '메시지가 작성되었습니다.' })
         callbacks?.onSuccess?.()
       } else {
-        showToast({ type: 'error', message: result.error || '메시지 작성에 실패했습니다.' })
-        callbacks?.onError?.(result.error || '메시지 작성에 실패했습니다.')
+        // raw 좌표 노출 (예: "x는 0~11 사이의 값이어야 합니다.") 은 사용자에게 친화적이지 않으므로
+        // 위치 관련 검증 에러는 일반화된 메시지로 치환한다.
+        const rawError = result.error || '메시지 작성에 실패했습니다.'
+        const isCoordError =
+          /x\s*는?\s*0\s*~\s*\d+/.test(rawError) ||
+          /y\s*는?\s*0\s*~\s*\d+/.test(rawError) ||
+          /0\s*~\s*\d+\s*사이/.test(rawError)
+        const friendlyError = isCoordError
+          ? '선택한 위치에 메시지를 작성할 수 없습니다. 다른 위치를 선택해주세요.'
+          : rawError
+
+        showToast({ type: 'error', message: friendlyError })
+        callbacks?.onError?.(friendlyError)
       }
     })
   }

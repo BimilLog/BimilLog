@@ -58,13 +58,13 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
         ) : (
           <div className="max-h-96 md:max-h-[60vh] overflow-y-auto pr-4">
             <div className="space-y-3">
-              {sortedMessages.map((message, index) => {
+              {sortedMessages.map((message) => {
                 const isAnonymous =
                   message.anonymity && message.anonymity !== "";
 
                 return (
                   <Card
-                    key={index}
+                    key={message.id}
                     variant="elevated"
                     interactive={true}
                     onClick={() => {

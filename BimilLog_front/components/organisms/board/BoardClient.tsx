@@ -49,6 +49,10 @@ function BoardClient({ initialData }: BoardClientProps) {
     isFetchingNextPage,
     // 검색용 offset 페이지네이션
     searchPagination,
+    // 검색 결과 totalElements (A-2)
+    searchTotalElements,
+    // 검색 fetching 상태 (A-3 spinner)
+    isSearchFetching,
     // 검색 관련
     searchTerm,
     setSearchTerm,
@@ -100,24 +104,32 @@ function BoardClient({ initialData }: BoardClientProps) {
   }, [searchPagination]);
 
   // 검색 핸들러 (URL 기반으로 검색어 반영)
-  const handleSearch = useCallback(() => {
+  // 인자로 받은 term이 있으면 우선 사용 (closure stale 방지)
+  const handleSearch = useCallback((termOverride?: string) => {
     const params = new URLSearchParams();
+    const effectiveTerm = (termOverride ?? searchTerm).trim();
 
-    if (searchTerm.trim()) {
-      params.set('q', searchTerm.trim());
+    if (effectiveTerm) {
+      params.set('q', effectiveTerm);
       if (searchType !== 'TITLE') {
         params.set('type', searchType);
       }
     }
 
     const queryString = params.toString();
-    router.push(`/board${queryString ? `?${queryString}` : ''}`, { scroll: true });
+    const targetUrl = `/board${queryString ? `?${queryString}` : ''}`;
+    // Next.js 15 router.push 는 비동기로 진행되어 e2e 환경에서 networkidle
+    // 직후 URL 이 즉시 반영되지 않는 케이스가 있다. history API 로 동기 갱신 후
+    // router.replace 로 SPA navigation 을 보장한다.
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, "", targetUrl);
+    }
+    router.replace(targetUrl, { scroll: true });
   }, [router, searchTerm, searchType]);
 
   return (
     <MainLayout
-      className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]"
-      containerClassName="container mx-auto px-4"
+      containerClassName="container-paper px-4"
     >
       <main className="pb-8">
         <Breadcrumb
@@ -134,6 +146,9 @@ function BoardClient({ initialData }: BoardClientProps) {
               searchType={searchType}
               setSearchType={setSearchType}
               handleSearch={handleSearch}
+              isSearching={isSearching}
+              totalElements={searchTotalElements}
+              isSearchFetching={isSearchFetching}
             />
         </div>
 

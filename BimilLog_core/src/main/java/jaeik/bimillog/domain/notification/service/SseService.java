@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequiredArgsConstructor
 public class SseService {
     private final SseRepository sseRepository;
+    private final SseNotificationPublisher sseNotificationPublisher;
 
     /**
      * <h3>SSE 구독</h3>
@@ -53,8 +54,13 @@ public class SseService {
     }
 
 
+    /**
+     * <h3>SSE 알림 전송 (Pub/Sub 팬아웃)</h3>
+     * <p>Redis Pub/Sub 채널로 발행하여 모든 인스턴스가 수신합니다.</p>
+     * <p>수신한 인스턴스 중 해당 사용자의 이미터를 보유한 곳에서만 실제 전송됩니다.</p>
+     */
     public void sendNotification(Long memberId, NotificationType type, String message, String url) {
         SseMessage sseMessage = SseMessage.of(memberId, type, message, url);
-        sseRepository.send(sseMessage);
+        sseNotificationPublisher.publish(sseMessage);
     }
 }

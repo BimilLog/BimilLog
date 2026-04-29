@@ -9,37 +9,37 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // 기본 브랜드 버튼 (브랜드 그라디언트 사용)
+        // 기본 브랜드 버튼 (종이 위 stamp-red 우표 단색)
         default:
-          "bg-brand-button hover:bg-brand-hover text-white shadow-brand-lg hover:shadow-brand-xl active:scale-[0.98] focus-visible:ring-purple-500",
+          "bg-brand-button hover:bg-brand-hover text-white shadow-brand-lg hover:shadow-brand-xl active:scale-[0.98] focus-visible:ring-stamp-red",
 
-        // 아웃라인 브랜드 버튼
+        // 아웃라인 (stamp-red 테두리 + 종이 톤 배경)
         outline:
-          "border-2 border-purple-200 text-purple-600 bg-white/80 backdrop-blur-sm hover:bg-purple-50 hover:border-purple-300 shadow-brand-sm hover:shadow-brand-md active:scale-[0.98] focus-visible:ring-purple-500",
+          "border-2 border-stamp-red/30 text-stamp-red bg-paper-card backdrop-blur-sm hover:bg-paper-soft hover:border-stamp-red/60 shadow-brand-sm hover:shadow-brand-md active:scale-[0.98] focus-visible:ring-stamp-red",
 
-        // 위험한 작업용 (빨간색)
+        // 위험한 작업용 (빨간색 단색 — destructive 신호)
         destructive:
-          "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-brand-lg hover:shadow-brand-xl active:scale-[0.98] focus-visible:ring-red-500",
+          "bg-red-600 hover:bg-red-700 text-white shadow-brand-lg hover:shadow-brand-xl active:scale-[0.98] focus-visible:ring-red-500",
 
         // 보조 버튼 (회색)
         secondary:
           "bg-gray-100 text-brand-primary hover:bg-gray-200 border border-gray-200 shadow-brand-sm hover:shadow-brand-md active:scale-[0.98] focus-visible:ring-gray-500",
 
-        // 성공/확인 버튼 (녹색)
+        // 성공/확인 버튼 (녹색 단색)
         success:
-          "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-brand-lg hover:shadow-brand-xl active:scale-[0.98] focus-visible:ring-green-500",
+          "bg-green-600 hover:bg-green-700 text-white shadow-brand-lg hover:shadow-brand-xl active:scale-[0.98] focus-visible:ring-green-500",
 
         // 카카오 로그인 버튼
         kakao:
           "bg-[#FEE500] hover:bg-[#FAD900] text-[#191919] font-semibold shadow-brand-lg hover:shadow-brand-xl active:scale-[0.98] focus-visible:ring-yellow-500",
 
-        // 고스트 버튼 (배경 없음)
+        // 고스트 버튼 (배경 없음, postal-navy 정보 톤)
         ghost:
-          "text-purple-600 hover:bg-purple-50 hover:text-purple-700 active:scale-[0.98] focus-visible:ring-purple-500",
+          "text-ink hover:bg-paper-soft hover:text-stamp-red active:scale-[0.98] focus-visible:ring-stamp-red",
 
-        // 링크 스타일
+        // 링크 스타일 (postal-navy)
         link:
-          "text-purple-600 underline-offset-4 hover:underline hover:text-purple-700 active:scale-[0.98] focus-visible:ring-purple-500",
+          "text-postal-navy underline-offset-4 hover:underline hover:text-stamp-red active:scale-[0.98] focus-visible:ring-stamp-red",
       },
       size: {
         // 모바일 최적화 크기 (최소 44px 터치 타겟 보장)

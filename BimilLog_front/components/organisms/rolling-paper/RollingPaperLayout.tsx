@@ -11,8 +11,9 @@ export const RollingPaperLayout: React.FC<RollingPaperLayoutProps> = React.memo(
 }) => {
   return (
     <div className="min-h-screen bg-brand-gradient">
-      {/* Auth Header */}
-      <AuthHeader />
+      {/* Auth Header: 롤링페이퍼 페이지에서는 RollingPaperHeader 와 sticky 가 겹치지 않도록
+          disableSticky 로 sticky 를 해제하여 단일 sticky 영역(=RollingPaperHeader) 만 유지 */}
+      <AuthHeader disableSticky />
       <main>
         {children}
       </main>

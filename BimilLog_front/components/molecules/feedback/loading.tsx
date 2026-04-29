@@ -20,7 +20,7 @@ export function Loading({
     return (
       <div
         className={cn(
-          "min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 flex items-center justify-center",
+          "min-h-screen bg-paper flex items-center justify-center",
           className
         )}
       >
@@ -30,7 +30,7 @@ export function Loading({
             size="xl"
             aria-label={message || "로딩 중..."}
           />
-          <p className="mt-4 text-brand-muted text-lg">{message || "로딩 중..."}</p>
+          <p className="mt-4 font-display text-ink-soft text-lg">{message || "로딩 중..."}</p>
         </div>
       </div>
     );

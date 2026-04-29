@@ -3,9 +3,9 @@ import { LegalDocumentHeader } from "@/components/organisms/common/LegalDocument
 
 export default function TermsPage() {
   return (
-    <CleanLayout className="bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 dark:from-[#0b0c1c] dark:via-[#121327] dark:to-[#1a1030]">
+    <CleanLayout className="bg-paper">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-card rounded-2xl shadow-brand-xl border border-border overflow-hidden">
+        <div className="bg-paper-card rounded-2xl shadow-brand-xl border border-ink-soft overflow-hidden">
           <LegalDocumentHeader title="이용약관" />
 
           <div className="px-8 py-6 text-foreground">
@@ -16,10 +16,10 @@ export default function TermsPage() {
                 의무 및 책임사항 등을 규정함을 목적으로 합니다.
               </p>
 
-              <hr className="border-border mb-6" />
+              <hr className="border-ink-soft mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
+                <h2 className="font-display text-xl font-semibold text-stamp-red dark:text-foreground mb-4 border-b border-stamp-red/20 pb-2">
                   제1조 (목적)
                 </h2>
                 <p className="text-brand-primary leading-relaxed">
@@ -29,10 +29,10 @@ export default function TermsPage() {
                 </p>
               </section>
 
-              <hr className="border-border mb-6" />
+              <hr className="border-ink-soft mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
+                <h2 className="font-display text-xl font-semibold text-stamp-red dark:text-foreground mb-4 border-b border-stamp-red/20 pb-2">
                   제2조 (정의)
                 </h2>
                 <ol className="list-decimal pl-6 text-brand-primary space-y-3">
@@ -52,10 +52,10 @@ export default function TermsPage() {
                 </ol>
               </section>
 
-              <hr className="border-border mb-6" />
+              <hr className="border-ink-soft mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
+                <h2 className="font-display text-xl font-semibold text-stamp-red dark:text-foreground mb-4 border-b border-stamp-red/20 pb-2">
                   제3조 (이용 조건)
                 </h2>
                 <ol className="list-decimal pl-6 text-brand-primary space-y-3">
@@ -75,10 +75,10 @@ export default function TermsPage() {
                 </ol>
               </section>
 
-              <hr className="border-border mb-6" />
+              <hr className="border-ink-soft mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
+                <h2 className="font-display text-xl font-semibold text-stamp-red dark:text-foreground mb-4 border-b border-stamp-red/20 pb-2">
                   제4조 (메시지 저장 및 관리)
                 </h2>
                 <ol className="list-decimal pl-6 text-brand-primary space-y-3">
@@ -93,10 +93,10 @@ export default function TermsPage() {
                 </ol>
               </section>
 
-              <hr className="border-border mb-6" />
+              <hr className="border-ink-soft mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
+                <h2 className="font-display text-xl font-semibold text-stamp-red dark:text-foreground mb-4 border-b border-stamp-red/20 pb-2">
                   제5조 (서비스 이용 제한)
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -109,10 +109,10 @@ export default function TermsPage() {
                 </ul>
               </section>
 
-              <hr className="border-border mb-6" />
+              <hr className="border-ink-soft mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
+                <h2 className="font-display text-xl font-semibold text-stamp-red dark:text-foreground mb-4 border-b border-stamp-red/20 pb-2">
                   제6조 (지적재산권)
                 </h2>
                 <p className="text-brand-primary leading-relaxed">
@@ -122,10 +122,10 @@ export default function TermsPage() {
                 </p>
               </section>
 
-              <hr className="border-border mb-6" />
+              <hr className="border-ink-soft mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
+                <h2 className="font-display text-xl font-semibold text-stamp-red dark:text-foreground mb-4 border-b border-stamp-red/20 pb-2">
                   제7조 (면책조항)
                 </h2>
                 <ol className="list-decimal pl-6 text-brand-primary space-y-3">
@@ -140,10 +140,10 @@ export default function TermsPage() {
                 </ol>
               </section>
 
-              <hr className="border-border mb-6" />
+              <hr className="border-ink-soft mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
+                <h2 className="font-display text-xl font-semibold text-stamp-red dark:text-foreground mb-4 border-b border-stamp-red/20 pb-2">
                   제8조 (약관의 변경)
                 </h2>
                 <p className="text-brand-primary leading-relaxed">
@@ -153,10 +153,10 @@ export default function TermsPage() {
                 </p>
               </section>
 
-              <hr className="border-border mb-6" />
+              <hr className="border-ink-soft mb-6" />
 
               <div className="text-right">
-                <div className="bg-gray-50 rounded-lg p-4 border inline-block">
+                <div className="bg-paper-aged rounded-lg p-4 border border-ink-soft inline-block">
                   <p className="text-brand-primary font-medium">
                     시행일자: 2025년 6월 26일
                   </p>

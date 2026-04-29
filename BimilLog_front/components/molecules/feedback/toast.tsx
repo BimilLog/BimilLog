@@ -87,6 +87,9 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
   if (toast.type === 'feedback' && (toast.action || toast.undoAction)) {
     return (
       <div
+        role="alert"
+        aria-live="polite"
+        data-testid="toast"
         className={cn(
           "transition-all duration-300 ease-in-out",
           isVisible && !isLeaving
@@ -95,8 +98,8 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
         )}
       >
         <FlowbiteToast className="shadow-lg">
-          <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100 text-purple-500">
-            <MessageSquare className="h-5 w-5 stroke-purple-500 fill-purple-100" />
+          <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-stamp-red/10 text-stamp-red">
+            <MessageSquare className="h-5 w-5 stroke-stamp-red fill-stamp-red/10" />
           </div>
           <div className="ml-3 text-sm font-normal">
             <div className="mb-2 text-sm font-semibold text-gray-900">{toast.title}</div>
@@ -110,7 +113,7 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
                     toast.action?.onClick();
                     handleRemove();
                   }}
-                  className="inline-flex h-8 items-center justify-center rounded-lg bg-purple-600 px-3 text-center text-xs font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-300"
+                  className="inline-flex h-8 items-center justify-center rounded-lg bg-stamp-red px-3 text-center text-xs font-medium text-white hover:bg-stamp-red/90 focus:outline-none focus:ring-4 focus:ring-stamp-red/30"
                 >
                   {toast.action.label}
                 </button>
@@ -158,8 +161,8 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
           theme === "green" && "bg-green-100 text-green-500",
           theme === "red" && "bg-red-100 text-red-500",
           theme === "orange" && "bg-orange-100 text-orange-500",
-          theme === "blue" && "bg-blue-100 text-blue-500",
-          theme === "purple" && "bg-purple-100 text-purple-500",
+          theme === "blue" && "bg-postal-navy/10 text-postal-navy",
+          theme === "purple" && "bg-stamp-red/10 text-stamp-red",
           theme === "gray" && "bg-gray-100 text-gray-500"
         )}>
           <IconComponent className={cn(
@@ -167,8 +170,8 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
             theme === "green" && "stroke-green-600 fill-green-100",
             theme === "red" && "stroke-red-600 fill-red-100",
             theme === "orange" && "stroke-amber-600 fill-amber-100",
-            theme === "blue" && "stroke-blue-600 fill-blue-100",
-            theme === "purple" && "stroke-purple-500 fill-purple-100",
+            theme === "blue" && "stroke-postal-navy fill-postal-navy/10",
+            theme === "purple" && "stroke-stamp-red fill-stamp-red/10",
             theme === "gray" && "stroke-slate-600 fill-slate-100"
           )} />
         </div>

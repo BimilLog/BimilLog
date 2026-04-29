@@ -10,7 +10,7 @@ const alertVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-blue-50 border border-blue-200 text-blue-800 [&>svg]:text-blue-600",
+          "bg-paper-aged border border-postal-navy/20 text-ink [&>svg]:text-postal-navy",
         destructive:
           "bg-red-50 border border-red-200 text-red-800 [&>svg]:text-red-600",
         success:
@@ -18,7 +18,7 @@ const alertVariants = cva(
         warning:
           "bg-yellow-50 border border-yellow-200 text-yellow-800 [&>svg]:text-yellow-600",
         info:
-          "bg-brand-gradient border-0 text-brand-primary [&>svg]:text-purple-600",
+          "bg-paper-aged border border-postal-navy/20 text-ink [&>svg]:text-postal-navy",
       },
     },
     defaultVariants: {
@@ -44,7 +44,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         case "warning":
           return <AlertTriangle className="h-4 w-4 text-amber-600" />;
         case "info":
-          return <Info className="h-4 w-4 text-blue-600" />;
+          return <Info className="h-4 w-4 text-postal-navy" />;
         default:
           return <AlertCircle className="h-4 w-4 text-red-600" />;
       }

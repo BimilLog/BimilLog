@@ -2,7 +2,7 @@
 
 import React, { useMemo, memo, useCallback, useState } from "react";
 import { Modal, ModalBody, ModalHeader } from "flowbite-react";
-import { Plus, ChevronLeft, ChevronRight, Sparkles, Mail, MessageSquare } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Sparkles, Mail, MessageSquare, Lock } from "lucide-react";
 import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { MessageForm } from "@/components/organisms/rolling-paper/MessageForm";
@@ -28,11 +28,27 @@ const GridCell = memo(({ actualX, actualY, message, isHighlighted, isOwner, onCl
     onClick(actualX, actualY);
   }, [onClick, actualX, actualY]);
 
+  // 접근성: 셀의 의미를 스크린리더에 전달하는 aria-label
+  const ariaLabel = message
+    ? `${actualY + 1}행 ${actualX + 1}열, 메시지 보기`
+    : isOwner
+    ? `${actualY + 1}행 ${actualX + 1}열, 빈 칸 (작성 불가)`
+    : `${actualY + 1}행 ${actualX + 1}열, 빈 칸, 메시지 작성하기`;
+
+  const isDisabled = isOwner && !message;
+
   return (
-    <div
+    <button
+      type="button"
       onClick={handleClick}
+      disabled={isDisabled}
+      aria-label={ariaLabel}
+      data-testid="grid-cell"
+      data-x={actualX}
+      data-y={actualY}
+      data-locked={message && !isOwner ? 'true' : undefined}
       className={`
-        aspect-square rounded-lg md:rounded-xl border-2 md:border-3 flex items-center justify-center transition-all duration-300 relative
+        aspect-square rounded-lg md:rounded-xl border-2 md:border-3 flex items-center justify-center transition-all duration-300 relative focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2
         ${
           isHighlighted
             ? "border-4 border-green-400 bg-gradient-to-br from-green-100 to-emerald-100 animate-pulse shadow-xl shadow-green-200 cursor-pointer"
@@ -51,15 +67,26 @@ const GridCell = memo(({ actualX, actualY, message, isHighlighted, isOwner, onCl
     >
       {message ? (
         <div className="relative">
+          {/* 셀 애니메이션 축소: DecoIcon 의 bounce 만 사용. animate-ping (yellow dot) 은 제거하여 한 셀에 두 애니메이션이 겹치지 않도록 함. */}
           <DecoIcon
             decoType={message.decoType}
             size="lg"
             showBackground={true}
             animate="bounce"
           />
-          <div className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-300 rounded-full animate-ping"></div>
+          {/* 비-소유자(방문자) 시점에서는 잠금 뱃지 노출 - 본인이 아니면 content/anonymity 미노출이므로 잠긴 메시지임을 표시 */}
+          {!isOwner && (
+            <span
+              data-testid="grid-cell-locked"
+              data-locked="true"
+              className="absolute -top-0.5 md:-top-1 -right-0.5 md:-right-1 w-3 h-3 md:w-3.5 md:h-3.5 rounded-full bg-white/95 border border-gray-300 flex items-center justify-center shadow-sm"
+              aria-label="잠긴 메시지"
+            >
+              <Lock className="w-2 h-2 md:w-2.5 md:h-2.5 stroke-gray-600" aria-hidden="true" />
+            </span>
+          )}
           {isHighlighted && (
-            <div className="absolute inset-0 bg-green-300 rounded-full opacity-50 animate-ping"></div>
+            <div className="absolute inset-0 bg-green-300 rounded-full opacity-50 animate-pulse"></div>
           )}
         </div>
       ) : isOwner ? (
@@ -69,12 +96,9 @@ const GridCell = memo(({ actualX, actualY, message, isHighlighted, isOwner, onCl
           <Plus
             className="w-4 h-4 md:w-5 md:h-5 transition-colors text-sky-400 dark:text-sky-500 group-hover:text-sky-600 dark:group-hover:text-sky-400"
           />
-          <div
-            className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-30 transition-opacity animate-pulse bg-sky-200"
-          ></div>
         </div>
       )}
-    </div>
+    </button>
   );
 });
 
@@ -183,8 +207,10 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
         } else {
           onError?.(`이미 메시지가 있는 위치입니다 (${positionInfo}). 아래에서 가까운 빈 위치를 선택해주세요.`);
         }
-      } else if (errorMessage.includes('x는 0~11') || errorMessage.includes('y는 0~9')) {
-        onError?.(`잘못된 위치입니다 (${positionInfo}, x: ${actualX}, y: ${actualY})`);
+      } else if (errorMessage.includes('x는 0~11') || errorMessage.includes('y는 0~9') || /0\s*~\s*\d+/.test(errorMessage)) {
+        // raw 좌표 범위 표현(0~11, 0~9 등)은 사용자에게 노출하지 않고
+        // 페이지/행/칸 형태의 사용자 친화적 메시지로 대체
+        onError?.(`선택한 위치(${positionInfo})에 메시지를 작성할 수 없습니다. 다른 위치를 선택해주세요.`);
       } else {
         onError?.("메시지 추가에 실패했습니다. 다시 시도해주세요.");
       }
@@ -227,41 +253,99 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
   }, [isMobile, setCurrentPage]);
 
   return (
-    <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
-      {/* 종이 배경 */}
+    <div className={`relative container-paper mb-6 md:mb-8 ${className}`}>
+      {/* 종이 배경 — cream/parchment + grain */}
       <div
-        className="relative min-h-[600px] md:min-h-[700px] bg-gradient-to-br from-sky-100 via-cyan-50 to-blue-100 dark:bg-gradient-to-br dark:from-sky-900 dark:via-cyan-900 dark:to-blue-900 rounded-2xl md:rounded-3xl shadow-xl md:shadow-2xl border-2 md:border-4 border-sky-200 dark:border-sky-700 backdrop-blur-sm"
+        className="relative min-h-[600px] md:min-h-[700px] bg-paper rounded-xl md:rounded-2xl shadow-brand-lg border border-ink-soft"
       >
 
         {/* 제목 영역 */}
-        <div className="pt-6 md:pt-8 pb-4 md:pb-6 px-12 md:px-20 text-center">
+        <div className="pt-6 md:pt-10 pb-4 md:pb-6 px-4 md:px-20 text-center">
           <div className="relative">
-            {/* 예쁜 제목 카드 */}
-            <div className="bg-gradient-to-r from-sky-100/90 via-cyan-100/90 to-blue-100/90 dark:from-sky-800/90 dark:via-cyan-800/90 dark:to-blue-800/90 rounded-3xl p-6 md:p-8 shadow-xl border-2 border-white/80 dark:border-sky-600/80 backdrop-blur-md mb-6 relative overflow-hidden">
-              {/* 배경 장식 */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
-
-              <h1 className="text-xl md:text-4xl font-extrabold mb-4 flex items-center justify-center gap-3 relative z-10">
-                <span className="text-sky-700 dark:text-sky-300 font-extrabold transform hover:scale-105 transition-transform duration-300 drop-shadow-sm">
-                  {nickname}님의 롤링페이퍼
+            {/* 편지지 톤 제목 카드 */}
+            <div className="bg-paper-card rounded-2xl p-6 md:p-8 shadow-brand-md border border-ink-soft mb-6 relative overflow-hidden washi-tape">
+              <h1 className="text-2xl md:text-4xl mb-4 flex items-center justify-center gap-3 relative z-10">
+                <span className="font-handwriting font-bold text-stamp-red">
+                  {nickname}
+                </span>
+                <span className="font-display font-bold text-ink dark:text-sky-300">
+                  님의 롤링페이퍼
                 </span>
               </h1>
 
               {/* 메시지 수 카드 */}
-              <div className="inline-flex items-center gap-3 bg-white/80 dark:bg-sky-900/80 px-5 py-3 rounded-full shadow-lg border-2 border-sky-200 dark:border-sky-600 relative z-10 backdrop-blur-sm">
-                <Mail className="w-4 h-4 md:w-6 md:h-6 stroke-sky-500 dark:stroke-sky-400 fill-sky-200 dark:fill-sky-900 animate-bounce drop-shadow-sm" />
-                <span className="text-sky-800 dark:text-sky-300 text-sm md:text-lg font-bold tracking-wide">
-                  총 {messages.length}개의 메시지
+              <div className="inline-flex items-center gap-3 bg-paper-soft px-5 py-2.5 rounded-full border border-ink-soft relative z-10">
+                <Mail className="w-4 h-4 md:w-5 md:h-5 stroke-stamp-red" />
+                <span className="font-display text-ink text-sm md:text-base font-semibold tracking-wide">
+                  총 {messages.length}통의 편지
                 </span>
-                <Sparkles className="w-4 h-4 md:w-6 md:h-6 stroke-yellow-500 fill-yellow-100 animate-pulse drop-shadow-sm" />
+                <Sparkles className="w-4 h-4 md:w-5 md:h-5 stroke-[var(--color-seal-gold,#C99B5C)]" />
               </div>
             </div>
 
           </div>
         </div>
 
-        {/* 메시지 그리드 */}
-        <div className="px-12 md:px-20 pb-4 md:pb-6">
+        {/* 빈 상태 CTA: 메시지가 0개일 때 큰 안내 영역 노출 (3종 세트: 일러스트 + 카피 + primary CTA) */}
+        {messages.length === 0 && (
+          <div
+            data-testid="paper-empty-state"
+            className="mx-4 md:mx-20 mb-6 p-8 md:p-12 rounded-2xl bg-paper-card border-dashed-paper text-center"
+          >
+            {/* 큰 편지 일러스트 */}
+            <div className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-5 relative animate-paper-float">
+              <svg viewBox="0 0 120 120" className="w-full h-full">
+                <rect x="14" y="34" width="92" height="62" rx="4" fill="#FFFDF7" stroke="#2A1F1A" strokeWidth="2.5" />
+                <polyline points="14,34 60,72 106,34" fill="none" stroke="#2A1F1A" strokeWidth="2.5" />
+                <circle cx="92" cy="50" r="9" fill="#C73E3E" />
+                <text x="92" y="54" textAnchor="middle" fontSize="9" fill="#FFFDF7" fontFamily="serif" fontWeight="700">FIRST</text>
+                <line x1="22" y1="20" x2="34" y2="32" stroke="#C73E3E" strokeWidth="2" strokeLinecap="round" />
+                <line x1="40" y1="14" x2="46" y2="26" stroke="#C73E3E" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <h2 className="font-display text-xl md:text-2xl font-bold text-ink dark:text-sky-200 mb-2">
+              아직 도착한 편지가 없어요
+            </h2>
+            <p className="font-body text-sm md:text-base text-ink-soft dark:text-sky-300 leading-relaxed max-w-md mx-auto">
+              {isOwner
+                ? '친구들에게 롤링페이퍼 링크를 공유하고 첫 편지를 받아보세요.'
+                : `${nickname}님에게 첫 편지를 남겨보세요. 한 줄의 마음이 큰 응원이 됩니다.`}
+            </p>
+            {!isOwner && (
+              <button
+                type="button"
+                onClick={() => {
+                  // 첫 빈 셀로 스크롤 + 모달 오픈
+                  const firstEmpty = document.querySelector<HTMLElement>('[data-testid="grid-cell"]:not([data-locked])');
+                  firstEmpty?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  firstEmpty?.click();
+                }}
+                className="mt-5 inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md bg-paper-button text-white font-semibold shadow-brand-sm hover:bg-paper-hover transition-colors"
+              >
+                <MessageSquare className="w-5 h-5 mr-2" />첫 메시지 남기기
+              </button>
+            )}
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof navigator !== 'undefined' && 'clipboard' in navigator) {
+                    navigator.clipboard?.writeText(window.location.href);
+                  }
+                }}
+                className="mt-5 inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md bg-paper-button text-white font-semibold shadow-brand-sm hover:bg-paper-hover transition-colors"
+              >
+                <MessageSquare className="w-5 h-5 mr-2" />링크 복사하고 친구에게 공유
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* 메시지 그리드 — 빈 상태일 때는 fade-out 처리 */}
+        <div
+          data-testid="paper-grid-container"
+          className={`px-4 md:px-20 pb-4 md:pb-6 ${messages.length === 0 ? 'opacity-30 pointer-events-none mask-fade-bottom' : ''}`}
+        >
           {/* 페이지 네비게이션 */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-4 mb-4">

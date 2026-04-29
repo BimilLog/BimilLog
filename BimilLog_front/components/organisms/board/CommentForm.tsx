@@ -70,7 +70,7 @@ export const CommentForm: React.FC<CommentFormProps> = React.memo(({
 
             <div className="flex items-center justify-between">
               <p className="text-xs text-brand-secondary flex items-center space-x-1">
-                <Lightbulb className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
+                <Lightbulb className="w-3 h-3 stroke-seal-gold fill-paper-100" />
                 <span>다양한 스타일로 댓글을 꾸며보세요.</span>
               </p>
               {comment && (

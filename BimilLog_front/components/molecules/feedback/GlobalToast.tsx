@@ -88,7 +88,7 @@ export function GlobalToast() {
       case 'feedback':
       case 'neutral':
       default:
-        return 'bg-blue-100 text-blue-500 dark:bg-blue-800 dark:text-blue-200';
+        return 'bg-postal-navy/10 text-postal-navy dark:bg-postal-navy/30 dark:text-paper-100';
     }
   };
 

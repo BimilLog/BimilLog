@@ -38,7 +38,7 @@ public class AsyncConfig {
         executor.setQueueCapacity(12);
         executor.setThreadNamePrefix("member-event-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
         executor.setAwaitTerminationSeconds(60);
         executor.initialize();
         return executor;

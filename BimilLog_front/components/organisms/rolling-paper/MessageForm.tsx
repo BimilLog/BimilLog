@@ -76,7 +76,8 @@ export const MessageForm = React.memo<MessageFormProps>(({
   return (
     <form onSubmit={handleSubmit(onSubmitForm)}>
       <div
-        className="space-y-6 p-6 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl border-2 border-cyan-200"
+        data-testid="message-form-root"
+        className="space-y-3 md:space-y-6 p-4 md:p-6 gap-3 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl border-2 border-cyan-200"
         style={{
           backgroundImage: `
             radial-gradient(circle at 15px 15px, rgba(91,192,222,0.2) 1px, transparent 1px),
@@ -85,6 +86,15 @@ export const MessageForm = React.memo<MessageFormProps>(({
           backgroundSize: "30px 30px, 90px 90px",
         }}
       >
+        {/* 비로그인 사용자에게도 작성 가능함을 알리는 헬퍼 텍스트 */}
+        <p
+          data-testid="anonymous-write-helper"
+          className="text-xs md:text-sm text-cyan-700 bg-white/70 rounded-lg px-3 py-2 border border-cyan-200 flex items-center gap-1.5"
+        >
+          <Snowflake className="w-3.5 h-3.5 stroke-blue-500 fill-blue-200 shrink-0" aria-hidden="true" />
+          <span>로그인 없이 익명으로 작성할 수 있어요.</span>
+        </p>
+
         {/* 미리보기 카드: 실시간으로 입력 중인 메시지 모습 미리보기 */}
         <div
           className={`p-4 rounded-xl bg-gradient-to-br ${selectedDecoInfo.color} border-2 border-white shadow-brand-lg relative overflow-hidden`}
@@ -222,7 +232,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
 
           <Button
             type="submit"
-            className="w-full h-12 bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 hover:from-blue-600 hover:via-cyan-600 hover:to-teal-600 text-white font-bold text-lg shadow-brand-xl hover:shadow-brand-2xl transition-all duration-300 hover:scale-105 rounded-xl"
+            className="w-full h-12 bg-brand-button text-white font-bold text-lg shadow-brand-xl hover:shadow-brand-2xl transition-all duration-300 hover:scale-105 rounded-xl"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

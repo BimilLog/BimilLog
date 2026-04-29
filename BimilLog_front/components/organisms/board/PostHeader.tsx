@@ -85,7 +85,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                   memberName={post.memberName}
                   memberId={post.memberId}
                   trigger={
-                    <button className="truncate max-w-[120px] md:max-w-none hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
+                    <button className="truncate max-w-[120px] md:max-w-none hover:text-postal-navy hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
                       <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
                       <span>{post.memberName}</span>
                     </button>
@@ -107,15 +107,15 @@ export const PostHeader = React.memo<PostHeaderProps>(({
           {/* 통계 정보 */}
           <div className="flex items-center space-x-4 text-sm text-brand-muted">
             <div className="flex items-center space-x-1">
-              <Eye className="w-4 h-4 stroke-purple-600 fill-purple-100" />
+              <Eye className="w-4 h-4 stroke-ink-soft fill-paper-100" />
               <span suppressHydrationWarning>{post.viewCount}</span>
             </div>
             <div className="flex items-center space-x-1">
-              <ThumbsUp className="w-4 h-4 stroke-blue-500 fill-blue-100" />
+              <ThumbsUp className="w-4 h-4 stroke-stamp-red fill-paper-100" />
               <span>{post.likeCount}</span>
             </div>
             <div className="flex items-center space-x-1">
-              <MessageSquare className="w-4 h-4 stroke-blue-600 fill-blue-100" />
+              <MessageSquare className="w-4 h-4 stroke-postal-navy fill-paper-100" />
               <span>{commentCount}</span>
             </div>
           </div>

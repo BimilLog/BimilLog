@@ -19,14 +19,14 @@ export const metadata: Metadata = {
 
 export default function SuggestPage() {
   return (
-    <div className="min-h-screen bg-brand-gradient">
+    <div className="min-h-screen bg-paper">
       <AuthHeader />
 
       {/* Header */}
       <header className="py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <h1 className="text-3xl md:text-4xl font-bold text-purple-600">
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-ink">
               건의하기
             </h1>
           </div>

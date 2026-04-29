@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Gaegu, Gowun_Batang } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ClientProviders } from "@/providers/client-providers";
@@ -22,6 +22,25 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
   display: 'swap',
   preload: true,
+});
+
+// 디자인 정체성: 종이/편지 메타포
+// - Display(헤드라인): Gowun Batang — 단정한 한글 세리프, "편지지" 의 인쇄체 느낌
+// - Handwriting(롤링페이퍼/서명): Gaegu — 따뜻한 한글 손글씨
+const fontDisplay = Gowun_Batang({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+  preload: true,
+});
+
+const fontHandwriting = Gaegu({
+  variable: "--font-handwriting",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+  preload: false,
 });
 
 export const viewport: Viewport = {
@@ -152,7 +171,8 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-title" content="비밀로그" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${fontDisplay.variable} ${fontHandwriting.variable} antialiased font-body`}
+        suppressHydrationWarning
       >
         {/* Google Analytics - lazyOnload로 메인 스레드 차단 최소화 */}
         <Script

@@ -79,7 +79,7 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={30}
-                className="text-lg font-medium border-2 border-gray-200 focus:border-purple-400"
+                className="text-lg font-medium border-2 border-ink-soft focus:border-stamp-red"
               />
               {title.length > 0 && (
                 <p className={`text-xs ${title.length >= 30 ? 'text-red-600' : 'text-brand-muted'}`}>
@@ -133,10 +133,10 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
                     const value = e.target.value.replace(/\D/g, '');
                     setPassword(value);
                   }}
-                  className={`border-2 focus:border-purple-400 ${
+                  className={`border-2 focus:border-stamp-red ${
                     password && (password.length < 4 || isNaN(parseInt(password)) || parseInt(password) < 1000 || parseInt(password) > 9999)
                       ? 'border-red-300 focus:border-red-400'
-                      : 'border-gray-200'
+                      : 'border-ink-soft'
                   }`}
                 />
                 {password && (password.length < 4 || isNaN(parseInt(password)) || parseInt(password) < 1000 || parseInt(password) > 9999) && (
@@ -150,10 +150,10 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
 
             {/* 로그인 사용자용 작성자 정보 표시 (조건부 렌더링) */}
             {isAuthenticated && user && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="p-4 bg-paper-aged border border-postal-navy/30 rounded-lg">
                 <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">
+                  <div className="w-8 h-8 bg-stamp-red rounded-full flex items-center justify-center">
+                    <span className="text-paper-50 text-sm font-bold">
                       {user?.memberName?.charAt(0) || "?"}
                     </span>
                   </div>

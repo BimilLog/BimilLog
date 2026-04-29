@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import Link from "next/link";
 import { Button } from "flowbite-react";
 import { UserCheck } from "lucide-react";
 import { KakaoShareButton } from "@/components";
@@ -13,94 +13,107 @@ interface HomeHeroProps {
   onOpenFriendsModal: () => void;
 }
 
-export const HomeHero: React.FC<HomeHeroProps> = memo(({
+const PRIMARY_CTA_CLASS =
+  "inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md text-base font-semibold text-white bg-paper-button hover:bg-paper-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stamp-red focus-visible:ring-offset-2 w-full sm:w-auto shadow-brand-sm";
+
+const SECONDARY_CTA_CLASS =
+  "inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md text-base font-semibold border border-ink bg-transparent text-ink dark:border-border dark:text-foreground hover:bg-paper-soft dark:hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stamp-red focus-visible:ring-offset-2 w-full sm:w-auto";
+
+export const HomeHero: React.FC<HomeHeroProps> = ({
   isAuthenticated,
   provider,
   onOpenFriendsModal,
 }) => {
   return (
-    <div className="text-center">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-          익명으로 메시지를 남겨보세요
+    <div className="text-center md:text-left relative">
+      <div className="max-w-4xl mx-auto md:mx-0">
+        {/* 우표 stamp accent */}
+        <div className="hidden md:flex items-center gap-2 mb-4 text-xs font-display tracking-[0.18em] text-stamp-red uppercase">
+          <span className="inline-block w-6 h-px bg-stamp-red" aria-hidden="true" />
+          <span>From Bimillog · 익명 편지</span>
+        </div>
+        <h1 className="font-display text-4xl md:text-6xl font-bold mb-4 leading-tight text-ink dark:text-gray-100">
+          익명으로 <span className="text-stamp-red">편지</span>를
+          <br className="hidden md:block" />{" "}남겨보세요
         </h1>
-        <p className="text-lg md:text-xl text-brand-secondary mb-6 leading-relaxed">
-          비밀로그에서 친구들에게 익명으로 따뜻한 메시지를 남겨보세요
+        <p className="font-body text-base md:text-lg text-ink-soft dark:text-brand-secondary mb-6 leading-relaxed max-w-prose md:max-w-md">
+          비밀로그에서 친구들에게 한 줄의 따뜻한 마음을 전해보세요. 익명이지만 진심을 담은 메시지가 누군가에게는 큰 힘이 됩니다.
         </p>
 
-        <div className="flex flex-col gap-4 justify-center items-center min-h-[160px]">
-          {/* 비로그인 상태 */}
+        <div className="flex flex-col gap-4 justify-center md:justify-start items-center md:items-start min-h-[160px]">
+          {/* 비로그인 상태: primary CTA(만들기) + secondary CTA(둘러보기) */}
           {!isAuthenticated && (
-            <Button
-              color="purple"
-              size="lg"
-              onClick={() => window.location.href = '/login'}
-            >
-              롤링페이퍼 만들기
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center w-full sm:w-auto">
+              <Link
+                href="/login"
+                prefetch
+                data-testid="home-hero-cta-primary"
+                data-variant="primary"
+                className={PRIMARY_CTA_CLASS}
+              >
+                롤링페이퍼 만들기
+              </Link>
+              <Link
+                href="/visit"
+                prefetch
+                data-testid="home-hero-cta-secondary"
+                data-variant="outline"
+                className={SECONDARY_CTA_CLASS}
+              >
+                롤링페이퍼 둘러보기
+              </Link>
+            </div>
           )}
 
           {/* 로그인 상태 */}
           {isAuthenticated && (
             <>
-              {/* 모바일: 카카오 친구 확인하기 (카카오 사용자만) */}
-              {provider === 'KAKAO' && (
-                <div className="sm:hidden">
-                  <Button
-                    size="lg"
-                    onClick={onOpenFriendsModal}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
-                  >
-                    <UserCheck className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
-                    카카오 친구 확인하기
-                  </Button>
-                </div>
-              )}
-
-              {/* PC: 카카오 친구 확인하기와 다른 롤링페이퍼 방문하기를 한 줄로 */}
-              <div className="hidden sm:flex flex-row gap-4 justify-center items-center">
-                {provider === 'KAKAO' && (
-                  <Button
-                    size="lg"
-                    onClick={onOpenFriendsModal}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
-                  >
-                    <UserCheck className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
-                    카카오 친구 확인하기
-                  </Button>
-                )}
-                <Button
-                  size="lg"
-                  onClick={() => window.location.href = '/visit'}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:bg-gradient-to-bl focus:ring-cyan-300 dark:focus:ring-cyan-800"
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center w-full sm:w-auto">
+                <Link
+                  href="/rolling-paper"
+                  prefetch
+                  data-testid="home-hero-cta-primary"
+                  data-variant="primary"
+                  className={PRIMARY_CTA_CLASS}
+                >
+                  내 롤링페이퍼 보기
+                </Link>
+                <Link
+                  href="/visit"
+                  prefetch
+                  data-testid="home-hero-cta-secondary"
+                  data-variant="outline"
+                  className={SECONDARY_CTA_CLASS}
                 >
                   롤링페이퍼 둘러보기
-                </Button>
+                </Link>
               </div>
+
+              {/* 카카오 친구 확인하기 - 카카오 사용자만 (secondary 위계) */}
+              {provider === 'KAKAO' && (
+                <Button
+                  size="lg"
+                  color="light"
+                  onClick={onOpenFriendsModal}
+                  className="border border-border text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 min-h-touch"
+                >
+                  <UserCheck className="w-5 h-5 mr-2" />
+                  카카오 친구 확인하기
+                </Button>
+              )}
+
+              {/* 카카오톡 공유 - 로그인 시에만 노출 (비로그인은 인지부하 줄이기) */}
+              <KakaoShareButton
+                type="service"
+                size="lg"
+                className="px-8 py-3 text-lg font-semibold min-h-touch"
+              />
             </>
           )}
-
-          {/* 모바일 또는 비로그인: 다른 롤링페이퍼 방문하기 */}
-          <div className={isAuthenticated ? "sm:hidden" : ""}>
-            <Button
-              size="lg"
-              onClick={() => window.location.href = '/visit'}
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:bg-gradient-to-bl focus:ring-cyan-300 dark:focus:ring-cyan-800"
-            >
-              롤링페이퍼 둘러보기
-            </Button>
-          </div>
-
-          {/* 카카오톡 공유 버튼 - 로그인 여부 관계없이 항상 표시 */}
-          <KakaoShareButton
-            type="service"
-            size="lg"
-            className="px-8 py-3 text-lg font-semibold"
-          />
         </div>
       </div>
     </div>
   );
-});
+};
 
 HomeHero.displayName = "HomeHero";

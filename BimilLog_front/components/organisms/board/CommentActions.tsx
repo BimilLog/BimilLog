@@ -53,7 +53,7 @@ export const CommentActions: React.FC<CommentActionsProps> = React.memo(({
       {/* 답글 버튼: 모바일에서도 항상 표시하여 접근성 향상 */}
       <FlowbiteButton
         size="xs"
-        className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
+        className="bg-stamp-red text-paper-50 hover:bg-stamp-red/90"
         onClick={() => onReplyTo(comment)}
       >
         <Reply className="w-4 h-4 mr-2" />

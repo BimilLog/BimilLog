@@ -144,14 +144,14 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
 
   return (
     <>
-      <Card variant="elevated" className={`mb-8 overflow-hidden bg-gradient-to-br from-blue-100 via-pink-50 to-purple-100 dark:from-blue-950/50 dark:via-pink-950/50 dark:to-purple-900/50 border-2 border-blue-200/50 dark:border-blue-800/50 shadow-xl ${className || ""}`}>
+      <Card variant="elevated" className={`mb-8 overflow-hidden bg-paper-aged dark:bg-gradient-to-br dark:from-stamp-red/10 dark:to-postal-navy/10 border-2 border-stamp-red/20 dark:border-stamp-red/30 shadow-xl ${className || ""}`}>
         <CardContent className="p-6 md:p-8 relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 via-pink-300/10 to-purple-400/10 dark:from-blue-600/5 dark:via-pink-500/5 dark:to-purple-600/5" />
+          <div className="absolute inset-0 bg-paper-50/40 dark:bg-stamp-red/5" />
           <div className="relative z-10">
           <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-6">
             {/* 프로필 이미지 */}
             <div className="relative mb-4 md:mb-0 shrink-0">
-              <div className="w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-blue-200 dark:ring-blue-800 shadow-xl">
+              <div className="w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-stamp-red/30 dark:ring-stamp-red/40 shadow-xl">
                 {user.thumbnailImage ? (
                   <img
                     src={user.thumbnailImage}
@@ -160,8 +160,8 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-400 to-pink-400 flex items-center justify-center">
-                    <span className="text-white text-3xl md:text-4xl font-bold">
+                  <div className="w-full h-full bg-stamp-red flex items-center justify-center">
+                    <span className="text-white text-3xl md:text-4xl font-bold font-display">
                       {getInitials(user.memberName)}
                     </span>
                   </div>
@@ -169,7 +169,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
               </div>
 
               {user.role === "ADMIN" && (
-                <div className="absolute top-0 left-0 w-10 h-10 bg-gradient-to-r from-blue-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <div className="absolute top-0 left-0 w-10 h-10 bg-stamp-red rounded-full flex items-center justify-center shadow-lg">
                   <Crown className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -181,11 +181,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                 {/* 닉네임 & 관리자 뱃지 */}
                 <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-6 px-6 gap-4">
                   <div className="flex flex-nowrap items-center justify-center md:justify-start gap-3">
-                    <h2 className="text-3xl md:text-4xl font-bold text-blue-600 whitespace-nowrap">
+                    <h2 className="text-3xl md:text-4xl font-display font-bold text-ink dark:text-foreground whitespace-nowrap">
                       {user.memberName}
                     </h2>
                     {user.role === "ADMIN" && (
-                      <Badge className="bg-gradient-to-r from-blue-500 to-pink-500 text-white border-0 shadow-md whitespace-nowrap">
+                      <Badge className="bg-stamp-red text-white border-0 shadow-md whitespace-nowrap">
                         <Shield className="w-3 h-3 mr-1" />
                         관리자
                       </Badge>
@@ -199,7 +199,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full md:w-auto border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/30"
+                          className="w-full md:w-auto border-stamp-red/40 text-stamp-red hover:bg-stamp-red/10 dark:border-stamp-red/50 dark:text-stamp-red dark:hover:bg-stamp-red/20"
                         >
                           <Edit className="w-4 h-4 mr-2" />
                           닉네임 변경
@@ -255,7 +255,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                                   : isNicknameAvailable === false
                                   ? "text-red-600"
                                   : isNicknameFormatValid
-                                  ? "text-blue-600"
+                                  ? "text-postal-navy"
                                   : "text-red-600"
                               }`}
                             >
@@ -287,15 +287,15 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                 {/* 사용자 정보 - 가로로 배치 */}
                 <div className="flex flex-wrap items-center justify-center gap-4">
                   {user.socialNickname && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-to-r from-blue-100 to-pink-100 dark:from-blue-900/30 dark:to-pink-900/30">
-                      <Star className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{user.socialNickname}</span>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-postal-navy/10 dark:bg-postal-navy/20">
+                      <Star className="w-4 h-4 text-postal-navy dark:text-postal-navy" />
+                      <span className="text-sm font-medium text-postal-navy dark:text-foreground">{user.socialNickname}</span>
                     </div>
                   )}
                   {user.settingId && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-to-r from-pink-100 to-blue-100 dark:from-pink-900/30 dark:to-blue-900/30">
-                      <Settings className="w-4 h-4 text-pink-600 dark:text-pink-400" />
-                      <span className="text-sm font-medium text-pink-700 dark:text-pink-300">알림 ON</span>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-stamp-red/10 dark:bg-stamp-red/20">
+                      <Settings className="w-4 h-4 text-stamp-red dark:text-stamp-red" />
+                      <span className="text-sm font-medium text-stamp-red dark:text-foreground">알림 ON</span>
                     </div>
                   )}
                 </div>

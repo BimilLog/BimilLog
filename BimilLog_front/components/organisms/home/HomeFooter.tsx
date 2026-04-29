@@ -12,13 +12,11 @@ import {
   FooterLinkGroup,
   FooterTitle,
 } from "flowbite-react";
-import { Github, Contact, Brain, Music } from "lucide-react";
-import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
+import { Github, Contact, ExternalLink } from "lucide-react";
 
 export const HomeFooter: React.FC = React.memo(() => {
   const router = useRouter();
   const { isAuthenticated } = useAuth({ skipRefresh: true });
-  const { confirm, ConfirmModalComponent } = useConfirmModal();
 
   const handleFriendClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -29,153 +27,119 @@ export const HomeFooter: React.FC = React.memo(() => {
     }
   };
 
-  const handlePsychologyTest = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    const confirmed = await confirm({
-      title: "외부 사이트 이동",
-      message: "개발자가 만든 킬링타임용 심리테스트 사이트로 이동됩니다.",
-      confirmText: "이동",
-      cancelText: "취소",
-      confirmButtonVariant: "default",
-      icon: <Brain className="h-8 w-8 stroke-purple-600 fill-purple-100" />
-    });
-
-    if (confirmed) {
-      window.open('https://liketests.vercel.app/', '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  const handleBeatMaker = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    const confirmed = await confirm({
-      title: "외부 사이트 이동",
-      message: "개발자가 만든 비트 만들기 사이트로 이동됩니다.",
-      confirmText: "이동",
-      cancelText: "취소",
-      confirmButtonVariant: "default",
-      icon: <Music className="h-8 w-8 stroke-purple-600 fill-purple-100" />
-    });
-
-    if (confirmed) {
-      window.open('https://v0-drum-machine-with-claude.vercel.app/', '_blank', 'noopener,noreferrer');
-    }
-  };
-
   return (
-    <Footer container className="bg-background rounded-none shadow-sm border-t border-border">
+    <Footer container className="bg-paper-soft rounded-none shadow-sm border-t border-ink-soft dark:bg-background dark:border-border">
       <div className="w-full">
         <div className="w-full space-y-8">
           {/* Brand Section */}
           <div>
-            <Link href="/" className="flex items-center mb-4">
-              <span className="text-2xl font-bold text-foreground">비밀로그</span>
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <span aria-hidden="true" className="inline-block w-2 h-2 rounded-full bg-stamp-red shadow-[0_0_0_3px_rgba(199,62,62,0.18)]" />
+              <span className="font-display text-2xl font-bold text-ink dark:text-foreground">비밀로그</span>
             </Link>
-            <p className="text-sm text-muted-foreground max-w-xs">
-              익명으로 마음을 전하는 특별한 공간
+            <p className="text-sm text-ink-soft dark:text-muted-foreground max-w-xs">
+              익명으로 마음을 전하는 종이 한 장의 공간
             </p>
           </div>
 
           <hr data-testid="footer-divider" className="w-full sm:mx-auto lg:my-6 border-border my-6" />
 
-          {/* Links Grid - All sections in one row */}
-          <div className="grid grid-cols-5 gap-4 sm:gap-6">
+          {/* Links Grid - 반응형 (모바일 2열 → 태블릿 3열 → 데스크톱 5열) */}
+          <div
+            data-testid="home-footer-grid"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6"
+          >
             {/* 서비스 */}
-            <div className="flex justify-center">
-              <div>
-                <FooterTitle title="서비스" className="text-foreground font-semibold mb-4" />
-                <FooterLinkGroup col>
-                  <FooterLink as={Link} href="/rolling-paper" className="text-muted-foreground hover:text-foreground">
-                    롤링페이퍼
-                  </FooterLink>
-                  <FooterLink as={Link} href="/visit" className="text-muted-foreground hover:text-foreground">
-                    롤링페이퍼 방문
-                  </FooterLink>
-                  <FooterLink as={Link} href="/board" className="text-muted-foreground hover:text-foreground">
-                    게시판
-                  </FooterLink>
-                  <FooterLink as={Link} href="/board/write" className="text-muted-foreground hover:text-foreground">
-                    게시글 작성
-                  </FooterLink>
-                </FooterLinkGroup>
-              </div>
+            <div>
+              <FooterTitle title="서비스" className="text-foreground font-semibold mb-4 whitespace-nowrap" />
+              <FooterLinkGroup col>
+                <FooterLink as={Link} href="/rolling-paper" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  롤링페이퍼
+                </FooterLink>
+                <FooterLink as={Link} href="/visit" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  롤링페이퍼 방문
+                </FooterLink>
+                <FooterLink as={Link} href="/board" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  게시판
+                </FooterLink>
+                <FooterLink as={Link} href="/board/write" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  게시글 작성
+                </FooterLink>
+              </FooterLinkGroup>
             </div>
 
             {/* 회원 */}
-            <div className="flex justify-center">
-              <div>
-                <FooterTitle title="회원" className="text-foreground font-semibold mb-4" />
-                <FooterLinkGroup col>
-                  <FooterLink as={Link} href="/login" className="text-muted-foreground hover:text-foreground">
-                    로그인
-                  </FooterLink>
-                  <FooterLink as={Link} href="/mypage" className="text-muted-foreground hover:text-foreground">
-                    마이페이지
-                  </FooterLink>
-                  <FooterLink as={Link} href="/settings" className="text-muted-foreground hover:text-foreground">
-                    설정
-                  </FooterLink>
-                  <FooterLink
-                    href="#"
-                    onClick={handleFriendClick}
-                    className="text-muted-foreground hover:text-foreground cursor-pointer"
-                  >
-                    친구
-                  </FooterLink>
-                </FooterLinkGroup>
-              </div>
+            <div>
+              <FooterTitle title="회원" className="text-foreground font-semibold mb-4 whitespace-nowrap" />
+              <FooterLinkGroup col>
+                <FooterLink as={Link} href="/login" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  로그인
+                </FooterLink>
+                <FooterLink as={Link} href="/mypage" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  마이페이지
+                </FooterLink>
+                <FooterLink as={Link} href="/settings" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  설정
+                </FooterLink>
+                <FooterLink
+                  href="#"
+                  onClick={handleFriendClick}
+                  className="text-muted-foreground hover:text-foreground cursor-pointer whitespace-nowrap"
+                >
+                  친구
+                </FooterLink>
+              </FooterLinkGroup>
             </div>
 
             {/* 지원 */}
-            <div className="flex justify-center">
-              <div>
-                <FooterTitle title="지원" className="text-foreground font-semibold mb-4" />
-                <FooterLinkGroup col>
-                  <FooterLink as={Link} href="/suggest" className="text-muted-foreground hover:text-foreground">
-                    건의하기
-                  </FooterLink>
-                  <FooterLink as={Link} href="/install" className="text-muted-foreground hover:text-foreground">
-                    설치 가이드
-                  </FooterLink>
-                </FooterLinkGroup>
-              </div>
+            <div>
+              <FooterTitle title="지원" className="text-foreground font-semibold mb-4 whitespace-nowrap" />
+              <FooterLinkGroup col>
+                <FooterLink as={Link} href="/suggest" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  건의하기
+                </FooterLink>
+                <FooterLink as={Link} href="/install" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  설치 가이드
+                </FooterLink>
+              </FooterLinkGroup>
             </div>
 
             {/* 정책 */}
-            <div className="flex justify-center">
-              <div>
-                <FooterTitle title="정책" className="text-foreground font-semibold mb-4" />
-                <FooterLinkGroup col>
-                  <FooterLink as={Link} href="/privacy" className="text-muted-foreground hover:text-foreground">
-                    개인정보처리방침
-                  </FooterLink>
-                  <FooterLink as={Link} href="/terms" className="text-muted-foreground hover:text-foreground">
-                    이용약관
-                  </FooterLink>
-                </FooterLinkGroup>
-              </div>
+            <div>
+              <FooterTitle title="정책" className="text-foreground font-semibold mb-4 whitespace-nowrap" />
+              <FooterLinkGroup col>
+                <FooterLink as={Link} href="/privacy" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  개인정보처리방침
+                </FooterLink>
+                <FooterLink as={Link} href="/terms" className="text-muted-foreground hover:text-foreground whitespace-nowrap">
+                  이용약관
+                </FooterLink>
+              </FooterLinkGroup>
             </div>
 
             {/* 킬링타임 */}
-            <div className="flex justify-center">
-              <div>
-                <FooterTitle title="킬링타임" className="text-foreground font-semibold mb-4" />
-                <FooterLinkGroup col>
-                  <FooterLink
-                    href="#"
-                    onClick={handlePsychologyTest}
-                    className="text-muted-foreground hover:text-foreground cursor-pointer"
-                  >
-                    심리테스트
-                  </FooterLink>
-                  <FooterLink
-                    href="#"
-                    onClick={handleBeatMaker}
-                    className="text-muted-foreground hover:text-foreground cursor-pointer"
-                  >
-                    비트 만들기
-                  </FooterLink>
-                </FooterLinkGroup>
-              </div>
+            <div>
+              <FooterTitle title="킬링타임" className="text-foreground font-semibold mb-4 whitespace-nowrap" />
+              <FooterLinkGroup col>
+                <FooterLink
+                  href="https://liketests.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground whitespace-nowrap inline-flex items-center gap-1"
+                >
+                  심리테스트
+                  <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                </FooterLink>
+                <FooterLink
+                  href="https://v0-drum-machine-with-claude.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground whitespace-nowrap inline-flex items-center gap-1"
+                >
+                  비트 만들기
+                  <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                </FooterLink>
+              </FooterLinkGroup>
             </div>
           </div>
         </div>
@@ -185,7 +149,7 @@ export const HomeFooter: React.FC = React.memo(() => {
         {/* Bottom Section with Copyright and Social Icons */}
         <div className="w-full sm:flex sm:items-center sm:justify-between">
           <FooterCopyright
-            by="비밀로그 v2.8.0"
+            by="비밀로그"
             year={2025}
             className="text-muted-foreground text-sm"
           />
@@ -213,7 +177,6 @@ export const HomeFooter: React.FC = React.memo(() => {
           </div>
         </div>
       </div>
-      <ConfirmModalComponent />
     </Footer>
   );
 });

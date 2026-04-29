@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 // 분리된 훅과 컴포넌트들 import
 import { useWriteForm } from "@/hooks/features";
 import { AuthHeader, WritePageHeader, Breadcrumb, Spinner } from "@/components";
+import { AnonymousWriteNotice } from "@/components/organisms/board/AnonymousWriteNotice";
 
 // WriteForm을 동적 import로 변경하여 Editor 컴포넌트 최적화
 // Quill Editor는 무거운 라이브러리이므로 필요할 때만 로드하여 초기 번들 크기 감소
@@ -56,7 +57,7 @@ export default function WritePostPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-brand-gradient">
+      <div className="min-h-screen bg-paper">
         <AuthHeader />
         <div className="flex items-center justify-center flex-1 min-h-[calc(100vh-80px)]">
           <div className="flex flex-col items-center">
@@ -71,8 +72,11 @@ export default function WritePostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-gradient">
+    <div className="min-h-screen bg-paper">
       <AuthHeader />
+
+      {/* 비로그인 안내 (B-M5) */}
+      {!isAuthenticated && <AnonymousWriteNotice />}
 
       {/* 페이지 전용 서브 헤더 (모바일 최적화) */}
       <WritePageHeader

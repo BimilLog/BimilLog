@@ -17,7 +17,7 @@ export function AuthLoadingScreen({
           size="xl"
           aria-label={message}
         />
-        <h2 className="mt-6 text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-bold mb-2">
+        <h2 className="mt-6 text-2xl font-display text-stamp-red font-bold mb-2 tracking-tight">
           {message}
         </h2>
         {subMessage && (

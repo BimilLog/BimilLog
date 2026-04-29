@@ -40,7 +40,7 @@ const KakaoFriendsModalLoading = () => (
   <Modal show onClose={() => {}} size="lg">
     <ModalHeader className="border-b border-gray-100 bg-white">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-purple-100 bg-purple-50 text-brand-primary">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-stamp-red/20 bg-stamp-red/10 text-brand-primary">
           <Users className="h-5 w-5" />
         </div>
         <div>
@@ -89,7 +89,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
         <div className="flex w-full flex-col gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-purple-100 bg-purple-50 text-brand-primary">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-stamp-red/20 bg-stamp-red/10 text-brand-primary">
                 <Users className="h-5 w-5" />
               </div>
               <div>
@@ -156,7 +156,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
               <p className="text-sm font-medium text-brand-secondary">친구 목록을 불러오는 중이에요...</p>
             </div>
           ) : needsConsent ? (
-            <div className="rounded-xl border border-purple-100 bg-purple-50/60 p-6">
+            <div className="rounded-xl border border-stamp-red/20 bg-paper-aged/60 p-6">
               <Alert className="gap-3 border-none bg-transparent p-0">
                 <AlertCircle className="h-5 w-5 text-brand-primary" />
                 <div className="space-y-2">
@@ -169,7 +169,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                       type="button"
                       size="sm"
                       onClick={handleConsentClick}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                      className="bg-stamp-red text-white hover:bg-stamp-red/90"
                     >
                       동의하러 가기
                     </FlowbiteButton>
@@ -216,7 +216,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                 {filteredFriends.map((friend) => (
                   <ListGroupItem
                     key={friend.id}
-                    className="flex flex-col gap-3 bg-white transition hover:bg-purple-50/40 focus:outline-none focus:ring-2 focus:ring-purple-200 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 bg-white transition hover:bg-paper-100 focus:outline-none focus:ring-2 focus:ring-stamp-red/30 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex w-full flex-1 items-center gap-3">
                       <Avatar
@@ -249,7 +249,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                           type="button"
                           size="sm"
                           onClick={() => handleVisitRollingPaper(friend.memberName)}
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                          className="bg-stamp-red text-white hover:bg-stamp-red/90"
                         >
                           <MessageCircle className="h-4 w-4" />
                           <span className="ml-1 text-sm">롤링페이퍼</span>

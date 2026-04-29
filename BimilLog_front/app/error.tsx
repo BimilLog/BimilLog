@@ -24,7 +24,7 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+    <div className="min-h-screen bg-paper">
       <AuthHeader />
 
       <div className="flex items-center justify-center p-4 py-16">
@@ -46,27 +46,23 @@ export default function ErrorPage({
                     blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjRjNGNEY2IiBvcGFjaXR5PSIwLjUiLz4KPC9zdmc+Cg=="
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <AlertTriangle className="w-12 h-12 stroke-red-600 fill-red-100" />
+                    <AlertTriangle className="w-12 h-12 text-stamp-red" />
                   </div>
                 </div>
               </div>
 
-              {/* 500 텍스트 */}
-              <div className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent mb-4">
+              {/* 500 텍스트 — 도장처럼 살짝 기울어진 stamp-red */}
+              <div className="font-display text-6xl md:text-7xl font-bold text-stamp-red mb-4 inline-block transform -rotate-3 tracking-tight">
                 500
               </div>
 
-              {/* 장식용 요소들 */}
+              {/* 종이 데코 — 매우 절제 */}
               <div
-                className="absolute -top-4 -left-4 w-8 h-8 bg-red-200 rounded-full opacity-60 animate-pulse"
+                className="absolute -top-4 -left-4 w-3 h-3 bg-stamp-red/30 rounded-full opacity-60 animate-pulse"
                 style={{ animationDelay: "0s" }}
               ></div>
               <div
-                className="absolute -top-2 -right-6 w-6 h-6 bg-orange-200 rounded-full opacity-60 animate-pulse"
-                style={{ animationDelay: "0.5s" }}
-              ></div>
-              <div
-                className="absolute -bottom-4 left-8 w-4 h-4 bg-yellow-200 rounded-full opacity-60 animate-pulse"
+                className="absolute -bottom-4 left-8 w-2 h-2 bg-postal-navy/30 rounded-full opacity-60 animate-pulse"
                 style={{ animationDelay: "1s" }}
               ></div>
             </div>
@@ -74,16 +70,16 @@ export default function ErrorPage({
 
           {/* 텍스트 영역 */}
           <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-brand-primary mb-4">
+            <h1 className="font-display text-2xl md:text-3xl font-bold text-ink dark:text-foreground mb-4 tracking-tight">
               일시적인 오류가 발생했어요
             </h1>
-            <p className="text-brand-muted leading-relaxed">
+            <p className="font-body text-ink-soft dark:text-muted-foreground leading-relaxed">
               예상치 못한 문제가 발생했어요.
               <br />
               잠시 후 다시 시도하거나 페이지를 새로고침 해주세요.
             </p>
             {error.digest && (
-              <p className="text-xs text-brand-secondary mt-4">
+              <p className="text-xs text-ink-soft mt-4">
                 오류 코드: {error.digest}
               </p>
             )}
@@ -94,15 +90,15 @@ export default function ErrorPage({
             <Button
               onClick={() => reset()}
               size="lg"
-              className="w-full"
+              className="w-full bg-stamp-red hover:bg-stamp-red/90"
             >
-              <RefreshCw className="w-5 h-5 mr-2 stroke-blue-600 fill-blue-100" />
+              <RefreshCw className="w-5 h-5 mr-2" />
               다시 시도하기
             </Button>
 
             <Button asChild variant="outline" size="lg" className="w-full">
               <Link href="/">
-                <Home className="w-5 h-5 mr-2 stroke-indigo-600 fill-indigo-100" />
+                <Home className="w-5 h-5 mr-2" />
                 홈으로 돌아가기
               </Link>
             </Button>
@@ -112,26 +108,26 @@ export default function ErrorPage({
               size="lg"
               className="w-full"
             >
-              <ArrowLeft className="w-4 h-4 mr-2 stroke-slate-600" />
+              <ArrowLeft className="w-4 h-4 mr-2" />
               이전 페이지로
             </BackButton>
           </div>
 
           {/* 하단 링크들 */}
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-sm text-brand-secondary mb-4">
+          <div className="mt-12 pt-8 border-t border-ink-soft">
+            <p className="text-sm font-body text-ink-soft mb-4">
               문제가 계속되나요?
             </p>
             <div className="flex justify-center space-x-6 text-sm">
               <Link
                 href="/suggest"
-                className="text-purple-600 hover:text-purple-700 hover:underline transition-colors"
+                className="text-postal-navy hover:text-stamp-red hover:underline underline-offset-2 transition-colors"
               >
                 문제 신고하기
               </Link>
               <Link
                 href="/help"
-                className="text-purple-600 hover:text-purple-700 hover:underline transition-colors"
+                className="text-postal-navy hover:text-stamp-red hover:underline underline-offset-2 transition-colors"
               >
                 도움말
               </Link>

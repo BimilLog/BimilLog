@@ -37,7 +37,7 @@ const TabsTrigger = React.memo(({ className, ...props }: React.ComponentProps<ty
       className={cn(
         "inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-1.5 sm:px-3 py-1.5 text-[10px] sm:text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         "text-muted-foreground hover:text-foreground",
-        "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:font-bold data-[state=active]:shadow-md data-[state=active]:border-purple-200 dark:data-[state=active]:border-purple-600 data-[state=active]:ring-1 data-[state=active]:ring-purple-300 dark:data-[state=active]:ring-purple-500 data-[state=active]:scale-[1.02]",
+        "data-[state=active]:bg-background data-[state=active]:text-stamp-red data-[state=active]:font-bold data-[state=active]:shadow-md data-[state=active]:border-stamp-red/30 dark:data-[state=active]:border-stamp-red/40 data-[state=active]:ring-1 data-[state=active]:ring-stamp-red/40 dark:data-[state=active]:ring-stamp-red/50 data-[state=active]:scale-[1.02]",
         className
       )}
       {...props}
