@@ -236,6 +236,8 @@ export function useUserSettings(initialSettings?: Setting | null) {
   };
 
   // 회원탈퇴 처리: 탈퇴 진행, 성공 시 홈으로 이동
+  // B-311 (라운드 10): window.location.reload 제거 — router.push 만으로 SPA 라우팅.
+  // useGoodbyeFarewell 패턴 차용: sessionStorage 마커 심고 홈에서 소비 (라운드 3 일관).
   const handleConfirmWithdraw = async () => {
     try {
       setWithdrawing(true);
@@ -243,20 +245,36 @@ export function useUserSettings(initialSettings?: Setting | null) {
       if (!isMounted.current) return;
 
       if (response.success) {
-        showSuccess("회원탈퇴 완료", "회원탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사했습니다.");
+        showSuccess(
+          "안녕히 가세요",
+          "언제든 다시 편지를 보내러 와주세요."
+        );
+
+        // 홈 페이지에서 소비될 farewell 마커 심기 (useGoodbyeFarewell 와 동일 키 사용)
+        try {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(
+              "bimillog_pending_goodbye",
+              JSON.stringify({ reason: "normal", ts: Date.now() })
+            );
+          }
+        } catch {
+          /* storage 차단 환경 — 무시 */
+        }
+
         // 2초 후 홈으로 이동하여 사용자가 메시지를 읽을 시간을 제공
         setTimeout(() => {
           if (isMounted.current) {
             router.push("/");
-            window.location.reload();
+            // window.location.reload() 제거 — auth store 의 logout cleanup 으로 비인증 상태 재구성
           }
         }, 2000);
       } else {
         // 실패 시 모달 닫고 에러 메시지 표시
         setShowWithdrawModal(false);
         showError(
-          "회원탈퇴 실패",
-          response.error || "회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요."
+          "탈퇴 처리 실패",
+          response.error || "회원 탈퇴 중 오류가 발생했어요. 잠시 후 다시 시도해주세요."
         );
       }
     } catch (error) {
@@ -265,10 +283,10 @@ export function useUserSettings(initialSettings?: Setting | null) {
       // 실패 시 모달 닫고 에러 메시지 표시
       setShowWithdrawModal(false);
       showError(
-        "회원탈퇴 실패",
+        "탈퇴 처리 실패",
         error instanceof Error
           ? error.message
-          : "회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요."
+          : "회원 탈퇴 중 오류가 발생했어요. 잠시 후 다시 시도해주세요."
       );
     } finally {
       if (isMounted.current) {

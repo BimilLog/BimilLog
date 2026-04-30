@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useMyPageInfo } from '@/hooks/api/useMyPageQueries';
 import { usePagination } from '@/hooks/common/usePagination';
 
@@ -18,6 +18,7 @@ export function useUserActivityTabs(pageSize = 10) {
     data: mypageData,
     isLoading,
     error,
+    refetch,
   } = useMyPageInfo(pagination.currentPage, pagination.pageSize);
 
   // 각 탭의 실제 데이터 반환
@@ -73,24 +74,37 @@ export function useUserActivityTabs(pageSize = 10) {
     }
   }, [activeTab, mypageData]);
 
+  // setter 안정화 — pagination 객체 전체가 매 렌더 새로 생성되므로,
+  // setter 함수 참조만 추출해 effect/callback 의존성으로 사용한다.
+  const { setTotalItems, setCurrentPage } = pagination;
+
   // 데이터 변경 시 페이지네이션 업데이트
   useEffect(() => {
     if (currentTotalElements !== undefined) {
-      pagination.setTotalItems(currentTotalElements);
+      setTotalItems(currentTotalElements);
     }
-  }, [currentTotalElements, pagination.setTotalItems]);
+  }, [currentTotalElements, setTotalItems]);
 
   // 탭 변경 시 페이지를 0으로 리셋
-  const handleTabChange = (tab: typeof activeTab) => {
-    setActiveTab(tab);
-    pagination.setCurrentPage(0);
-  };
+  // useCallback 으로 안정화 — UserActivitySection 의 URL→상태 동기화 useEffect 의존성 안정성 확보
+  const handleTabChange = useCallback(
+    (tab: typeof activeTab) => {
+      setActiveTab((prev) => {
+        if (prev === tab) return prev;
+        return tab;
+      });
+      setCurrentPage(0);
+    },
+    [setCurrentPage],
+  );
 
   return {
     // 현재 탭 데이터
     items: currentData,
     isLoading,
     error,
+    // B-310: 에러 회복 시 페이지 reload 대신 SPA refetch
+    refetch,
 
     // 탭 상태
     activeTab,

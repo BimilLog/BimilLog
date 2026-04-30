@@ -32,13 +32,16 @@ export function useMyPage(options?: UseMyPageOptions) {
     }
   }, [user, fetchUserStats]);
 
-  // 닉네임 변경 처리: 닉네임 업데이트 (ProfileCard에서 성공 메시지와 새로고침 처리)
+  // 닉네임 변경 처리: B-301 — auth store(useAuthStore.updateUserName) 가 단일 경로로
+  // updateUserNameAction 을 호출하고 사용자 상태를 갱신한다. ProfileCard 의 직접 호출과
+  // 콜백이 분리되어 발생하던 더블 POST 를 차단.
   const handleNicknameChange = useCallback(
-    async (newNickname: string) => {
+    async (newNickname: string): Promise<boolean> => {
       try {
-        await updateUserName(newNickname);
+        return await updateUserName(newNickname);
       } catch (error) {
         logger.error("Failed to update nickname:", error);
+        return false;
       }
     },
     [updateUserName]
