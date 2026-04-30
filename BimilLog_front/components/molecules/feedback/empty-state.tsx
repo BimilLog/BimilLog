@@ -271,14 +271,3 @@ export const EmptyState = React.memo<EmptyStateProps>(({
 });
 
 EmptyState.displayName = "EmptyState";
-
-// 사전 정의된 EmptyState 타입들
-export const CuteEmptyState = React.memo((props: Omit<EmptyStateProps, 'variant'>) => (
-  <EmptyState variant="cute" {...props} />
-));
-CuteEmptyState.displayName = "CuteEmptyState";
-
-export const PlayfulEmptyState = React.memo((props: Omit<EmptyStateProps, 'variant'>) => (
-  <EmptyState variant="playful" {...props} />
-));
-PlayfulEmptyState.displayName = "PlayfulEmptyState";

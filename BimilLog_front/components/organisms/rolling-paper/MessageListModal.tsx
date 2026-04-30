@@ -5,9 +5,9 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
 import { Button } from "@/components";
 import { Badge, TimeBadge } from "@/components";
 import { Card, CardContent } from "@/components";
-import { MessageSquare, Sparkles } from "lucide-react";
+import { MessageSquare, Sparkles, MailOpen } from "lucide-react";
 import type { RollingPaperMessage } from "@/types/domains/paper";
-import { DecoIcon } from "@/components";
+import { DecoIcon, EmptyView } from "@/components";
 
 interface MessageListModalProps {
   isOpen: boolean;
@@ -35,10 +35,13 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
   return (
     <Modal show={isOpen} onClose={onClose} size="xl">
       <ModalHeader>
-        <span className="flex items-center gap-2 text-cyan-800 font-bold text-lg md:text-xl">
-          <MessageSquare className="w-5 h-5 md:w-6 md:h-6 stroke-green-500 fill-green-200" />
+        <span className="flex items-center gap-2 font-display font-bold text-lg md:text-xl text-ink dark:text-foreground">
+          <MessageSquare
+            className="w-5 h-5 md:w-6 md:h-6 stroke-stamp-red fill-stamp-red/15"
+            aria-hidden="true"
+          />
           메시지 목록 보기
-          <Badge variant="secondary" className="bg-cyan-100 text-cyan-700">
+          <Badge variant="secondary" className="bg-paper-aged text-stamp-red border-stamp-red/30">
             {messages.length}개
           </Badge>
         </span>
@@ -46,15 +49,12 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
       <ModalBody>
 
         {messages.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageSquare className="w-8 h-8 stroke-green-500 fill-green-200" />
-            </div>
-            <p className="text-brand-muted mb-2">아직 메시지가 없어요</p>
-            <p className="text-sm text-brand-secondary">
-              메시지가 작성되면 여기에 표시됩니다.
-            </p>
-          </div>
+          <EmptyView
+            compact
+            icon={<MailOpen className="w-7 h-7" strokeWidth={1.6} aria-hidden="true" />}
+            title="아직 도착한 편지가 없어요"
+            description="메시지가 작성되면 여기에 표시돼요."
+          />
         ) : (
           <div className="max-h-96 md:max-h-[60vh] overflow-y-auto pr-4">
             <div className="space-y-3">

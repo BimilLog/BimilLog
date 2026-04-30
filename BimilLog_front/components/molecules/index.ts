@@ -16,6 +16,9 @@ export { Alert, AlertDescription, AlertTitle, SuccessAlert, ErrorAlert, WarningA
 export { ToastContainer, ToastComponent, type Toast, type ToastType } from './feedback/toast';
 export { Loading } from './feedback/loading';
 export { EmptyState } from './feedback/empty-state';
+export { EmptyView } from './feedback/EmptyView';
+export { NotFoundView } from './feedback/NotFoundView';
+export { ErrorView } from './feedback/ErrorView';
 export { ErrorBoundary, type ErrorFallbackProps } from './feedback/error-boundary';
 export { ErrorFallback } from './feedback/error-fallback';
 

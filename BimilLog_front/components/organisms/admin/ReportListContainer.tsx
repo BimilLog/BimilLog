@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useCallback, memo } from "react";
-import { Card, Badge, Button, Loading } from "@/components";
+import { Card, Badge, Button, Loading, EmptyView } from "@/components";
 import { Filter, ChevronDown, AlertTriangle, AlertCircle } from "lucide-react";
 import { ReportFilters } from "./ReportFilters";
 import { ReportCard } from "./ReportCard";
@@ -49,22 +49,20 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
     setSelectedReport(null);
   }, []);
 
-  // 빈 상태 컴포넌트 메모화
+  // 빈 상태 컴포넌트 메모화 — paper 토큰 일관 (F-13-BUG-17)
   const EmptyStateComponent = useMemo(() => (
-    <Card className="p-12 text-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-          <AlertTriangle className="w-8 h-8 stroke-amber-600 fill-amber-100" />
-        </div>
-        <div>
-          <h3 className="text-lg font-medium text-brand-primary mb-1">
-            신고 내역이 없습니다
-          </h3>
-          <p className="text-sm text-brand-secondary">
-            아직 처리할 신고가 없습니다.
-          </p>
-        </div>
-      </div>
+    <Card className="bg-paper-card border border-stamp-red/20">
+      <EmptyView
+        icon={
+          <AlertTriangle
+            className="w-9 h-9 stroke-stamp-red"
+            strokeWidth={1.6}
+            aria-hidden="true"
+          />
+        }
+        title="처리할 신고가 없어요"
+        description="새로운 신고가 들어오면 여기에 표시돼요."
+      />
     </Card>
   ), []);
 
@@ -72,31 +70,23 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
     return <Loading type="card" message="신고 목록을 불러오는 중..." />;
   }
 
-  // 에러 상태
+  // 에러 상태 — paper 토큰 + stamp-red CTA (F-13-BUG-17)
   if (error) {
     return (
-      <Card className="p-12 text-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-            <AlertCircle className="w-8 h-8 stroke-red-600 fill-red-100" />
-          </div>
-          <div>
-            <h3 className="text-lg font-medium text-brand-primary mb-1">
-              신고 목록을 불러올 수 없습니다
-            </h3>
-            <p className="text-sm text-brand-secondary mb-4">
-              {error}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refetch}
-              className="text-purple-600 border-purple-200 hover:bg-purple-50"
-            >
-              다시 시도
-            </Button>
-          </div>
-        </div>
+      <Card className="bg-paper-card border border-stamp-red/30">
+        <EmptyView
+          assertive
+          icon={
+            <AlertCircle
+              className="w-9 h-9 stroke-stamp-red"
+              strokeWidth={1.6}
+              aria-hidden="true"
+            />
+          }
+          title="신고 목록을 불러올 수 없어요"
+          description={error}
+          onRetry={refetch}
+        />
       </Card>
     );
   }

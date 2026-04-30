@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
@@ -12,6 +12,7 @@ import {
 import { AlertTriangle, TrendingUp } from "lucide-react";
 import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import { useAdminAuth, useReports } from "@/hooks/features/admin";
+import { useToastStore } from "@/stores/toast.store";
 
 // Dynamic imports for heavy admin components
 const AdminStats = dynamic(
@@ -75,8 +76,17 @@ export function AdminClient() {
     initialFilterType: initialFilterType
   });
 
+  // 한 번만 토스트가 뜨도록 가드 (StrictMode + dev 두 번 mount 방어)
+  const redirectedRef = useRef(false);
+
   useEffect(() => {
-    if (!isAuthLoading && !isAdmin) {
+    if (!isAuthLoading && !isAdmin && !redirectedRef.current) {
+      redirectedRef.current = true;
+      // 권한 없음 안내 토스트 후 홈으로 리다이렉트 (F-13-BUG-1)
+      useToastStore.getState().showWarning(
+        "관리자 전용 페이지예요",
+        "이 페이지는 관리자만 접근할 수 있어요. 홈으로 이동했어요."
+      );
       router.push("/");
     }
   }, [isAdmin, isAuthLoading, router]);

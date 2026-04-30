@@ -1,6 +1,30 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryCache, QueryClient } from '@tanstack/react-query';
+import { errorLogger } from '@/lib/error-logger';
+
+/**
+ * 글로벌 QueryCache onError — 라운드 13 F-13-BUG-10:
+ * 모든 query 실패를 백엔드로 로깅 (페이지 단 토스트는 그대로 페이지 책임).
+ * 401/403 은 useErrorHandler 가 별도 처리 (needsRelogin / 권한 토스트) 하므로
+ * 여기서는 로깅에서 제외 (중복 로그 방지).
+ */
+const queryCache = new QueryCache({
+  onError: (error, query) => {
+    if (error && typeof error === 'object' && 'status' in error) {
+      const status = (error as { status: number }).status;
+      if (status === 401 || status === 403) {
+        return;
+      }
+    }
+
+    errorLogger.logError(error instanceof Error ? error : String(error), {
+      type: 'TanStackQuery',
+      queryKey: JSON.stringify(query.queryKey),
+    });
+  },
+});
 
 export const queryClient = new QueryClient({
+  queryCache,
   defaultOptions: {
     queries: {
       // 기본 stale time을 5분으로 설정
