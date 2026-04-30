@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -9,7 +9,8 @@ import {
   Shield,
   ScrollText,
   UserCircle,
-  UserX
+  UserX,
+  Mail
 } from "lucide-react";
 import {
   Dropdown,
@@ -18,6 +19,7 @@ import {
   DropdownItem,
   Avatar
 } from "flowbite-react";
+import { ConfirmModal } from "@/components/molecules/modals/confirm-modal";
 import type { Member } from "@/types/domains/user";
 
 interface UserDropdownMenuProps {
@@ -63,73 +65,150 @@ export const UserDropdownMenu = React.memo(({ user }: UserDropdownMenuProps) => 
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const handleLogout = () => {
+  // B-303: 로그아웃 확인 모달 상태
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  // B-303 / 코드 패턴: focus return — 트리거(아바타) 로 포커스 복원
+  const triggerWrapperRef = useRef<HTMLDivElement | null>(null);
+
+  const handleLogoutClick = useCallback(() => {
+    setIsLogoutConfirmOpen(true);
+  }, []);
+
+  const performLogoutNavigation = useCallback(() => {
     const currentPath = pathname || "/";
     const queryString = searchParams?.toString();
     const redirectTarget = queryString ? `${currentPath}?${queryString}` : currentPath;
     const encodedRedirect = encodeURIComponent(redirectTarget);
-    router.push(`/logout?redirect=${encodedRedirect}`);
-  };
+    // ?confirmed=1 — /logout 페이지에 이미 사용자 동의 받았음을 알리는 쿼리스트링.
+    router.push(`/logout?confirmed=1&redirect=${encodedRedirect}`);
+  }, [router, pathname, searchParams]);
+
+  const handleConfirmLogout = useCallback(() => {
+    setIsLogoutConfirmOpen(false);
+    performLogoutNavigation();
+  }, [performLogoutNavigation]);
+
+  const handleCloseLogoutConfirm = useCallback(() => {
+    setIsLogoutConfirmOpen(false);
+    // focus 복원 — 모달 닫힘 후 트리거(아바타) 로
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => {
+        const avatar = triggerWrapperRef.current?.querySelector<HTMLElement>(
+          '[data-testid="header-user-avatar"]'
+        );
+        avatar?.focus?.();
+      }, 0);
+    }
+  }, []);
 
   return (
-    <Dropdown
-      arrowIcon={false}
-      inline
-      label={
-        <Avatar
-          alt={user.memberName}
-          img={user.thumbnailImage}
-          rounded
-          className="hover:ring-2 hover:ring-purple-200 transition-all cursor-pointer"
-        />
-      }
-      theme={DROPDOWN_THEME}
-    >
-      <DropdownHeader>
-        <span className="block text-sm font-semibold">{user.memberName}</span>
-        <span className="block truncate text-sm text-gray-500">
-          @{user.socialNickname}
-        </span>
-        {user.role === "ADMIN" && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 mt-1">
-            관리자
-          </span>
-        )}
-      </DropdownHeader>
-      <DropdownItem as={Link} href="/rolling-paper">
-        <ScrollText className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
-        내 롤링페이퍼
-      </DropdownItem>
-      <DropdownItem as={Link} href="/mypage">
-        <UserCircle className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
-        마이페이지
-      </DropdownItem>
-      <DropdownItem as={Link} href="/settings">
-        <Settings className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
-        설정
-      </DropdownItem>
-      <DropdownItem as={Link} href="/blacklist">
-        <UserX className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
-        블랙리스트
-      </DropdownItem>
-      {user.role === "ADMIN" && (
-        <>
-          <DropdownDivider />
-          <DropdownItem as={Link} href="/admin" className="text-red-600">
-            <Shield className="mr-2 h-4 w-4 stroke-purple-600 fill-purple-100" />
-            관리자 페이지
-          </DropdownItem>
-        </>
-      )}
-      <DropdownDivider />
-      <DropdownItem
-        onClick={handleLogout}
-        className="text-red-600"
+    <div ref={triggerWrapperRef}>
+      <Dropdown
+        arrowIcon={false}
+        inline
+        label={
+          <Avatar
+            alt={user.memberName}
+            img={user.thumbnailImage}
+            rounded
+            className="hover:ring-2 hover:ring-purple-200 transition-all cursor-pointer"
+            data-testid="header-user-avatar"
+          />
+        }
+        theme={DROPDOWN_THEME}
       >
-        <LogOut className="mr-2 h-4 w-4 stroke-red-600 fill-red-100" />
-        로그아웃
-      </DropdownItem>
-    </Dropdown>
+        <DropdownHeader>
+          <span className="block text-sm font-semibold">{user.memberName}</span>
+          <span className="block truncate text-sm text-gray-500">
+            @{user.socialNickname}
+          </span>
+          {user.role === "ADMIN" && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 mt-1">
+              관리자
+            </span>
+          )}
+        </DropdownHeader>
+        <DropdownItem
+          as={Link}
+          href="/rolling-paper"
+          data-testid="user-menu-papers"
+          role="menuitem"
+        >
+          <ScrollText className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" aria-hidden="true" />
+          내 롤링페이퍼
+        </DropdownItem>
+        <DropdownItem
+          as={Link}
+          href="/mypage"
+          data-testid="user-menu-mypage"
+          role="menuitem"
+        >
+          <UserCircle className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" aria-hidden="true" />
+          마이페이지
+        </DropdownItem>
+        <DropdownItem
+          as={Link}
+          href="/settings"
+          data-testid="user-menu-settings"
+          role="menuitem"
+        >
+          <Settings className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" aria-hidden="true" />
+          설정
+        </DropdownItem>
+        <DropdownItem
+          as={Link}
+          href="/blacklist"
+          data-testid="user-menu-blacklist"
+          role="menuitem"
+        >
+          <UserX className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" aria-hidden="true" />
+          블랙리스트
+        </DropdownItem>
+        {user.role === "ADMIN" && (
+          <>
+            <DropdownDivider />
+            <DropdownItem
+              as={Link}
+              href="/admin"
+              className="text-red-600"
+              data-testid="user-menu-admin"
+              role="menuitem"
+            >
+              <Shield className="mr-2 h-4 w-4 stroke-purple-600 fill-purple-100" aria-hidden="true" />
+              관리자 페이지
+            </DropdownItem>
+          </>
+        )}
+        <DropdownDivider />
+        <DropdownItem
+          onClick={handleLogoutClick}
+          className="text-red-600"
+          data-testid="user-menu-logout"
+          role="menuitem"
+        >
+          <LogOut className="mr-2 h-4 w-4 stroke-red-600 fill-red-100" aria-hidden="true" />
+          로그아웃
+        </DropdownItem>
+      </Dropdown>
+
+      {/* B-303: 로그아웃 확인 모달 — 비가역 액션이므로 명시적 confirm. */}
+      <ConfirmModal
+        isOpen={isLogoutConfirmOpen}
+        onClose={handleCloseLogoutConfirm}
+        onConfirm={handleConfirmLogout}
+        title="이번 편지 묶음을 잠시 닫을까요?"
+        message="다음에 다시 들어오면 받은 편지가 그대로 기다리고 있어요."
+        confirmText="로그아웃"
+        cancelText="취소"
+        confirmButtonVariant="destructive"
+        icon={
+          <Mail
+            className="h-8 w-8 stroke-stamp-red fill-paper-soft"
+            aria-hidden="true"
+          />
+        }
+      />
+    </div>
   );
 });
 

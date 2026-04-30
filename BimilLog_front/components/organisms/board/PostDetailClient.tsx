@@ -75,11 +75,14 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   } = usePostDetail(postId, initialPost);
 
   // Server Action hooks (브라우저에서 백엔드 직접 호출 방지)
-  const { likePost } = useLikePostAction();
+  // 라운드 8 B-8-006: isPending 노출하여 더블 클릭/스피너 처리.
+  const { likePost, isPending: isLikingPost } = useLikePostAction();
   const { deletePost, isPending: isDeletingPost } = useDeletePostAction();
   const { createComment, isPending: isCreatingComment } = useCreateCommentAction();
   const { updateComment, isPending: isUpdatingComment } = useUpdateCommentAction();
   const { deleteComment, isPending: isDeletingComment } = useDeleteCommentAction();
+  // 라운드 8 B-8-001: 댓글 좋아요는 옵티미스틱 토글로 즉시 반영되므로
+  //   isPending 시각화는 본 라운드 스코프에서는 불필요. 향후 disabled 가 필요하면 재추가.
   const { likeComment } = useLikeCommentAction(Number(postId));
 
   // 댓글 편집/답글/삭제 상태 및 핸들러
@@ -93,6 +96,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     handlePasswordSubmit,
     setShowDeleteModal, setShowCommentDeleteModal,
     setTargetDeleteComment, setPasswordError,
+    ConfirmModalComponent,
   } = useCommentInteraction({
     postId,
     post,
@@ -114,27 +118,36 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   });
 
   // 인기 댓글 → 원본 댓글 스크롤 이동 핸들러
+  // 라운드 8 B-8-003: 한국어 카피/클래스명 의존 제거 — data-replies-toggle / data-expanded 사용.
+  // 라운드 8: 강조 색상은 paper/seal-gold 토큰으로 통일 + 스크린리더에 announce.
   const handleCommentClick = useCallback((commentId: number) => {
     const element = document.getElementById(`comment-${commentId}`);
-    if (element) {
-      // 부모 댓글 자동 펼치기 (대댓글인 경우)
-      const clickedComment = comments.find(c => c.id === commentId);
-      if (clickedComment?.parentId) {
-        const toggleButton = document.querySelector(`#comment-${clickedComment.parentId} button[class*="답글"]`);
-        if (toggleButton && toggleButton.textContent?.includes('더보기')) {
-          (toggleButton as HTMLButtonElement).click();
-        }
-      }
+    if (!element) return;
 
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      const commentContent = element.querySelector('.comment-content');
-      if (commentContent) {
-        commentContent.classList.add('bg-yellow-100', 'ring-2', 'ring-yellow-400');
-        setTimeout(() => {
-          commentContent.classList.remove('bg-yellow-100', 'ring-2', 'ring-yellow-400');
-        }, 2500);
+    // 부모 댓글 자동 펼치기 (대댓글인 경우): data-* 속성 기반 안전 조회
+    const clickedComment = comments.find(c => c.id === commentId);
+    if (clickedComment?.parentId) {
+      const parentEl = document.getElementById(`comment-${clickedComment.parentId}`);
+      const toggleButton = parentEl?.querySelector<HTMLButtonElement>(
+        'button[data-replies-toggle="true"]'
+      );
+      if (toggleButton && toggleButton.dataset.expanded === "false") {
+        toggleButton.click();
       }
+    }
+
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    const commentContent = element.querySelector('.comment-content');
+    if (commentContent) {
+      commentContent.classList.add('ring-2', 'ring-seal-gold', 'bg-seal-gold/15');
+      // 스크린리더에 결과 안내
+      element.setAttribute('tabindex', '-1');
+      (element as HTMLElement).focus({ preventScroll: true });
+      setTimeout(() => {
+        commentContent.classList.remove('ring-2', 'ring-seal-gold', 'bg-seal-gold/15');
+        element.removeAttribute('tabindex');
+      }, 2500);
     }
   }, [comments]);
 
@@ -152,15 +165,26 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     );
   }
 
-  const commentCount = getTotalCommentCount(comments);
+  // 라운드 8 B-8-010: PostHeader 는 서버 총합(post.commentCount) 사용.
+  //   CommentList 는 현재 로드된 댓글 기준 카운트 노출.
+  const loadedCommentCount = getTotalCommentCount(comments);
   const rootCommentCount = getRootCommentCount(comments);
+  const totalCommentCount = post?.commentCount ?? loadedCommentCount;
 
   return (
     <div className="min-h-screen bg-paper">
-      {/* 읽기 진행률 바 */}
+      {/* 읽기 진행률 바 — 라운드 8: progressbar role + 장식적 내부 div 는 aria-hidden */}
       {progress > 0 && (
-        <div className="fixed top-0 left-0 right-0 z-[60] h-1 bg-paper-200">
+        <div
+          className="fixed top-0 left-0 right-0 z-[60] h-1 bg-paper-200 dark:bg-postal-navy/40"
+          role="progressbar"
+          aria-valuenow={Math.round(progress)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="읽기 진행률"
+        >
           <div
+            aria-hidden="true"
             className="h-full bg-stamp-red transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
@@ -197,12 +221,13 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
         <Card variant="elevated" className="mb-8">
           <PostHeader
             post={post}
-            commentCount={commentCount}
+            commentCount={totalCommentCount}
           />
           <PostContent
             post={post}
             isAuthenticated={isAuthenticated}
             onLike={handleLikePost}
+            isLiking={isLikingPost}
           />
           <PostActions
             post={post}
@@ -216,8 +241,9 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           postId={post.id}
           comments={comments}
           popularComments={popularComments}
-          commentCount={commentCount}
+          commentCount={loadedCommentCount}
           rootCommentCount={rootCommentCount}
+          totalCommentCount={totalCommentCount}
           isAuthenticated={isAuthenticated}
 
           hasMoreComments={hasMoreComments}
@@ -300,6 +326,9 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           cancelText="취소"
           isLoading={isDeletingComment}
         />
+
+        {/* 라운드 8 B-8-008: 댓글 수정 취소용 인앱 ConfirmModal */}
+        <ConfirmModalComponent />
       </div>
     </div>
   );

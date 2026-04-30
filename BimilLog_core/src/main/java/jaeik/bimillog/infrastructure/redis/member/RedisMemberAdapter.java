@@ -21,7 +21,13 @@ public class RedisMemberAdapter {
     private static final int MEMBER_TTL = 60;
     private static final long SOFT_TTL_MILLIS = 50_000L;
 
-    public record CachedMemberPage(long cachedAt, List<SimpleMemberDTO> data) {
+    /**
+     * <h3>회원 페이지 캐시 레코드</h3>
+     * <p>{@code totalElements}는 전체 회원 수를 의미한다. 캐시 히트 시
+     * {@link org.springframework.data.domain.PageImpl} 복원에 사용되어
+     * 페이지네이션 totalPages 계산이 올바르게 이루어지도록 한다.</p>
+     */
+    public record CachedMemberPage(long cachedAt, List<SimpleMemberDTO> data, long totalElements) {
         public boolean isStale() {
             return System.currentTimeMillis() - cachedAt >= SOFT_TTL_MILLIS;
         }
@@ -38,9 +44,9 @@ public class RedisMemberAdapter {
         }
     }
 
-    public void saveMemberPage(int page, int size, List<SimpleMemberDTO> data) {
+    public void saveMemberPage(int page, int size, List<SimpleMemberDTO> data, long totalElements) {
         try {
-            String json = objectMapper.writeValueAsString(new CachedMemberPage(System.currentTimeMillis(), data));
+            String json = objectMapper.writeValueAsString(new CachedMemberPage(System.currentTimeMillis(), data, totalElements));
             redisTemplate.opsForValue().set(String.format(MEMBER_KEY, page, size), json, MEMBER_TTL, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.warn("회원 캐시 직렬화 실패");

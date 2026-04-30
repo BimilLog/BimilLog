@@ -7,14 +7,42 @@ interface BoardPaginationProps {
   currentPage: number;
   totalPages: number;
   setCurrentPage: (page: number) => void;
+  /**
+   * 총 항목 수. 제공되면 totalPages<=1 인 경우에도 "총 N건" 캡션을 표시한다.
+   * (B-001 보강: 백엔드 캐시 totalElements 누락 방어 + size=N exact match 케이스)
+   */
+  totalElements?: number;
+  /**
+   * 캡션 단위 (예: "건", "명", "개"). 기본값 "건".
+   */
+  itemLabel?: string;
 }
 
 export const BoardPagination = memo(({
   currentPage,
   totalPages,
   setCurrentPage,
+  totalElements,
+  itemLabel = "건",
 }: BoardPaginationProps) => {
-  if (totalPages <= 1) return null;
+  // totalPages<=1 이지만 totalElements 가 제공되면 캡션이라도 표시 (B-001)
+  if (totalPages <= 1) {
+    if (typeof totalElements === "number" && totalElements > 0) {
+      return (
+        <div
+          data-testid="board-pagination"
+          data-pagination-mode="caption-only"
+          className="flex items-center justify-center mt-8"
+        >
+          <p className="text-sm text-muted-foreground">
+            총 <span className="font-semibold text-foreground">{totalElements.toLocaleString()}</span>
+            {itemLabel} · 페이지 1 / 1
+          </p>
+        </div>
+      );
+    }
+    return null;
+  }
 
   // Convert from 0-based to 1-based page numbering for Flowbite
   const flowbiteCurrentPage = currentPage + 1;
@@ -27,8 +55,15 @@ export const BoardPagination = memo(({
   return (
     <div
       data-testid="board-pagination"
-      className="flex items-center justify-center mt-8"
+      data-pagination-mode="full"
+      className="flex flex-col items-center justify-center mt-8 gap-2"
     >
+      {typeof totalElements === "number" && totalElements > 0 && (
+        <p className="text-xs text-muted-foreground">
+          총 <span className="font-semibold text-foreground">{totalElements.toLocaleString()}</span>
+          {itemLabel} · 페이지 {flowbiteCurrentPage} / {totalPages}
+        </p>
+      )}
       <Pagination
         currentPage={flowbiteCurrentPage}
         totalPages={totalPages}

@@ -50,9 +50,14 @@ export function VisitClient() {
   const {
     searchNickname,
     setSearchNickname,
+    effectiveKeyword,
     isSearching,
     handleSearch,
   } = useRollingPaperSearch();
+
+  // 검색 모드 — 디바운스 적용된 effectiveKeyword 기준 (입력만 한 상태도 포함하려면 searchNickname.trim())
+  // 사용자가 타이핑 중이면 곧 검색 결과가 나올 것이므로 RecentVisits 를 미리 dim 처리
+  const isSearchMode = searchNickname.trim().length > 0;
 
   const handleWebShare = async () => {
     const shareData = {
@@ -104,16 +109,18 @@ export function VisitClient() {
               <KakaoShareButton
                 type="service"
                 size="sm"
-                className="px-2 sm:px-3 py-1 text-sm h-8"
+                mobileLabel="카톡"
+                className="px-2 sm:px-3 py-1 text-sm h-8 whitespace-nowrap"
               />
               <FlowbiteButton
                 onClick={handleWebShare}
                 color="gray"
                 size="sm"
-                className="text-xs h-8"
+                className="text-xs h-8 whitespace-nowrap"
               >
                 <Share2 className="w-4 h-4 mr-1" />
-                링크 공유
+                <span className="hidden sm:inline">링크 공유</span>
+                <span className="sm:hidden">링크</span>
               </FlowbiteButton>
             </div>
           </div>
@@ -121,9 +128,9 @@ export function VisitClient() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-md">
-        {/* 최근 방문한 롤링페이퍼 */}
+        {/* 최근 방문한 롤링페이퍼 — 검색 모드 시 dim 처리 */}
         <div className="mb-8">
-          <RecentVisits />
+          <RecentVisits dimmed={isSearchMode} />
         </div>
 
         {/* 통합 검색 섹션 (검색창 + 멤버 목록) */}
@@ -133,7 +140,9 @@ export function VisitClient() {
           isSearching={isSearching}
           onSearch={handleSearch}
         >
-          <AllUsersList searchKeyword={searchNickname} />
+          {/* 디바운스 적용된 effectiveKeyword 를 AllUsersList 에 전달
+              - Enter/돋보기 클릭 시 즉시 동기화, 그 외엔 300ms 디바운스 */}
+          <AllUsersList searchKeyword={effectiveKeyword} />
         </SearchSection>
 
         {/* Info Section */}
@@ -142,7 +151,7 @@ export function VisitClient() {
             <div className="flex items-start space-x-2">
               <Heart className="w-5 h-5 text-stamp-red mt-0.5 flex-shrink-0" />
               <div className="text-sm font-body text-ink dark:text-gray-200">
-                <p className="font-display font-semibold mb-1 flex items-center space-x-2 text-postal-navy dark:text-postal-navy">
+                <p className="font-display font-semibold mb-1 flex items-center space-x-2 text-postal-navy dark:text-ink-900">
                   <Mail className="w-4 h-4" />
                   <span>익명으로 메시지를 남겨보세요!</span>
                 </p>

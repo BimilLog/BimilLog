@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks";
+import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 import type { PasswordModalMode } from "@/hooks/common/usePasswordModal";
 import type { Post } from "@/types/domains/post";
 import type { Comment } from "@/types/domains/comment";
@@ -114,6 +115,8 @@ export function useCommentInteraction({
   likeComment,
 }: UseCommentInteractionParams) {
   const { showToast } = useToast();
+  // 라운드 8 B-8-008: window.confirm → 인앱 ConfirmModal (다크/메타포 일관성)
+  const { confirm, ConfirmModalComponent } = useConfirmModal();
 
   // 댓글 편집 및 답글 상태 관리
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
@@ -132,13 +135,25 @@ export function useCommentInteraction({
   const [passwordError, setPasswordError] = useState("");
 
   // 댓글 작성 핸들러
-  const handleCommentSubmitForSection = useCallback((content: string, password: string) => {
-    createComment({
-      postId: Number(postId),
-      content,
-      password: password ? Number(password) : undefined,
-    });
-  }, [createComment, postId]);
+  // 라운드 8 B-8-005: callbacks(onSuccess)를 받아 Server Action 성공 시에만
+  // CommentForm 내부 상태(comment/password)를 reset 하도록 한다.
+  const handleCommentSubmitForSection = useCallback(
+    (
+      content: string,
+      password: string,
+      callbacks?: { onSuccess?: () => void; onError?: (error: string) => void }
+    ) => {
+      createComment(
+        {
+          postId: Number(postId),
+          content,
+          password: password ? Number(password) : undefined,
+        },
+        callbacks
+      );
+    },
+    [createComment, postId]
+  );
 
   // 댓글 수정 상태 관리 - 수정 모드 진입 시 기존 내용을 대입
   const handleEditComment = useCallback((comment: Comment) => {
@@ -193,10 +208,16 @@ export function useCommentInteraction({
     );
   }, [editingComment, editContent, editPassword, showToast, updateComment, postId]);
 
-  const handleCancelEdit = useCallback(() => {
-    // 내용이 변경되었으면 확인
+  const handleCancelEdit = useCallback(async () => {
+    // 라운드 8 B-8-008: window.confirm → 인앱 ConfirmModal (메타포/다크 토큰 일관)
     if (editingComment && editContent !== editingComment.content) {
-      const confirmed = window.confirm("수정 중인 내용이 있습니다. 취소하시겠습니까?");
+      const confirmed = await confirm({
+        title: "수정 취소",
+        message: "수정 중인 내용이 있습니다.\n변경사항을 버리고 취소하시겠습니까?",
+        confirmText: "취소하기",
+        cancelText: "계속 수정",
+        confirmButtonVariant: "destructive",
+      });
       if (!confirmed) {
         return;
       }
@@ -204,7 +225,7 @@ export function useCommentInteraction({
     setEditingComment(null);
     setEditContent("");
     setEditPassword("");
-  }, [editingComment, editContent]);
+  }, [editingComment, editContent, confirm]);
 
   // 댓글 답글 상태 관리 - 특정 댓글에 답글 작성 모드
   const handleReplyTo = useCallback((comment: Comment) => {
@@ -426,5 +447,9 @@ export function useCommentInteraction({
     setShowCommentDeleteModal,
     setTargetDeleteComment,
     setPasswordError,
+
+    // 라운드 8 B-8-008: 수정 취소 인앱 ConfirmModal 컴포넌트.
+    // PostDetailClient 가 트리에 렌더해야 동작한다.
+    ConfirmModalComponent,
   };
 }

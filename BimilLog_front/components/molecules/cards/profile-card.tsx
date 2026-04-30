@@ -28,12 +28,15 @@ import { Member, userQuery } from "@/lib/api";
 import { validationRules } from "@/lib/utils/validation-helpers";
 import { useToast } from "@/hooks";
 import { logger } from '@/lib/utils/logger';
-import { updateUserNameAction } from "@/lib/actions/user";
 import { ToastContainer } from "@/components";
 
 interface ProfileCardProps {
   user: Member;
-  onNicknameChange: (newNickname: string) => Promise<void>;
+  /**
+   * 닉네임 변경 콜백. auth store 에 위임하여 백엔드 호출 + 상태 갱신을 단일 경로로 처리한다.
+   * @returns 변경 성공 여부
+   */
+  onNicknameChange: (newNickname: string) => Promise<boolean>;
   onLogout: () => Promise<void>;
   className?: string;
 }
@@ -97,31 +100,26 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
   const handleNicknameSubmit = async () => {
     if (!isNicknameFormatValid || !isNicknameAvailable) return;
 
-    if (
-      !window.confirm(
-        `닉네임을 "${nicknameInput.trim()}"으로 변경하시겠습니까?`
-      )
-    ) {
-      return;
-    }
-
+    // B-301: 부모(useMyPage → auth store)가 단일 경로로 백엔드 호출.
+    // ProfileCard 의 직접 action 호출은 제거하여 더블 POST 차단.
+    // 다이얼로그 안의 "닉네임 변경" 버튼 클릭 = 최종 확인이므로 native confirm 도 제거.
     setIsNicknameChangeSubmitting(true);
     try {
-      const response = await updateUserNameAction(nicknameInput.trim());
-      if (response.success) {
-        await onNicknameChange(nicknameInput.trim());
+      const success = await onNicknameChange(nicknameInput.trim());
+      if (success) {
         setIsNicknameDialogOpen(false);
         setNicknameMessage("");
         setIsNicknameAvailable(null);
         showSuccess(
-          "닉네임 변경 완료",
-          "닉네임이 성공적으로 변경되었습니다. 재로그인이 필요합니다."
+          "닉네임을 바꿨어요",
+          "새 이름으로 다시 만나요. 잠시 후 로그인 페이지로 안내할게요."
         );
+        // 토스트 가독성 확보 위해 1.5s → 2.5s 로 연장 (WCAG 2.2.1 Timing Adjustable)
         setTimeout(async () => {
           await onLogout();
-        }, 1500);
+        }, 2500);
       } else {
-        showError("닉네임 변경 실패", response.error || "닉네임 변경에 실패했습니다.");
+        showError("닉네임 변경 실패", "닉네임 변경에 실패했습니다.");
         setIsNicknameAvailable(false);
       }
     } catch (error) {

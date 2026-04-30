@@ -35,7 +35,7 @@ import java.util.concurrent.TimeoutException;
  * <h2>사용자 조회 서비스</h2>
  *
  * @author Jaeik
- * @version 2.9.0
+ * @version 2.8.0
  */
 @Service
 @RequiredArgsConstructor
@@ -135,7 +135,7 @@ public class MemberQueryService {
 
         CachedMemberPage cached = redisMemberAdapter.lookup(page, size);
         if (cached != null) {
-            Page<SimpleMemberDTO> data = new PageImpl<>(cached.data(), PageRequest.of(page, size), cached.data().size());
+            Page<SimpleMemberDTO> data = new PageImpl<>(cached.data(), PageRequest.of(page, size), cached.totalElements());
             if (cached.isStale() && softRefreshing.add(flightKey)) {
                 memberCacheRefresher.refresh(page, size, () -> softRefreshing.remove(flightKey));
             }
@@ -153,14 +153,14 @@ public class MemberQueryService {
             } catch (ExecutionException | InterruptedException | TimeoutException e) {
                 CachedMemberPage again = redisMemberAdapter.lookup(page, size);
                 return again != null ?
-                        new PageImpl<>(again.data(), PageRequest.of(page, size), again.data().size())
+                        new PageImpl<>(again.data(), PageRequest.of(page, size), again.totalElements())
                         : Page.empty();
             }
         }
 
         try {
             Page<SimpleMemberDTO> result = memberQueryRepository.findAllMembers(pageable);
-            redisMemberAdapter.saveMemberPage(page, size, result.getContent());
+            redisMemberAdapter.saveMemberPage(page, size, result.getContent(), result.getTotalElements());
             newFuture.complete(result);
             return result;
         } catch (Exception e) {
@@ -173,22 +173,18 @@ public class MemberQueryService {
 
     /**
      * <h3>사용자명 검색</h3>
-     * <p>검색어로 사용자명을 검색합니다.</p>
-     * <p>검색 전략: 4글자 이상이면 접두사 검색, 그 외에는 부분 검색을 사용합니다.</p>
+     * <p>검색어로 사용자명을 부분 일치(LIKE %query%)로 검색합니다.</p>
      * <p>{@link MemberQueryController}에서 사용자 검색 API 시 호출됩니다.</p>
+     * <p>정렬은 {@link Pageable#getSort()} 인자가 그대로 적용됩니다. 미지정 시 JPA 기본(unspecified)이며,
+     * 컨트롤러 레이어에서 Pageable 기본 정렬을 부여하는 것을 권장합니다.</p>
      *
-     * @param query    검색어
-     * @param pageable 페이징 정보
+     * @param query    검색어 (trim 된 상태)
+     * @param pageable 페이징 정보 (sort 포함)
      * @return Page<SimpleMemberDTO> 검색된 사용자명 페이지
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional(readOnly = true)
     public Page<SimpleMemberDTO> searchMembers(String query, Pageable pageable) {
-        if (query.length() >= 4) {
-            return memberRepository.findByMemberNameStartingWithOrderByMemberNameAsc(query, pageable);
-        }
-        return memberRepository.findByMemberNameContainingOrderByMemberNameAsc(query, pageable);
+        return memberRepository.findByMemberNameContaining(query, pageable);
     }
 
     /**

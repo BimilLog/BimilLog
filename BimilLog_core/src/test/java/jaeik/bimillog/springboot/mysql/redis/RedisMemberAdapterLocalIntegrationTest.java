@@ -57,7 +57,7 @@ class RedisMemberAdapterLocalIntegrationTest {
         List<SimpleMemberDTO> members = buildMembers(1L, 2L, 3L);
 
         // When
-        redisMemberAdapter.saveMemberPage(page, size, members);
+        redisMemberAdapter.saveMemberPage(page, size, members, members.size());
         CachedMemberPage result = redisMemberAdapter.lookup(page, size);
 
         // Then
@@ -89,8 +89,8 @@ class RedisMemberAdapterLocalIntegrationTest {
         List<SimpleMemberDTO> members20 = buildMembers(20L, 21L, 22L);
 
         // When
-        redisMemberAdapter.saveMemberPage(0, 10, members10);
-        redisMemberAdapter.saveMemberPage(0, 20, members20);
+        redisMemberAdapter.saveMemberPage(0, 10, members10, 12L);
+        redisMemberAdapter.saveMemberPage(0, 20, members20, 23L);
 
         // Then: size=10 캐시
         CachedMemberPage result10 = redisMemberAdapter.lookup(0, 10);
@@ -111,8 +111,8 @@ class RedisMemberAdapterLocalIntegrationTest {
         List<SimpleMemberDTO> page1Members = buildMembers(3L, 4L);
 
         // When
-        redisMemberAdapter.saveMemberPage(0, 10, page0Members);
-        redisMemberAdapter.saveMemberPage(1, 10, page1Members);
+        redisMemberAdapter.saveMemberPage(0, 10, page0Members, 4L);
+        redisMemberAdapter.saveMemberPage(1, 10, page1Members, 4L);
 
         // Then
         CachedMemberPage result0 = redisMemberAdapter.lookup(0, 10);
@@ -126,9 +126,9 @@ class RedisMemberAdapterLocalIntegrationTest {
     @DisplayName("size=10, 20, 30 모두 독립 캐시로 동시에 존재할 수 있다")
     void allSizes_shouldCoexistIndependently() {
         // Given
-        redisMemberAdapter.saveMemberPage(0, 10, buildMembers(10L));
-        redisMemberAdapter.saveMemberPage(0, 20, buildMembers(20L));
-        redisMemberAdapter.saveMemberPage(0, 30, buildMembers(30L));
+        redisMemberAdapter.saveMemberPage(0, 10, buildMembers(10L), 1L);
+        redisMemberAdapter.saveMemberPage(0, 20, buildMembers(20L), 1L);
+        redisMemberAdapter.saveMemberPage(0, 30, buildMembers(30L), 1L);
 
         // Then
         assertThat(redisMemberAdapter.lookup(0, 10).data().get(0).getMemberId()).isEqualTo(10L);
@@ -142,7 +142,7 @@ class RedisMemberAdapterLocalIntegrationTest {
     @DisplayName("캐시 키 포맷이 member:page:{page}:size:{size} 형태임을 검증")
     void cacheKeyFormat_shouldContainPageAndSize() {
         // When
-        redisMemberAdapter.saveMemberPage(3, 20, buildMembers(1L));
+        redisMemberAdapter.saveMemberPage(3, 20, buildMembers(1L), 1L);
 
         // Then: 해당 키가 Redis에 존재하는지 직접 확인
         Boolean exists = stringRedisTemplate.hasKey("member:page:3:size:20");
@@ -159,7 +159,7 @@ class RedisMemberAdapterLocalIntegrationTest {
     @DisplayName("저장된 캐시의 데이터 사이즈가 입력과 일치한다")
     void savedDataSize_shouldMatchInput() {
         // Given
-        redisMemberAdapter.saveMemberPage(2, 20, buildMembers(100L, 101L));
+        redisMemberAdapter.saveMemberPage(2, 20, buildMembers(100L, 101L), 50L);
 
         // When
         CachedMemberPage result = redisMemberAdapter.lookup(2, 20);
@@ -167,6 +167,8 @@ class RedisMemberAdapterLocalIntegrationTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.data()).hasSize(2);
+        // B-001 회귀: totalElements가 함께 캐시되어야 함
+        assertThat(result.totalElements()).isEqualTo(50L);
     }
 
     // ==================== 헬퍼 ====================

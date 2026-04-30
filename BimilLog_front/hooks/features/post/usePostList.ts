@@ -58,17 +58,19 @@ export function useInfinitePostList(options: UseInfinitePostListOptions = {}) {
   });
 
   // 검색: 기존 offset 기반 useQuery 유지
+  // F-BUG-1 (round-6): searchType 을 query key 에 포함시켜 type 토글 시 stale 캐시 hit 방지
   const searchQuery = useQuery({
-    queryKey: queryKeys.post.search(debouncedSearchTerm, searchPagination.currentPage),
+    queryKey: queryKeys.post.search(debouncedSearchTerm, searchType, searchPagination.currentPage),
     queryFn: async () => {
       return await postQuery.search(
         searchType,
-        debouncedSearchTerm.trim(),
+        debouncedSearchTerm,
         searchPagination.currentPage,
         pageSize
       );
     },
-    enabled: !!actualSearch && !!debouncedSearchTerm.trim(),
+    // actualSearch 가 이미 trim 결과이므로 중복 trim 불필요 (F-102 정리)
+    enabled: !!actualSearch,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
@@ -78,14 +80,22 @@ export function useInfinitePostList(options: UseInfinitePostListOptions = {}) {
     if (searchQuery.data?.data?.totalElements !== undefined) {
       searchPagination.setTotalItems(searchQuery.data.data.totalElements);
     }
-  }, [searchQuery.data?.data?.totalElements]);
+  }, [searchQuery.data?.data?.totalElements, searchPagination]);
+
+  // F-BUG-4 (round-6): searchType 변경 시 페이지를 0으로 리셋
+  // (type 토글 후 page 2 에 머무르면 새 결과 totalPages 와 불일치 가능)
+  useEffect(() => {
+    searchPagination.setCurrentPage(0);
+    // searchType 변경 시에만 리셋. searchPagination 객체는 의도적으로 의존성 제외
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchType]);
 
   // URL 검색어 변경 시 동기화
   // 의도: URL이 변할 때만 동기화. 사용자가 직접 입력 중인 값은 덮어쓰지 않음.
+  // (setSearchTerm/setSearchType 은 useState setter 라 reference 안정적 → 의존성 불필요)
   useEffect(() => {
     setSearchTerm(initialSearchTerm);
     setSearchType(initialSearchType);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialSearchTerm, initialSearchType]);
 
   // 게시글 목록 통합
@@ -138,6 +148,11 @@ export function usePopularPostsTabs(initialRealtimeData?: PageResponse<SimplePos
   const realtimePagination = usePagination({ pageSize: 5 });
   const weeklyPagination = usePagination({ pageSize: 10 });
   const legendPagination = usePagination({ pageSize: 10 });
+  // setTotalItems 만 분리 추출 — ESLint 가 pagination 객체 reference 안정성을 추론할 수 없어
+  // 의존성에 객체 전체를 넣으면 totalPages 변경 시 무한 루프. setter 만 의존성에 두면 안전.
+  const setRealtimeTotalItems = realtimePagination.setTotalItems;
+  const setWeeklyTotalItems = weeklyPagination.setTotalItems;
+  const setLegendTotalItems = legendPagination.setTotalItems;
 
   // 실시간 인기글 조회 - 페이징 적용
   const { data: realtimeData, isLoading: realtimeLoading, error: realtimeError } = useQuery({
@@ -185,23 +200,23 @@ export function usePopularPostsTabs(initialRealtimeData?: PageResponse<SimplePos
   // 실시간 데이터 변경 시 페이지네이션 업데이트
   useEffect(() => {
     if (realtimeData?.data?.totalElements !== undefined) {
-      realtimePagination.setTotalItems(realtimeData.data.totalElements);
+      setRealtimeTotalItems(realtimeData.data.totalElements);
     }
-  }, [realtimeData?.data?.totalElements, realtimePagination.setTotalItems]);
+  }, [realtimeData?.data?.totalElements, setRealtimeTotalItems]);
 
   // 주간 데이터 변경 시 페이지네이션 업데이트
   useEffect(() => {
     if (weeklyData?.data?.totalElements !== undefined) {
-      weeklyPagination.setTotalItems(weeklyData.data.totalElements);
+      setWeeklyTotalItems(weeklyData.data.totalElements);
     }
-  }, [weeklyData?.data?.totalElements, weeklyPagination.setTotalItems]);
+  }, [weeklyData?.data?.totalElements, setWeeklyTotalItems]);
 
   // 레전드 데이터 변경 시 페이지네이션 업데이트
   useEffect(() => {
     if (legendData?.data?.totalElements !== undefined) {
-      legendPagination.setTotalItems(legendData.data.totalElements);
+      setLegendTotalItems(legendData.data.totalElements);
     }
-  }, [legendData?.data?.totalElements, legendPagination.setTotalItems]);
+  }, [legendData?.data?.totalElements, setLegendTotalItems]);
 
   // 각 탭의 실제 데이터 반환 (Page 응답의 content 사용)
   const realtimePosts = useMemo(() => realtimeData?.data?.content || [], [realtimeData]);
@@ -249,6 +264,7 @@ export function usePopularPostsTabs(initialRealtimeData?: PageResponse<SimplePos
 // 공지사항 조회 - 페이징 적용
 export function useNoticePosts(enabled = true, initialData?: PageResponse<SimplePost> | null) {
   const pagination = usePagination({ pageSize: 10 });
+  const setNoticeTotalItems = pagination.setTotalItems;
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: queryKeys.post.notices({
@@ -260,6 +276,9 @@ export function useNoticePosts(enabled = true, initialData?: PageResponse<Simple
     initialData: initialData && pagination.currentPage === 0
       ? { success: true, data: initialData }
       : undefined,
+    // F-BUG-9 (round-6): 검색 → 클리어 시 NoticeList 깜빡임 방지.
+    // enabled 토글로 캐시가 비어 있어도 직전 데이터를 placeholder 로 유지.
+    placeholderData: (previousData) => previousData,
     enabled, // 조건부 조회 (기본값: true)
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
@@ -268,9 +287,9 @@ export function useNoticePosts(enabled = true, initialData?: PageResponse<Simple
   // 데이터 변경 시 페이지네이션 업데이트
   useEffect(() => {
     if (data?.data?.totalElements !== undefined) {
-      pagination.setTotalItems(data.data.totalElements);
+      setNoticeTotalItems(data.data.totalElements);
     }
-  }, [data?.data?.totalElements, pagination.setTotalItems]);
+  }, [data?.data?.totalElements, setNoticeTotalItems]);
 
   return {
     noticePosts: data?.data?.content || [],

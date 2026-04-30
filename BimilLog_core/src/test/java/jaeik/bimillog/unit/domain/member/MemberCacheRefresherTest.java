@@ -36,17 +36,18 @@ class MemberCacheRefresherTest extends BaseUnitTest {
     private MemberCacheRefresher memberCacheRefresher;
 
     @Test
-    @DisplayName("refresh - 성공: DB 조회 → 캐시 저장 → cleanup 실행")
+    @DisplayName("refresh - 성공: DB 조회 → 캐시 저장 (totalElements 포함) → cleanup 실행")
     void shouldSaveAndRunCleanup_onSuccess() {
         int page = 0, size = 20;
         List<SimpleMemberDTO> list = List.of(new SimpleMemberDTO(1L, "a"));
+        long total = 37L;
         given(memberQueryRepository.findAllMembers(PageRequest.of(page, size)))
-                .willReturn(new PageImpl<>(list, PageRequest.of(page, size), list.size()));
+                .willReturn(new PageImpl<>(list, PageRequest.of(page, size), total));
 
         AtomicInteger cleanupCount = new AtomicInteger();
         memberCacheRefresher.refresh(page, size, cleanupCount::incrementAndGet);
 
-        verify(redisMemberAdapter).saveMemberPage(page, size, list);
+        verify(redisMemberAdapter).saveMemberPage(page, size, list, total);
         assertThat(cleanupCount.get()).isEqualTo(1);
     }
 

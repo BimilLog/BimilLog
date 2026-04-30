@@ -6,7 +6,6 @@ import {
   getPostDraft,
   deletePostDraft,
   hasDraft,
-  getDraftMetadata,
   AUTO_SAVE_DELAY,
   type Draft
 } from '@/lib/utils/draft';
@@ -125,14 +124,17 @@ export function useDraft(options: UseDraftOptions = {}) {
   }, [enabled, autoSave, postId]);
 
   // 임시저장 삭제
-  const removeDraft = useCallback(() => {
+  // B-7-014: 게시 성공 흐름에서는 silent:true 로 호출하여 토스트 노이즈 제거
+  const removeDraft = useCallback((opts?: { silent?: boolean }) => {
     if (!enabled) return;
 
     const success = deletePostDraft(postId);
     if (success) {
       setHasSavedDraft(false);
       setLastSavedAt(null);
-      showInfo('임시저장 삭제', '임시저장된 내용이 삭제되었습니다.');
+      if (!opts?.silent) {
+        showInfo('임시저장 삭제', '임시저장된 내용이 삭제되었습니다.');
+      }
     }
   }, [enabled, postId, showInfo]);
 
@@ -157,9 +159,9 @@ export function useDraft(options: UseDraftOptions = {}) {
     handleAutoSave,
     removeDraft,
 
-    // 유틸리티
+    // 유틸리티 — HH:MM 축약 (시각 노이즈 ↓, ux-proposal 권고)
     formatLastSaved: lastSavedAt
-      ? `${lastSavedAt.toLocaleTimeString()}에 저장됨`
+      ? `${lastSavedAt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}에 저장됨`
       : null
   };
 }

@@ -94,7 +94,7 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = memo(({
           <div className="space-y-2">
             {data.content.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">
+                <p className="text-ink-soft dark:text-foreground/70">
                   아직 인기 롤링페이퍼가 없습니다
                 </p>
               </div>

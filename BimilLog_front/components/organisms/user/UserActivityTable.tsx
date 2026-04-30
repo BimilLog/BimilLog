@@ -11,7 +11,12 @@ import {
   ThumbsUp,
   Eye,
   MessageCircle,
-  ExternalLink
+  ExternalLink,
+  Mail,
+  Reply,
+  Heart,
+  MailOpen,
+  RefreshCw
 } from "lucide-react";
 import {
   Table,
@@ -23,13 +28,41 @@ import {
 } from "flowbite-react";
 import { UserActivityTableSkeleton } from "./UserActivityTableSkeleton";
 
+type TabType = "my-posts" | "my-comments" | "liked-posts" | "liked-comments";
+
 interface UserActivityTableProps {
   items: (SimplePost | SimpleComment)[];
   contentType: "posts" | "comments";
-  tabType: "my-posts" | "my-comments" | "liked-posts" | "liked-comments";
+  tabType: TabType;
   isLoading?: boolean;
   error?: Error | null;
+  /**
+   * 에러 발생 시 호출되는 재시도 핸들러. 미제공 시 fallback 으로
+   * window.location.reload 가 호출되지만, B-310 회귀 방지를 위해
+   * UserActivitySection 에서 refetch 를 prop 으로 내려주는 것을 권장.
+   */
+  onRetry?: () => void;
 }
+
+// 종이/편지 메타포 빈 상태 카피 — 라운드 9 일관
+const EMPTY_STATE: Record<TabType, { icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>; copy: string }> = {
+  "my-posts": {
+    icon: Mail,
+    copy: "아직 작성한 편지가 없어요. 게시판에 첫 편지를 띄워볼까요?",
+  },
+  "my-comments": {
+    icon: Reply,
+    copy: "아직 남긴 답장이 없어요. 누군가의 글에 첫 응답을 남겨보세요.",
+  },
+  "liked-posts": {
+    icon: Heart,
+    copy: "아직 좋아요한 편지가 없어요. 마음에 드는 글에 ♡ 를 눌러주세요.",
+  },
+  "liked-comments": {
+    icon: MailOpen,
+    copy: "아직 좋아요한 답장이 없어요. 공감 가는 댓글에 ♡ 를 눌러주세요.",
+  },
+};
 
 interface TableRowProps {
   item: SimplePost | SimpleComment;
@@ -242,25 +275,39 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
   contentType,
   tabType,
   isLoading = false,
-  error = null
+  error = null,
+  onRetry,
 }) => {
   // 읽음 상태 추적 - 게시글만
   const postIds = contentType === "posts" ? items.map(item => item.id) : [];
   const { readStatus } = usePostReadStatus(postIds);
   const effectiveReadStatus: Record<number, boolean> = contentType === "posts" ? readStatus : {};
 
-  // 에러 상태 처리
+  // 에러 상태 처리 — B-310: refetch 가 가능하면 SPA 컨텍스트 보존,
+  // 아니면 마지막 fallback 으로만 page reload.
   if (error) {
     return (
       <Card variant="elevated">
-        <div className="p-8 text-center text-red-500">
-          데이터를 불러오는 중 오류가 발생했습니다.
-          <br />
+        <div className="p-8 text-center">
+          <p className="text-stamp-red font-medium break-keep">
+            편지를 불러오지 못했어요.
+          </p>
+          <p className="text-sm text-ink-soft dark:text-ink-300 mt-2 break-keep">
+            잠시 후 다시 시도해주세요.
+          </p>
           <button
-            onClick={() => window.location.reload()}
-            className="mt-4 text-sm text-blue-600 hover:underline"
+            type="button"
+            onClick={() => {
+              if (onRetry) {
+                onRetry();
+              } else {
+                window.location.reload();
+              }
+            }}
+            className="mt-4 inline-flex items-center gap-1.5 text-sm text-postal-navy hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-postal-navy focus-visible:ring-offset-1 rounded"
           >
-            새로고침
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            다시 시도
           </button>
         </div>
       </Card>
@@ -311,9 +358,15 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
                   colSpan={contentType === "posts" ? 6 : 5}
                   className="py-12 text-center"
                 >
-                  <span className="text-muted-foreground">
-                    {contentType === "posts" ? "작성한 게시글이 없습니다." : "작성한 댓글이 없습니다."}
-                  </span>
+                  {(() => {
+                    const { icon: EmptyIcon, copy } = EMPTY_STATE[tabType];
+                    return (
+                      <div className="flex flex-col items-center gap-2 text-ink-soft dark:text-ink-300">
+                        <EmptyIcon className="w-8 h-8 text-postal-navy/60" aria-hidden />
+                        <span className="break-keep">{copy}</span>
+                      </div>
+                    );
+                  })()}
                 </TableCell>
               </TableRow>
             )}
@@ -334,10 +387,16 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
           ))
         ) : (
           <Card variant="elevated">
-            <div className="p-8 text-center text-muted-foreground">
-              <span>
-                {contentType === "posts" ? "작성한 게시글이 없습니다." : "작성한 댓글이 없습니다."}
-              </span>
+            <div className="p-8 text-center">
+              {(() => {
+                const { icon: EmptyIcon, copy } = EMPTY_STATE[tabType];
+                return (
+                  <div className="flex flex-col items-center gap-2 text-ink-soft dark:text-ink-300">
+                    <EmptyIcon className="w-8 h-8 text-postal-navy/60" aria-hidden />
+                    <span className="break-keep">{copy}</span>
+                  </div>
+                );
+              })()}
             </div>
           </Card>
         )}

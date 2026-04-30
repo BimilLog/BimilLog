@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Users } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Sparkles } from "lucide-react";
 import { Button, Spinner } from "@/components";
 import { useRecommendedFriends } from "@/hooks/api/useFriendQueries";
 import { RecommendedFriendItem } from "./RecommendedFriendItem";
@@ -15,20 +15,32 @@ interface RecommendedFriendListProps {
 /**
  * 추천 친구 목록 컴포넌트
  * 2촌, 3촌 친구를 추천 점수별로 표시
+ *
+ * 라운드 9: paper/ink 토큰, 편지 메타포 카피, totalElements,
+ * 페이지 변경 시 list 포커스 (B-009-E).
  */
 export const RecommendedFriendList: React.FC<RecommendedFriendListProps> = React.memo(({ initialData }) => {
   const [page, setPage] = useState(0);
   const size = 10;
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const lastPageRef = useRef(0);
 
   const { data, isLoading, error } = useRecommendedFriends(page, size, page === 0 ? initialData : undefined);
 
   const recommendedData = data?.data;
   const friends = recommendedData?.content || [];
   const totalPages = recommendedData?.totalPages || 0;
+  const totalElements = recommendedData?.totalElements ?? 0;
   const isEmpty = recommendedData?.empty ?? true;
 
-  // 로딩 상태
-  if (isLoading) {
+  useEffect(() => {
+    if (lastPageRef.current !== page) {
+      lastPageRef.current = page;
+      listRef.current?.focus();
+    }
+  }, [page]);
+
+  if (isLoading && !data) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <Spinner message="추천 친구를 불러오는 중..." />
@@ -36,14 +48,13 @@ export const RecommendedFriendList: React.FC<RecommendedFriendListProps> = React
     );
   }
 
-  // 에러 상태
   if (error) {
     return (
-      <div className="p-8 text-center">
-        <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-        <p className="text-gray-600">추천 친구를 불러올 수 없습니다.</p>
-        <p className="text-sm text-gray-500 mt-2">
-          {error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다'}
+      <div className="p-8 text-center" role="alert">
+        <Sparkles className="w-16 h-16 mx-auto mb-4 text-ink-soft" aria-hidden="true" />
+        <p className="text-ink break-keep">추천 친구를 불러올 수 없어요.</p>
+        <p className="text-sm text-ink-soft mt-2 break-keep">
+          {error instanceof Error ? error.message : '잠시 후 다시 시도해 주세요'}
         </p>
       </div>
     );
@@ -53,46 +64,59 @@ export const RecommendedFriendList: React.FC<RecommendedFriendListProps> = React
     <div>
       {/* 헤더 */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <Users className="w-5 h-5 text-purple-600" />
+        <h2 className="text-lg font-bold font-display text-ink flex items-center gap-2 break-keep">
+          <Sparkles className="w-5 h-5 text-postal-navy" aria-hidden="true" />
           알 수도 있는 친구
         </h2>
         {!isEmpty && (
-          <span className="text-sm text-gray-500">
-            {friends.length}명
+          <span className="text-sm text-ink-soft" aria-label={`총 ${totalElements}명 추천`}>
+            {totalElements}명 추천
           </span>
         )}
       </div>
 
       {/* 리스트 */}
       {isEmpty ? (
-        <div className="text-center py-16 bg-gray-50 rounded-lg">
-          <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600 font-medium">추천 친구가 없습니다</p>
-          <p className="text-sm text-gray-500 mt-2">
-            친구를 추가하면 더 많은 추천을 받을 수 있어요
+        <div
+          className="text-center py-16 bg-paper-100 border border-postal-navy/20 rounded-lg"
+          role="status"
+        >
+          <Sparkles className="w-16 h-16 mx-auto mb-4 text-postal-navy/60" aria-hidden="true" />
+          <p className="text-ink font-medium break-keep">
+            지금은 추천할 친구가 없어요
+          </p>
+          <p className="text-sm text-ink-soft mt-2 break-keep">
+            친구가 한 명만 늘어도 새로운 인연이 도착해요
           </p>
         </div>
       ) : (
         <>
-          <ul className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <ul
+            ref={listRef}
+            tabIndex={-1}
+            aria-label="추천 친구 목록"
+            className="bg-paper-card border border-postal-navy/20 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-postal-navy/40"
+          >
             {friends.map((friend) => (
               <RecommendedFriendItem key={friend.friendMemberId} friend={friend} />
             ))}
           </ul>
 
-          {/* 페이지네이션 */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-6">
+            <nav
+              className="flex justify-center items-center gap-2 mt-6"
+              aria-label="추천 친구 페이지"
+            >
               <Button
                 color="light"
                 size="sm"
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
+                className="min-h-[44px]"
               >
                 이전
               </Button>
-              <span className="text-sm text-gray-600 px-3">
+              <span className="text-sm text-ink-soft px-3" aria-live="polite">
                 {page + 1} / {totalPages}
               </span>
               <Button
@@ -100,10 +124,11 @@ export const RecommendedFriendList: React.FC<RecommendedFriendListProps> = React
                 size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
+                className="min-h-[44px]"
               >
                 다음
               </Button>
-            </div>
+            </nav>
           )}
         </>
       )}

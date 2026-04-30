@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components";
 import { ReceivedFriendRequest } from "@/types/domains/friend";
@@ -13,6 +14,9 @@ interface ReceivedRequestItemProps {
 
 /**
  * 받은 친구 요청 아이템 컴포넌트
+ *
+ * 라운드 9: paper/ink 토큰, 닉네임을 페이퍼 링크로 (라운드 5 visit 일관),
+ * 토큰화된 confirm 아이콘, 모바일 44px 타겟.
  */
 export const ReceivedRequestItem: React.FC<ReceivedRequestItemProps> = React.memo(({ request }) => {
   const { acceptRequest, isPending: isAccepting } = useAcceptFriendRequestAction();
@@ -26,11 +30,11 @@ export const ReceivedRequestItem: React.FC<ReceivedRequestItemProps> = React.mem
   const handleReject = async () => {
     const confirmed = await confirm({
       title: "친구 요청 거절",
-      message: `${request.senderMemberName}님의 친구 요청을 거절하시겠습니까?`,
+      message: `${request.senderMemberName}님의 친구 요청을 거절할까요?`,
       confirmText: "거절",
       cancelText: "돌아가기",
       confirmButtonVariant: "destructive",
-      icon: <X className="h-8 w-8 stroke-red-600 fill-red-100" />
+      icon: <X className="h-8 w-8 stroke-stamp-red" />,
     });
 
     if (confirmed) {
@@ -42,12 +46,15 @@ export const ReceivedRequestItem: React.FC<ReceivedRequestItemProps> = React.mem
 
   return (
     <>
-      <li className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
-        {/* 왼쪽: 사용자명 */}
+      <li className="flex items-center justify-between p-4 hover:bg-paper-100 transition-colors border-b border-postal-navy/10 last:border-b-0">
+        {/* 왼쪽: 발신자명 (페이퍼 링크) */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-gray-900 truncate">
+          <Link
+            href={`/rolling-paper/${encodeURIComponent(request.senderMemberName)}`}
+            className="font-medium text-ink truncate break-keep hover:text-postal-navy hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-postal-navy rounded"
+          >
             {request.senderMemberName}
-          </h3>
+          </Link>
         </div>
 
         {/* 오른쪽: 수락/거절 버튼 */}
@@ -57,18 +64,22 @@ export const ReceivedRequestItem: React.FC<ReceivedRequestItemProps> = React.mem
             size="sm"
             onClick={handleAccept}
             disabled={isPending}
+            aria-label={`${request.senderMemberName}님 친구 요청 수락`}
+            className="min-h-[44px]"
           >
-            <Check className="w-4 h-4 mr-1" />
-            수락
+            <Check className="w-4 h-4 sm:mr-1" aria-hidden="true" />
+            <span className="hidden sm:inline">수락</span>
           </Button>
           <Button
             color="failure"
             size="sm"
             onClick={handleReject}
             disabled={isPending}
+            aria-label={`${request.senderMemberName}님 친구 요청 거절`}
+            className="min-h-[44px]"
           >
-            <X className="w-4 h-4 mr-1" />
-            거절
+            <X className="w-4 h-4 sm:mr-1" aria-hidden="true" />
+            <span className="hidden sm:inline">거절</span>
           </Button>
         </div>
       </li>

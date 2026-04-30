@@ -28,12 +28,16 @@ export function DeleteConfirmModal({
     <Modal show={isOpen} size="md" onClose={onClose} popup>
       <ModalHeader />
       <ModalBody>
+        {/* 라운드 8: gray-* 하드코딩 → ink/paper 토큰 + stamp-red 메타포 */}
         <div className="text-center">
-          <AlertCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
-          <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+          <AlertCircle
+            className="mx-auto mb-4 h-14 w-14 stroke-stamp-red dark:stroke-stamp-red/80"
+            aria-hidden="true"
+          />
+          <h3 className="mb-5 text-lg font-semibold text-ink dark:text-paper-50 break-keep">
             {title}
           </h3>
-          <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mb-5 text-sm text-ink-soft dark:text-paper-200 break-keep whitespace-pre-line">
             {message}
           </p>
           <div className="flex justify-center gap-4">
@@ -44,7 +48,7 @@ export function DeleteConfirmModal({
             >
               {isLoading ? (
                 <div className="flex items-center">
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" aria-hidden="true" />
                   삭제 중...
                 </div>
               ) : (

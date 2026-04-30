@@ -43,6 +43,8 @@ interface BoardTableProps {
   isLoading?: boolean;
   error?: Error | null;
   isSearching?: boolean;
+  /** 검색 모드일 때 빈 결과 카피에 echo 할 키워드 (round-6) */
+  searchTerm?: string;
 
   // 페이징
   currentPage?: number;
@@ -294,6 +296,7 @@ export const BoardTable = memo<BoardTableProps>(({
   isLoading = false,
   error = null,
   isSearching = false,
+  searchTerm = "",
   showRanking = variant !== "all",
   enablePopover = variant !== "all"
 }) => {
@@ -301,16 +304,17 @@ export const BoardTable = memo<BoardTableProps>(({
   const postIds = useMemo(() => posts.map(post => post.id), [posts]);
   const { readStatus } = usePostReadStatus(postIds);
 
-  // 에러 상태 처리
+  // 에러 상태 처리 — 토큰화 + 종이/편지 메타포 (F-210)
   if (error) {
     return (
       <Card variant="elevated">
-        <div className="p-8 text-center text-red-500">
-          게시글을 불러오는 중 오류가 발생했습니다.
+        <div className="p-8 text-center text-destructive break-keep">
+          편지를 가져오지 못했어요. 잠시 후 다시 시도해 주세요.
           <br />
           <button
+            type="button"
             onClick={() => window.location.reload()}
-            className="mt-4 text-sm text-blue-600 hover:underline"
+            className="mt-4 text-sm text-postal-navy hover:underline dark:text-stamp-red"
           >
             새로고침
           </button>
@@ -329,14 +333,14 @@ export const BoardTable = memo<BoardTableProps>(({
   if (posts.length === 0) {
     return (
       <Card variant="elevated" className="bg-paper-card border border-ink-soft">
-        <div className="p-10 md:p-14 text-center text-ink-soft dark:text-muted-foreground">
+        <div className="p-10 md:p-14 text-center text-ink-soft dark:text-muted-foreground break-keep">
           {isSearching ? (
             <div
               data-testid="board-empty-state"
               className="flex flex-col items-center gap-3"
             >
               <div className="relative w-20 h-20 mb-2">
-                <svg viewBox="0 0 80 80" className="w-full h-full">
+                <svg viewBox="0 0 80 80" className="w-full h-full" aria-hidden="true">
                   <rect x="10" y="20" width="60" height="44" rx="4" fill="#FFFDF7" stroke="#2A1F1A" strokeWidth="2" />
                   <line x1="20" y1="32" x2="60" y2="32" stroke="#A89084" strokeWidth="1.5" />
                   <line x1="20" y1="40" x2="55" y2="40" stroke="#A89084" strokeWidth="1.5" />
@@ -345,11 +349,13 @@ export const BoardTable = memo<BoardTableProps>(({
                   <line x1="65" y1="69" x2="74" y2="78" stroke="#C73E3E" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
               </div>
-              <span className="font-display text-xl font-semibold text-ink dark:text-foreground">
-                검색 결과가 없어요
+              <span className="font-display text-xl font-semibold text-ink dark:text-foreground break-keep">
+                {searchTerm
+                  ? `‘${searchTerm}’에 해당하는 게시글을 찾지 못했어요`
+                  : "검색 결과가 없어요"}
               </span>
-              <span className="text-sm max-w-xs">
-                검색어를 변경해 다시 시도하거나, 새로운 이야기를 직접 남겨보세요.
+              <span className="text-sm max-w-xs break-keep">
+                철자를 확인하거나 더 짧은 키워드로 시도해 보세요. 새로운 이야기를 직접 남겨도 좋아요.
               </span>
               <Link
                 href="/board/write"

@@ -1,6 +1,5 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 
 interface ActionResult {
@@ -33,6 +32,10 @@ async function getAuthHeaders() {
 
 /**
  * 친구 요청 보내기
+ *
+ * 라운드 9 B-002: revalidatePath('/friends') 제거.
+ * server component 재실행 → searchParams 초기화 → 활성 탭이 friends 로 강제 리셋되는 문제 차단.
+ * 캐시 일관성은 클라이언트 invalidateQueries(queryKeys.friend.all) 가 책임진다.
  */
 export async function sendFriendRequestAction(receiverMemberId: number): Promise<ActionResult> {
   const apiUrl = process.env.INTERNAL_API_URL || 'http://localhost:8080'
@@ -54,7 +57,6 @@ export async function sendFriendRequestAction(receiverMemberId: number): Promise
     }
 
     const data = await res.json().catch(() => null)
-    revalidatePath('/friends')
     return { success: true, message: '친구 요청을 보냈습니다.', data }
   } catch (error) {
     console.error('Send friend request error:', error)
@@ -67,6 +69,8 @@ export async function sendFriendRequestAction(receiverMemberId: number): Promise
 
 /**
  * 친구 요청 취소 (보낸 요청)
+ *
+ * 라운드 9 B-002: revalidatePath('/friends') 제거.
  */
 export async function cancelFriendRequestAction(requestId: number): Promise<ActionResult> {
   const apiUrl = process.env.INTERNAL_API_URL || 'http://localhost:8080'
@@ -86,7 +90,6 @@ export async function cancelFriendRequestAction(requestId: number): Promise<Acti
       }
     }
 
-    revalidatePath('/friends')
     return { success: true, message: '친구 요청을 취소했습니다.' }
   } catch (error) {
     console.error('Cancel friend request error:', error)
@@ -99,6 +102,9 @@ export async function cancelFriendRequestAction(requestId: number): Promise<Acti
 
 /**
  * 친구 요청 수락
+ *
+ * 라운드 9 B-002: revalidatePath('/friends') 제거.
+ * 라운드 9 B-009-D: 빈 객체 body 제거 (백엔드는 path variable 만 사용).
  */
 export async function acceptFriendRequestAction(requestId: number): Promise<ActionResult> {
   const apiUrl = process.env.INTERNAL_API_URL || 'http://localhost:8080'
@@ -108,7 +114,6 @@ export async function acceptFriendRequestAction(requestId: number): Promise<Acti
     const res = await fetch(`${apiUrl}/api/friend/receive/${requestId}`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({}),
     })
 
     if (!res.ok) {
@@ -119,8 +124,8 @@ export async function acceptFriendRequestAction(requestId: number): Promise<Acti
       }
     }
 
-    revalidatePath('/friends')
-    return { success: true, message: '친구 요청을 수락했습니다.' }
+    const data = await res.json().catch(() => null)
+    return { success: true, message: '친구 요청을 수락했습니다.', data }
   } catch (error) {
     console.error('Accept friend request error:', error)
     return {
@@ -132,6 +137,8 @@ export async function acceptFriendRequestAction(requestId: number): Promise<Acti
 
 /**
  * 친구 요청 거절
+ *
+ * 라운드 9 B-002: revalidatePath('/friends') 제거.
  */
 export async function rejectFriendRequestAction(requestId: number): Promise<ActionResult> {
   const apiUrl = process.env.INTERNAL_API_URL || 'http://localhost:8080'
@@ -151,7 +158,6 @@ export async function rejectFriendRequestAction(requestId: number): Promise<Acti
       }
     }
 
-    revalidatePath('/friends')
     return { success: true, message: '친구 요청을 거절했습니다.' }
   } catch (error) {
     console.error('Reject friend request error:', error)
@@ -164,6 +170,8 @@ export async function rejectFriendRequestAction(requestId: number): Promise<Acti
 
 /**
  * 친구 삭제 (친구 관계 끊기)
+ *
+ * 라운드 9 B-002: revalidatePath('/friends') 제거.
  */
 export async function removeFriendAction(friendshipId: number): Promise<ActionResult> {
   const apiUrl = process.env.INTERNAL_API_URL || 'http://localhost:8080'
@@ -183,7 +191,6 @@ export async function removeFriendAction(friendshipId: number): Promise<ActionRe
       }
     }
 
-    revalidatePath('/friends')
     return { success: true, message: '친구를 삭제했습니다.' }
   } catch (error) {
     console.error('Remove friend error:', error)

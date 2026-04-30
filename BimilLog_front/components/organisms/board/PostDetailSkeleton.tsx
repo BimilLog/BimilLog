@@ -2,14 +2,15 @@ import { memo } from "react";
 import { Card, CardHeader, CardContent } from "@/components";
 import { CommentSectionSkeleton } from "./CommentSectionSkeleton";
 
-/** 스켈레톤 블록 유틸리티 */
+/** 스켈레톤 블록 유틸리티 — 라운드 8: paper-aged / postal-navy 톤으로 통일 */
 const Bone = ({ className }: { className: string }) => (
-  <div className={`bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
+  <div className={`bg-paper-aged dark:bg-postal-navy/30 rounded animate-pulse ${className}`} />
 );
 
 const PostDetailSkeleton = memo(() => {
   return (
-    <div className="min-h-screen bg-brand-gradient">
+    /* 라운드 8 B-8-013: 본 페이지(bg-paper)와 일치시켜 로딩→마운트 시 깜빡임 방지 */
+    <div className="min-h-screen bg-paper">
       <div className="container mx-auto px-4 py-8">
         {/* 브레드크럼 스켈레톤 */}
         <div className="mb-4">
@@ -60,7 +61,7 @@ const PostDetailSkeleton = memo(() => {
             </div>
 
             {/* 추천/신고 버튼 스켈레톤 */}
-            <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-paper-200 dark:border-postal-navy/40">
               <Bone className="h-10 w-32" />
               <Bone className="h-10 w-32" />
             </div>

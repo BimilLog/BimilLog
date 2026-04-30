@@ -21,7 +21,10 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = memo(({
   isFormValid,
 }) => {
   return (
-    <div className="sticky top-16 z-40 border-b bg-white/60 backdrop-blur-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900/70">
+    <div
+      className="sticky z-40 border-b border-ink-soft bg-paper-50/85 shadow-sm backdrop-blur-sm transition-colors duration-300 dark:border-postal-navy/40 dark:bg-postal-navy/30 dark:shadow-md dark:shadow-black/20"
+      style={{ top: "var(--app-header-height)" }}
+    >
       <div className="container mx-auto px-4 py-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           {/* 좌측: 뒤로가기 및 제목 */}

@@ -21,9 +21,9 @@ interface BoardTableSkeletonProps {
   showRanking?: boolean;
 }
 
-/** 스켈레톤 블록 유틸리티 */
+/** 스켈레톤 블록 유틸리티 — 라운드 6 (F-208): paper/ink 토큰 적용 (편지지 메타포) */
 const Bone = ({ className }: { className: string }) => (
-  <div className={`bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${className}`} />
+  <div className={`bg-paper-aged dark:bg-slate-800/60 rounded animate-pulse ${className}`} />
 );
 
 const BoardTableSkeleton = memo<BoardTableSkeletonProps>(({
@@ -35,7 +35,7 @@ const BoardTableSkeleton = memo<BoardTableSkeletonProps>(({
       {/* 데스크톱 테이블 스켈레톤 */}
       <div className="hidden sm:block overflow-x-auto">
         <Table className="min-w-full">
-          <TableHead className="bg-gray-50 dark:bg-slate-900/80">
+          <TableHead className="bg-paper-aged/60 dark:bg-slate-900/80">
             <TableRow>
               <TableHeadCell className="w-20 text-center">
                 {showRanking ? "순위" : "번호"}
@@ -47,7 +47,7 @@ const BoardTableSkeleton = memo<BoardTableSkeletonProps>(({
               <TableHeadCell className="w-20 text-center">조회</TableHeadCell>
             </TableRow>
           </TableHead>
-          <TableBody className="divide-y divide-gray-100 dark:divide-slate-800">
+          <TableBody className="divide-y divide-border dark:divide-slate-800">
             {Array.from({ length: rows }).map((_, idx) => (
               <TableRow key={idx} className="bg-card">
                 {/* 번호/순위 */}

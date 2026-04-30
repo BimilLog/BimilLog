@@ -12,7 +12,7 @@ const alertVariants = cva(
         default:
           "bg-paper-aged border border-postal-navy/20 text-ink [&>svg]:text-postal-navy",
         destructive:
-          "bg-red-50 border border-red-200 text-red-800 [&>svg]:text-red-600",
+          "bg-red-50 border border-red-200 text-red-800 [&>svg]:text-red-600 dark:bg-stamp-red/15 dark:border-stamp-red/40 dark:text-ink-900 dark:[&>svg]:text-stamp-red",
         success:
           "bg-green-50 border border-green-200 text-green-800 [&>svg]:text-green-600",
         warning:

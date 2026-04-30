@@ -24,7 +24,9 @@ REDIS_CACHE_ARCHITECTURE.md
 *.backup
 *.bak
 *~
-/docs
+/docs/*
+!/docs/superpowers/
+!/docs/superpowers/**
 # ====================
 # BimilLog_core (Backend)
 # ====================
@@ -102,7 +104,11 @@ BimilLog_core/.claude/
 .mcp.json
 CLAUDE.md
 PlayStore.md
-/.claude
+/.claude/*
+!/.claude/agents/
+!/.claude/agents/**
+!/.claude/commands/
+!/.claude/commands/**
 
 # Codex
 AGENTS.md
@@ -189,3 +195,5 @@ replay_pid*
 !local/grafana/dashboards/
 !local/grafana/dashboards/*.json
 
+/.playwright-mcp/
+/docs/superpowers/

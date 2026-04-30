@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth, useToast } from "@/hooks";
 import { useCreatePostAction } from '@/hooks/actions/usePostActions';
 import { useDraft } from '@/hooks/features/useDraft';
@@ -47,12 +47,24 @@ export function useWriteForm() {
     }
   });
 
-  // 컴포넌트 마운트 시 임시저장 확인 및 복구
-  useEffect(() => {
-    if (hasSavedDraft) {
-      loadDraft();
-    }
-  }, []);
+  // B-7-003: 임시저장 자동 복구 → 사용자 선택 패턴으로 변경
+  // hasSavedDraft 가 true 면 useDraft 가 hasSavedDraft 상태를 노출하므로,
+  // UI 측에서 배너로 "이어서 작성 / 새로 시작" 선택지를 보여주고
+  // 사용자가 명시적으로 loadDraft() 또는 dismissDraft() 를 호출.
+  const [draftBannerDismissed, setDraftBannerDismissed] = useState(false);
+  // 사용자가 이미 입력을 시작했다면 배너를 숨김 (현재 작성 중인 내용을 덮어쓰지 않도록)
+  const userStartedTyping = title.trim().length > 0 || content.trim().length > 0;
+  const showDraftBanner = hasSavedDraft && !draftBannerDismissed && !userStartedTyping;
+
+  const handleRestoreDraft = () => {
+    loadDraft();
+    setDraftBannerDismissed(true);
+  };
+  const handleDismissDraft = () => {
+    // 사용자가 "새로 작성" 선택 → 배너만 닫고 임시저장은 유지
+    // (다음 자동저장 시점에 새 내용으로 덮어씀)
+    setDraftBannerDismissed(true);
+  };
 
   // 자동저장 트리거 - title 또는 content 변경 시
   useEffect(() => {
@@ -61,19 +73,25 @@ export function useWriteForm() {
     }
   }, [title, content, handleAutoSave]);
 
-  // 작성 중 이탈 방지 - 사용자가 실수로 페이지를 벗어나는 것을 방지
+  // B-7-009/성능: 작성 중 이탈 방지 — 매 입력마다 listener 재등록 비용 제거
+  // ref 로 latest 값 추적 + listener 는 마운트 시 1회 등록
+  const titleRef = useRef(title);
+  const contentRef = useRef(content);
+  const isPendingRef = useRef(isPending);
+  useEffect(() => { titleRef.current = title; }, [title]);
+  useEffect(() => { contentRef.current = content; }, [content]);
+  useEffect(() => { isPendingRef.current = isPending; }, [isPending]);
+
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // 제목이나 내용이 있고, 제출 중이 아닐 때만 경고
-      if ((title.trim() || content.trim()) && !isPending) {
+      if ((titleRef.current.trim() || contentRef.current.trim()) && !isPendingRef.current) {
         e.preventDefault();
         e.returnValue = ''; // Chrome requires returnValue
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [title, content, isPending]);
+  }, []);
 
   // 폼 제출 핸들러 - 유효성 검사 후 TanStack Query mutation 실행
   const handleSubmit = async () => {
@@ -108,7 +126,8 @@ export function useWriteForm() {
       }
     }
 
-    removeDraft();
+    // B-7-014: 게시 성공 토스트와 충돌하지 않도록 silent 삭제
+    removeDraft({ silent: true });
     createPost({
       title,
       content,
@@ -157,6 +176,11 @@ export function useWriteForm() {
     saveDraftManual,
     removeDraft,
     formatLastSaved,
+
+    // B-7-003: 사용자 동의 기반 복구 배너
+    showDraftBanner,
+    handleRestoreDraft,
+    handleDismissDraft,
 
     // Content length
     plainTextLength,

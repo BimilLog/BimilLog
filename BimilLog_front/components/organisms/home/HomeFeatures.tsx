@@ -62,7 +62,7 @@ export const HomeFeatures: React.FC = () => {
                 <div className="font-display text-xs font-bold tracking-[0.18em] text-stamp-red mb-3 uppercase">
                   Step 0{feature.step}
                 </div>
-                <div className="font-display text-[11px] font-semibold tracking-[0.12em] text-ink-soft dark:text-brand-secondary mb-3">
+                <div className="font-display text-[11px] font-semibold tracking-[0.12em] text-ink-soft dark:text-foreground/70 mb-3">
                   {feature.step}단계
                 </div>
                 <div
@@ -73,7 +73,7 @@ export const HomeFeatures: React.FC = () => {
                 <h3 className="font-display text-lg font-semibold mb-2 text-ink dark:text-gray-100">
                   {feature.title}
                 </h3>
-                <p className="text-ink-soft dark:text-brand-secondary text-sm">{feature.description}</p>
+                <p className="text-ink-soft dark:text-foreground/85 text-sm">{feature.description}</p>
               </CardContent>
             </Card>
           );

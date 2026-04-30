@@ -12,6 +12,8 @@ import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -97,7 +99,8 @@ public class MemberQueryController {
      * @author Jaeik
      */
     @GetMapping("/all")
-    public ResponseEntity<PageResponseDTO<SimpleMemberDTO>> getAllMembers(Pageable pageable) {
+    public ResponseEntity<PageResponseDTO<SimpleMemberDTO>> getAllMembers(
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.ok(PageResponseDTO.from(memberQueryService.findAllMembers(pageable)));
     }
 
@@ -109,7 +112,9 @@ public class MemberQueryController {
      * @author Jaeik
      */
     @GetMapping("/search")
-    public ResponseEntity<PageResponseDTO<SimpleMemberDTO>> searchMembers(@RequestParam @NotBlank(message = "검색어는 필수입니다") String query, Pageable pageable) {
+    public ResponseEntity<PageResponseDTO<SimpleMemberDTO>> searchMembers(
+            @RequestParam @NotBlank(message = "검색어는 필수입니다") String query,
+            @PageableDefault(size = 10, sort = "memberName", direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.ok(PageResponseDTO.from(memberQueryService.searchMembers(query.trim(), pageable)));
     }
 }

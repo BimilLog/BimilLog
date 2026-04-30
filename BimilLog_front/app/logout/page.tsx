@@ -1,11 +1,21 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth, useToast } from "@/hooks";
 import { AuthLoadingScreen } from "@/components";
 import { logger } from '@/lib/utils/logger';
+import { useToastStore } from "@/stores/toast.store";
 
+const GOODBYE_MARKER_KEY = "bimillog_pending_goodbye";
+
+/**
+ * 로그아웃 처리 페이지.
+ *
+ * B-301: fallback 5000ms → 3500ms 단축 + 1500ms 시점부터 1초 간격 sub-message 갱신.
+ * B-306: cleanup 함수에서 isProcessingRef 도 초기화 (StrictMode/HMR 안전성).
+ * B-304: 로그아웃 완료 직전에 sessionStorage 마커를 심어 다음 페이지에서 안내 토스트 발사.
+ */
 export default function LogoutPage() {
   const { logout } = useAuth({ skipRefresh: true });
   const router = useRouter();
@@ -58,12 +68,49 @@ export default function LogoutPage() {
   // 중복 실행 방지를 위한 플래그 (logout 로직이 여러 번 실행되는 것을 막음)
   const isProcessingRef = useRef(false);
 
+  // B-301: 진척 메시지 — 1500ms 이상 걸리면 "조금만 더…" 갱신
+  const [subMessage, setSubMessage] = useState<string>(
+    "안전하게 로그아웃 처리 중입니다."
+  );
+
+  /**
+   * B-304: 로그아웃 완료 마커. 다음 페이지(주로 홈) 마운트 시
+   * `useGoodbyeFarewell` 훅이 소비해 토스트 발사.
+   */
+  const markPendingGoodbye = (
+    options: { reason?: "normal" | "timeout"; consent?: boolean } = {}
+  ) => {
+    if (typeof window === "undefined") return;
+    if (options.consent) return; // 카카오 동의 플로우는 외부 리다이렉트 → 토스트 안 띄움
+    try {
+      window.sessionStorage.setItem(
+        GOODBYE_MARKER_KEY,
+        JSON.stringify({
+          reason: options.reason ?? "normal",
+          ts: Date.now(),
+        })
+      );
+    } catch {
+      /* storage 차단 환경 — 무시 */
+    }
+  };
+
   useEffect(() => {
     // 이미 로그아웃 처리 중인 경우 중복 실행 방지
     if (isProcessingRef.current) {
       return;
     }
     isProcessingRef.current = true;
+
+    // B-301: 진척 메시지 갱신 타이머
+    // 1500ms 후 → "조금만 더 기다려 주세요…"
+    // 2500ms 후 → "거의 다 됐어요. 잠시만요…"
+    const subMessageTimer1 = setTimeout(() => {
+      setSubMessage("조금만 더 기다려 주세요…");
+    }, 1500);
+    const subMessageTimer2 = setTimeout(() => {
+      setSubMessage("거의 다 됐어요. 잠시만요…");
+    }, 2500);
 
     const performLogout = async () => {
       try {
@@ -91,6 +138,9 @@ export default function LogoutPage() {
           }
         }
 
+        // B-304: 일반 로그아웃 완료 마커 (홈에서 토스트 소비)
+        markPendingGoodbye({ reason: "normal", consent: isConsentFlow });
+
         // 일반 로그아웃의 경우 홈페이지로 이동
         const redirectPath = redirectTargetRef.current || "/";
         logger.log("페이지 리다이렉트 시작:", redirectPath);
@@ -110,9 +160,9 @@ export default function LogoutPage() {
       }
     };
 
-    // 로그아웃이 5초 이상 걸릴 경우 강제로 이동 (fallback 처리)
+    // B-301: 로그아웃 fallback 5000ms → 3500ms 로 단축
     const timeoutId = setTimeout(() => {
-      logger.warn("로그아웃 타임아웃 (5초) - 강제 리다이렉트 시작");
+      logger.warn("로그아웃 타임아웃 (3.5초) - 강제 리다이렉트 시작");
 
       const isConsentFlow = consentParamRef.current === 'true';
       logger.log("Timeout - Consent flow:", isConsentFlow);
@@ -125,6 +175,19 @@ export default function LogoutPage() {
           return;
         }
       }
+
+      // B-301 / 4-4: 강제 종료 시 사후 안내 토스트
+      try {
+        useToastStore.getState().showInfo(
+          "네트워크가 느려서 강제로 종료했어요",
+          "잠시 후 다시 로그인해 주세요."
+        );
+      } catch {
+        /* noop */
+      }
+
+      // B-304: 타임아웃 사유 마커 — 다음 페이지에서 별도 처리 가능 (현재는 동일 토스트)
+      markPendingGoodbye({ reason: "timeout", consent: isConsentFlow });
 
       const redirectPath = redirectTargetRef.current || "/";
       logger.log("Timeout - 홈으로 강제 리다이렉트:", redirectPath);
@@ -139,20 +202,24 @@ export default function LogoutPage() {
           logger.error("Timeout - router.replace도 실패:", routerError);
         }
       }
-    }, 5000);
+    }, 3500);
 
     performLogout();
 
-    // cleanup 함수: 타임아웃 정리 및 처리 플래그 초기화
+    // cleanup 함수: 타임아웃 정리 + B-306 처리 플래그 초기화
     return () => {
       clearTimeout(timeoutId);
+      clearTimeout(subMessageTimer1);
+      clearTimeout(subMessageTimer2);
+      // B-306: StrictMode/HMR 환경에서 재마운트 시에도 logout 호출이 정상 진행되도록
+      isProcessingRef.current = false;
     };
   }, []);
 
   return (
-    <AuthLoadingScreen 
+    <AuthLoadingScreen
       message="로그아웃 중..."
-      subMessage="안전하게 로그아웃 처리 중입니다."
+      subMessage={subMessage}
     />
   );
 }

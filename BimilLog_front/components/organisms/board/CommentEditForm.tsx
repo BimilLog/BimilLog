@@ -28,20 +28,26 @@ export const CommentEditForm: React.FC<CommentEditFormProps> = React.memo(({
   setEditPassword,
 }) => {
   return (
-    <div className="p-3 sm:p-4 bg-gray-100 dark:bg-gray-800/70 rounded-lg space-y-3">
+    <div
+      className="p-3 sm:p-4 bg-paper-aged dark:bg-postal-navy/15 rounded-lg space-y-3 border border-postal-navy/20 dark:border-postal-navy/40"
+      role="group"
+      aria-label="댓글 수정 폼"
+    >
       <LazyEditor
         value={editContent}
         onChange={setEditContent}
       />
       <div className="flex items-center justify-between">
-        <p className="text-xs text-brand-secondary">HTML 형식 지원</p>
+        <p className="text-xs text-brand-secondary break-keep">HTML 형식 지원</p>
         {editContent && (
           <p
+            aria-live="polite"
+            aria-label={`수정 댓글 글자 수 ${editPlainTextLength}/255`}
             className={`text-xs ${
               editPlainTextLength >= 255
-                ? "text-red-600 font-semibold"
+                ? "text-stamp-red font-semibold"
                 : editPlainTextLength >= 230
-                ? "text-orange-500 font-medium"
+                ? "text-seal-gold font-medium"
                 : "text-brand-muted"
             }`}
           >
@@ -50,19 +56,31 @@ export const CommentEditForm: React.FC<CommentEditFormProps> = React.memo(({
         )}
       </div>
       {editPlainTextLength > 255 && (
-        <p className="text-red-500 text-sm">
+        <p className="text-stamp-red text-sm break-keep" role="alert">
           댓글은 최대 255자까지 입력 가능합니다
         </p>
       )}
       {/* 익명 댓글 수정 시에만 비밀번호 입력 필요 */}
       {isAnonymous && (
-        <Input
-          type="password"
-          placeholder="비밀번호 (1000~9999)"
-          value={editPassword}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditPassword(e.target.value)}
-          disabled={isUpdatingComment}
-        />
+        <>
+          <label htmlFor="edit-password" className="sr-only">
+            비밀번호 (1000~9999)
+          </label>
+          <Input
+            id="edit-password"
+            type="password"
+            placeholder="비밀번호 (1000~9999)"
+            value={editPassword}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setEditPassword(e.target.value.replace(/\D/g, "").slice(0, 4))
+            }
+            disabled={isUpdatingComment}
+            inputMode="numeric"
+            pattern="[1-9][0-9]{3}"
+            maxLength={4}
+            autoComplete="off"
+          />
+        </>
       )}
       <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
         <Button

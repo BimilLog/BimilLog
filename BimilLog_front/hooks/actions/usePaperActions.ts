@@ -33,10 +33,17 @@ export function useCreateMessageAction() {
     startTransition(async () => {
       // 백엔드 무응답 등으로 Server Action 이 응답하지 않을 때 사용자에게 빠르게 피드백을 주기 위해
       // 8초 타임아웃을 걸어 강제로 에러 토스트를 노출한다.
-      const TIMEOUT_MS = 4000
+      // F-005: 4초는 모바일 네트워크 환경에서 짧아 false-negative 후 사용자가 재시도하면
+      // unique_member_x_y 충돌이 빈번. 8초로 확장하고 안내 문구도 "이미 등록되었을 수 있어요" 로 보정.
+      const TIMEOUT_MS = 8000
       const timeoutPromise = new Promise<{ success: false; error: string }>((resolve) => {
         setTimeout(
-          () => resolve({ success: false, error: '메시지 작성에 실패했습니다. 잠시 후 다시 시도해주세요.' }),
+          () =>
+            resolve({
+              success: false,
+              error:
+                '응답이 늦어지고 있어요. 이미 등록되었을 수 있으니 잠시 후 새로고침해 확인해주세요.',
+            }),
           TIMEOUT_MS,
         )
       })

@@ -112,7 +112,7 @@ interface RollingPaperGridProps {
   totalPages: number;
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  onMessageSubmit?: (position: { x: number; y: number }, data: unknown) => void;
+  onMessageSubmit?: (position: { x: number; y: number }, data: unknown) => Promise<void>;
   getMessageAt: (
     x: number,
     y: number
@@ -236,6 +236,41 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
     setModalOpen(true);
   }, [highlightedPosition, onHighlightClear, getMessageAt, isOwner]);
 
+  // 빈 상태 CTA(방문자) — 첫 빈 셀 좌표를 직접 계산해서 모달을 연다.
+  // P-003: querySelector + click() 직접 DOM 조작은 race condition / 모바일 사파리 smooth scroll 마찰 유발.
+  // 첫 빈 셀은 currentPage 의 (0, 0) — 빈 상태(messages.length === 0)에서는 항상 유효.
+  const handleOpenFirstEmpty = useCallback(() => {
+    const { x, y } = getCoordsFromPageAndGrid(currentPage, 0, 0);
+    setSelectedCell({ x, y });
+    setRecommendedPositions([]);
+    setModalOpen(true);
+  }, [getCoordsFromPageAndGrid, currentPage]);
+
+  // 빈 상태 CTA(소유자) — 링크 복사 + 토스트 피드백 (F-003)
+  const handleCopyShareLink = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    const url = window.location.href;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        // 폴백: 임시 textarea + execCommand
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      onSuccess?.('링크가 복사되었어요. 친구에게 보내고 첫 편지를 받아보세요!');
+    } catch {
+      onError?.('링크 복사에 실패했어요. 주소창을 직접 복사해주세요.');
+    }
+  }, [onSuccess, onError]);
+
   // 추천 위치로 이동
   const handleMoveToRecommended = useCallback((position: { x: number; y: number }) => {
     setModalOpen(false);
@@ -288,12 +323,14 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
         {/* 빈 상태 CTA: 메시지가 0개일 때 큰 안내 영역 노출 (3종 세트: 일러스트 + 카피 + primary CTA) */}
         {messages.length === 0 && (
-          <div
+          <section
             data-testid="paper-empty-state"
+            role="region"
+            aria-labelledby="paper-empty-state-title"
             className="mx-4 md:mx-20 mb-6 p-8 md:p-12 rounded-2xl bg-paper-card border-dashed-paper text-center"
           >
             {/* 큰 편지 일러스트 */}
-            <div className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-5 relative animate-paper-float">
+            <div className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-5 relative animate-paper-float" aria-hidden="true">
               <svg viewBox="0 0 120 120" className="w-full h-full">
                 <rect x="14" y="34" width="92" height="62" rx="4" fill="#FFFDF7" stroke="#2A1F1A" strokeWidth="2.5" />
                 <polyline points="14,34 60,72 106,34" fill="none" stroke="#2A1F1A" strokeWidth="2.5" />
@@ -303,7 +340,10 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 <line x1="40" y1="14" x2="46" y2="26" stroke="#C73E3E" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
-            <h2 className="font-display text-xl md:text-2xl font-bold text-ink dark:text-sky-200 mb-2">
+            <h2
+              id="paper-empty-state-title"
+              className="font-display text-xl md:text-2xl font-bold text-ink dark:text-sky-200 mb-2"
+            >
               아직 도착한 편지가 없어요
             </h2>
             <p className="font-body text-sm md:text-base text-ink-soft dark:text-sky-300 leading-relaxed max-w-md mx-auto">
@@ -314,12 +354,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
             {!isOwner && (
               <button
                 type="button"
-                onClick={() => {
-                  // 첫 빈 셀로 스크롤 + 모달 오픈
-                  const firstEmpty = document.querySelector<HTMLElement>('[data-testid="grid-cell"]:not([data-locked])');
-                  firstEmpty?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  firstEmpty?.click();
-                }}
+                onClick={handleOpenFirstEmpty}
                 className="mt-5 inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md bg-paper-button text-white font-semibold shadow-brand-sm hover:bg-paper-hover transition-colors"
               >
                 <MessageSquare className="w-5 h-5 mr-2" />첫 메시지 남기기
@@ -328,27 +363,29 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
             {isOwner && (
               <button
                 type="button"
-                onClick={() => {
-                  if (typeof navigator !== 'undefined' && 'clipboard' in navigator) {
-                    navigator.clipboard?.writeText(window.location.href);
-                  }
-                }}
+                onClick={handleCopyShareLink}
                 className="mt-5 inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md bg-paper-button text-white font-semibold shadow-brand-sm hover:bg-paper-hover transition-colors"
               >
                 <MessageSquare className="w-5 h-5 mr-2" />링크 복사하고 친구에게 공유
               </button>
             )}
-          </div>
+          </section>
         )}
 
-        {/* 메시지 그리드 — 빈 상태일 때는 fade-out 처리 */}
+        {/* 메시지 그리드 — 빈 상태일 때는 fade-out + 키보드/포인터 차단 (F-004 inert) */}
         <div
           data-testid="paper-grid-container"
+          // @ts-expect-error: React 19 부터 inert 가 boolean 으로 정식 지원되지만 일부 타입 정의 누락 대응
+          inert={messages.length === 0 ? '' : undefined}
+          aria-hidden={messages.length === 0 ? true : undefined}
           className={`px-4 md:px-20 pb-4 md:pb-6 ${messages.length === 0 ? 'opacity-30 pointer-events-none mask-fade-bottom' : ''}`}
         >
           {/* 페이지 네비게이션 */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 mb-4">
+            <nav
+              aria-label="롤링페이퍼 페이지 탐색"
+              className="flex items-center justify-center gap-4 mb-4"
+            >
               <Button
                 variant="outline"
                 size="sm"
@@ -360,7 +397,11 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 <ChevronLeft className="w-4 h-4" />
               </Button>
 
-              <span className="text-sm font-medium text-sky-700 dark:text-sky-300">
+              <span
+                className="text-sm font-medium text-sky-700 dark:text-sky-300"
+                aria-current="page"
+                aria-live="polite"
+              >
                 {currentPage} / {totalPages}
               </span>
 
@@ -374,7 +415,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
-            </div>
+            </nav>
           )}
 
           {/* 좌표 기반 그리드 */}
@@ -412,106 +453,113 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
       </div>
 
-      {/* Flowbite Modal */}
-      {selectedCell && (
-        <Modal
-          show={modalOpen}
-          onClose={() => {
-            setModalOpen(false);
-            setRecommendedPositions([]);
-          }}
-          dismissible
-          size="md"
-          className="modal-container"
-        >
-          <ModalHeader
-            theme={{
-              base: "flex items-center justify-between p-5 rounded-t bg-gradient-to-br from-pink-50 to-pink-100 dark:from-gray-700 dark:to-gray-800 border-b border-pink-200 dark:border-gray-600"
+      {/* Flowbite Modal — F-001: 명시적 ARIA 부여 */}
+      {selectedCell && (() => {
+        const isViewingMessage = !!getMessageAt(selectedCell.x, selectedCell.y);
+        const modalTitleId = "rolling-paper-modal-title";
+        return (
+          <Modal
+            show={modalOpen}
+            onClose={() => {
+              setModalOpen(false);
+              setRecommendedPositions([]);
             }}
+            dismissible
+            size="md"
+            className="modal-container"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={modalTitleId}
           >
-            <div className="flex items-center space-x-2 ">
-              {getMessageAt(selectedCell.x, selectedCell.y) ? (
-                <>
-                  <Mail className="w-4 h-4 stroke-blue-500 fill-blue-200" />
-                  <span>메시지 보기</span>
-                </>
-              ) : (
-                <>
-                  <MessageSquare className="w-4 h-4 stroke-green-500 fill-green-200" />
-                  <span>메시지 작성</span>
-                </>
-              )}
-            </div>
-          </ModalHeader>
+            <ModalHeader
+              theme={{
+                base: "flex items-center justify-between p-5 rounded-t bg-gradient-to-br from-pink-50 to-pink-100 dark:from-gray-700 dark:to-gray-800 border-b border-pink-200 dark:border-gray-600"
+              }}
+            >
+              <div id={modalTitleId} className="flex items-center space-x-2 ">
+                {isViewingMessage ? (
+                  <>
+                    <Mail className="w-4 h-4 stroke-blue-500 fill-blue-200" aria-hidden="true" />
+                    <span>메시지 보기</span>
+                  </>
+                ) : (
+                  <>
+                    <MessageSquare className="w-4 h-4 stroke-green-500 fill-green-200" aria-hidden="true" />
+                    <span>메시지 작성</span>
+                  </>
+                )}
+              </div>
+            </ModalHeader>
 
-          <ModalBody
-            theme={{
-              base: "p-6 bg-gradient-to-br from-pink-50 to-pink-100 dark:from-gray-800 dark:to-gray-900"
-            }}
-          >
-            <div className="p-0">
-              {(() => {
-                const messageAtPosition = getMessageAt(selectedCell.x, selectedCell.y);
-                if (messageAtPosition) {
-                  // 기존 메시지 보기
-                  return (
-                    <MessageView
-                      message={messageAtPosition}
-                      isOwner={isOwner}
-                      onDelete={() => {
-                        onRefresh?.();
-                        setModalOpen(false);
-                      }}
-                      onDeleteSuccess={onSuccess}
-                      onDeleteError={onError}
-                    />
-                  );
-                } else if (!isOwner && onMessageSubmit) {
-                  // 새 메시지 작성 폼
-                  return (
-                    <>
-                      <MessageForm
-                        onSubmit={async (data) => {
-                          await handleMessageSubmit(selectedCell.x, selectedCell.y, data);
+            <ModalBody
+              theme={{
+                base: "p-6 bg-gradient-to-br from-pink-50 to-pink-100 dark:from-gray-800 dark:to-gray-900"
+              }}
+            >
+              <div className="p-0">
+                {(() => {
+                  const messageAtPosition = getMessageAt(selectedCell.x, selectedCell.y);
+                  if (messageAtPosition) {
+                    // 기존 메시지 보기
+                    return (
+                      <MessageView
+                        message={messageAtPosition}
+                        isOwner={isOwner}
+                        onDelete={() => {
+                          onRefresh?.();
+                          setModalOpen(false);
                         }}
-                        onSuccess={onSuccess}
-                        onError={onError}
+                        onDeleteSuccess={onSuccess}
+                        onDeleteError={onError}
                       />
+                    );
+                  } else if (!isOwner && onMessageSubmit) {
+                    // 새 메시지 작성 폼
+                    return (
+                      <>
+                        <MessageForm
+                          onSubmit={async (data) => {
+                            await handleMessageSubmit(selectedCell.x, selectedCell.y, data);
+                          }}
+                          onSuccess={onSuccess}
+                          onError={onError}
+                        />
 
-                      {/* 추천 위치 표시 */}
-                      {recommendedPositions.length > 0 && (
-                        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700">
-                          <p className="text-sm font-semibold text-blue-800 dark:text-blue-400 mb-3 flex items-center gap-2">
-                            <Sparkles className="w-4 h-4" />
-                            가까운 빈 위치
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {recommendedPositions.map((pos) => {
-                              const { page, gridX, gridY } = getPageAndGridPosition(pos.x, pos.y, isMobile);
-                              return (
-                                <Button
-                                  key={`${pos.x}-${pos.y}`}
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleMoveToRecommended(pos)}
-                                  className="bg-white dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-400 font-medium"
-                                >
-                                  페이지 {page}, {gridY + 1}줄 {gridX + 1}번째
-                                </Button>
-                              );
-                            })}
+                        {/* 추천 위치 표시 */}
+                        {recommendedPositions.length > 0 && (
+                          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700">
+                            <p className="text-sm font-semibold text-blue-800 dark:text-blue-400 mb-3 flex items-center gap-2">
+                              <Sparkles className="w-4 h-4" aria-hidden="true" />
+                              가까운 빈 위치
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {recommendedPositions.map((pos) => {
+                                const { page, gridX, gridY } = getPageAndGridPosition(pos.x, pos.y, isMobile);
+                                return (
+                                  <Button
+                                    key={`${pos.x}-${pos.y}`}
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleMoveToRecommended(pos)}
+                                    className="bg-white dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-400 font-medium"
+                                  >
+                                    페이지 {page}, {gridY + 1}줄 {gridX + 1}번째
+                                  </Button>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </>
-                  );
-                }
-                return null;
-              })()}
-            </div>
-          </ModalBody>
-        </Modal>
-      )}
+                        )}
+                      </>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            </ModalBody>
+          </Modal>
+        );
+      })()}
     </div>
   );
 });

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth, useToast } from "@/hooks";
 import { postQuery, type Post } from "@/lib/api";
 import { stripHtml, validatePassword } from "@/lib/utils";
 import { useUpdatePostAction } from "@/hooks/actions/usePostActions";
+import { useDraft } from "@/hooks/features/useDraft";
 
 /**
  * 게시글 수정 폼을 위한 통합 훅
@@ -49,9 +50,12 @@ export function useEditForm(options?: UseEditFormOptions) {
   const [guestPassword, setGuestPassword] = useState("");
 
   // SSR initialPost 권한 체크
+  // hasInitialPost / options.initialPost / postId / router / showError 모두 의존성에 명시
+  // (eslint react-hooks/exhaustive-deps 경고 해소 + 시드/실 운영 ID 변경 시 재평가 보장)
   useEffect(() => {
     if (!hasInitialPost || authLoading) return;
-    const postData = options!.initialPost!;
+    const postData = options?.initialPost;
+    if (!postData) return;
     const isGuestPost = postData.memberId === null || postData.memberId === 0;
     if (isGuestPost) {
       setIsAuthorized(true);
@@ -61,7 +65,7 @@ export function useEditForm(options?: UseEditFormOptions) {
       showError("권한 없음", "수정 권한이 없습니다.");
       router.push(`/board/post/${postId}`);
     }
-  }, [hasInitialPost, authLoading, isAuthenticated, user]);
+  }, [hasInitialPost, authLoading, isAuthenticated, user, options?.initialPost, postId, router, showError]);
 
   // 게시글 정보 조회 (initialPost 없을 때만)
   const fetchPost = useCallback(async () => {
@@ -108,8 +112,47 @@ export function useEditForm(options?: UseEditFormOptions) {
     if (!hasInitialPost) fetchPost();
   }, [fetchPost, hasInitialPost]);
 
+  // B-7-004: 수정 모드 임시저장 (postId 분기로 별도 슬롯 사용)
+  const {
+    isAutoSaving,
+    lastSavedAt,
+    saveDraftManual,
+    handleAutoSave,
+    removeDraft,
+    formatLastSaved,
+  } = useDraft({
+    postId: postId ?? undefined,
+    enabled: !!postId,
+    autoSave: true,
+  });
+
+  // 자동저장 트리거 - prefill 이후 dirty 상태에서만 저장
+  const dirtyRef = useRef(false);
+  useEffect(() => {
+    if (!post) return;
+    // 초기 prefill 대비 변경 감지 (initialPost 와 동일하면 dirty 아님)
+    if (title !== post.title || content !== post.content) {
+      dirtyRef.current = true;
+    }
+    if (dirtyRef.current && (title || content)) {
+      handleAutoSave(title, content);
+    }
+  }, [title, content, handleAutoSave, post]);
+
+  // B-7-005 보조: 작성/수정 중 이탈 가드 (브라우저 beforeunload)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!dirtyRef.current || isUpdatePending) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isUpdatePending]);
+
   // 폼 유효성 검사
   const validateForm = () => {
+    // 길이 체크는 plain text 기준이지만 백엔드 전송은 HTML 원본 사용 (B-7-001)
     const plainContent = stripHtml(content).trim();
 
     if (!title.trim() || !plainContent) {
@@ -127,26 +170,38 @@ export function useEditForm(options?: UseEditFormOptions) {
   };
 
   // 게시글 수정 제출
+  // B-7-001 (CRITICAL): plainContent → HTML 원본(content) 전달로 변경
+  // Quill 서식(굵기/리스트/링크 등)이 백엔드까지 보존되어야 한다.
+  // DOMPurify sanitize 는 editor.tsx 의 text-change 핸들러에서 이미 적용됨.
+  // B-7-012: validatePassword throw → try/catch 로 감싸 토스트 노출
   const handleSubmit = async () => {
     if (!validateForm() || !post || !postId) return;
 
-    const plainContent = stripHtml(content).trim();
-
     let validatedPassword: number | undefined = undefined;
     if (isGuest) {
-      validatedPassword = validatePassword(guestPassword, false);
+      try {
+        validatedPassword = validatePassword(guestPassword, false);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "비밀번호를 확인해주세요.";
+        showWarning("비밀번호 확인", message);
+        return;
+      }
     }
+
+    // 성공 흐름은 useUpdatePostAction 내부에서 router.push 까지 처리.
+    // 임시저장은 게시 성공 여부와 무관하게 즉시 정리해도 무방 (수정 폼은 서버 데이터 기반).
+    removeDraft();
 
     updatePost({
       postId,
       title: title.trim(),
-      content: plainContent,
+      content, // HTML 원본 (DOMPurify-sanitized)
       password: validatedPassword,
     });
   };
 
-  // 폼 유효성 상태
-  const isFormValid = Boolean(title.trim() && content.trim());
+  // 폼 유효성 상태 (HTML 태그 제거 후 텍스트 길이로 판단)
+  const isFormValid = Boolean(title.trim() && stripHtml(content).trim());
 
   return {
     // Post data
@@ -173,5 +228,11 @@ export function useEditForm(options?: UseEditFormOptions) {
     // Actions
     handleSubmit,
     validateForm,
+
+    // Draft (B-7-004)
+    isAutoSaving,
+    lastSavedAt,
+    saveDraftManual,
+    formatLastSaved,
   };
 }
