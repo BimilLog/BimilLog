@@ -195,3 +195,5 @@ replay_pid*
 !local/grafana/dashboards/
 !local/grafana/dashboards/*.json
 
+/.playwright-mcp/
+/docs/superpowers/
