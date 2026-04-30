@@ -33,10 +33,10 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
     <div
       className={`relative min-h-screen bg-paper dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-ink dark:text-gray-100 transition-colors duration-300 overflow-hidden ${className}`}
     >
-      {/* Atmosphere: 좌우 floating 종이/편지 decoration (데스크톱에만) */}
+      {/* Atmosphere: 좌우 floating 종이/편지 decoration (데스크톱에만, 인쇄 제외) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none hidden lg:block absolute -top-10 -left-16 w-72 h-72 opacity-[0.18] animate-paper-float select-none"
+        className="no-print pointer-events-none hidden lg:block absolute -top-10 -left-16 w-72 h-72 opacity-[0.18] animate-paper-float select-none"
       >
         <svg viewBox="0 0 200 200" className="w-full h-full">
           <rect x="20" y="30" width="160" height="120" rx="6" fill="#FFFDF7" stroke="#2A1F1A" strokeWidth="2" />
@@ -49,7 +49,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
       </div>
       <div
         aria-hidden="true"
-        className="pointer-events-none hidden lg:block absolute top-32 -right-12 w-64 h-64 opacity-[0.16] select-none"
+        className="no-print pointer-events-none hidden lg:block absolute top-32 -right-12 w-64 h-64 opacity-[0.16] select-none"
         style={{ animation: "paper-float 9s ease-in-out infinite reverse" }}
       >
         <svg viewBox="0 0 200 200" className="w-full h-full">
@@ -60,12 +60,16 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
         </svg>
       </div>
 
-      {/* Header */}
-      {showHeader && <AuthHeader />}
+      {/* Header (인쇄 제외) */}
+      {showHeader && (
+        <div className="no-print">
+          <AuthHeader />
+        </div>
+      )}
 
-      {/* Top Banner Advertisement */}
+      {/* Top Banner Advertisement (인쇄 제외) */}
       {showTopAd && (
-        <div className={`container-paper px-4 py-2 ${containerClassName}`}>
+        <div className={`no-print container-paper px-4 py-2 ${containerClassName}`}>
           <div className="flex justify-center">
             <ResponsiveAdFitBanner
               position="페이지 상단"
@@ -80,9 +84,9 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
         {children}
       </main>
 
-      {/* Bottom Advertisement */}
+      {/* Bottom Advertisement (인쇄 제외) */}
       {showBottomAd && (
-        <div className={`container-paper px-4 py-3 ${containerClassName}`}>
+        <div className={`no-print container-paper px-4 py-3 ${containerClassName}`}>
           <div className="flex justify-center px-2">
             {(() => {
               const adUnit = getAdUnit("MOBILE_BANNER");
@@ -98,12 +102,12 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
         </div>
       )}
 
-      {/* Footer */}
+      {/* Footer (인쇄 제외) */}
       {showFooter && (
-        <>
+        <div className="no-print">
           <div className="border-t border-ink-soft dark:border-gray-700"></div>
           <HomeFooter />
-        </>
+        </div>
       )}
     </div>
   );
