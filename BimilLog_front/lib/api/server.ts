@@ -79,11 +79,13 @@ export async function getBoardInitialData(size = 20) {
 }
 
 // 검색 결과 초기 데이터 조회 (SSR)
+// F-BUG-2 (round-6): 클라이언트 useInfinitePostList({pageSize: 20}) 와 일치시켜
+// SSR/CSR 페이지 표시 건수/totalPages 정합 보장.
 export async function getSearchInitialData(
   type: 'TITLE' | 'TITLE_CONTENT' | 'WRITER',
   query: string,
   page = 0,
-  size = 30
+  size = 20
 ) {
   const [searchResults, realtimePosts] = await Promise.all([
     searchPostsServer(type, query, page, size),
@@ -107,7 +109,7 @@ export async function searchPostsServer(
   type: 'TITLE' | 'TITLE_CONTENT' | 'WRITER',
   query: string,
   page = 0,
-  size = 30
+  size = 20
 ) {
   return serverFetch<ApiResponse<PageResponse<SimplePost>>>(
     `/api/post/search?type=${type}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`

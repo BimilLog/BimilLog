@@ -1,7 +1,8 @@
 "use client";
 
-import { memo, useState, useCallback } from "react";
-import { Input, Button, Card } from "@/components";
+import { memo, useState, useCallback, useId, useRef } from "react";
+import { Button, Card } from "@/components";
+import { cn } from "@/lib/utils";
 import { Dropdown, DropdownItem, Spinner } from "flowbite-react";
 import { Search, ChevronDown, X, Edit, AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +29,13 @@ interface BoardSearchProps {
   isSearchFetching?: boolean;
 }
 
+/**
+ * 라운드 6 회귀 적용 (round-5 visit/SearchSection 패턴):
+ * - <form role="search"> 로 검색 영역 landmark 부여 (WAI-ARIA)
+ * - sr-only label + aria-describedby 로 스크린리더 컨텍스트 제공
+ * - 모바일 focus 시 scrollIntoView({block:'center'}) — 가상 키보드/스티키 헤더 가림 방지 (F-BUG-7)
+ * - 결과 카운트 영역 aria-live="polite" 로 검색 직후 announce (F-401)
+ */
 export const BoardSearch = memo(({
   searchTerm,
   setSearchTerm,
@@ -41,11 +49,28 @@ export const BoardSearch = memo(({
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const [showAnonymousModal, setShowAnonymousModal] = useState(false);
+  const inputId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // 검색 실행 핸들러: 빈 입력도 허용 (일반 목록 복귀)
   const executeSearch = useCallback(() => {
     handleSearch();
   }, [handleSearch]);
+
+  // 폼 submit 핸들러 (Enter, 검색 버튼 공통 경로)
+  const handleSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    executeSearch();
+  }, [executeSearch]);
+
+  // F-BUG-7 (round-6): 모바일 가상 키보드가 올라올 때 input 영역이 가려지지 않도록
+  // viewport 변경 후 스크롤 (visit 라운드 5 SearchSection 동일 패턴)
+  const handleFocus = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.setTimeout(() => {
+      inputRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 250);
+  }, []);
 
   // 검색 타입별 동적 placeholder
   const getPlaceholder = () => {
@@ -85,7 +110,7 @@ export const BoardSearch = memo(({
       : searchType === "TITLE_CONTENT"
         ? "제목+내용"
         : searchType === "WRITER"
-          ? "작성자"
+          ? "작성자명"
           : "제목";
 
   return (
@@ -94,6 +119,14 @@ export const BoardSearch = memo(({
         variant="default"
         className="mb-6 p-4 bg-paper-card border border-ink-soft backdrop-blur-none dark:bg-slate-900/70 dark:text-gray-100"
       >
+        <form
+          role="search"
+          aria-label="게시판 검색"
+          onSubmit={handleSubmit}
+        >
+          <label htmlFor={inputId} className="sr-only">
+            게시판 검색 (제목, 제목+내용, 작성자명)
+          </label>
         <div
           data-testid="board-search-row"
           className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4"
@@ -105,6 +138,7 @@ export const BoardSearch = memo(({
               dismissOnClick={true}
               renderTrigger={() => (
                 <button
+                  type="button"
                   aria-label="검색 유형 선택"
                   className="flex w-full items-center justify-between rounded-lg border border-border bg-card px-4 py-3 min-h-[44px] text-sm text-foreground hover:bg-accent transition-colors"
                 >
@@ -117,7 +151,7 @@ export const BoardSearch = memo(({
               <DropdownItem onClick={() => setSearchType("TITLE_CONTENT")}>
                 제목+내용
               </DropdownItem>
-              <DropdownItem onClick={() => setSearchType("WRITER")}>작성자</DropdownItem>
+              <DropdownItem onClick={() => setSearchType("WRITER")}>작성자명</DropdownItem>
             </Dropdown>
           </div>
 
@@ -131,8 +165,9 @@ export const BoardSearch = memo(({
                   dismissOnClick={true}
                   renderTrigger={() => (
                     <button
+                      type="button"
                       aria-label="검색 유형 선택"
-                      className="flex items-center justify-between w-[120px] px-3 py-2 border-0 rounded-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-gray-50 hover:bg-gray-100 border-r border-border text-sm text-foreground dark:bg-slate-900 dark:hover:bg-slate-800"
+                      className="flex items-center justify-between w-[120px] px-3 py-2 border-0 rounded-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-paper-aged/60 hover:bg-paper-aged border-r border-border text-sm text-foreground dark:bg-slate-900 dark:hover:bg-slate-800"
                     >
                       <span>{typeLabel}</span>
                       <ChevronDown className="w-4 h-4 stroke-muted-foreground" />
@@ -144,17 +179,29 @@ export const BoardSearch = memo(({
                     제목+내용
                   </DropdownItem>
                   <DropdownItem onClick={() => setSearchType("WRITER")}>
-                    작성자
+                    작성자명
                   </DropdownItem>
                 </Dropdown>
               </div>
 
-              <Input
-                type="text"
+              <input
+                id={inputId}
+                ref={inputRef}
+                type="search"
+                data-testid="search-input"
                 placeholder={getPlaceholder()}
-                className="flex-1 border-0 rounded-none bg-transparent text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                className={cn(
+                  "flex-1 border-0 rounded-none bg-transparent text-foreground placeholder:text-muted-foreground",
+                  "px-3 py-2 text-base outline-none min-w-0 w-full",
+                  "focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
+                  // round-6 iter-2 NEEDS_FIX-1: native WebKit clear button 비활성화
+                  // (사용자 정의 X 버튼과 중복 노출 방지) — type="search" 의 시맨틱 유지
+                  "[&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-cancel-button]:hidden",
+                  "[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-decoration]:hidden"
+                )}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={handleFocus}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
@@ -163,6 +210,11 @@ export const BoardSearch = memo(({
                     handleSearch(currentValue);
                   }
                 }}
+                aria-label="검색어"
+                aria-describedby={`${inputId}-hint`}
+                autoComplete="off"
+                enterKeyHint="search"
+                inputMode="search"
               />
 
               {/* 검색 중 spinner */}
@@ -178,6 +230,7 @@ export const BoardSearch = memo(({
 
               {searchTerm && (
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => {
@@ -191,10 +244,10 @@ export const BoardSearch = memo(({
                 </Button>
               )}
               <Button
+                type="submit"
                 variant="ghost"
                 size="icon"
-                onClick={executeSearch}
-                aria-label="검색"
+                aria-label="검색 실행"
                 className="border-0 rounded-none border-l border-border hover:bg-stamp-red/10"
               >
                 <Search className="w-5 h-5 stroke-stamp-red fill-paper-100" />
@@ -218,15 +271,23 @@ export const BoardSearch = memo(({
           </div>
         </div>
 
-        {/* 검색 결과 카운트 (A-2) */}
+        {/* sr-only hint (입력 도움말) */}
+        <p id={`${inputId}-hint`} className="sr-only">
+          입력 후 Enter 키 또는 검색 버튼으로 검색합니다. 좌측 드롭다운으로 검색 유형(제목, 제목+내용, 작성자명)을 변경할 수 있어요.
+        </p>
+
+        {/* 검색 결과 카운트 (A-2) — F-401: aria-live 로 검색 직후 announce */}
         {isSearching && typeof totalElements === "number" && (
           <div
             data-testid="search-result-count"
             className="mt-3 text-sm text-muted-foreground"
+            aria-live="polite"
+            aria-atomic="true"
           >
-            총 <strong className="text-foreground">{totalElements}건</strong>의 결과
+            총 <strong className="text-foreground">{totalElements.toLocaleString()}건</strong>의 결과
           </div>
         )}
+        </form>
       </Card>
 
       {/* 비로그인 글쓰기 안내 모달 (A-5) */}

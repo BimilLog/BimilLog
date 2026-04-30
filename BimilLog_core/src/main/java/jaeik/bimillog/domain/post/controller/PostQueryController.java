@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -98,7 +100,7 @@ public class PostQueryController {
          logExecutionTime = true,
          logResult = false)
     public ResponseEntity<Page<PostSimpleDetail>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
-                                                          Pageable pageable,
+                                                          @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         Page<PostSimpleDetail> postList = postSearchService.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable, memberId);

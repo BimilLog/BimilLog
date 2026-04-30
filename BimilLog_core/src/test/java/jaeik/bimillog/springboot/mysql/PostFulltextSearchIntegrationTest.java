@@ -201,7 +201,7 @@ class PostFulltextSearchIntegrationTest {
     }
 
     @Test
-    @DisplayName("엣지 케이스 - 2글자 검색어 (3글자 미만 → LIKE 부분검색 폴백)")
+    @DisplayName("엣지 케이스 - 2글자 검색어 (ngram token_size=2 활용 가능)")
     void shouldFallbackToPartialMatch_WhenTwoCharacterQuery() {
         PostQueryType searchType = PostQueryType.TITLE;
         String query = "자바";
@@ -212,5 +212,55 @@ class PostFulltextSearchIntegrationTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
         assertThat(result.getContent()).anyMatch(post -> post.getTitle().contains("자바"));
+    }
+
+    // ==================== F-BUG-5 회귀: 한글 임의 위치 부분어 매칭 ====================
+
+    @Test
+    @DisplayName("F-BUG-5: 제목 중간 어절 부분어 검색 - 'ngram NATURAL LANGUAGE MODE'로 매칭 가능")
+    void shouldMatchMiddleSubstring_WhenTitleFullText() {
+        // Given: 제목에 '프로그래밍' 어절이 중간에 위치한 게시글이 createTestPosts() 에 이미 존재
+        //   "자바 프로그래밍 기초" / "스프링 부트 완벽 가이드" / "백엔드 개발 입문" / "Java Programming Tutorial"
+        // 사용자가 '프로그래' (제목 중간 어절의 부분 + 토큰 경계 걸침) 로 검색.
+        // BOOLEAN MODE prefix("프로그래*") 로는 "자바 프로그래밍 기초" 의 ngram 시퀀스 '자바'/'바 '/' 프'/'프로'... 중에서 '프로그래' 시작점이 매칭되어야 하는데
+        // 단어 prefix 로 인식되어 한글 부분어가 누락될 수 있음.
+        // NATURAL LANGUAGE MODE 는 '프로'/'로그'/'그래' 토큰 매칭으로 자연스럽게 hit.
+        PostQueryType searchType = PostQueryType.TITLE_CONTENT;
+        String query = "프로그래";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<PostSimpleDetail> result = postSearchService.searchPost(searchType, query, pageable, null);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent())
+                .as("F-BUG-5: NATURAL LANGUAGE MODE 로 한글 임의 위치 부분어 검색이 가능해야 한다")
+                .anyMatch(post -> post.getTitle().contains("프로그래"));
+    }
+
+    @Test
+    @DisplayName("F-BUG-5: WRITER 4글자 이상도 Containing(부분일치) 로 검색 - prefix-only 정책 폐기")
+    void shouldMatchWriterByContaining_WhenWriterQueryFourChars() {
+        // Given: testMember.getMemberName() 로 작성된 게시글이 4건 존재.
+        // 작성자 닉네임의 중간 부분 4글자 이상으로 검색해도 결과가 나와야 한다.
+        // (이전: WRITER + 4글자 이상이면 startsWith 만 사용되어 닉네임 prefix 가 다르면 0건)
+        PostQueryType searchType = PostQueryType.WRITER;
+        String memberName = testMember.getMemberName();
+        // 닉네임 길이가 4글자 미만이면 테스트 의미 약화 — 안전하게 닉네임 끝부분 부분어 사용
+        String query = memberName.length() >= 4
+                ? memberName.substring(memberName.length() - 4)
+                : memberName;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<PostSimpleDetail> result = postSearchService.searchPost(searchType, query, pageable, null);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent())
+                .as("F-BUG-5: WRITER 4글자 이상도 Containing 으로 작성자 닉네임의 임의 위치 부분 검색이 가능해야 한다")
+                .isNotEmpty();
+        assertThat(result.getContent()).allMatch(post -> post.getMemberName().contains(query));
     }
 }

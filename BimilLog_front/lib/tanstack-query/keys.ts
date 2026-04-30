@@ -34,7 +34,10 @@ export const queryKeys = {
     infiniteList: () => [...queryKeys.post.all, 'infinite'] as const, // 커서 기반 무한 스크롤용
     details: () => [...queryKeys.post.all, 'detail'] as const,
     detail: (postId: number) => [...queryKeys.post.details(), postId] as const,
-    search: (query: string, page?: number) => [...queryKeys.post.all, 'search', query, page] as const,
+    // F-BUG-1 (round-6): searchType 누락 시 type 토글 시 stale 캐시 hit → race condition.
+    // type 을 키에 포함시켜 type 별 캐시 분리.
+    search: (query: string, type: string, page?: number) =>
+      [...queryKeys.post.all, 'search', query, type, page] as const,
     realtimePopular: (params?: { page?: number; size?: number }) => [...queryKeys.post.all, 'popular', 'realtime', params] as const,
     weeklyPopular: (params?: { page?: number; size?: number }) => [...queryKeys.post.all, 'popular', 'weekly', params] as const,
     legend: (filters?: Record<string, string | number | boolean | null | undefined>) => [...queryKeys.post.all, 'legend', filters] as const,

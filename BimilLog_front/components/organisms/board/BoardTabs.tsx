@@ -95,6 +95,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
   }, [activeTab, isSearching, posts.length]);
 
   // 탭 스타일 커스터마이징 - 가로 배치를 위한 수정
+  // 라운드 6 (F-207): paper/ink/postal-navy 토큰 일관 적용 (편지/우편 메타포)
   const tabsTheme = {
     base: "flex flex-col gap-2",
     tablist: {
@@ -106,34 +107,34 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
         fullWidth: "grid w-full grid-cols-4 divide-x divide-border rounded-lg shadow-sm border border-border"
       },
       tabitem: {
-        base: "flex items-center justify-center p-4 text-sm font-medium first:ml-0 focus:outline-none disabled:cursor-not-allowed disabled:text-gray-400 disabled:dark:text-gray-500",
+        base: "flex items-center justify-center p-4 text-sm font-medium first:ml-0 focus:outline-none disabled:cursor-not-allowed disabled:text-muted-foreground/50",
         variant: {
           default: {
             base: "rounded-t-lg",
             active: {
-              on: "bg-gray-100 text-primary-600 dark:bg-gray-800 dark:text-primary-500",
-              off: "text-gray-500 hover:bg-gray-50 hover:text-gray-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+              on: "bg-accent text-postal-navy dark:bg-slate-800 dark:text-stamp-red",
+              off: "text-muted-foreground hover:bg-accent hover:text-foreground"
             }
           },
           underline: {
             base: "rounded-t-lg",
             active: {
-              on: "rounded-t-lg border-b-2 border-primary-600 text-primary-600 dark:border-primary-500 dark:text-primary-500",
-              off: "border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+              on: "rounded-t-lg border-b-2 border-postal-navy text-postal-navy dark:border-stamp-red dark:text-stamp-red",
+              off: "border-b-2 border-transparent text-muted-foreground hover:border-border hover:text-foreground"
             }
           },
           pills: {
             base: "",
             active: {
-              on: "rounded-lg bg-primary-600 text-white",
-              off: "rounded-lg hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
+              on: "rounded-lg bg-postal-navy text-paper-50",
+              off: "rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
             }
           },
           fullWidth: {
             base: "flex-1 rounded-none first:rounded-l-lg last:rounded-r-lg border-b-2 border-transparent",
             active: {
-              on: "bg-paper-50 text-stamp-red border-b-2 border-stamp-red dark:bg-gray-700 dark:text-stamp-red",
-              off: "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              on: "bg-paper-50 text-stamp-red border-b-2 border-stamp-red dark:bg-slate-800 dark:text-stamp-red",
+              off: "bg-paper-aged/40 text-muted-foreground hover:bg-paper-aged/70 hover:text-foreground dark:bg-slate-900/60 dark:hover:bg-slate-800 dark:hover:text-foreground"
             }
           }
         },
@@ -154,7 +155,12 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
       >
         <TabItem
           active={activeTab === "all"}
-          title="전체 게시판"
+          title={
+            <span className="whitespace-nowrap break-keep">
+              <span className="hidden sm:inline">전체 게시판</span>
+              <span className="sm:hidden">전체</span>
+            </span>
+          }
         >
           <Card variant="elevated">
             <CardHeader>
@@ -167,13 +173,15 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
             </CardHeader>
             <CardContent className="p-0">
               <div className="space-y-4">
-                <NoticeList posts={noticePosts} />
+                {/* F-BUG-8 (round-6): 검색 모드에서는 NoticeList 시각적 부조화 → 숨김 */}
+                {!isSearching && <NoticeList posts={noticePosts} />}
                 <BoardTable
                   posts={posts}
                   variant="all"
                   isLoading={isLoading}
                   error={error}
                   isSearching={isSearching}
+                  searchTerm={searchTerm}
                 />
               </div>
             </CardContent>
@@ -181,7 +189,12 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
         </TabItem>
         <TabItem
           active={activeTab === "realtime"}
-          title="실시간 인기글"
+          title={
+            <span className="whitespace-nowrap break-keep">
+              <span className="hidden sm:inline">실시간 인기글</span>
+              <span className="sm:hidden">실시간</span>
+            </span>
+          }
         >
           <Card variant="elevated">
             <CardHeader>
@@ -202,7 +215,12 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
         </TabItem>
         <TabItem
           active={activeTab === "popular"}
-          title="주간 인기글"
+          title={
+            <span className="whitespace-nowrap break-keep">
+              <span className="hidden sm:inline">주간 인기글</span>
+              <span className="sm:hidden">주간</span>
+            </span>
+          }
         >
           <Card variant="elevated">
             <CardHeader>
@@ -223,7 +241,12 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
         </TabItem>
         <TabItem
           active={activeTab === "legend"}
-          title="명예의 전당"
+          title={
+            <span className="whitespace-nowrap break-keep">
+              <span className="hidden sm:inline">명예의 전당</span>
+              <span className="sm:hidden">명예</span>
+            </span>
+          }
         >
           <Card variant="elevated">
             <CardHeader>

@@ -1,15 +1,18 @@
 package jaeik.bimillog.domain.post.repository;
 
+import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.core.types.Projections;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.entity.jpa.Post;
 import jaeik.bimillog.domain.post.entity.jpa.QPost;
 import jaeik.bimillog.domain.post.entity.jpa.QPostLike;
 import jaeik.bimillog.domain.post.service.PostQueryService;
@@ -18,12 +21,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * <h2>게시글 조회 어댑터</h2>
@@ -33,7 +39,7 @@ import java.util.Objects;
  * <p>비정규화 컬럼(likeCount, commentCount, memberName) 직접 참조</p>
  *
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.8.0
  */
 @Slf4j
 @Repository
@@ -64,12 +70,17 @@ public class PostQueryRepository {
 
     /**
      * <h3>PostSimpleDetail 공통 조회</h3>
+     * <p>Pageable.sort 가 비어있지 않으면 sort 를 우선 적용하고, 비어있으면 fallback orders 를 사용합니다.</p>
+     * <p>지원 정렬 필드: id, createdAt, modifiedAt, views, likeCount, commentCount.</p>
+     * <p>지원하지 않는 필드가 sort 에 포함되면 무시됩니다 (잘못된 입력 방어).</p>
      */
     @Transactional(readOnly = true)
     public Page<PostSimpleDetail> selectPostSimpleDetails(BooleanExpression condition, Pageable pageable, OrderSpecifier<?>... orders) {
+        OrderSpecifier<?>[] effectiveOrders = resolveOrders(pageable.getSort(), orders);
+
         List<PostSimpleDetail> content = postSimpleDetailQuery()
                 .where(condition)
-                .orderBy(orders)
+                .orderBy(effectiveOrders)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -81,6 +92,33 @@ public class PostQueryRepository {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * Pageable.sort → OrderSpecifier[] 변환. 비어있거나 지원 필드가 하나도 없으면 fallback 사용.
+     */
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "id", "createdAt", "modifiedAt", "views", "likeCount", "commentCount"
+    );
+
+    private OrderSpecifier<?>[] resolveOrders(Sort sort, OrderSpecifier<?>[] fallback) {
+        if (sort == null || sort.isUnsorted()) {
+            return fallback;
+        }
+        PathBuilder<Post> path = new PathBuilder<>(Post.class, post.getMetadata());
+        List<OrderSpecifier<?>> result = new ArrayList<>();
+        for (Sort.Order order : sort) {
+            String property = order.getProperty();
+            if (!ALLOWED_SORT_FIELDS.contains(property)) {
+                continue;
+            }
+            Order direction = order.isAscending() ? Order.ASC : Order.DESC;
+            result.add(new OrderSpecifier<>(direction, path.getComparable(property, Comparable.class)));
+        }
+        if (result.isEmpty()) {
+            return fallback;
+        }
+        return result.toArray(new OrderSpecifier<?>[0]);
     }
 
     /**

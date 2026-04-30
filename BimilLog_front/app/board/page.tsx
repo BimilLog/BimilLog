@@ -135,8 +135,10 @@ export default async function BoardPage({ searchParams }: Props) {
 
   // SSR: 서버에서 초기 데이터 fetch (내부 통신)
   // 검색 쿼리가 있으면 검색 결과 (offset 기반), 없으면 일반 목록 (cursor 기반)
+  // F-BUG-2 (round-6): SSR/CSR pageSize 모두 20 으로 통일
+  // F-BUG-3 (round-6): URL ?page= 의 0-based 변환값을 initialPage 로 함께 전달
   const initialData = query
-    ? await getSearchInitialData(searchType, query, page, 20)
+    ? { ...(await getSearchInitialData(searchType, query, page, 20)), initialPage: page }
     : await getBoardInitialData(20);  // cursor 기반은 page 파라미터 불필요
 
   // 검색 결과 페이지인 경우 구조화된 데이터 추가

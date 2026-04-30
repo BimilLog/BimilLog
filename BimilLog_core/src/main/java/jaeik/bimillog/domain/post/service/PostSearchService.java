@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -38,9 +37,9 @@ public class PostSearchService {
      * <p>검색 조건에 따라 최적의 검색 전략을 선택하여 게시글을 검색합니다.</p>
      * <p>검색 전략:</p>
      * <ul>
-     *     <li>3글자 이상 + WRITER 아님 → 전문검색 시도 (실패 시 부분검색)</li>
-     *     <li>WRITER + 4글자 이상 → 접두사 검색 (인덱스 활용)</li>
-     *     <li>그 외 → 부분 검색</li>
+     *     <li>2글자 이상 + WRITER 아님 → ngram 전문검색 (NATURAL LANGUAGE MODE) 시도, 실패 시 부분 검색 폴백</li>
+     *     <li>WRITER → 부분 검색 (LIKE %query%) — 라운드 5 멤버 검색 정책과 일관 (4글자 prefix 정책 폐기)</li>
+     *     <li>그 외 (1글자) → 부분 검색</li>
      * </ul>
      * <p>{@link PostQueryController}에서 검색 요청 시 호출됩니다.</p>
      *
@@ -52,20 +51,23 @@ public class PostSearchService {
     public Page<PostSimpleDetail> searchPost(PostQueryType type, String query, Pageable pageable, Long memberId) {
         Page<PostSimpleDetail> posts;
 
-        // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
-        if (query.length() >= 3 && type != PostQueryType.WRITER) {
+        // 전략 1: 2글자 이상 + 작성자 검색 아님 → ngram 전문 검색 시도 (token_size=2 기준)
+        // ngram parser 가 토큰화하는 최소 단위가 2글자이므로 2글자부터 FTS 활용 가능.
+        if (query.length() >= 2 && type != PostQueryType.WRITER) {
             Page<Object[]> rawResult = findByFullTextSearch(type, query, pageable, memberId);
             List<PostSimpleDetail> content = rawResult.stream()
                     .map(this::mapFullTextRow)
                     .collect(Collectors.toList());
 
-            posts = new PageImpl<>(content, rawResult.getPageable(), rawResult.getTotalElements());
+            // FTS 결과가 0건이면 LIKE %% 부분 검색으로 폴백 (드문 케이스: 조사/특수문자 토큰 경계 이슈)
+            if (rawResult.isEmpty()) {
+                posts = postQueryRepository.selectPostSimpleDetails(type.partialCondition(query), pageable, type.getOrders());
+            } else {
+                posts = new PageImpl<>(content, rawResult.getPageable(), rawResult.getTotalElements());
+            }
         }
-        // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
-        else if (type == PostQueryType.WRITER && query.length() >= 4) {
-            posts = postQueryRepository.selectPostSimpleDetails(type.prefixCondition(query), pageable, type.getOrders());
-        }
-        // 전략 3: 그 외 → 부분 검색
+        // 전략 2: WRITER 또는 1글자 → 부분 검색 (LIKE %query%)
+        // WRITER 4글자 prefix-only 정책 폐기. 라운드 5 멤버 검색 결정과 일관.
         else {
             posts = postQueryRepository.selectPostSimpleDetails(type.partialCondition(query), pageable, type.getOrders());
         }
@@ -82,17 +84,22 @@ public class PostSearchService {
                 posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));
     }
 
+    /**
+     * <h3>FULLTEXT 검색 (NATURAL LANGUAGE MODE)</h3>
+     * <p>ngram parser(token_size=2) 토큰 매칭으로 한글 임의 위치 부분어 검색을 지원합니다.</p>
+     * <p>BOOLEAN MODE prefix(`query+"*"`) 는 토큰 시퀀스의 시작점만 매치하여 한글 부분어 누락이 발생합니다.</p>
+     * <p>NATURAL LANGUAGE MODE 는 ngram 토큰을 그대로 매칭하므로 부분어 검색이 자연스럽습니다.</p>
+     */
     private Page<Object[]> findByFullTextSearch(PostQueryType type, String query, Pageable pageable, Long viewerId) {
-        String searchTerm = query + "*";
         try {
             List<Object[]> rows;
             long total;
             if (type == PostQueryType.TITLE) {
-                rows = postFulltextRepository.findByTitleFullText(searchTerm, pageable, viewerId);
-                total = postFulltextRepository.countByTitleFullText(searchTerm, viewerId);
+                rows = postFulltextRepository.findByTitleFullText(query, pageable, viewerId);
+                total = postFulltextRepository.countByTitleFullText(query, viewerId);
             } else if (type == PostQueryType.TITLE_CONTENT) {
-                rows = postFulltextRepository.findByTitleContentFullText(searchTerm, pageable, viewerId);
-                total = postFulltextRepository.countByTitleContentFullText(searchTerm, viewerId);
+                rows = postFulltextRepository.findByTitleContentFullText(query, pageable, viewerId);
+                total = postFulltextRepository.countByTitleContentFullText(query, viewerId);
             } else {
                 throw new IllegalArgumentException("지원하지 않는 검색 타입: " + type);
             }
