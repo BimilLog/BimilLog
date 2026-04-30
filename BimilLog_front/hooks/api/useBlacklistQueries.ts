@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { blacklistQuery } from '@/lib/api/user/blacklist/query';
+import { queryKeys } from '@/lib/tanstack-query/keys';
 
 /**
  * 블랙리스트 조회 hooks
@@ -9,13 +10,18 @@ import { blacklistQuery } from '@/lib/api/user/blacklist/query';
 
 /**
  * 블랙리스트 목록 조회 (페이징)
+ *
+ * 라운드 15 F-15-BUG-1/2: queryKey 를 queryKeys.blacklist.list 로 통일.
+ * 이전: ['user', 'blacklist', page, size] → invalidate(queryKeys.blacklist.all) 가
+ * 미적용되던 mismatch 였음.
+ *
  * @param page - 페이지 번호 (0부터 시작)
  * @param size - 페이지 크기
  * @param enabled - API 호출 활성화 여부 (기본값: true)
  */
 export const useBlacklist = (page = 0, size = 20, enabled: boolean = true) => {
   return useQuery({
-    queryKey: ['user', 'blacklist', page, size],
+    queryKey: queryKeys.blacklist.list(page, size),
     queryFn: () => blacklistQuery.getBlacklist(page, size),
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분

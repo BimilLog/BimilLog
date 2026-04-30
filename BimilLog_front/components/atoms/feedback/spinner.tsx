@@ -8,6 +8,8 @@ interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
   message?: string;
   icon?: "spinner" | "refresh" | "star" | "loader" | "heart" | "sparkles" | "coffee" | "moon" | "sun" | "zap" | "smile";
   animation?: "spin" | "bounce" | "pulse" | "wiggle" | "float" | "heart-beat";
+  // 라운드 13/15: Flowbite Spinner color prop 노출 (failure = stamp-red 톤)
+  color?: "info" | "success" | "failure" | "warning" | "pink" | "purple" | "blue" | "gray";
 }
 
 export const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
@@ -15,12 +17,13 @@ export const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
     size = "xl",
     message,
     className,
+    color = "pink",
     ...props
   }, ref) => {
     return (
       <div ref={ref} className={cn("flex flex-col items-center justify-center", className)} {...props}>
         <FlowbiteSpinner
-          color="pink"
+          color={color}
           size={size}
           aria-label={message || "Loading..."}
         />
