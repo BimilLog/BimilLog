@@ -9,8 +9,12 @@ interface CommentSectionProps {
   postId: number;
   comments: (Comment & { replies?: Comment[] })[];
   popularComments: Comment[];
+  /** 현재 로드된 댓글 총 개수 (재귀, 답글 포함) — CardTitle 보조 정보. */
   commentCount: number;
+  /** 루트 댓글 개수 (현재 페이지 기준). */
   rootCommentCount: number;
+  /** 서버가 알려준 게시글의 총 댓글 수 (라운드 8 B-8-010). */
+  totalCommentCount: number;
   isAuthenticated: boolean;
 
   // Pagination props
@@ -19,7 +23,11 @@ interface CommentSectionProps {
 
   // CommentForm props
   isSubmittingComment: boolean;
-  onSubmitComment: (comment: string, password: string) => void;
+  onSubmitComment: (
+    comment: string,
+    password: string,
+    callbacks?: { onSuccess?: () => void; onError?: (error: string) => void }
+  ) => void;
 
   // 그룹화된 props
   handlers: CommentHandlers;
@@ -46,6 +54,7 @@ const CommentSection = memo(({
   popularComments,
   commentCount,
   rootCommentCount,
+  totalCommentCount,
   isAuthenticated,
 
   // Pagination
@@ -93,6 +102,7 @@ const CommentSection = memo(({
         comments={comments}
         commentCount={commentCount}
         rootCommentCount={rootCommentCount}
+        totalCommentCount={totalCommentCount}
         postId={postId}
         isAuthenticated={isAuthenticated}
         isSubmittingReply={isSubmittingReply}

@@ -48,20 +48,20 @@ export const TimeBadge: React.FC<TimeBadgeProps> = React.memo(({
     return "gray"; // 절대 날짜의 경우 기본 gray
   };
 
-  // 팝오버 콘텐츠
+  // 팝오버 콘텐츠 — 라운드 8: ink/paper 다크 토큰 통일
   const popoverContent = (
     <div className="p-3 space-y-2 min-w-[200px]">
-      <div className="flex items-center gap-2 text-gray-800">
-        <Calendar className="w-4 h-4 stroke-stamp-red fill-stamp-red/10" />
-        <span className="text-sm font-medium">{exactDate}</span>
+      <div className="flex items-center gap-2 text-ink dark:text-paper-50">
+        <Calendar className="w-4 h-4 stroke-stamp-red fill-stamp-red/10" aria-hidden="true" />
+        <span className="text-sm font-medium break-keep">{exactDate}</span>
       </div>
-      <div className="flex items-center gap-2 text-gray-600">
-        <Timer className="w-4 h-4 stroke-orange-600 fill-orange-100" />
+      <div className="flex items-center gap-2 text-ink-soft dark:text-paper-200">
+        <Timer className="w-4 h-4 stroke-seal-gold fill-seal-gold/10" aria-hidden="true" />
         <span className="text-sm">{exactTime}</span>
       </div>
-      <div className="pt-2 border-t border-gray-200">
-        <div className="flex items-center gap-2 text-gray-500">
-          <Clock className="w-3 h-3 stroke-gray-500 fill-gray-100" />
+      <div className="pt-2 border-t border-paper-200 dark:border-postal-navy/40">
+        <div className="flex items-center gap-2 text-ink-muted dark:text-paper-200/80">
+          <Clock className="w-3 h-3 stroke-ink-muted" aria-hidden="true" />
           <span className="text-xs">{relativeTime}</span>
         </div>
       </div>

@@ -34,38 +34,45 @@ export function useReadingProgress(options: UseReadingProgressOptions = {}) {
 
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastScrollPosition = useRef<number>(0);
+  // 라운드 8 B-8-012: rAF 기반 throttle — 매 픽셀 setProgress 회피.
+  const rafIdRef = useRef<number | null>(null);
 
-  // 스크롤 핸들러
+  // 스크롤 핸들러 (rAF throttle)
   const handleScroll = useCallback(() => {
     if (!postId || !autoTrack) return;
+    if (rafIdRef.current !== null) return; // 이미 다음 프레임 예약됨
 
-    const scrollPosition = window.scrollY;
-    const totalHeight = document.documentElement.scrollHeight;
-    const viewportHeight = window.innerHeight;
+    rafIdRef.current = window.requestAnimationFrame(() => {
+      rafIdRef.current = null;
 
-    // 진행률 계산
-    const currentProgress = Math.min(
-      100,
-      ((scrollPosition + viewportHeight) / totalHeight) * 100
-    );
+      const scrollPosition = window.scrollY;
+      const totalHeight = document.documentElement.scrollHeight;
+      const viewportHeight = window.innerHeight;
 
-    setProgress(currentProgress);
+      // 진행률 계산
+      const currentProgress = Math.min(
+        100,
+        ((scrollPosition + viewportHeight) / totalHeight) * 100
+      );
 
-    // 디바운스된 저장
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
+      setProgress(currentProgress);
 
-    scrollTimeoutRef.current = setTimeout(() => {
-      saveReadingProgress(postId, scrollPosition, totalHeight);
-
-      // 읽음 상태 업데이트
-      if (currentProgress >= 90) {
-        setIsRead(true);
+      // 디바운스된 저장
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
-    }, 500);
 
-    lastScrollPosition.current = scrollPosition;
+      scrollTimeoutRef.current = setTimeout(() => {
+        saveReadingProgress(postId, scrollPosition, totalHeight);
+
+        // 읽음 상태 업데이트
+        if (currentProgress >= 90) {
+          setIsRead(true);
+        }
+      }, 500);
+
+      lastScrollPosition.current = scrollPosition;
+    });
   }, [postId, autoTrack]);
 
   // 초기 데이터 로드
@@ -137,6 +144,10 @@ export function useReadingProgress(options: UseReadingProgressOptions = {}) {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
     };
   }, [postId, autoTrack, handleScroll, handleVisibilityChange]);
 
@@ -189,7 +200,10 @@ export function usePostReadStatus(postIds: number[]) {
       const hasChanged = JSON.stringify(prevStatus) !== JSON.stringify(status);
       return hasChanged ? status : prevStatus;
     });
-  }, [JSON.stringify(postIds)]); // postIds를 문자열로 변환하여 깊은 비교
+    // postIds 배열 자체가 바뀌더라도 내용이 동일하면 무한 setState 를 막기 위해
+    // 의도적으로 JSON.stringify 결과를 deps 로 사용한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(postIds)]);
 
   return { readStatus };
 }

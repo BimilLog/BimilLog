@@ -5,11 +5,12 @@ import { ThumbsUp, MessageSquare, Flag, User, ExternalLink } from "lucide-react"
 import { Comment } from "@/lib/api";
 import { Button as FlowbiteButton } from "flowbite-react";
 import { useAuth } from "@/hooks";
-import React from "react";
+import React, { useState } from "react";
 import { useToast } from "@/hooks";
 import { Popover } from "flowbite-react";
 import Link from "next/link";
 import { submitReportAction } from "@/lib/actions/user";
+import { LazyReportModal } from "@/lib/utils/lazy-components";
 
 interface PopularCommentItemProps {
   comment: Comment;
@@ -26,12 +27,14 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
 }) => {
   const { user, isAuthenticated } = useAuth();
   const { showError, showFeedback, showWarning } = useToast();
+  // 라운드 8 B-8-018: 자동 생성 사유 → LazyReportModal 로 사용자 입력 받도록 통일
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const isMyComment = (comment: Comment) => {
-    return user?.memberId === comment.memberId;
+    return !!user?.memberId && !!comment.memberId && user.memberId === comment.memberId;
   };
 
-  const handleReport = async () => {
+  const handleReport = async (reason: string) => {
     if (!isAuthenticated || !user) {
       showWarning("로그인 필요", "로그인이 필요한 기능입니다.");
       return;
@@ -41,7 +44,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
       const response = await submitReportAction({
         reportType: "COMMENT",
         targetId: comment.id,
-        content: `댓글 신고: ${comment.content.substring(0, 50)}...`,
+        content: reason,
         reporterId: user?.memberId ?? null,
         reporterName: user?.memberName ?? "익명",
       });
@@ -52,9 +55,10 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
           "검토 후 적절한 조치를 취하겠습니다. 신고해 주셔서 감사합니다.",
           {
             label: "확인",
-            onClick: () => {}
+            onClick: () => setIsReportModalOpen(false)
           }
         );
+        setIsReportModalOpen(false);
       } else {
         showError(
           "신고 실패",
@@ -69,10 +73,22 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
     }
   };
 
+  // 라운드 8 B-8-017: 키보드 접근성. div → role=button + Enter/Space 처리.
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onCommentClick(comment.id);
+    }
+  };
+
   return (
     <div
-      className="p-3 sm:p-4 rounded-lg border border-stamp-red/20 bg-paper-50/80 backdrop-blur-sm transition-all duration-200 cursor-pointer hover:bg-paper-50 hover:shadow-brand-md dark:border-stamp-red/30 dark:bg-slate-900/70 dark:hover:bg-slate-900/90"
+      role="button"
+      tabIndex={0}
+      aria-label={`인기 댓글: ${comment.memberName || "익명"} 작성, 원본으로 이동`}
+      className="p-3 sm:p-4 rounded-lg border border-stamp-red/20 bg-paper-50/80 backdrop-blur-sm transition-all duration-200 cursor-pointer hover:bg-paper-50 hover:shadow-brand-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stamp-red/60 focus-visible:ring-offset-2 dark:border-stamp-red/30 dark:bg-postal-navy/30 dark:hover:bg-postal-navy/40"
       onClick={() => onCommentClick(comment.id)}
+      onKeyDown={handleKeyDown}
     >
       {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
       <div className="flex items-center justify-between mb-3">
@@ -119,10 +135,10 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
 
       </div>
 
-      {/* 댓글 내용 */}
+      {/* 댓글 내용 — 라운드 8: prose dark + paper 토큰 */}
       <SafeHTML
         html={comment.content}
-        className="prose max-w-none prose-sm text-sm leading-relaxed text-brand-primary sm:text-base dark:text-gray-100"
+        className="prose dark:prose-invert max-w-none prose-sm text-sm leading-relaxed text-ink dark:text-paper-50 sm:text-base break-keep"
       />
 
       {/* 액션 버튼들 */}
@@ -156,28 +172,36 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
                   답글
                 </FlowbiteButton>
 
-                {/* 신고 버튼 (본인 댓글이 아닌 경우만) */}
+                {/* 신고 버튼 (본인 댓글이 아닌 경우만) — 라운드 8 B-8-018: LazyReportModal 사용 */}
                 {!isMyComment(comment) && !comment.deleted && (
                   <FlowbiteButton
                     size="xs"
                     color="red"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleReport();
+                      setIsReportModalOpen(true);
                     }}
                   >
-                    <Flag className="w-4 h-4 mr-2" />
+                    <Flag className="w-4 h-4 mr-2" aria-hidden="true" />
                     신고
                   </FlowbiteButton>
                 )}
               </div>
 
-      {/* 클릭 안내 */}
+      {/* 클릭 안내 — hover/focus underline affordance */}
       <div className="mt-3 border-t border-stamp-red/20 pt-2 dark:border-stamp-red/30">
-        <p className="flex items-center gap-1 text-xs font-medium text-postal-navy dark:text-paper-100">
+        <p className="flex items-center gap-1 text-xs font-medium text-postal-navy underline-offset-2 group-hover:underline dark:text-paper-100">
           원본 댓글로 이동하기
         </p>
       </div>
+
+      {/* 신고 모달 */}
+      <LazyReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onSubmit={handleReport}
+        type="댓글"
+      />
     </div>
   );
 }, (prevProps, nextProps) => {
@@ -187,7 +211,8 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
     prevProps.comment.content === nextProps.comment.content &&
     prevProps.comment.likeCount === nextProps.comment.likeCount &&
     prevProps.comment.userLike === nextProps.comment.userLike &&
-    prevProps.comment.deleted === nextProps.comment.deleted
+    prevProps.comment.deleted === nextProps.comment.deleted &&
+    prevProps.comment.memberId === nextProps.comment.memberId
   );
 });
 

@@ -69,7 +69,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
           )}
           <FeaturedBadges weekly={post.weekly} legend={post.legend} notice={post.notice} />
         </div>
-        <CardTitle className="text-xl md:text-2xl font-bold text-brand-primary leading-tight">
+        <CardTitle className="text-xl md:text-2xl font-bold text-brand-primary leading-tight break-keep">
           {post.title}
         </CardTitle>
       </div>
@@ -155,6 +155,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
     prevProps.post.title === nextProps.post.title &&
     prevProps.post.viewCount === nextProps.post.viewCount &&
     prevProps.post.likeCount === nextProps.post.likeCount &&
+    prevProps.post.commentCount === nextProps.post.commentCount &&
     prevProps.commentCount === nextProps.commentCount
   );
 });

@@ -14,7 +14,12 @@ export interface CommentWithReplies extends Comment {
 }
 
 /**
- * 댓글 트리 구조 빌드: parentId를 기반으로 평면 배열을 계층 구조로 변환
+ * 댓글 트리 구조 빌드: parentId를 기반으로 평면 배열을 계층 구조로 변환.
+ *
+ * 라운드 8 B-8-004: 무한 스크롤로 부모/자식이 다른 페이지에 분산될 수 있다.
+ *  - 부모가 아직 로드되지 않은 답글은 트리에서 사라지던 버그가 있었음.
+ *  - 이제는 "고아 답글"을 root 로 승격시켜 사용자에게 노출되도록 한다.
+ *    (시각적으로는 일반 댓글처럼 보이지만 사라지지 않는다.)
  */
 const buildCommentTree = (comments: Comment[]): CommentWithReplies[] => {
   const commentMap = new Map<number, CommentWithReplies>();
@@ -29,13 +34,15 @@ const buildCommentTree = (comments: Comment[]): CommentWithReplies[] => {
   comments.forEach((comment) => {
     // 클로저 테이블에서 루트 댓글은 parentId가 자기 자신을 가리키거나 null
     if (!comment.parentId || comment.parentId === comment.id) {
-      // parentId가 없거나 자기 자신을 가리키는 경우만 루트로 처리
       rootComments.push(commentMap.get(comment.id)!);
     } else if (commentMap.has(comment.parentId)) {
-      // parentId가 존재하고 부모 댓글이 Map에 있는 경우 자식으로 추가
       const parent = commentMap.get(comment.parentId)!;
       const child = commentMap.get(comment.id)!;
       parent.replies!.push(child);
+    } else {
+      // 라운드 8 B-8-004: 고아 댓글 — 부모가 다른 페이지에 있거나 누락.
+      // 사용자에게 보이도록 root 로 승격. 다음 페이지 fetch 시 invalidate 로 재정렬됨.
+      rootComments.push(commentMap.get(comment.id)!);
     }
   });
 

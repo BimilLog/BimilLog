@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Tooltip } from "flowbite-react";
-import { ThumbsUp, Flag } from "lucide-react";
+import { ThumbsUp, Flag, Loader2 } from "lucide-react";
 import { Post } from "@/lib/api";
 import { useAuth, useToast } from "@/hooks";
 import { memo, useState } from "react";
@@ -12,15 +12,19 @@ interface PostContentActionsProps {
   post: Post;
   isAuthenticated: boolean;
   onLike: () => void;
+  isLiking?: boolean;
 }
 
 export const PostContentActions: React.FC<PostContentActionsProps> = memo(({
   post,
   isAuthenticated,
   onLike,
+  isLiking = false,
 }) => {
   const { user } = useAuth();
-  const isOwnPost = user?.memberId === post.memberId;
+  // 라운드 8 B-8-009: 익명 글에서 user.memberId/post.memberId 둘 다 undefined 일 때
+  //   `undefined === undefined === true` 가 되어 본인 글로 오판하던 버그 수정.
+  const isOwnPost = !!user?.memberId && !!post.memberId && user.memberId === post.memberId;
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { showFeedback, showError } = useToast();
 
@@ -76,14 +80,23 @@ export const PostContentActions: React.FC<PostContentActionsProps> = memo(({
             </Button>
           </Tooltip>
         ) : (
+          /* 라운드 8 B-8-006: 옵티미스틱 진행 중 더블 클릭 방지 + 시각적 피드백 */
           <Button
             onClick={onLike}
             color={post.liked ? "blue" : "light"}
-            className={`transition-colors duration-200 ${post.liked ? 'ring-0 border-0' : ''}`}
+            disabled={isLiking}
+            aria-pressed={post.liked}
+            aria-busy={isLiking}
+            className={`transition-colors duration-200 ${post.liked ? 'ring-0 border-0' : ''} ${isLiking ? 'opacity-80 cursor-progress' : ''}`}
           >
-            <ThumbsUp
-              className={`w-4 h-4 mr-2 ${post.liked ? "stroke-blue-500 fill-blue-500" : "stroke-blue-500 fill-blue-100"}`}
-            />
+            {isLiking ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin stroke-blue-500" aria-hidden="true" />
+            ) : (
+              <ThumbsUp
+                className={`w-4 h-4 mr-2 ${post.liked ? "stroke-blue-500 fill-blue-500" : "stroke-blue-500 fill-blue-100"}`}
+                aria-hidden="true"
+              />
+            )}
             추천 {post.likeCount}
           </Button>
         )}
