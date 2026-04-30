@@ -20,8 +20,10 @@ function NaverCallbackContent() {
 
 export default function NaverCallbackPage() {
   return (
-    <Suspense fallback={<AuthLoadingScreen message="네이버 인증 처리 중..." />}>
-      <NaverCallbackContent />
-    </Suspense>
+    <div className="min-h-screen bg-paper-50 dark:bg-paper-50">
+      <Suspense fallback={<AuthLoadingScreen message="네이버 인증 처리 중..." screen="suspense-fallback" />}>
+        <NaverCallbackContent />
+      </Suspense>
+    </div>
   );
 }

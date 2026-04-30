@@ -8,6 +8,7 @@ export {
   dismissNewcomerOnboarding,
 } from './useWelcomeOnboarding';
 export { useGoodbyeFarewell } from './useGoodbyeFarewell';
+export { useRecoveredHint } from './useRecoveredHint';
 export {
   rememberLastUsedProvider,
   readLastUsedProvider,

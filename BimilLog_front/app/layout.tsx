@@ -171,7 +171,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-title" content="비밀로그" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${fontDisplay.variable} ${fontHandwriting.variable} antialiased font-body`}
+        className={`${geistSans.variable} ${geistMono.variable} ${fontDisplay.variable} ${fontHandwriting.variable} antialiased font-body bg-paper-50 dark:bg-paper-50`}
         suppressHydrationWarning
       >
         {/* Google Analytics - lazyOnload로 메인 스레드 차단 최소화 */}

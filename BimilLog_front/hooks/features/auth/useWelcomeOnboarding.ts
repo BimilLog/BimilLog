@@ -93,7 +93,11 @@ export function useWelcomeOnboarding() {
         return;
       }
 
-      // 마운트 후 한 tick 뒤에 인증 store 의 user 확인 (provider 카피용)
+      // 마운트 후 짧은 tick 뒤에 인증 store 의 user 확인 (provider 카피용).
+      // B-405/B-406: 250ms 는 콜백 → 홈 hydration 사이의 빈 시간을 키운다.
+      // auth store 의 user 는 콜백 시점에 이미 sync 되어 있으므로 80ms 면 충분하며,
+      // 너무 짧게(0/RAF) 두면 첫 페인트 직전에 발사되어 토스트가 빈 화면 위에 잠깐 떠 있는
+      // 어색한 프레임이 생기므로 약간의 여유를 둔다.
       const timer = window.setTimeout(() => {
         const user = useAuthStore.getState().user;
         const memberName = user?.memberName?.trim() || user?.socialNickname?.trim() || "";
@@ -137,7 +141,7 @@ export function useWelcomeOnboarding() {
         } catch {
           /* noop */
         }
-      }, 250);
+      }, 80);
 
       return () => window.clearTimeout(timer);
     } catch {

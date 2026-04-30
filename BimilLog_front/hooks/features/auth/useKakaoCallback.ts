@@ -15,7 +15,55 @@ import { rememberLastUsedProvider } from "./lastUsedProvider";
  * 신규/기존 회원 모두 즉시 JWT 토큰이 발급되어 동일하게 처리됨
  *
  * B-307: useEffect 의존성 변경(searchParams, router) 시에도 단일 실행 보장.
+ * B-402: state 파라미터의 deep-link redirect 정보를 파싱해 로그인 후 복귀.
+ *        (네이버/구글과 동일 패턴 — JSON `{csrf, redirect}` 또는 단순 문자열 모두 수용)
+ * B-403: 에러 redirect 시 `provider=KAKAO` 식별자를 함께 전달해
+ *        login 페이지에서 카피를 동적 조립하도록 한다.
  */
+
+/**
+ * 카카오 state 파라미터에서 redirect URL 만 안전하게 추출.
+ *
+ * - 네이버/구글 패턴: `{csrf, redirect}` JSON 인코딩
+ * - 카카오 기존 패턴: 단순 인코딩된 URL 문자열
+ *
+ * 두 패턴 모두 수용하되, 외부 절대 URL (open redirect) 은 거부하고
+ * 같은 origin 의 path 만 허용한다.
+ */
+const parseRedirectFromState = (state: string | null): string => {
+  if (!state) return "/";
+  try {
+    const decoded = decodeURIComponent(state);
+
+    // 1) JSON `{csrf, redirect}` 시도 (네이버/구글과 동일 패턴)
+    if (decoded.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(decoded) as { redirect?: unknown };
+        if (typeof parsed.redirect === "string") {
+          return sanitizeRedirect(parsed.redirect);
+        }
+      } catch {
+        /* not JSON — fall through */
+      }
+    }
+
+    // 2) 단순 문자열 (legacy kakao state)
+    return sanitizeRedirect(decoded);
+  } catch {
+    return "/";
+  }
+};
+
+/**
+ * open redirect 방지 — 절대 URL/프로토콜 상대 URL 은 거부, 내부 path 만 허용.
+ */
+const sanitizeRedirect = (raw: string): string => {
+  if (!raw) return "/";
+  // `//evil.com`, `http://...`, `javascript:` 등 차단
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
+  return raw;
+};
+
 export const useKakaoCallback = () => {
   const [isProcessing, setIsProcessing] = useState(true);
   const [loadingStep, setLoadingStep] = useState<string>("카카오 인증 처리 중...");
@@ -35,6 +83,7 @@ export const useKakaoCallback = () => {
     const processCallback = async () => {
       const code = searchParams.get("code");
       const error = searchParams.get("error");
+      const state = searchParams.get("state");
 
       // 친구 동의 플로우인지 확인
       const isFriendsConsentFlow = typeof window !== 'undefined'
@@ -47,7 +96,8 @@ export const useKakaoCallback = () => {
           sessionStorage.removeItem('friendsConsentFlow');
           sessionStorage.removeItem('returnUrl');
         }
-        router.push(`/login?error=${encodeURIComponent(error)}`);
+        // B-403: provider 식별자를 함께 전달해 login 페이지에서 카피 동적 조립
+        router.push(`/login?error=${encodeURIComponent(error)}&provider=KAKAO`);
         return;
       }
 
@@ -75,7 +125,7 @@ export const useKakaoCallback = () => {
           /* fall-through to login */
         }
 
-        router.push("/login?error=no_code");
+        router.push("/login?error=no_code&provider=KAKAO");
         return;
       }
 
@@ -114,14 +164,17 @@ export const useKakaoCallback = () => {
           // 환영 토스트 트리거 마커 (신규/기존은 클라이언트 휴리스틱으로 판별)
           markPendingWelcome('KAKAO');
 
-          // 신규/기존 구분 없이 메인 페이지로 이동
-          router.push("/");
+          // B-402: state 파라미터의 deep-link 정보를 활용해 복귀 (없으면 '/')
+          const redirectUrl = parseRedirectFromState(state);
+          router.push(redirectUrl);
         } else {
           if (isFriendsConsentFlow && typeof window !== 'undefined') {
             sessionStorage.removeItem('friendsConsentFlow');
             sessionStorage.removeItem('returnUrl');
           }
-          router.push(`/login?error=${response.error || "login_failed"}`);
+          router.push(
+            `/login?error=${encodeURIComponent(response.error || "login_failed")}&provider=KAKAO`
+          );
         }
       } catch (error) {
         logger.error("Callback processing error:", error);
@@ -129,7 +182,7 @@ export const useKakaoCallback = () => {
           sessionStorage.removeItem('friendsConsentFlow');
           sessionStorage.removeItem('returnUrl');
         }
-        router.push("/login?error=callback_failed");
+        router.push("/login?error=callback_failed&provider=KAKAO");
       } finally {
         setIsProcessing(false);
       }

@@ -37,21 +37,62 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { clearAuthError } = useAuthError();
 
-  // URL 파라미터에서 에러 메시지를 추출 (카카오 OAuth 콜백에서 전달됨)
+  // URL 파라미터에서 에러 메시지를 추출 (OAuth 콜백 → /login redirect 시 전달)
   const errorCode = searchParams.get("error");
+  const errorProviderRaw = searchParams.get("provider");
 
-  // 에러 코드별 사용자 친화적 메시지
-  const getErrorMessage = (code: string | null): string => {
-    if (!code) return "";
+  // B-403: provider 식별자를 동적 카피에 활용 (없으면 중립 카피)
+  const PROVIDER_KR: Record<"KAKAO" | "NAVER" | "GOOGLE", string> = {
+    KAKAO: "카카오",
+    NAVER: "네이버",
+    GOOGLE: "구글",
+  };
+  const providerKr =
+    errorProviderRaw && (errorProviderRaw === "KAKAO" || errorProviderRaw === "NAVER" || errorProviderRaw === "GOOGLE")
+      ? PROVIDER_KR[errorProviderRaw]
+      : null;
+  const providerLabel = providerKr ?? "소셜";
 
-    const errorMessages: Record<string, string> = {
-      "no_code": "카카오 로그인에 실패했습니다. 다시 시도해주세요.",
-      "callback_failed": "로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-      "login_failed": "로그인에 실패했습니다. 다시 시도해주세요.",
-      "access_denied": "카카오 로그인이 취소되었습니다.",
+  /**
+   * 에러 코드별 사용자 친화적 메시지.
+   *
+   * - app 내부에서 redirect 한 매크로 코드 (`no_code`, `callback_failed`, ...) +
+   * - OAuth provider 가 직접 보낸 raw 코드 (`access_denied`, `invalid_request`, ...)
+   *   를 모두 한국어로 매핑한다. 매핑 누락 시 일반 카피 + raw code 보조 표시.
+   */
+  const getErrorMessage = (code: string | null): { title: string; raw?: string } => {
+    if (!code) return { title: "" };
+
+    // 매크로 코드 — 콜백 hook 에서 redirect 시 사용
+    const macroMessages: Record<string, string> = {
+      no_code: `${providerLabel} 로그인에 실패했어요. 다시 시도해 주세요.`,
+      callback_failed: "로그인 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.",
+      login_failed: `${providerLabel} 로그인에 실패했어요. 다시 시도해 주세요.`,
     };
 
-    return errorMessages[code] || decodeURIComponent(code);
+    // OAuth provider 가 직접 redirect 에 실어 보낸 raw 에러 코드
+    const oauthMessages: Record<string, string> = {
+      access_denied: `${providerLabel} 로그인이 취소되었어요.`,
+      invalid_request: "요청 정보가 올바르지 않아요. 다시 시도해 주세요.",
+      unauthorized_client: "잠시 후 다시 시도해 주세요. 인증 환경에 문제가 있어요.",
+      unsupported_response_type: "지원되지 않는 응답 방식이에요. 잠시 후 다시 시도해 주세요.",
+      invalid_scope: `${providerLabel} 인증 권한 설정에 문제가 있어요.`,
+      server_error: `${providerLabel} 인증 서버에서 일시적인 오류가 발생했어요.`,
+      temporarily_unavailable: `${providerLabel} 인증 서버가 잠시 응답하지 않아요. 잠시 후 다시 시도해 주세요.`,
+    };
+
+    if (code in macroMessages) {
+      return { title: macroMessages[code] };
+    }
+    if (code in oauthMessages) {
+      return { title: oauthMessages[code] };
+    }
+
+    // 매핑 누락 — 일반 카피 + raw code 보조 텍스트
+    return {
+      title: "인증 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.",
+      raw: decodeURIComponent(code),
+    };
   };
 
   const errorMessage = getErrorMessage(errorCode);
@@ -173,15 +214,20 @@ export default function LoginPage() {
     >
       <Card className="max-w-sm mx-auto bg-paper-card dark:bg-gray-900 border-2 border-ink-soft dark:border-gray-700 shadow-brand-lg">
         {/* URL 파라미터로 전달된 에러가 있을 경우에만 에러 메시지 표시 */}
-        {errorMessage && (
+        {errorMessage.title && (
           <div className="mb-4">
             <ErrorAlert>
               <div className="space-y-2">
                 <p className="font-semibold">로그인 오류</p>
-                <p className="text-sm">{errorMessage}</p>
+                <p className="text-sm">{errorMessage.title}</p>
+                {errorMessage.raw && (
+                  <p className="text-[11px] text-ink-soft/80 dark:text-foreground/60">
+                    오류 코드: {errorMessage.raw}
+                  </p>
+                )}
                 <button
                   onClick={handleLogin}
-                  className="text-sm font-medium text-postal-navy hover:text-stamp-red underline underline-offset-2"
+                  className="text-sm font-medium text-postal-navy hover:text-stamp-red dark:text-ink-900 dark:hover:text-stamp-red underline underline-offset-2"
                 >
                   다시 로그인하기
                 </button>

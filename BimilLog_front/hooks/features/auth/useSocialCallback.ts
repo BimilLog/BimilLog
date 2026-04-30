@@ -16,11 +16,20 @@ import { rememberLastUsedProvider } from "./lastUsedProvider";
  * @param provider - 소셜 로그인 제공자 (KAKAO, NAVER, GOOGLE)
  *
  * B-307: useEffect 의존성 변경 시에도 단일 실행 보장.
+ * B-403: 에러 redirect 시 `provider=...` 식별자 함께 전달.
+ * B-405: friendsConsentFlow 분기는 KAKAO 에서만 의미 있으므로 KAKAO 한정 가드.
  */
 const providerDisplayName: Record<SocialProvider, string> = {
   KAKAO: "카카오",
   NAVER: "네이버",
   GOOGLE: "구글",
+};
+
+/** 내부 path 만 허용. open redirect 방지. */
+const sanitizeRedirect = (raw: string): string => {
+  if (!raw) return "/";
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/";
+  return raw;
 };
 
 export const useSocialCallback = (provider: SocialProvider) => {
@@ -43,25 +52,29 @@ export const useSocialCallback = (provider: SocialProvider) => {
       const error = searchParams.get("error");
       const state = searchParams.get("state");
 
-      // 친구 동의 플로우인지 확인 (카카오 전용)
-      const isFriendsConsentFlow = typeof window !== 'undefined'
-        ? sessionStorage.getItem('friendsConsentFlow') === 'true'
-        : false;
+      // B-405: 친구 동의 플로우는 카카오에서만 의미 있음
+      const isFriendsConsentFlow = provider === 'KAKAO'
+        && typeof window !== 'undefined'
+        && sessionStorage.getItem('friendsConsentFlow') === 'true';
+
+      const cleanupFriendsConsent = () => {
+        if (provider !== 'KAKAO') return;
+        if (typeof window === 'undefined') return;
+        sessionStorage.removeItem('friendsConsentFlow');
+        sessionStorage.removeItem('returnUrl');
+      };
 
       if (error) {
-        if (isFriendsConsentFlow && typeof window !== 'undefined') {
-          sessionStorage.removeItem('friendsConsentFlow');
-          sessionStorage.removeItem('returnUrl');
-        }
-        router.push(`/login?error=${encodeURIComponent(error)}`);
+        if (isFriendsConsentFlow) cleanupFriendsConsent();
+        // B-403: provider 식별자를 함께 전달
+        router.push(
+          `/login?error=${encodeURIComponent(error)}&provider=${provider}`
+        );
         return;
       }
 
       if (!code) {
-        if (isFriendsConsentFlow && typeof window !== 'undefined') {
-          sessionStorage.removeItem('friendsConsentFlow');
-          sessionStorage.removeItem('returnUrl');
-        }
+        if (isFriendsConsentFlow) cleanupFriendsConsent();
 
         // F-203: 새로고침으로 code 유실 시 정중한 회복 시도
         try {
@@ -79,7 +92,7 @@ export const useSocialCallback = (provider: SocialProvider) => {
           /* fall-through */
         }
 
-        router.push("/login?error=no_code");
+        router.push(`/login?error=no_code&provider=${provider}`);
         return;
       }
 
@@ -115,12 +128,11 @@ export const useSocialCallback = (provider: SocialProvider) => {
           }
           setLoadingStep(isFriendsConsentFlow ? "권한 업데이트 완료!" : "로그인 완료!");
 
-          // 친구 동의 플로우인 경우 (카카오 전용)
+          // 친구 동의 플로우 (카카오 전용)
           if (isFriendsConsentFlow && typeof window !== 'undefined') {
             const returnUrl = sessionStorage.getItem('returnUrl') || '/';
-            sessionStorage.removeItem('friendsConsentFlow');
-            sessionStorage.removeItem('returnUrl');
-            router.push(returnUrl);
+            cleanupFriendsConsent();
+            router.push(sanitizeRedirect(returnUrl));
             return;
           }
 
@@ -133,7 +145,9 @@ export const useSocialCallback = (provider: SocialProvider) => {
             try {
               const decodedState = decodeURIComponent(state);
               const stateData = JSON.parse(decodedState);
-              redirectUrl = stateData.redirect || '/';
+              redirectUrl = sanitizeRedirect(
+                typeof stateData?.redirect === 'string' ? stateData.redirect : '/'
+              );
             } catch {
               redirectUrl = '/';
             }
@@ -141,19 +155,15 @@ export const useSocialCallback = (provider: SocialProvider) => {
 
           router.push(redirectUrl);
         } else {
-          if (isFriendsConsentFlow && typeof window !== 'undefined') {
-            sessionStorage.removeItem('friendsConsentFlow');
-            sessionStorage.removeItem('returnUrl');
-          }
-          router.push(`/login?error=${response.error || "login_failed"}`);
+          if (isFriendsConsentFlow) cleanupFriendsConsent();
+          router.push(
+            `/login?error=${encodeURIComponent(response.error || "login_failed")}&provider=${provider}`
+          );
         }
       } catch (error) {
         logger.error("Callback processing error:", error);
-        if (isFriendsConsentFlow && typeof window !== 'undefined') {
-          sessionStorage.removeItem('friendsConsentFlow');
-          sessionStorage.removeItem('returnUrl');
-        }
-        router.push("/login?error=callback_failed");
+        if (isFriendsConsentFlow) cleanupFriendsConsent();
+        router.push(`/login?error=callback_failed&provider=${provider}`);
       } finally {
         setIsProcessing(false);
       }
