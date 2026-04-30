@@ -143,7 +143,8 @@ class MemberQueryServiceCacheRefreshLocalIntegrationTest {
     }
 
     private void injectCachedPage(long cachedAt, List<SimpleMemberDTO> data) throws Exception {
-        String json = objectMapper.writeValueAsString(new CachedMemberPage(cachedAt, data));
+        // totalElements는 검증 대상이 아니므로 data.size() 로 임의 부여
+        String json = objectMapper.writeValueAsString(new CachedMemberPage(cachedAt, data, data.size()));
         stringRedisTemplate.opsForValue().set(CACHE_KEY, json, 60, TimeUnit.SECONDS);
     }
 

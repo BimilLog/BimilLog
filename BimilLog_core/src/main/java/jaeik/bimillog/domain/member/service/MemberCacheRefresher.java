@@ -28,7 +28,7 @@ public class MemberCacheRefresher {
     public void refresh(int page, int size, Runnable cleanup) {
         try {
             Page<SimpleMemberDTO> result = memberQueryRepository.findAllMembers(PageRequest.of(page, size));
-            redisMemberAdapter.saveMemberPage(page, size, result.getContent());
+            redisMemberAdapter.saveMemberPage(page, size, result.getContent(), result.getTotalElements());
         } catch (Exception e) {
             log.warn("회원 페이지 캐시 비동기 갱신 실패: page={}, size={}, err={}", page, size, e.getMessage());
         } finally {

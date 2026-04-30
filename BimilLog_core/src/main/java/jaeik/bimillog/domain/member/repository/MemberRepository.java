@@ -75,28 +75,23 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByIdWithSetting(@Param("id") Long id);
 
     /**
-     * <h3>접두사 검색 (인덱스 활용)</h3>
-     * <p>LIKE 'query%' 조건으로 멤버명을 검색하여 인덱스를 활용합니다.</p>
-     * <p>{@link MemberQueryService}에서 검색 전략에 따라 호출됩니다.</p>
-     *
-     * @param pageable 페이지 정보
-     * @return 검색된 멤버명 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Page<SimpleMemberDTO> findByMemberNameStartingWithOrderByMemberNameAsc(String memberName, Pageable pageable);
-
-    /**
-     * <h3>부분 문자열 검색 (인덱스 미활용)</h3>
+     * <h3>부분 문자열 검색</h3>
      * <p>LIKE '%query%' 조건으로 멤버명 부분 검색을 수행합니다.</p>
-     * <p>{@link MemberQueryService}에서 검색 전략에 따라 호출됩니다.</p>
+     * <p>정렬은 호출자의 {@link Pageable#getSort()}를 그대로 따릅니다.</p>
+     * <p>{@link MemberQueryService}에서 사용자 검색 API 시 호출됩니다.</p>
+     * <p>JPQL constructor expression으로 {@link SimpleMemberDTO}에 직접 projection 하여
+     * 엔티티 전체 로딩 비용을 회피합니다.</p>
      *
-     * @param pageable 페이지 정보
-     * @return 검색된 멤버명 페이지
-     * @author Jaeik
-     * @since 2.0.0
+     * @param memberName 검색어 (trim 처리된 상태)
+     * @param pageable   페이지 + 정렬 정보
+     * @return 검색된 멤버 페이지
      */
-    Page<SimpleMemberDTO> findByMemberNameContainingOrderByMemberNameAsc(String memberName, Pageable pageable);
+    @Query(
+            value = "SELECT new jaeik.bimillog.domain.member.dto.SimpleMemberDTO(m.id, m.memberName) " +
+                    "FROM Member m WHERE m.memberName LIKE CONCAT('%', :memberName, '%')",
+            countQuery = "SELECT COUNT(m) FROM Member m WHERE m.memberName LIKE CONCAT('%', :memberName, '%')"
+    )
+    Page<SimpleMemberDTO> findByMemberNameContaining(@Param("memberName") String memberName, Pageable pageable);
 
     /**
      * <h3>최근 가입자 조회 (상위 10명)</h3>

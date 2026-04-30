@@ -1,8 +1,11 @@
 package jaeik.bimillog.domain.member.repository;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.auth.entity.QAuthToken;
@@ -16,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,15 +48,20 @@ public class MemberQueryRepository {
 
     /**
      * <h3>전체 회원 페이지 조회</h3>
+     * <p>{@link Pageable#getSort()} 인자에 따라 정렬을 적용합니다.</p>
+     * <p>지원 정렬 필드: {@code id}, {@code memberName}, {@code createdAt}, {@code modifiedAt}.</p>
+     * <p>정렬 미지정 시 {@code id ASC} 가 기본값입니다.</p>
      */
     @Transactional(readOnly = true)
     public Page<SimpleMemberDTO> findAllMembers(Pageable pageable) {
+        OrderSpecifier<?>[] orderBy = toOrderSpecifiers(pageable.getSort());
+
         List<SimpleMemberDTO> content = jpaQueryFactory
                 .select(Projections.constructor(SimpleMemberDTO.class,
                         member.id,
                         member.memberName))
                 .from(member)
-                .orderBy(member.id.asc())
+                .orderBy(orderBy)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -63,6 +72,38 @@ public class MemberQueryRepository {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
+    }
+
+    /**
+     * <h3>Spring Sort -> QueryDSL OrderSpecifier 변환</h3>
+     * <p>알 수 없는 필드는 무시하고, 결과가 비면 {@code id ASC} 를 기본 정렬로 사용한다.</p>
+     */
+    private OrderSpecifier<?>[] toOrderSpecifiers(Sort sort) {
+        if (sort == null || sort.isUnsorted()) {
+            return new OrderSpecifier<?>[]{member.id.asc()};
+        }
+
+        List<OrderSpecifier<?>> specs = new ArrayList<>();
+        for (Sort.Order order : sort) {
+            ComparableExpressionBase<?> path = resolveSortPath(order.getProperty());
+            if (path == null) continue;
+            specs.add(new OrderSpecifier<>(order.isAscending() ? Order.ASC : Order.DESC, path));
+        }
+
+        if (specs.isEmpty()) {
+            return new OrderSpecifier<?>[]{member.id.asc()};
+        }
+        return specs.toArray(new OrderSpecifier<?>[0]);
+    }
+
+    private ComparableExpressionBase<?> resolveSortPath(String property) {
+        return switch (property) {
+            case "id", "memberId" -> member.id;
+            case "memberName" -> member.memberName;
+            case "createdAt" -> member.createdAt;
+            case "modifiedAt" -> member.modifiedAt;
+            default -> null;
+        };
     }
 
     /**

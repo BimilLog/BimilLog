@@ -40,6 +40,11 @@ interface KakaoShareButtonProps {
   color?: "blue" | "gray" | "dark" | "light" | "green" | "red" | "yellow" | "purple";
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
+  /**
+   * 모바일(<sm) 단축 라벨. 지정 시 sm 미만에서는 이 값이, sm 이상에서는 기본 라벨("카톡 공유")이 노출.
+   * sticky/header 처럼 가로폭이 좁은 컨텍스트에서 텍스트 wrap 을 막기 위한 옵션.
+   */
+  mobileLabel?: string;
 }
 
 export function KakaoShareButton({
@@ -54,6 +59,7 @@ export function KakaoShareButton({
   color = "yellow",
   size = "sm",
   className,
+  mobileLabel,
 }: KakaoShareButtonProps) {
   // 공유 진행 상태 관리 - 중복 클릭 방지
   const [isSharing, setIsSharing] = useState(false);
@@ -147,8 +153,17 @@ export function KakaoShareButton({
       className={`!bg-yellow-400 !hover:bg-yellow-500 !text-gray-900 ${className}`}
     >
       <MessageCircle className="w-4 h-4 mr-2" />
-      {/* 상태별 버튼 텍스트 - 로딩 중이거나 게시글 타입에 따라 다르게 표시 */}
-      {isSharing ? "공유 중..." : "카톡 공유"}
+      {/* 상태별 버튼 텍스트 - 로딩 중이거나 모바일 단축 라벨 지정 시 분기 */}
+      {isSharing ? (
+        "공유 중..."
+      ) : mobileLabel ? (
+        <>
+          <span className="hidden sm:inline">카톡 공유</span>
+          <span className="sm:hidden">{mobileLabel}</span>
+        </>
+      ) : (
+        "카톡 공유"
+      )}
     </Button>
   );
 }

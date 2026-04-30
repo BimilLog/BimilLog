@@ -106,19 +106,44 @@ class MemberQueryServiceTest extends BaseUnitTest {
     @Test
     @DisplayName("findAllMembers - 캐시 히트 + fresh: 캐시 반환, 리프레셔 호출 없음")
     void shouldReturnCached_whenFresh() {
-        int page = 0, size = 20;
+        int page = 0, size = 10;
         Pageable pageable = PageRequest.of(page, size);
         List<SimpleMemberDTO> list = List.of(new SimpleMemberDTO(1L, "a"), new SimpleMemberDTO(2L, "b"));
-        CachedMemberPage fresh = new CachedMemberPage(System.currentTimeMillis(), list);
+        long totalElements = 25L;
+        CachedMemberPage fresh = new CachedMemberPage(System.currentTimeMillis(), list, totalElements);
 
         given(redisMemberAdapter.lookup(page, size)).willReturn(fresh);
 
         Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
 
         assertThat(result.getContent()).containsExactlyElementsOf(list);
+        // B-001 검증: 캐시된 totalElements가 그대로 복원되어야 함
+        assertThat(result.getTotalElements()).isEqualTo(totalElements);
+        assertThat(result.getTotalPages()).isEqualTo(3); // ceil(25/10)
         verify(memberCacheRefresher, never()).refresh(anyInt(), anyInt(), any());
         verify(memberQueryRepository, never()).findAllMembers(any());
-        verify(redisMemberAdapter, never()).saveMemberPage(anyInt(), anyInt(), any());
+        verify(redisMemberAdapter, never()).saveMemberPage(anyInt(), anyInt(), any(), org.mockito.ArgumentMatchers.anyLong());
+    }
+
+    @Test
+    @DisplayName("findAllMembers - 캐시 히트 + size와 동일한 항목 수 (B-001 회귀): totalPages가 1로 떨어지지 않음")
+    void shouldPreserveTotalElements_whenPageSizeEqualsContentSize() {
+        // B-001 회귀 테스트: page에 size만큼 정확히 채워진 경우에도 totalElements가 유실되지 않음
+        int page = 0, size = 10;
+        Pageable pageable = PageRequest.of(page, size);
+        List<SimpleMemberDTO> exactlyTen = java.util.stream.LongStream.rangeClosed(1L, 10L)
+                .mapToObj(id -> new SimpleMemberDTO(id, "m" + id))
+                .toList();
+        long totalElements = 23L;  // 실제로는 23명, 페이지 1에 10명, 페이지 2에 10명, 페이지 3에 3명
+        CachedMemberPage fresh = new CachedMemberPage(System.currentTimeMillis(), exactlyTen, totalElements);
+
+        given(redisMemberAdapter.lookup(page, size)).willReturn(fresh);
+
+        Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
+
+        assertThat(result.getContent()).hasSize(10);
+        assertThat(result.getTotalElements()).isEqualTo(23L);
+        assertThat(result.getTotalPages()).isEqualTo(3);
     }
 
     @Test
@@ -127,13 +152,14 @@ class MemberQueryServiceTest extends BaseUnitTest {
         int page = 0, size = 20;
         Pageable pageable = PageRequest.of(page, size);
         List<SimpleMemberDTO> list = List.of(new SimpleMemberDTO(1L, "a"));
-        CachedMemberPage stale = new CachedMemberPage(System.currentTimeMillis() - 55_000L, list);
+        CachedMemberPage stale = new CachedMemberPage(System.currentTimeMillis() - 55_000L, list, 100L);
 
         given(redisMemberAdapter.lookup(page, size)).willReturn(stale);
 
         Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
 
         assertThat(result.getContent()).containsExactlyElementsOf(list);
+        assertThat(result.getTotalElements()).isEqualTo(100L);
         verify(memberCacheRefresher, times(1)).refresh(eq(page), eq(size), any());
         verify(memberQueryRepository, never()).findAllMembers(any());
     }
@@ -144,7 +170,7 @@ class MemberQueryServiceTest extends BaseUnitTest {
         int page = 0, size = 20;
         Pageable pageable = PageRequest.of(page, size);
         List<SimpleMemberDTO> list = List.of(new SimpleMemberDTO(1L, "a"));
-        CachedMemberPage stale = new CachedMemberPage(System.currentTimeMillis() - 55_000L, list);
+        CachedMemberPage stale = new CachedMemberPage(System.currentTimeMillis() - 55_000L, list, 1L);
 
         given(redisMemberAdapter.lookup(page, size)).willReturn(stale);
 
@@ -157,12 +183,13 @@ class MemberQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("findAllMembers - 캐시 미스: DB 조회 + 캐시 저장")
+    @DisplayName("findAllMembers - 캐시 미스: DB 조회 + 캐시 저장 (totalElements 함께 저장)")
     void shouldLoadFromDbAndSave_whenCacheMiss() {
-        int page = 0, size = 20;
+        int page = 0, size = 10;
         Pageable pageable = PageRequest.of(page, size);
         List<SimpleMemberDTO> list = List.of(new SimpleMemberDTO(10L, "x"), new SimpleMemberDTO(11L, "y"));
-        Page<SimpleMemberDTO> dbResult = new PageImpl<>(list, pageable, list.size());
+        long total = 42L;
+        Page<SimpleMemberDTO> dbResult = new PageImpl<>(list, pageable, total);
 
         given(redisMemberAdapter.lookup(page, size)).willReturn(null);
         given(memberQueryRepository.findAllMembers(pageable)).willReturn(dbResult);
@@ -170,8 +197,9 @@ class MemberQueryServiceTest extends BaseUnitTest {
         Page<SimpleMemberDTO> result = memberQueryService.findAllMembers(pageable);
 
         assertThat(result.getContent()).containsExactlyElementsOf(list);
+        assertThat(result.getTotalElements()).isEqualTo(total);
         verify(memberQueryRepository).findAllMembers(pageable);
-        verify(redisMemberAdapter).saveMemberPage(page, size, list);
+        verify(redisMemberAdapter).saveMemberPage(page, size, list, total);
         verify(memberCacheRefresher, never()).refresh(anyInt(), anyInt(), any());
     }
 }

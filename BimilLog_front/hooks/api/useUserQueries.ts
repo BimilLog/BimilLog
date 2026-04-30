@@ -65,15 +65,27 @@ export const useAllMembers = (page: number = 0, size: number = 20) => {
 };
 
 /**
- * 사용자명 검색 (빈 검색어는 전체 목록 반환)
+ * 사용자명 검색 (빈 검색어는 호출 안함)
+ *
+ * @param keyword 검색어 (trim 됨)
+ * @param page 페이지 (0-base)
+ * @param size 페이지 크기
+ * @param enabled 추가 enabled 조건. false 일 때 keyword 가 있어도 호출 안함.
+ *               useRollingPaperSearch 내부에서 isFetching 추적용으로만 호출하고
+ *               실제 fetch 는 AllUsersList 가 담당하는 케이스 등에서 사용.
  */
-export const useSearchMembers = (keyword: string, page: number = 0, size: number = 10) => {
+export const useSearchMembers = (
+  keyword: string,
+  page: number = 0,
+  size: number = 10,
+  enabled: boolean = true,
+) => {
   const normalized = keyword?.trim() ?? '';
 
   return useQuery({
     queryKey: queryKeys.user.search(normalized, page, size),
     queryFn: () => userQuery.searchMembers(normalized, page, size),
-    enabled: normalized.length > 0,
+    enabled: enabled && normalized.length > 0,
     staleTime: 3 * 60 * 1000,
   });
 };
