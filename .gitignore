@@ -104,7 +104,11 @@ BimilLog_core/.claude/
 .mcp.json
 CLAUDE.md
 PlayStore.md
-/.claude
+/.claude/*
+!/.claude/agents/
+!/.claude/agents/**
+!/.claude/commands/
+!/.claude/commands/**
 
 # Codex
 AGENTS.md
