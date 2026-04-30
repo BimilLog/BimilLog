@@ -1,263 +1,271 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useEffect, useId } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Textarea,
+} from "@/components";
 import { Label } from "@/components";
 import { Spinner } from "@/components";
-import { Lightbulb, Send, Bug, FileText } from "lucide-react";
+import { Send, FileText } from "lucide-react";
 import { useToast } from "@/hooks";
-import { logger } from '@/lib/utils/logger';
-import { useAuthStore } from "@/stores/auth.store";
-import { submitReportAction } from "@/lib/actions/user";
+import { cn } from "@/lib/utils";
+import {
+  SuggestTypeRadioGroup,
+  SUGGEST_OPTIONS,
+} from "./SuggestTypeRadioGroup";
+import { SuggestSuccessExits } from "./SuggestSuccessExits";
+import { useSuggestForm } from "@/hooks/features/useSuggestForm";
 
-// Dynamic import for heavy components
-const Textarea = dynamic(
-  () => import("@/components").then(mod => ({ default: mod.Textarea })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="min-h-[200px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
-        <Spinner size="md" />
-      </div>
-    )
-  }
-);
-
+// ToastContainer 만 dynamic 유지 (라운드 1~11 표준).
+// Textarea 는 native 요소라 라운드 7 처럼 정적 import 로 단순화 (F-12-BUG-8).
 const ToastContainer = dynamic(
-  () => import("@/components/molecules/feedback/toast").then(mod => ({ default: mod.ToastContainer })),
-  {
-    ssr: false,
-    loading: () => null
-  }
+  () =>
+    import("@/components/molecules/feedback/toast").then((mod) => ({
+      default: mod.ToastContainer,
+    })),
+  { ssr: false, loading: () => null }
 );
 
-type SuggestionType = "ERROR" | "IMPROVEMENT";
-
-const suggestionTypes = [
-  {
-    value: "IMPROVEMENT" as const,
-    label: "기능 개선 제안",
-    description: "새로운 기능이나 기존 기능 개선 아이디어",
-    icon: Lightbulb,
-    color: "bg-postal-navy",
-  },
-  {
-    value: "ERROR" as const,
-    label: "오류 신고",
-    description: "버그, 오작동, 기술적 문제 신고",
-    icon: Bug,
-    color: "bg-stamp-red",
-  },
-];
-
+/**
+ * 건의하기 페이지 클라이언트 컴포넌트 (라운드 12).
+ *
+ * 라운드 12 fix 요약:
+ * - F-12-BUG-2: 카드 → role=radiogroup 키보드 접근 (SuggestTypeRadioGroup 분리)
+ * - F-12-BUG-4: beforeunload 가드 (useSuggestForm)
+ * - F-12-BUG-5: 카운터 임계 색상 + sr-only live region
+ * - F-12-BUG-6: 종류 선택 후 자동 스크롤 + 포커스
+ * - F-12-BUG-8: Textarea dynamic import 제거
+ * - F-12-BUG-9: 익명/실명 인지 카피 (effectiveReporterName)
+ * - F-12-BUG-10: 제출 성공 후 사후 진입로 카드 (SuggestSuccessExits)
+ * - F-12-BUG-12: aria-required / aria-describedby
+ */
 const SuggestClient = memo(function SuggestClient() {
-  const [suggestionType, setSuggestionType] = useState<SuggestionType | "">("");
-  const [content, setContent] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
-  const { showError, showWarning, showFeedback, toasts, removeToast } =
-    useToast();
-  const { user, isAuthenticated } = useAuthStore();
+  const { toasts, removeToast } = useToast();
+  const {
+    suggestionType,
+    setSuggestionType,
+    content,
+    setContent,
+    isSubmitting,
+    isSubmitted,
+    resetForm,
+    handleSubmit,
+    contentLength,
+    isAtLimit,
+    isNearLimit,
+    textareaRef,
+    formRef,
+    effectiveReporterName,
+    isAuthenticated,
+    MIN_LENGTH,
+    MAX_LENGTH,
+  } = useSuggestForm();
 
-  const selectedType = suggestionTypes.find(
-    (type) => type.value === suggestionType
+  const helpId = useId();
+  const counterId = useId();
+  const limitNoticeId = useId();
+
+  const selectedType = SUGGEST_OPTIONS.find(
+    (option) => option.value === suggestionType
   );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // F-12-BUG-6: 종류 선택 시 폼 카드로 자동 스크롤 + textarea 포커스
+  useEffect(() => {
+    if (!suggestionType || isSubmitted) return;
 
-    if (!suggestionType || !content.trim()) {
-      showWarning("입력 확인", "건의 종류와 내용을 모두 입력해주세요.");
-      return;
-    }
-
-    if (content.trim().length < 10) {
-      showWarning("입력 확인", "건의 내용은 최소 10자 이상 입력해주세요.");
-      return;
-    }
-
-    const now = Date.now();
-    if (now - lastSubmitTime < 3000) {
-      showWarning("중복 제출 방지", "3초 후에 다시 시도해주세요.");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await submitReportAction({
-        reportType: suggestionType,
-        content: content.trim(),
-        reporterId: isAuthenticated && user?.memberId ? user.memberId : null,
-        reporterName: isAuthenticated && user?.memberName ? user.memberName : "익명",
+    const id = window.requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
       });
+      textareaRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [suggestionType, isSubmitted, formRef, textareaRef]);
 
-      if (response.success) {
-        setLastSubmitTime(Date.now());
+  // 인증 상태에 따른 인지 카피 (F-12-BUG-9)
+  const reporterNoticeCopy = isAuthenticated
+    ? `${effectiveReporterName} 님 명의로 접수돼요`
+    : "익명으로 접수돼요";
 
-        showFeedback(
-          "건의사항 접수 완료",
-          "소중한 의견 감사합니다! 빠른 시일 내에 검토하여 반영하겠습니다.",
-          {
-            label: "추가 건의하기",
-            onClick: () => {
-              setSuggestionType("");
-              setContent("");
-            }
-          }
-        );
-        setSuggestionType("");
-        setContent("");
-      } else {
-        showError(
-          "건의사항 접수 실패",
-          response.error || "건의사항 접수에 실패했습니다. 다시 시도해주세요."
-        );
-      }
-    } catch (error) {
-      logger.error("Submit suggestion failed:", error);
-      showError(
-        "건의사항 접수 실패",
-        "건의사항 접수 중 오류가 발생했습니다. 다시 시도해주세요."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  // 카운터 임계 색상 (F-12-BUG-5)
+  const counterClass = cn(
+    "text-xs transition-colors break-keep",
+    isAtLimit
+      ? "text-stamp-red font-bold"
+      : isNearLimit
+        ? "text-stamp-red font-semibold"
+        : "text-brand-secondary"
+  );
 
   return (
     <>
       <main className="container mx-auto px-4 pb-16">
         <div className="max-w-4xl mx-auto">
-          {/* 건의 종류 선택 */}
-          <div className="mb-8">
-            <h2 className="font-display text-2xl font-bold text-ink mb-6 text-center">
-              어떤 종류의 건의사항인가요?
-            </h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              {suggestionTypes.map((type) => {
-                const Icon = type.icon;
-                const isSelected = suggestionType === type.value;
+          {/* 건의 종류 선택 — F-12-BUG-2 */}
+          <SuggestTypeRadioGroup
+            value={suggestionType}
+            onChange={setSuggestionType}
+          />
 
-                return (
-                  <Card
-                    key={type.value}
-                    className={`cursor-pointer transition-all border-2 hover:shadow-brand-lg ${
-                      isSelected
-                        ? "border-stamp-red shadow-brand-lg bg-paper-aged ring-2 ring-stamp-red/30"
-                        : "border-ink-soft hover:border-stamp-red/40 bg-paper-50/80"
-                    } backdrop-blur-sm`}
-                    onClick={() => setSuggestionType(type.value)}
-                  >
-                    <CardContent className="p-6 text-center">
-                      <div
-                        className={`w-12 h-12 ${type.color} rounded-full flex items-center justify-center mx-auto mb-4`}
-                      >
-                        <Icon className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2 text-brand-primary">
-                        {type.label}
-                      </h3>
-                      <p className="text-sm text-brand-muted">
-                        {type.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+          {/* 사후 진입로 (F-12-BUG-10) — 제출 성공 후 폼 자리에 표시 */}
+          {isSubmitted && (
+            <div ref={formRef}>
+              <SuggestSuccessExits
+                reporterName={effectiveReporterName}
+                isAuthenticated={isAuthenticated}
+                onWriteAnother={resetForm}
+              />
             </div>
-          </div>
+          )}
 
-          {/* 건의 폼 */}
-          {suggestionType && (
-            <Card className="border border-ink-soft shadow-brand-xl bg-paper-50/90 backdrop-blur-sm">
-              <CardHeader className="text-center">
-                <div className="flex items-center justify-center space-x-3 mb-2">
-                  {selectedType && (
-                    <div
-                      className={`w-10 h-10 ${selectedType.color} rounded-full flex items-center justify-center`}
-                    >
-                      <selectedType.icon className="w-5 h-5 text-paper-50" />
-                    </div>
-                  )}
-                  <CardTitle className="font-display text-2xl text-ink">
-                    {selectedType?.label}
-                  </CardTitle>
-                </div>
-                <p className="text-ink-soft">{selectedType?.description}</p>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* 내용 */}
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="content"
-                      className="text-sm font-medium text-ink-soft"
-                    >
-                      건의 내용 <span className="text-stamp-red">*</span>
-                    </Label>
-                    <Textarea
-                      id="content"
-                      placeholder={`${selectedType?.label}에 대해 자세히 설명해주세요...`}
-                      value={content}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
-                      required
-                      rows={8}
-                      className="border-ink-soft focus:border-stamp-red focus:ring-stamp-red resize-none"
-                      maxLength={500}
-                    />
-                    <div className="flex justify-between items-center">
-                      <p className="text-xs text-brand-secondary">
-                        구체적이고 상세한 설명일수록 더 도움이 됩니다.
-                      </p>
-                      <p className="text-xs text-brand-secondary">
-                        {content.length}/500
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 제출 버튼 */}
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-stamp-red text-paper-50 hover:bg-stamp-red/90 py-3 text-lg font-semibold"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <Spinner size="sm" className="text-paper-50" />
-                        <span>접수 중...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <Send className="w-5 h-5" />
-                        <span>건의사항 접수하기</span>
+          {/* 건의 폼 — 종류 선택 후 + 미제출 상태에서만 표시 */}
+          {suggestionType && !isSubmitted && (
+            <div ref={formRef}>
+              <Card className="border border-ink-soft shadow-brand-xl bg-paper-50/90 backdrop-blur-sm">
+                <CardHeader className="text-center">
+                  <div className="flex items-center justify-center space-x-3 mb-2">
+                    {selectedType && (
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center",
+                          selectedType.iconBg
+                        )}
+                      >
+                        <selectedType.icon className="w-5 h-5 text-paper-50" />
                       </div>
                     )}
-                  </Button>
-                </form>
+                    <CardTitle className="font-display text-2xl text-ink break-keep">
+                      {selectedType?.label}
+                    </CardTitle>
+                  </div>
+                  <p className="text-ink-soft break-keep">
+                    {selectedType?.description}
+                  </p>
+                  {/* F-12-BUG-9: 익명/실명 인지 sub-text */}
+                  <p className="text-xs text-ink-soft mt-2 break-keep">
+                    {reporterNoticeCopy}
+                  </p>
+                </CardHeader>
+
+                <CardContent className="space-y-6">
+                  <form
+                    onSubmit={handleSubmit}
+                    className="space-y-6"
+                    aria-label="건의 내용 작성"
+                  >
+                    {/* 내용 */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="suggest-content"
+                        className="text-sm font-medium text-ink-soft break-keep"
+                      >
+                        건의 내용{" "}
+                        <span
+                          className="text-stamp-red"
+                          aria-hidden="true"
+                        >
+                          *
+                        </span>
+                        <span className="sr-only">필수</span>
+                      </Label>
+                      <Textarea
+                        ref={textareaRef}
+                        id="suggest-content"
+                        placeholder={`${selectedType?.label}에 대해 자세히 들려주세요...`}
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        required
+                        rows={8}
+                        maxLength={MAX_LENGTH}
+                        aria-required="true"
+                        aria-describedby={`${helpId} ${counterId}`}
+                        className={cn(
+                          "border-ink-soft focus:border-stamp-red focus:ring-stamp-red resize-none",
+                          "whitespace-pre-wrap break-keep" // F-12-006 한국어 줄바꿈
+                        )}
+                      />
+                      <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:items-center">
+                        <p
+                          id={helpId}
+                          className="text-xs text-brand-secondary break-keep"
+                        >
+                          최소 {MIN_LENGTH}자 이상, 구체적인 설명일수록 도움이 돼요.
+                        </p>
+                        <p
+                          id={counterId}
+                          className={counterClass}
+                          aria-live="off"
+                        >
+                          {contentLength}/{MAX_LENGTH}
+                        </p>
+                      </div>
+                      {/* F-12-BUG-5: 한도 도달 sr-only 알림 */}
+                      <p
+                        id={limitNoticeId}
+                        className={cn(
+                          isAtLimit ? "text-stamp-red text-xs break-keep" : "sr-only"
+                        )}
+                        aria-live="polite"
+                      >
+                        {isAtLimit
+                          ? `최대 ${MAX_LENGTH}자까지 입력할 수 있어요.`
+                          : ""}
+                      </p>
+                    </div>
+
+                    {/* 제출 버튼 */}
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-stamp-red text-paper-50 hover:bg-stamp-red/90 py-3 text-lg font-semibold"
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center justify-center space-x-2">
+                          <Spinner size="sm" className="text-paper-50" />
+                          <span>접수 중...</span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center space-x-2">
+                          <Send className="w-5 h-5" aria-hidden="true" />
+                          <span>의견 보내기</span>
+                        </span>
+                      )}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* 안내 사항 — 제출 전, 종류 선택 전 항상 노출 */}
+          {!isSubmitted && (
+            <Card
+              variant="soft"
+              className="mt-8 border border-ink-soft shadow-brand-lg bg-paper-aged"
+            >
+              <CardContent className="p-6">
+                <h3 className="font-display text-lg font-semibold text-ink mb-3 flex items-center space-x-2 break-keep">
+                  <FileText
+                    className="w-5 h-5 text-postal-navy"
+                    aria-hidden="true"
+                  />
+                  <span>편지 안내</span>
+                </h3>
+                <ul className="space-y-2 text-sm text-ink-soft break-keep">
+                  <li>· 바라는 기능이나 기능 개선 아이디어를 들려주세요.</li>
+                  <li>· 버그, 오류를 발견하셨다면 함께 알려주세요.</li>
+                  <li>· 욕설, 비방, 스팸성 내용은 삭제될 수 있어요.</li>
+                </ul>
               </CardContent>
             </Card>
           )}
-
-          {/* 안내 사항 */}
-          <Card variant="soft" className="mt-8 border border-ink-soft shadow-brand-lg bg-paper-aged">
-            <CardContent className="p-6">
-              <h3 className="font-display text-lg font-semibold text-ink mb-3 flex items-center space-x-2">
-                <FileText className="w-5 h-5 text-postal-navy" />
-                <span>건의하기 안내</span>
-              </h3>
-              <ul className="space-y-2 text-sm text-ink-soft">
-                <li>
-                  • 바라는 기능이나 기능 개선에 대한 제안을 해주세요.
-                </li>
-                <li>• 버그, 오류를 발견할 시에는 제보할 수 있습니다.</li>
-                <li>• 욕설, 비방, 스팸성 내용은 삭제될 수 있습니다.</li>
-              </ul>
-            </CardContent>
-          </Card>
         </div>
       </main>
 
