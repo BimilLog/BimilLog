@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { useAuth } from "@/hooks";
-import { useWelcomeOnboarding } from "@/hooks/features/auth";
+import { useWelcomeOnboarding, useGoodbyeFarewell } from "@/hooks/features/auth";
 import { useAuthStore } from "@/stores/auth.store";
 import { logger, isMobileOrTablet, isKakaoInAppBrowser } from '@/lib/utils';
 import { LazyKakaoFriendsModal } from "@/lib/utils/lazy-components";
@@ -32,6 +32,8 @@ export default function HomeClient({ popularPapers }: HomeClientProps) {
 
   // F-205 / 4-A: 가입(또는 재로그인) 직후 환영 토스트 — 콜백 훅에서 심은 마커를 소비
   useWelcomeOnboarding();
+  // B-304: 로그아웃 직후 안내 토스트 — /logout 페이지에서 심은 마커를 소비
+  useGoodbyeFarewell();
 
   // 프로토콜 URL 처리
   useEffect(() => {

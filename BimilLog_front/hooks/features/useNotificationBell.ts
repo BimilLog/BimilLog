@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/common/useAuth";
 import { useMediaQuery } from "@/hooks/common/useMediaQuery";
 import { isKakaoInAppBrowser } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import { sseManager } from "@/lib/api";
 
 export function useNotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -62,9 +63,20 @@ export function useNotificationBell() {
       }
     };
 
+    // B-308: 키보드 사용자가 ESC 로 popover 를 닫을 수 있도록 (WCAG 2.1.2)
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
     if (isOpen && !isMobile) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("keydown", handleKeyDown);
+      };
     }
   }, [isOpen, isMobile]);
 
@@ -125,6 +137,14 @@ export function useNotificationBell() {
     [notifications, deleteAllNotifications]
   );
 
+  // B-305: SSE 가 끊긴 상태에서 클릭 시 재연결 시도. 카피("클릭하여 새로고침")와 실제 동작 일치.
+  const tryReconnectSSE = useCallback(() => {
+    if (!canUseNotifications) return;
+    if (connectionState === "CLOSED" || connectionState === "DISCONNECTED") {
+      sseManager.connect();
+    }
+  }, [canUseNotifications, connectionState]);
+
   const handleOpen = useCallback(
     (open: boolean) => {
       setIsOpen(open);
@@ -132,17 +152,21 @@ export function useNotificationBell() {
         if (!isMobile) {
           updateDesktopPopoverPosition();
         }
+        // B-305: 끊긴 SSE 라면 재연결 시도
+        tryReconnectSSE();
         refetch();
       }
     },
-    [canUseNotifications, isMobile, updateDesktopPopoverPosition, refetch]
+    [canUseNotifications, isMobile, updateDesktopPopoverPosition, refetch, tryReconnectSSE]
   );
 
   const handleRefresh = useCallback(() => {
     if (canUseNotifications) {
+      // B-305: 새로고침 버튼은 명시적 재연결 액션으로도 동작
+      tryReconnectSSE();
       refetch();
     }
-  }, [canUseNotifications, refetch]);
+  }, [canUseNotifications, refetch, tryReconnectSSE]);
 
   const handleNotificationClick = useCallback(
     (notification: { id: number; read: boolean; url?: string }) => {

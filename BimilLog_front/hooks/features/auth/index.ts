@@ -7,3 +7,9 @@ export {
   isFreshlyOnboarded,
   dismissNewcomerOnboarding,
 } from './useWelcomeOnboarding';
+export { useGoodbyeFarewell } from './useGoodbyeFarewell';
+export {
+  rememberLastUsedProvider,
+  readLastUsedProvider,
+  clearLastUsedProvider,
+} from './lastUsedProvider';

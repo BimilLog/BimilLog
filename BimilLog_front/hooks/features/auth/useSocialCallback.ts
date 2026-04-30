@@ -1,18 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authCommand, authQuery, type SocialProvider } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth.store";
 import { logger } from "@/lib/utils/logger";
 import { registerFcmTokenAction } from "@/lib/actions/notification";
 import { markPendingWelcome } from "./useWelcomeOnboarding";
+import { rememberLastUsedProvider } from "./lastUsedProvider";
 
 /**
  * 소셜 OAuth callback 처리 통합 훅
  * 신규/기존 회원 모두 즉시 JWT 토큰이 발급되어 동일하게 처리됨
  *
  * @param provider - 소셜 로그인 제공자 (KAKAO, NAVER, GOOGLE)
+ *
+ * B-307: useEffect 의존성 변경 시에도 단일 실행 보장.
  */
 const providerDisplayName: Record<SocialProvider, string> = {
   KAKAO: "카카오",
@@ -28,7 +31,13 @@ export const useSocialCallback = (provider: SocialProvider) => {
   const searchParams = useSearchParams();
   const setProvider = useAuthStore((state) => state.setProvider);
 
+  // B-307: 단일 실행 가드 ref
+  const hasProcessedRef = useRef(false);
+
   useEffect(() => {
+    if (hasProcessedRef.current) return;
+    hasProcessedRef.current = true;
+
     const processCallback = async () => {
       const code = searchParams.get("code");
       const error = searchParams.get("error");
@@ -61,6 +70,7 @@ export const useSocialCallback = (provider: SocialProvider) => {
           const recovery = await authQuery.getCurrentUser();
           if (recovery.success && recovery.data) {
             setProvider(provider);
+            rememberLastUsedProvider(provider);
             setLoadingStep("로그인 완료!");
             router.push("/?recovered=1");
             return;
@@ -91,6 +101,7 @@ export const useSocialCallback = (provider: SocialProvider) => {
 
         if (response.success) {
           setProvider(provider);
+          rememberLastUsedProvider(provider);
 
           if (savedFcmToken) {
             try {

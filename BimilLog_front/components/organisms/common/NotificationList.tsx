@@ -3,7 +3,7 @@
 import { memo } from "react";
 import {
   Bell,
-  BellOff,
+  Mailbox,
   RefreshCw,
   CheckCircle2,
   Trash2,
@@ -144,11 +144,21 @@ export const NotificationList = memo(function NotificationList({
             ))}
           </div>
         ) : (
-          <div className="p-8 text-center">
-            <BellOff className="w-12 h-12 mx-auto mb-3 text-brand-muted" />
-            <p className="text-sm text-brand-secondary mb-2">알림이 없습니다</p>
-            <p className="text-xs text-brand-secondary">
-              새로운 알림이 오면 여기에 표시됩니다
+          // 4-6 / 빈 상태에 종이/편지 메타포 + role="status" 추가 (4-10 접근성)
+          <div
+            role="status"
+            aria-live="polite"
+            className="p-8 text-center bg-paper-soft/40 dark:bg-paper-card/30 rounded-md mx-3 my-4"
+          >
+            <Mailbox
+              className="w-12 h-12 mx-auto mb-3 text-stamp-red/70 dark:text-stamp-red/80"
+              aria-hidden="true"
+            />
+            <p className="text-sm font-semibold text-ink dark:text-foreground mb-1">
+              받은 편지가 아직 없어요
+            </p>
+            <p className="text-xs text-ink-soft dark:text-foreground/70">
+              친구에게 비밀편지를 받으면 여기로 도착해요
             </p>
           </div>
         )}
