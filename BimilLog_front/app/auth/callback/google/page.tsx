@@ -5,8 +5,13 @@ import { AuthLoadingScreen } from "@/components";
 import { useSocialCallback } from "@/hooks";
 
 function GoogleCallbackContent() {
-  const { loadingStep } = useSocialCallback("GOOGLE");
-  return <AuthLoadingScreen message={loadingStep} />;
+  const { loadingStep, isRecovering } = useSocialCallback("GOOGLE");
+  return (
+    <AuthLoadingScreen
+      message={loadingStep}
+      variant={isRecovering ? "recovery" : "primary"}
+    />
+  );
 }
 
 export default function GoogleCallbackPage() {

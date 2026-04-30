@@ -29,4 +29,7 @@ export { SettingToggle } from './setting-toggle';
 export { AdFitBanner } from './adfit-banner';
 export { ResponsiveAdFitBanner } from './responsive-adfit-banner';
 export { PWAInstallButton } from './pwa-install-button';
-export { Breadcrumb } from './breadcrumb'; 
+export { Breadcrumb } from './breadcrumb';
+
+// Auth molecules
+export { BenefitsList, type BenefitItem, type BenefitsListProps } from './auth/benefits-list';

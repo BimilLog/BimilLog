@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authCommand } from "@/lib/api";
+import { authCommand, authQuery } from "@/lib/api";
 import { logger } from "@/lib/utils/logger";
 import { useAuthStore } from "@/stores/auth.store";
 import { registerFcmTokenAction } from "@/lib/actions/notification";
+import { markPendingWelcome } from "./useWelcomeOnboarding";
 
 /**
  * Kakao OAuth callback 처리 훅
@@ -15,6 +16,8 @@ import { registerFcmTokenAction } from "@/lib/actions/notification";
 export const useKakaoCallback = () => {
   const [isProcessing, setIsProcessing] = useState(true);
   const [loadingStep, setLoadingStep] = useState<string>("카카오 인증 처리 중...");
+  // 회복 흐름인지 — UI 가 spinner 톤을 차분(navy)하게 다르게 처리할 때 사용
+  const [isRecovering, setIsRecovering] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const setProvider = useAuthStore((state) => state.setProvider);
@@ -40,11 +43,28 @@ export const useKakaoCallback = () => {
       }
 
       // Authorization Code가 없는 경우
+      // F-203: 새로고침으로 code 가 사라진 경우, 이미 로그인된 상태인지 한 번 확인 후 회복
       if (!code) {
         if (isFriendsConsentFlow && typeof window !== 'undefined') {
           sessionStorage.removeItem('friendsConsentFlow');
           sessionStorage.removeItem('returnUrl');
         }
+
+        try {
+          setIsRecovering(true);
+          setLoadingStep("이미 처리된 인증을 확인하는 중...");
+          const recovery = await authQuery.getCurrentUser();
+          if (recovery.success && recovery.data) {
+            // 이미 토큰이 발급되어 인증된 상태 → 홈으로 정중하게 회복
+            setProvider('KAKAO');
+            setLoadingStep("로그인 완료!");
+            router.push("/?recovered=1");
+            return;
+          }
+        } catch {
+          /* fall-through to login */
+        }
+
         router.push("/login?error=no_code");
         return;
       }
@@ -80,6 +100,9 @@ export const useKakaoCallback = () => {
             return;
           }
 
+          // 환영 토스트 트리거 마커 (신규/기존은 클라이언트 휴리스틱으로 판별)
+          markPendingWelcome('KAKAO');
+
           // 신규/기존 구분 없이 메인 페이지로 이동
           router.push("/");
         } else {
@@ -102,7 +125,7 @@ export const useKakaoCallback = () => {
     };
 
     processCallback();
-  }, [searchParams, router]);
+  }, [searchParams, router, setProvider]);
 
-  return { isProcessing, loadingStep };
+  return { isProcessing, loadingStep, isRecovering };
 };

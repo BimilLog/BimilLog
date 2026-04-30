@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { useAuth } from "@/hooks";
+import { useWelcomeOnboarding } from "@/hooks/features/auth";
 import { useAuthStore } from "@/stores/auth.store";
 import { logger, isMobileOrTablet, isKakaoInAppBrowser } from '@/lib/utils';
 import { LazyKakaoFriendsModal } from "@/lib/utils/lazy-components";
@@ -28,6 +29,9 @@ export default function HomeClient({ popularPapers }: HomeClientProps) {
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // F-205 / 4-A: 가입(또는 재로그인) 직후 환영 토스트 — 콜백 훅에서 심은 마커를 소비
+  useWelcomeOnboarding();
 
   // 프로토콜 URL 처리
   useEffect(() => {

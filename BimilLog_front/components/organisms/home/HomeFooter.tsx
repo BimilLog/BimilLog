@@ -28,7 +28,7 @@ export const HomeFooter: React.FC = React.memo(() => {
   };
 
   return (
-    <Footer container className="bg-paper-soft dark:bg-paper-50 rounded-none shadow-sm border-t border-ink-soft dark:border-border">
+    <Footer container className="bg-paper-soft dark:bg-paper-50/95 rounded-none shadow-sm border-t border-ink-soft dark:border-stamp-red/15">
       <div className="w-full">
         <div className="w-full space-y-8">
           {/* Brand Section */}

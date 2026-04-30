@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authCommand, type SocialProvider } from "@/lib/api";
+import { authCommand, authQuery, type SocialProvider } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth.store";
 import { logger } from "@/lib/utils/logger";
 import { registerFcmTokenAction } from "@/lib/actions/notification";
+import { markPendingWelcome } from "./useWelcomeOnboarding";
 
 /**
  * 소셜 OAuth callback 처리 통합 훅
@@ -22,6 +23,7 @@ const providerDisplayName: Record<SocialProvider, string> = {
 export const useSocialCallback = (provider: SocialProvider) => {
   const [isProcessing, setIsProcessing] = useState(true);
   const [loadingStep, setLoadingStep] = useState<string>(`${providerDisplayName[provider]} 인증 처리 중...`);
+  const [isRecovering, setIsRecovering] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const setProvider = useAuthStore((state) => state.setProvider);
@@ -51,6 +53,22 @@ export const useSocialCallback = (provider: SocialProvider) => {
           sessionStorage.removeItem('friendsConsentFlow');
           sessionStorage.removeItem('returnUrl');
         }
+
+        // F-203: 새로고침으로 code 유실 시 정중한 회복 시도
+        try {
+          setIsRecovering(true);
+          setLoadingStep("이미 처리된 인증을 확인하는 중...");
+          const recovery = await authQuery.getCurrentUser();
+          if (recovery.success && recovery.data) {
+            setProvider(provider);
+            setLoadingStep("로그인 완료!");
+            router.push("/?recovered=1");
+            return;
+          }
+        } catch {
+          /* fall-through */
+        }
+
         router.push("/login?error=no_code");
         return;
       }
@@ -95,6 +113,9 @@ export const useSocialCallback = (provider: SocialProvider) => {
             return;
           }
 
+          // 환영 토스트 트리거 마커 (홈에서 소비)
+          markPendingWelcome(provider);
+
           // state 파라미터에 저장된 리다이렉트 URL 확인 후 이동
           let redirectUrl = '/';
           if (state) {
@@ -130,5 +151,5 @@ export const useSocialCallback = (provider: SocialProvider) => {
     processCallback();
   }, [searchParams, router, provider, setProvider]);
 
-  return { isProcessing, loadingStep };
+  return { isProcessing, loadingStep, isRecovering };
 };
