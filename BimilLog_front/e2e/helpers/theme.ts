@@ -10,16 +10,20 @@ export type Theme = 'light' | 'dark';
 export async function setTheme(page: Page, theme: Theme): Promise<void> {
   await page.addInitScript((t: Theme) => {
     try {
+      // next-themes 는 storageKey 에 단순 string 을 저장한다 (providers/theme-provider.tsx).
+      // 한편 호환을 위해 일반 'theme' 키도 함께 갱신한다.
+      localStorage.setItem('theme-storage', t);
       localStorage.setItem('theme', t);
-      localStorage.setItem('theme-storage', JSON.stringify({ state: { theme: t }, version: 0 }));
     } catch (_) { /* ignored */ }
 
     const apply = () => {
       if (!document.documentElement) return;
       if (t === 'dark') {
         document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = 'dark';
       } else {
         document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
       }
     };
 
@@ -28,6 +32,19 @@ export async function setTheme(page: Page, theme: Theme): Promise<void> {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', apply, { once: true });
     }
+
+    // next-themes 가 system 으로 fallback 하려고 다시 class 를 제거할 수 있으므로
+    // MutationObserver 로 한 번 더 보정한다 (페이지 진입 직후 ~2s 동안).
+    let attempts = 0;
+    const obs = new MutationObserver(() => {
+      const hasDark = document.documentElement.classList.contains('dark');
+      if (t === 'dark' && !hasDark) document.documentElement.classList.add('dark');
+      if (t === 'light' && hasDark) document.documentElement.classList.remove('dark');
+      attempts += 1;
+      if (attempts > 50) obs.disconnect();
+    });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    setTimeout(() => obs.disconnect(), 2000);
   }, theme);
 }
 

@@ -288,13 +288,13 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
   },
   HOTTEOK: {
     emoji: '🥞',
-    color: 'text-brown-600',
+    color: 'text-amber-700',
     bgColor: 'bg-yellow-100',
     isEmoji: true
   },
   COOKIE: { 
     icon: Cookie, 
-    color: 'text-brown-600',
+    color: 'text-amber-700',
     bgColor: 'bg-yellow-100'
   },
   PICKLE: { 
@@ -354,13 +354,13 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
   },
   SQUIRREL: {
     emoji: '🐿️',
-    color: 'text-brown-600',
+    color: 'text-amber-700',
     bgColor: 'bg-yellow-100',
     isEmoji: true
   },
   HEDGEHOG: {
     emoji: '🦔',
-    color: 'text-brown-600',
+    color: 'text-amber-700',
     bgColor: 'bg-yellow-100',
     isEmoji: true
   },
@@ -372,7 +372,7 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
   },
   SPARROW: {
     emoji: '🐦',
-    color: 'text-brown-600',
+    color: 'text-amber-700',
     bgColor: 'bg-yellow-100',
     isEmoji: true
   },
@@ -402,7 +402,7 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
   },
   BEAR: {
     emoji: '🐻',
-    color: 'text-brown-600',
+    color: 'text-amber-700',
     bgColor: 'bg-yellow-100',
     isEmoji: true
   },

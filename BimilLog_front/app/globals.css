@@ -203,6 +203,21 @@
   --gradient-paper: linear-gradient(180deg, #1a1611 0%, #14110d 60%, #0e0c08 100%);
   --gradient-paper-button: linear-gradient(135deg, #C73E3E 0%, #7E2020 100%);
   --gradient-paper-hover: linear-gradient(135deg, #A22C2C 0%, #5C1818 100%);
+
+  /* === 다크 모드 종이/편지 토큰 (잉크블랙 + 세피아 갈색) ===
+     라이트의 cream/parchment(FBF7EE/F6EFDE/ECE0C2/DCC99B) 와
+     ink(2A1F1A/3D2F26/6B544A/A89084) 를 다크에서는
+     깊은 잉크블랙(1A1612 ~ 2D2520)과 역상 잉크(F1E6CC/B8A88E) 로 치환.
+     종이/편지 메타포는 보존하되 명도 대비 4.5:1 이상을 보장한다. */
+  --color-paper-50: #1A1612;   /* 페이지 배경 (가장 어두운 잉크) */
+  --color-paper-100: #221C18;  /* paper-soft (Footer 등 보조 영역) */
+  --color-paper-200: #2D2520;  /* aged paper, 카드 보조 톤 */
+  --color-paper-300: #3A2E27;  /* 카드 테두리 */
+  --color-paper-card: #1F1A16; /* 카드 배경 (인기 카드, 사용법 카드) */
+  --color-ink-900: #F1E6CC;    /* 본문/헤드라인 텍스트 (역상) */
+  --color-ink-700: #DCCEB0;
+  --color-ink-500: #B8A88E;    /* 보조 텍스트 (역상) */
+  --color-ink-300: #6B5E4F;
 }
 
 @layer base {
@@ -266,14 +281,24 @@
     background-size: 180px 180px;
     background-blend-mode: multiply;
   }
+  /* 다크: grain 을 screen 으로 약하게 살리고 텍스처가 너무 어둡게 깔리지 않도록 */
+  .dark .bg-paper {
+    background-color: var(--color-paper-50, #1A1612);
+    background-image: none;
+  }
   .bg-paper-soft {
     background-color: var(--color-paper-100, #F6EFDE);
   }
   .bg-paper-card {
-    background-color: #FFFDF7;
+    background-color: var(--color-paper-card, #FFFDF7);
     box-shadow:
       0 1px 0 rgba(42, 31, 26, 0.04),
       0 8px 24px -12px rgba(42, 31, 26, 0.18);
+  }
+  .dark .bg-paper-card {
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.4),
+      0 8px 24px -12px rgba(0, 0, 0, 0.6);
   }
   .bg-paper-button {
     background: var(--gradient-paper-button);
@@ -333,6 +358,9 @@
   .bg-paper-aged {
     background-color: #F1E6CC;
   }
+  .dark .bg-paper-aged {
+    background-color: var(--color-paper-200, #2D2520);
+  }
   .border-stamp-red {
     border-color: var(--color-stamp-red, #C73E3E);
   }
@@ -368,6 +396,15 @@
   }
   .border-ink-soft {
     border-color: rgba(42, 31, 26, 0.15);
+  }
+  .dark .border-ink {
+    border-color: var(--color-ink-500, #B8A88E);
+  }
+  .dark .border-ink-soft {
+    border-color: rgba(241, 230, 204, 0.18);
+  }
+  .dark .border-dashed-paper {
+    border: 1.5px dashed rgba(241, 230, 204, 0.35);
   }
   .hover\:text-stamp-red:hover {
     color: var(--color-stamp-red, #C73E3E);

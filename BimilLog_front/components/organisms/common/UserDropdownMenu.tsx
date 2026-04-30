@@ -81,6 +81,7 @@ export const UserDropdownMenu = React.memo(({ user }: UserDropdownMenuProps) => 
           img={user.thumbnailImage}
           rounded
           className="hover:ring-2 hover:ring-purple-200 transition-all cursor-pointer"
+          data-testid="header-user-avatar"
         />
       }
       theme={DROPDOWN_THEME}
@@ -96,27 +97,53 @@ export const UserDropdownMenu = React.memo(({ user }: UserDropdownMenuProps) => 
           </span>
         )}
       </DropdownHeader>
-      <DropdownItem as={Link} href="/rolling-paper">
-        <ScrollText className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
+      <DropdownItem
+        as={Link}
+        href="/rolling-paper"
+        data-testid="user-menu-papers"
+        role="menuitem"
+      >
+        <ScrollText className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" aria-hidden="true" />
         내 롤링페이퍼
       </DropdownItem>
-      <DropdownItem as={Link} href="/mypage">
-        <UserCircle className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
+      <DropdownItem
+        as={Link}
+        href="/mypage"
+        data-testid="user-menu-mypage"
+        role="menuitem"
+      >
+        <UserCircle className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" aria-hidden="true" />
         마이페이지
       </DropdownItem>
-      <DropdownItem as={Link} href="/settings">
-        <Settings className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
+      <DropdownItem
+        as={Link}
+        href="/settings"
+        data-testid="user-menu-settings"
+        role="menuitem"
+      >
+        <Settings className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" aria-hidden="true" />
         설정
       </DropdownItem>
-      <DropdownItem as={Link} href="/blacklist">
-        <UserX className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
+      <DropdownItem
+        as={Link}
+        href="/blacklist"
+        data-testid="user-menu-blacklist"
+        role="menuitem"
+      >
+        <UserX className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" aria-hidden="true" />
         블랙리스트
       </DropdownItem>
       {user.role === "ADMIN" && (
         <>
           <DropdownDivider />
-          <DropdownItem as={Link} href="/admin" className="text-red-600">
-            <Shield className="mr-2 h-4 w-4 stroke-purple-600 fill-purple-100" />
+          <DropdownItem
+            as={Link}
+            href="/admin"
+            className="text-red-600"
+            data-testid="user-menu-admin"
+            role="menuitem"
+          >
+            <Shield className="mr-2 h-4 w-4 stroke-purple-600 fill-purple-100" aria-hidden="true" />
             관리자 페이지
           </DropdownItem>
         </>
@@ -125,8 +152,10 @@ export const UserDropdownMenu = React.memo(({ user }: UserDropdownMenuProps) => 
       <DropdownItem
         onClick={handleLogout}
         className="text-red-600"
+        data-testid="user-menu-logout"
+        role="menuitem"
       >
-        <LogOut className="mr-2 h-4 w-4 stroke-red-600 fill-red-100" />
+        <LogOut className="mr-2 h-4 w-4 stroke-red-600 fill-red-100" aria-hidden="true" />
         로그아웃
       </DropdownItem>
     </Dropdown>

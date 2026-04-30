@@ -92,7 +92,7 @@ export const decoTypeMap = {
   ORC: { name: "오크", color: "from-gray-100 to-slate-100" },
   DRAGON: { name: "드래곤", color: "from-red-100 to-orange-100" },
   PHOENIX: { name: "피닉스", color: "from-orange-100 to-red-100" },
-  WEREWOLF: { name: "늑대인간", color: "from-gray-100 to-brown-100" },
+  WEREWOLF: { name: "늑대인간", color: "from-gray-100 to-amber-200" },
   ZOMBIE: { name: "좀비", color: "from-gray-100 to-green-100" },
   KRAKEN: { name: "크라켄", color: "from-blue-100 to-purple-100" },
   CYCLOPS: { name: "사이클롭스", color: "from-purple-100 to-indigo-100" },
@@ -100,7 +100,7 @@ export const decoTypeMap = {
   ANGEL: { name: "천사", color: "from-white to-yellow-100" },
 
   // 음료 카테고리 - 시원하고 상쾌한 색상
-  COFFEE: { name: "커피", color: "from-amber-100 to-brown-100" },
+  COFFEE: { name: "커피", color: "from-amber-100 to-amber-300" },
   MILK: { name: "우유", color: "from-white to-gray-100" },
   WINE: { name: "와인", color: "from-purple-100 to-red-100" },
   SOJU: { name: "소주", color: "from-blue-50 to-slate-100" },
@@ -125,29 +125,29 @@ export const decoTypeMap = {
   SUNDAE: { name: "순대", color: "from-gray-100 to-red-100" },
   MANDU: { name: "만두", color: "from-white to-yellow-100" },
   SAMGYEOPSAL: { name: "삼겹살", color: "from-pink-100 to-red-100" },
-  FROZENFISH: { name: "동상걸린 붕어", color: "from-yellow-100 to-brown-100" },
-  HOTTEOK: { name: "호떡", color: "from-brown-100 to-amber-100" },
-  COOKIE: { name: "쿠키", color: "from-brown-100 to-yellow-100" },
+  FROZENFISH: { name: "동상걸린 붕어", color: "from-yellow-100 to-amber-200" },
+  HOTTEOK: { name: "호떡", color: "from-amber-200 to-amber-100" },
+  COOKIE: { name: "쿠키", color: "from-amber-200 to-yellow-100" },
   PICKLE: { name: "피클", color: "from-green-100 to-yellow-100" },
 
   // 동물 카테고리 - 귀엽고 자연스러운 색상
   CAT: { name: "고양이", color: "from-gray-100 to-orange-100" },
-  DOG: { name: "강아지", color: "from-yellow-100 to-brown-100" },
+  DOG: { name: "강아지", color: "from-yellow-100 to-amber-200" },
   RABBIT: { name: "토끼", color: "from-pink-100 to-white" },
   FOX: { name: "여우", color: "from-orange-100 to-red-100" },
   TIGER: { name: "호랑이", color: "from-orange-100 to-yellow-100" },
   PANDA: { name: "판다", color: "from-gray-100 to-white" },
   LION: { name: "사자", color: "from-yellow-100 to-amber-100" },
   ELEPHANT: { name: "코끼리", color: "from-gray-100 to-slate-100" },
-  SQUIRREL: { name: "다람쥐", color: "from-brown-100 to-orange-100" },
-  HEDGEHOG: { name: "고슴도치", color: "from-brown-100 to-gray-100" },
+  SQUIRREL: { name: "다람쥐", color: "from-amber-200 to-orange-100" },
+  HEDGEHOG: { name: "고슴도치", color: "from-amber-200 to-gray-100" },
   CRANE: { name: "두루미", color: "from-white to-gray-100" },
-  SPARROW: { name: "참새", color: "from-brown-100 to-yellow-100" },
-  CHIPMUNK: { name: "청설모", color: "from-gray-100 to-brown-100" },
+  SPARROW: { name: "참새", color: "from-amber-200 to-yellow-100" },
+  CHIPMUNK: { name: "청설모", color: "from-gray-100 to-amber-200" },
   GIRAFFE: { name: "기린", color: "from-yellow-100 to-orange-100" },
   HIPPO: { name: "하마", color: "from-gray-100 to-purple-100" },
   POLARBEAR: { name: "북극곰", color: "from-white to-blue-100" },
-  BEAR: { name: "곰", color: "from-red-100 to-rainbow-100" },
+  BEAR: { name: "곰", color: "from-amber-200 to-orange-100" },
 
   // 자연 카테고리 - 신선하고 평화로운 색상
   STAR: { name: "별", color: "from-yellow-100 to-amber-100" },
@@ -167,7 +167,7 @@ export const decoTypeMap = {
 
   // 기타 카테고리 - 다양하고 재미있는 색상
   DOLL: { name: "인형", color: "from-pink-100 to-purple-100" },
-  BALLOON: { name: "풍선", color: "from-red-100 to-rainbow-100" },
+  BALLOON: { name: "풍선", color: "from-red-100 to-yellow-100" },
   SNOWMAN: { name: "눈사람", color: "from-white to-blue-100" },
   FAIRY: { name: "요정", color: "from-pink-100 to-purple-100" },
   BUBBLE: { name: "비눗방울", color: "from-blue-100 to-white" }

@@ -17,7 +17,7 @@ const PRIMARY_CTA_CLASS =
   "inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md text-base font-semibold text-white bg-paper-button hover:bg-paper-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stamp-red focus-visible:ring-offset-2 w-full sm:w-auto shadow-brand-sm";
 
 const SECONDARY_CTA_CLASS =
-  "inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md text-base font-semibold border border-ink bg-transparent text-ink dark:border-border dark:text-foreground hover:bg-paper-soft dark:hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stamp-red focus-visible:ring-offset-2 w-full sm:w-auto";
+  "inline-flex items-center justify-center min-h-touch px-6 py-3 rounded-md text-base font-semibold border border-ink bg-transparent text-ink dark:border-stamp-red dark:text-stamp-red dark:bg-transparent hover:bg-paper-soft dark:hover:bg-stamp-red/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stamp-red focus-visible:ring-offset-2 w-full sm:w-auto";
 
 export const HomeHero: React.FC<HomeHeroProps> = ({
   isAuthenticated,

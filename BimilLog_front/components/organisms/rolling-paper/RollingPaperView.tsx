@@ -6,9 +6,12 @@ import { RollingPaperLayout } from "@/components/organisms/rolling-paper/Rolling
 import { RollingPaperHeader } from "@/components/organisms/rolling-paper/RollingPaperHeader";
 import { ResponsiveAdFitBanner } from "@/components";
 import { ToastContainer, Loading, Spinner, type Toast } from "@/components";
+import { ErrorBoundary } from "@/components/molecules/feedback";
 
 // 롤링페이퍼 그리드 컴포넌트를 동적 로딩으로 최적화
 // SSR 비활성화로 클라이언트 사이드에서만 렌더링하여 상호작용 요소 최적화
+// F-009: 동적 import 자체가 실패하면 next/dynamic 의 loading 이 무한 유지된다.
+// ErrorBoundary 로 감싸서 사용자에게 회복 경로(새로고침)를 제공한다.
 const RollingPaperGrid = dynamic(
   () => import("@/components/organisms/rolling-paper/RollingPaperGrid").then(mod => ({ default: mod.RollingPaperGrid })),
   {
@@ -56,7 +59,7 @@ interface RollingPaperViewProps {
     gridX: number,
     gridY: number
   ) => { x: number; y: number };
-  handleMessageSubmit?: (position: { x: number; y: number }, data: unknown) => void;
+  handleMessageSubmit?: (position: { x: number; y: number }, data: unknown) => Promise<void>;
   handleMessageClick: (message: RollingPaperMessage | VisitMessage) => void;
   refetchMessages: () => Promise<void>;
   toasts: Toast[];
@@ -117,23 +120,26 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = React.memo(({
 
         <div className="mb-8">
           {/* 롤링페이퍼 그리드: 소유자가 아닐 때만 메시지 작성 가능 */}
-          <RollingPaperGrid
-            messages={messages}
-            nickname={targetNickname}
-            isOwner={isOwner}
-            isMobile={isMobile}
-            totalPages={totalPages}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            onMessageSubmit={!isOwner ? handleMessageSubmit : undefined}
-            getMessageAt={getMessageAt}
-            getCoordsFromPageAndGrid={getCoordsFromPageAndGrid}
-            highlightedPosition={highlightedPosition}
-            onHighlightClear={clearHighlight}
-            onSuccess={(message) => showSuccess("성공", message)}
-            onError={(message) => showError("오류", message)}
-            onRefresh={refetchMessages}
-          />
+          {/* F-009: dynamic import 실패 시 사용자에게 회복 경로 제공 */}
+          <ErrorBoundary context="RollingPaperGrid">
+            <RollingPaperGrid
+              messages={messages}
+              nickname={targetNickname}
+              isOwner={isOwner}
+              isMobile={isMobile}
+              totalPages={totalPages}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              onMessageSubmit={!isOwner ? handleMessageSubmit : undefined}
+              getMessageAt={getMessageAt}
+              getCoordsFromPageAndGrid={getCoordsFromPageAndGrid}
+              highlightedPosition={highlightedPosition}
+              onHighlightClear={clearHighlight}
+              onSuccess={(message) => showSuccess("성공", message)}
+              onError={(message) => showError("오류", message)}
+              onRefresh={refetchMessages}
+            />
+          </ErrorBoundary>
         </div>
       </div>
 
