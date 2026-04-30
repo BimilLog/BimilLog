@@ -16,6 +16,8 @@ interface FriendListItemProps {
 
 /**
  * 친구 목록 아이템 컴포넌트
+ *
+ * 라운드 9: paper/ink 토큰, useConfirmModal 메타포 강화, 모바일 44px 타겟.
  */
 export const FriendListItem: React.FC<FriendListItemProps> = React.memo(({ friend }) => {
   const router = useRouter();
@@ -25,11 +27,11 @@ export const FriendListItem: React.FC<FriendListItemProps> = React.memo(({ frien
   const handleRemove = async () => {
     const confirmed = await confirm({
       title: "친구 삭제",
-      message: `${friend.memberName}님을 친구 목록에서 삭제하시겠습니까?`,
+      message: `${friend.memberName}님을 친구 목록에서 삭제할까요?`,
       confirmText: "삭제",
-      cancelText: "취소",
+      cancelText: "돌아가기",
       confirmButtonVariant: "destructive",
-      icon: <Trash2 className="h-8 w-8 stroke-red-600 fill-red-100" />
+      icon: <Trash2 className="h-8 w-8 stroke-stamp-red" />,
     });
 
     if (confirmed) {
@@ -43,46 +45,49 @@ export const FriendListItem: React.FC<FriendListItemProps> = React.memo(({ frien
 
   return (
     <>
-      <li className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
-      {/* 왼쪽: 프로필 정보 */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <Avatar
-          img={friend.thumbnailImage}
-          alt={friend.memberName}
-          placeholderInitials={getInitials(friend.memberName)}
-          rounded
-          size="md"
-          className="w-12 h-12 shrink-0"
-        />
+      <li className="flex items-center justify-between p-4 hover:bg-paper-100 transition-colors border-b border-postal-navy/10 last:border-b-0">
+        {/* 왼쪽: 프로필 정보 */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <Avatar
+            img={friend.thumbnailImage}
+            alt={friend.memberName}
+            placeholderInitials={getInitials(friend.memberName)}
+            rounded
+            size="md"
+            className="w-12 h-12 shrink-0"
+          />
 
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-gray-900 truncate">
-            {friend.memberName}
-          </h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-ink truncate break-keep">
+              {friend.memberName}
+            </h3>
+          </div>
         </div>
-      </div>
 
-      {/* 오른쪽: 액션 버튼 */}
-      <div className="flex items-center gap-2 ml-4 shrink-0">
-        <Button
-          color="purple"
-          size="sm"
-          onClick={handleVisitRollingPaper}
-        >
-          <MessageCircle className="w-4 h-4 mr-1" />
-          롤링페이퍼
-        </Button>
-        <Button
-          color="light"
-          size="sm"
-          onClick={handleRemove}
-          disabled={isPending}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </div>
-    </li>
+        {/* 오른쪽: 액션 버튼 */}
+        <div className="flex items-center gap-2 ml-4 shrink-0">
+          <Button
+            color="purple"
+            size="sm"
+            onClick={handleVisitRollingPaper}
+            className="min-h-[44px]"
+          >
+            <MessageCircle className="w-4 h-4 sm:mr-1" aria-hidden="true" />
+            <span className="hidden sm:inline">롤링페이퍼</span>
+            <span className="sr-only sm:hidden">{friend.memberName}님의 롤링페이퍼</span>
+          </Button>
+          <Button
+            color="light"
+            size="sm"
+            onClick={handleRemove}
+            disabled={isPending}
+            aria-label={`${friend.memberName}님 친구에서 삭제`}
+            className="text-stamp-red hover:text-stamp-red hover:bg-stamp-red/10 min-h-[44px] min-w-[44px]"
+          >
+            <Trash2 className="w-4 h-4" aria-hidden="true" />
+          </Button>
+        </div>
+      </li>
       <ConfirmModalComponent />
     </>
   );

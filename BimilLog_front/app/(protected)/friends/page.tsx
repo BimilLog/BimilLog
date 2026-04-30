@@ -48,15 +48,15 @@ export default async function FriendsPage({ searchParams }: Props) {
 
   return (
     <MainLayout
-      className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]"
+      className="bg-paper-50"
       containerClassName="container mx-auto px-4"
     >
       <div className="py-8 max-w-4xl mx-auto">
         {/* 페이지 헤더 */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">친구</h1>
-          <p className="text-muted-foreground mt-2">
-            친구를 관리하고 새로운 친구를 추천받아보세요
+          <h1 className="text-3xl font-bold font-display text-ink break-keep">친구</h1>
+          <p className="text-ink-soft mt-2 break-keep">
+            함께 편지를 주고받을 사람을 모으는 곳이에요
           </p>
         </div>
 

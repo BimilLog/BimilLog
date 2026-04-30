@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { X } from "lucide-react";
 import { Button, Badge } from "@/components";
 import { SentFriendRequest } from "@/types/domains/friend";
@@ -13,6 +14,10 @@ interface SentRequestItemProps {
 
 /**
  * 보낸 친구 요청 아이템 컴포넌트
+ *
+ * 라운드 9: paper/ink 토큰, 닉네임을 페이퍼 링크로,
+ * 취소 후 옵티미스틱 제거(useCancelFriendRequestAction).
+ * B-002 회귀 검증의 핵심 — revalidatePath 가 제거되어 sent 탭 유지.
  */
 export const SentRequestItem: React.FC<SentRequestItemProps> = React.memo(({ request }) => {
   const { cancelRequest, isPending } = useCancelFriendRequestAction();
@@ -21,11 +26,11 @@ export const SentRequestItem: React.FC<SentRequestItemProps> = React.memo(({ req
   const handleCancel = async () => {
     const confirmed = await confirm({
       title: "친구 요청 취소",
-      message: `${request.receiverMemberName}님에게 보낸 친구 요청을 취소하시겠습니까?`,
+      message: `${request.receiverMemberName}님에게 보낸 친구 요청을 취소할까요?`,
       confirmText: "취소",
       cancelText: "돌아가기",
       confirmButtonVariant: "destructive",
-      icon: <X className="h-8 w-8 stroke-red-600 fill-red-100" />
+      icon: <X className="h-8 w-8 stroke-stamp-red" />,
     });
 
     if (confirmed) {
@@ -35,17 +40,20 @@ export const SentRequestItem: React.FC<SentRequestItemProps> = React.memo(({ req
 
   return (
     <>
-      <li className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-gray-900 truncate">
-                {request.receiverMemberName}
-              </h3>
-              <Badge color="warning" className="text-xs shrink-0">
-                대기중
-              </Badge>
-            </div>
+      <li className="flex items-center justify-between p-4 hover:bg-paper-100 transition-colors border-b border-postal-navy/10 last:border-b-0">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link
+              href={`/rolling-paper/${encodeURIComponent(request.receiverMemberName)}`}
+              className="font-medium text-ink truncate break-keep hover:text-postal-navy hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-postal-navy rounded"
+            >
+              {request.receiverMemberName}
+            </Link>
+            <Badge color="warning" className="text-xs shrink-0 break-keep">
+              대기중
+            </Badge>
           </div>
+        </div>
 
         {/* 오른쪽: 취소 버튼 */}
         <Button
@@ -53,10 +61,11 @@ export const SentRequestItem: React.FC<SentRequestItemProps> = React.memo(({ req
           size="sm"
           onClick={handleCancel}
           disabled={isPending}
-          className="ml-4 shrink-0"
+          aria-label={`${request.receiverMemberName}님에게 보낸 요청 취소`}
+          className="ml-4 shrink-0 min-h-[44px]"
         >
-          <X className="w-4 h-4 mr-1" />
-          취소
+          <X className="w-4 h-4 sm:mr-1" aria-hidden="true" />
+          <span className="hidden sm:inline">취소</span>
         </Button>
       </li>
       <ConfirmModalComponent />

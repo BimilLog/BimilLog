@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Users } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { MailOpen, Users } from "lucide-react";
 import { Button, Spinner } from "@/components";
 import { useMyFriends } from "@/hooks/api/useFriendQueries";
 import { FriendListItem } from "./FriendListItem";
@@ -14,20 +14,33 @@ interface FriendListProps {
 
 /**
  * 내 친구 목록 컴포넌트
+ *
+ * 라운드 9: paper/ink 토큰 일괄 적용, totalElements 표시,
+ * 페이지 변경 후 list 영역에 포커스 이동(B-009-E).
  */
 export const FriendList: React.FC<FriendListProps> = React.memo(({ initialData }) => {
   const [page, setPage] = useState(0);
   const size = 20;
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const lastPageRef = useRef(0);
 
   const { data, isLoading, error } = useMyFriends(page, size, true, page === 0 ? initialData : undefined);
 
   const friendData = data?.data;
   const friends = friendData?.content || [];
   const totalPages = friendData?.totalPages || 0;
+  const totalElements = friendData?.totalElements ?? 0;
   const isEmpty = friendData?.empty ?? true;
 
-  // 로딩 상태
-  if (isLoading) {
+  // 페이지 변경 후 포커스 → list 영역
+  useEffect(() => {
+    if (lastPageRef.current !== page) {
+      lastPageRef.current = page;
+      listRef.current?.focus();
+    }
+  }, [page]);
+
+  if (isLoading && !data) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <Spinner message="친구 목록을 불러오는 중..." />
@@ -35,12 +48,11 @@ export const FriendList: React.FC<FriendListProps> = React.memo(({ initialData }
     );
   }
 
-  // 에러 상태
   if (error) {
     return (
-      <div className="p-8 text-center">
-        <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-        <p className="text-gray-600">친구 목록을 불러올 수 없습니다.</p>
+      <div className="p-8 text-center" role="alert">
+        <Users className="w-16 h-16 mx-auto mb-4 text-ink-soft" aria-hidden="true" />
+        <p className="text-ink break-keep">친구 목록을 불러올 수 없어요.</p>
       </div>
     );
   }
@@ -49,29 +61,39 @@ export const FriendList: React.FC<FriendListProps> = React.memo(({ initialData }
     <div>
       {/* 헤더 */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <Users className="w-5 h-5 text-blue-600" />
+        <h2 className="text-lg font-bold font-display text-ink flex items-center gap-2 break-keep">
+          <Users className="w-5 h-5 text-postal-navy" aria-hidden="true" />
           내 친구
         </h2>
         {!isEmpty && (
-          <span className="text-sm text-gray-500">
-            {friends.length}명
+          <span className="text-sm text-ink-soft" aria-label={`총 ${totalElements}명`}>
+            {totalElements}명
           </span>
         )}
       </div>
 
       {/* 리스트 */}
       {isEmpty ? (
-        <div className="text-center py-16 bg-gray-50 rounded-lg">
-          <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600 font-medium">친구가 없습니다</p>
-          <p className="text-sm text-gray-500 mt-2">
-            추천 친구 탭에서 새로운 친구를 추가해보세요
+        <div
+          className="text-center py-16 bg-paper-100 border border-postal-navy/20 rounded-lg"
+          role="status"
+        >
+          <MailOpen className="w-16 h-16 mx-auto mb-4 text-postal-navy/60" aria-hidden="true" />
+          <p className="text-ink font-medium break-keep">
+            아직 같이 편지를 주고받을 친구가 없어요
+          </p>
+          <p className="text-sm text-ink-soft mt-2 break-keep">
+            추천 탭에서 새로운 인연을 찾아보세요
           </p>
         </div>
       ) : (
         <>
-          <ul className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          <ul
+            ref={listRef}
+            tabIndex={-1}
+            aria-label="내 친구 목록"
+            className="bg-paper-card border border-postal-navy/20 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-postal-navy/40"
+          >
             {friends.map((friend) => (
               <FriendListItem key={friend.friendMemberId} friend={friend} />
             ))}
@@ -79,16 +101,20 @@ export const FriendList: React.FC<FriendListProps> = React.memo(({ initialData }
 
           {/* 페이지네이션 */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-6">
+            <nav
+              className="flex justify-center items-center gap-2 mt-6"
+              aria-label="친구 목록 페이지"
+            >
               <Button
                 color="light"
                 size="sm"
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
+                className="min-h-[44px]"
               >
                 이전
               </Button>
-              <span className="text-sm text-gray-600 px-3">
+              <span className="text-sm text-ink-soft px-3" aria-live="polite">
                 {page + 1} / {totalPages}
               </span>
               <Button
@@ -96,10 +122,11 @@ export const FriendList: React.FC<FriendListProps> = React.memo(({ initialData }
                 size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
+                className="min-h-[44px]"
               >
                 다음
               </Button>
-            </div>
+            </nav>
           )}
         </>
       )}
