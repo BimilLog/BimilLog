@@ -1,26 +1,14 @@
 "use client";
 
 import { useAuth } from "@/hooks";
-import { Save } from "lucide-react";
-import dynamic from "next/dynamic";
+import { Save, RotateCcw, X } from "lucide-react";
 
 // 분리된 훅과 컴포넌트들 import
 import { useWriteForm } from "@/hooks/features";
-import { AuthHeader, WritePageHeader, Breadcrumb, Spinner } from "@/components";
+import { AuthHeader, WritePageHeader, Breadcrumb, Spinner, Button } from "@/components";
 import { AnonymousWriteNotice } from "@/components/organisms/board/AnonymousWriteNotice";
-
-// WriteForm을 동적 import로 변경하여 Editor 컴포넌트 최적화
-// Quill Editor는 무거운 라이브러리이므로 필요할 때만 로드하여 초기 번들 크기 감소
-const WriteForm = dynamic(() => import("@/components").then(mod => ({ default: mod.WriteForm })), {
-  // 컴포넌트 로딩 중 표시할 스피너
-  loading: () => (
-    <div className="flex items-center justify-center p-8">
-      <Spinner size="xl" />
-    </div>
-  ),
-  // Quill Editor는 window 객체를 사용하므로 서버사이드 렌더링 비활성화
-  ssr: false,
-});
+// 코드 패턴 권고: dynamic 이중 호출 정리 — LazyWriteForm 단일 wrapper 재사용
+import { LazyWriteForm } from "@/lib/utils/lazy-components";
 
 export default function WritePostPage() {
   const { isLoading } = useAuth();
@@ -50,6 +38,11 @@ export default function WritePostPage() {
     // 임시저장 기능
     isAutoSaving,
     formatLastSaved,
+
+    // B-7-003: 사용자 동의 기반 임시저장 복구 배너
+    showDraftBanner,
+    handleRestoreDraft,
+    handleDismissDraft,
 
     // Content length
     plainTextLength,
@@ -88,6 +81,46 @@ export default function WritePostPage() {
       />
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* B-7-003: 임시저장 복구 배너 — 자동 적용 대신 사용자 선택 (NN/g Heuristic #6 Recognition rather than recall) */}
+        {showDraftBanner && (
+          <div
+            role="region"
+            aria-label="임시저장 복구"
+            className="mb-4 flex flex-col gap-3 rounded-lg border border-postal-navy/30 bg-paper-aged p-4 sm:flex-row sm:items-center sm:justify-between dark:border-postal-navy/40 dark:bg-postal-navy/20"
+          >
+            <div className="flex items-start gap-3">
+              <Save className="mt-0.5 h-5 w-5 flex-shrink-0 stroke-postal-navy" />
+              <div>
+                <p className="text-sm font-medium text-brand-primary">
+                  이전에 작성하던 편지가 있어요
+                </p>
+                <p className="mt-1 text-xs text-brand-muted break-keep">
+                  편지지에 임시 보관된 내용을 이어서 작성하시겠어요?
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <Button
+                size="sm"
+                onClick={handleRestoreDraft}
+                className="bg-stamp-red text-paper-50 hover:bg-stamp-red/90"
+              >
+                <RotateCcw className="mr-1 h-4 w-4 stroke-paper-50" />
+                이어서 작성
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDismissDraft}
+                className="bg-paper-50"
+              >
+                <X className="mr-1 h-4 w-4 stroke-postal-navy" />
+                새로 작성
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="mb-4 flex items-center justify-between">
           <Breadcrumb
             items={[
@@ -96,26 +129,26 @@ export default function WritePostPage() {
               { title: "글쓰기" },
             ]}
           />
-          {/* 임시저장 상태 표시 */}
+          {/* 임시저장 상태 표시 — 우표/봉투 메타포 + aria-live + HH:MM 축약은 useDraft 측에서 적용 */}
           {formatLastSaved && (
-            <div className="flex items-center gap-2 text-sm text-brand-muted">
+            <div className="flex items-center gap-2 text-sm text-brand-muted" aria-live="polite">
               {isAutoSaving ? (
                 <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                  자동 저장 중...
+                  <span aria-hidden="true" className="w-2 h-2 bg-postal-navy/60 rounded-full animate-pulse" />
+                  편지지에 임시 보관 중...
                 </span>
               ) : (
                 <span className="flex items-center gap-1">
-                  <Save className="w-3.5 h-3.5 stroke-green-600 fill-green-100" />
+                  <Save className="w-3.5 h-3.5 stroke-postal-navy fill-paper-100" />
                   {formatLastSaved}
                 </span>
               )}
             </div>
           )}
         </div>
-        {/* WriteForm에 필요한 모든 상태와 핸들러를 props로 전달 */}
+        {/* LazyWriteForm 사용 (dynamic 이중 호출 정리) */}
         {/* 회원/비회원에 따라 다른 폼 필드가 렌더링됨 */}
-        <WriteForm
+        <LazyWriteForm
           title={title}
           setTitle={setTitle}
           content={content}

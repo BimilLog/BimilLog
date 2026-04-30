@@ -36,8 +36,10 @@ async function getAuthHeaders() {
     headers['X-XSRF-TOKEN'] = xsrfToken
   }
 
-  // 디버그 로그
-  console.log('[getAuthHeaders] Cookies:', cookieParts.map(c => c.split('=')[0]).join(', '))
+  // 디버그 로그 — production 환경에서는 노출 금지 (B-7-013)
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[getAuthHeaders] Cookies:', cookieParts.map(c => c.split('=')[0]).join(', '))
+  }
 
   return headers
 }
@@ -207,7 +209,9 @@ export async function likePostAction(postId: number): Promise<ActionResult> {
     const apiUrl = getServerApiUrl()
     const headers = await getAuthHeaders()
 
-    console.log('[likePostAction] Requesting:', `${apiUrl}/api/post/${postId}/like`)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[likePostAction] Requesting:', `${apiUrl}/api/post/${postId}/like`)
+    }
 
     const res = await fetch(`${apiUrl}/api/post/${postId}/like`, {
       method: 'POST',
@@ -215,11 +219,15 @@ export async function likePostAction(postId: number): Promise<ActionResult> {
       body: JSON.stringify({}),
     })
 
-    console.log('[likePostAction] Response status:', res.status)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[likePostAction] Response status:', res.status)
+    }
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => null)
-      console.log('[likePostAction] Error response:', errorData)
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[likePostAction] Error response:', errorData)
+      }
       const errorMessage = errorData?.errorMessage || errorData?.message || '좋아요 처리에 실패했습니다.'
       return { success: false, error: errorMessage }
     }

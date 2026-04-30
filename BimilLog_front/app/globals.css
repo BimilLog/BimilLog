@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "flowbite/dist/flowbite.min.css";
+/* B-7-008: Quill CSS 를 npm 경로로 import (CDN 외부 장애에도 에디터 사용 가능) */
+@import "quill/dist/quill.core.css";
+@import "quill/dist/quill.snow.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -58,6 +61,11 @@
 
   /* 콘텐츠 컨테이너 폭 — 데스크톱 1280에서 좌우 광활함 해소 (1100~1200) */
   --container-paper: 1180px;
+
+  /* B-7-005: AuthHeader 높이 토큰 — sticky 좌표(top) 일관성 보장
+     모바일/데스크톱 모두 ~64px 기준. WritePageHeader/EditPostHeader 등
+     하위 sticky 헤더는 top: var(--app-header-height) 로 좌표 통일. */
+  --app-header-height: 64px;
 
   /* Font family 토큰 (Tailwind 4 @theme — font-display/font-handwriting/font-body 자동 매핑) */
   --font-display: var(--font-display), "Gowun Batang", "Pretendard Variable", "Noto Serif KR", serif;

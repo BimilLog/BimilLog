@@ -24,7 +24,11 @@ export interface DraftMetadata {
 const DRAFT_KEY = 'bimillog_drafts';
 const DRAFT_METADATA_KEY = 'bimillog_draft_metadata';
 const DRAFT_EXPIRY_DAYS = 30;
+// 자동저장 강제 주기 (사용자가 계속 입력 중이라도 일정 간격마다 저장 보장)
 const AUTO_SAVE_INTERVAL = 5 * 60 * 1000; // 5분
+// B-7-002: 자동저장 디바운스 — 입력 멈춘 후 N ms 뒤 저장
+// 5분 디바운스(=AUTO_SAVE_INTERVAL 와 동일값)는 새로고침 시 모든 입력 유실 위험 → 30초로 분리
+const AUTO_SAVE_DEBOUNCE = 30 * 1000; // 30초
 
 /**
  * 임시저장 목록 가져오기
@@ -230,9 +234,16 @@ export function getDraftMetadata(): DraftMetadata | null {
 }
 
 /**
- * 자동저장 간격
+ * 자동저장 디바운스 (입력 멈춘 후 저장까지 대기)
+ * - 짧을수록 데이터 손실 위험 ↓, localStorage 쓰기 비용 ↑
+ * - 30초가 Notion(~5초) 와 5분(원래값) 의 절충
  */
-export const AUTO_SAVE_DELAY = AUTO_SAVE_INTERVAL;
+export const AUTO_SAVE_DELAY = AUTO_SAVE_DEBOUNCE;
+
+/**
+ * 자동저장 강제 주기 (장시간 입력 시 보장 저장)
+ */
+export const AUTO_SAVE_FORCE_INTERVAL = AUTO_SAVE_INTERVAL;
 
 /**
  * 임시저장이 있는지 확인

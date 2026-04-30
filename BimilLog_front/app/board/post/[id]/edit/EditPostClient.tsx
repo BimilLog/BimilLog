@@ -1,11 +1,12 @@
 "use client";
 
 import { useEditForm } from "@/hooks/features";
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Editor } from "@/components";
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Editor, SafeHTML, Spinner } from "@/components";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
 import { AuthHeader } from "@/components/organisms/common";
 import type { Post } from "@/types/domains/post";
+import { formatRelativeDate } from "@/lib/utils";
 
 interface EditPostClientProps {
   initialPost: Post | null;
@@ -32,16 +33,16 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
     isSubmitting,
     isFormValid,
     handleSubmit,
+    isAutoSaving,
+    formatLastSaved,
   } = useEditForm({ initialPost, initialPostId: postId });
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-paper dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
+      <div className="min-h-screen bg-paper dark:bg-background">
         <AuthHeader />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <div className="text-center">
-            <p className="text-brand-muted">로딩 중...</p>
-          </div>
+          <Spinner size="xl" message="게시글 불러오는 중..." />
         </div>
       </div>
     );
@@ -49,34 +50,56 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-paper dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
+      <div className="min-h-screen bg-paper dark:bg-background">
         <AuthHeader />
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <p className="text-brand-muted">게시글 정보를 찾을 수 없습니다.</p>
+        <div className="container mx-auto flex min-h-[calc(100vh-80px)] flex-col items-center justify-center gap-4 px-4 text-center">
+          <p className="text-brand-muted break-keep">게시글 정보를 찾을 수 없습니다.</p>
+          <Link href="/board">
+            <Button variant="outline" className="bg-paper-50">
+              <ArrowLeft className="w-4 h-4 mr-1 stroke-postal-navy" />
+              게시판으로 돌아가기
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
 
+  // B-7-007: 권한 없음 화면 — 무한 placeholder 대신 명시적 안내 + 복귀 버튼
   if (!isAuthorized) {
     return (
-      <>
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-          <div className="text-center">
-            <p className="text-brand-muted">권한을 확인하는 중...</p>
-          </div>
+      <div className="min-h-screen bg-paper dark:bg-background">
+        <AuthHeader />
+        <div className="container mx-auto flex min-h-[calc(100vh-80px)] flex-col items-center justify-center gap-4 px-4 text-center">
+          <p className="text-brand-primary font-medium break-keep">
+            이 게시글을 수정할 권한이 없습니다.
+          </p>
+          <p className="text-sm text-brand-muted break-keep">
+            본인이 작성한 게시글만 수정할 수 있어요.
+          </p>
+          <Link href={`/board/post/${resolvedPostId ?? postId}`}>
+            <Button variant="outline" className="bg-paper-50">
+              <ArrowLeft className="w-4 h-4 mr-1 stroke-postal-navy" />
+              게시글로 돌아가기
+            </Button>
+          </Link>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
     <>
-      <div className="min-h-screen bg-paper dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
+      <div className="min-h-screen bg-paper dark:bg-background">
         <AuthHeader />
 
-        {/* Header (모바일 최적화) */}
-        <header data-toast-anchor className="sticky top-0 z-50 bg-paper-50/80 backdrop-blur-md border-b border-ink-soft">
+        {/* Header (모바일 최적화)
+            B-7-005: top 좌표를 --app-header-height 토큰으로 통일 (write 페이지와 일치) */}
+        <header
+          data-toast-anchor
+          className="sticky z-40 bg-paper-50/85 shadow-sm backdrop-blur-md border-b border-ink-soft dark:border-postal-navy/40 dark:bg-postal-navy/30 dark:shadow-md dark:shadow-black/20"
+          style={{ top: "var(--app-header-height)" }}
+        >
           <div className="container mx-auto px-4 py-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               {/* 좌측: 뒤로가기 및 제목 */}
@@ -139,6 +162,25 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
         </header>
 
         <main className="container mx-auto px-4 py-8 max-w-4xl">
+          {/* 자동저장 상태 표시 (B-7-004 수정 모드 임시저장 인디케이터) */}
+          {(isAutoSaving || formatLastSaved) && (
+            <div className="mb-3 flex justify-end" aria-live="polite">
+              {isAutoSaving ? (
+                <span className="flex items-center gap-1 text-sm text-brand-muted">
+                  <span
+                    aria-hidden="true"
+                    className="w-2 h-2 bg-postal-navy/60 rounded-full animate-pulse"
+                  />
+                  편지지에 임시 보관 중...
+                </span>
+              ) : formatLastSaved ? (
+                <span className="flex items-center gap-1 text-sm text-brand-muted">
+                  <Save className="w-3.5 h-3.5 stroke-postal-navy fill-paper-100" />
+                  {formatLastSaved}
+                </span>
+              ) : null}
+            </div>
+          )}
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -178,24 +220,31 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                     <Editor value={content} onChange={setContent} />
                   </div>
 
-                  {/* 비회원 게시글인 경우 비밀번호 입력 */}
+                  {/* 비회원 게시글인 경우 비밀번호 입력
+                      B-7-011: write 폼과 동일 정책 (4자리 숫자, 1000~9999) 라벨 명시 */}
                   {isGuest && (
                     <div className="space-y-2">
                       <Label
                         htmlFor="edit-password"
                         className="text-sm font-medium text-brand-primary"
                       >
-                        비밀번호 (4자리 숫자)
+                        비밀번호 (1000~9999 4자리 숫자)
                       </Label>
                       <Input
                         id="edit-password"
-                        type="password"
-                        placeholder="게시글 수정을 위한 비밀번호를 입력하세요"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={4}
+                        placeholder="게시글 작성 시 설정한 4자리 숫자"
                         value={guestPassword}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGuestPassword(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          // 숫자만 허용 (write 폼과 동일 정책)
+                          const value = e.target.value.replace(/\D/g, "");
+                          setGuestPassword(value);
+                        }}
                         className="border-2 border-ink-soft focus:border-stamp-red"
                       />
-                      <p className="text-xs text-brand-secondary">
+                      <p className="text-xs text-brand-secondary break-keep">
                         게시글 작성 시 설정한 비밀번호를 입력해주세요.
                       </p>
                     </div>
@@ -206,7 +255,8 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                     <div className="flex items-center space-x-2">
                       <div className="w-8 h-8 bg-stamp-red rounded-full flex items-center justify-center">
                         <span className="text-paper-50 text-sm font-bold">
-                          {post.memberName?.charAt(0) || "?"}
+                          {/* grapheme 단위 첫 글자 추출 (이모지/한글 안전) */}
+                          {post.memberName ? [...post.memberName][0] : "?"}
                         </span>
                       </div>
                       <div>
@@ -214,30 +264,44 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                           작성자: {post.memberName}
                         </p>
                         <p className="text-xs text-brand-muted">
-                          원본 작성일: {post.createdAt}
+                          원본 작성일: {formatRelativeDate(post.createdAt)}
                         </p>
+                        {post.updatedAt && post.updatedAt !== post.createdAt && (
+                          <p className="text-xs text-brand-muted">
+                            마지막 수정: {formatRelativeDate(post.updatedAt)}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
                 </>
               ) : (
-                /* 미리보기 */
+                /* 미리보기 — B-7-006: SafeHTML 로 HTML 서식 그대로 렌더 */
                 <div className="space-y-6">
-                  <div className="border-b pb-4">
-                    <h2 className="text-2xl font-bold text-brand-primary mb-2">
+                  <div className="border-b border-ink-soft pb-4">
+                    <h2 className="text-2xl font-bold text-brand-primary mb-2 break-keep">
                       {title || "제목을 입력하세요"}
                     </h2>
-                    <div className="flex items-center space-x-4 text-sm text-brand-muted">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-brand-muted">
                       <span>작성자: {post.memberName}</span>
-                      <span>작성일: {post.createdAt}</span>
-                      <span className="text-orange-600">수정됨</span>
+                      <span>작성일: {formatRelativeDate(post.createdAt)}</span>
+                      {post.updatedAt && post.updatedAt !== post.createdAt && (
+                        <span className="text-stamp-red dark:text-stamp-red/90">
+                          이전에 수정됨
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  <div className="prose max-w-none">
-                    <div className="text-brand-primary leading-relaxed whitespace-pre-wrap">
-                      {content || "내용을 입력하세요"}
-                    </div>
+                  <div className="prose dark:prose-invert max-w-none">
+                    {content ? (
+                      <SafeHTML
+                        html={content}
+                        className="text-brand-primary leading-relaxed"
+                      />
+                    ) : (
+                      <p className="text-brand-muted">내용을 입력하세요</p>
+                    )}
                   </div>
                 </div>
               )}
