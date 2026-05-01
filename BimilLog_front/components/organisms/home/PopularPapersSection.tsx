@@ -2,10 +2,11 @@
 
 import { memo } from "react";
 import { Card } from "flowbite-react";
-import { TrendingUp, MessageSquare } from "lucide-react";
+import { TrendingUp, MessageSquare, MailOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { usePopularPapers } from "@/hooks/api/useRollingPaperQueries";
+import { EmptyView } from "@/components";
 import type { CursorPageResponse } from "@/types/common";
 import type { PopularPaperInfo } from "@/types/domains/paper";
 
@@ -74,18 +75,18 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = memo(({
 
         {/* 에러 상태 (fetch 실패) - 재시도 버튼 노출 */}
         {!initialData && !isLoading && isError && (
-          <div className="text-center py-8 space-y-3">
-            <p className="text-muted-foreground text-sm">
-              인기 롤링페이퍼를 불러오지 못했습니다
-            </p>
-            <button
-              type="button"
-              data-testid="popular-papers-retry"
-              onClick={() => refetch()}
-              className="inline-flex items-center justify-center min-h-touch px-4 py-2 rounded-md border border-border bg-background text-foreground hover:bg-accent transition-colors focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2"
-            >
-              다시 불러오기
-            </button>
+          <div data-testid="popular-papers-retry">
+            <EmptyView
+              compact
+              assertive
+              icon={
+                <MailOpen className="w-7 h-7 stroke-stamp-red" strokeWidth={1.6} aria-hidden="true" />
+              }
+              title="인기 편지함을 불러오지 못했어요"
+              description="잠시 후 다시 시도해 주세요."
+              onRetry={() => refetch()}
+              retryLabel="다시 불러오기"
+            />
           </div>
         )}
 
@@ -93,11 +94,15 @@ export const PopularPapersSection: React.FC<PopularPapersSectionProps> = memo(({
         {data && (
           <div className="space-y-2">
             {data.content.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-ink-soft dark:text-foreground/70">
-                  아직 인기 롤링페이퍼가 없습니다
-                </p>
-              </div>
+              <EmptyView
+                compact
+                icon={
+                  <MailOpen className="w-7 h-7 stroke-stamp-red" strokeWidth={1.6} aria-hidden="true" />
+                }
+                title="아직 인기 편지함이 없어요"
+                description="첫 메시지를 남겨 인기 롤링페이퍼를 만들어 주세요."
+                action={{ label: "롤링페이퍼 둘러보기", href: "/visit" }}
+              />
             ) : (
               data.content.map((paper) => (
                 <div

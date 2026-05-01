@@ -21,6 +21,8 @@ interface NotificationDrawerProps {
   isInitialLoading: boolean;
   /** 패칭 중 여부 */
   isFetchingList: boolean;
+  /** F-1110: fetch 에러 상태 */
+  isErrored?: boolean;
   /** 브라우저 알림 허용 프롬프트 표시 가능 여부 */
   allowBrowserPermissionPrompt: boolean;
   /** 새로고침 핸들러 */
@@ -48,6 +50,7 @@ export const NotificationDrawer = memo(function NotificationDrawer({
   unreadCount,
   isInitialLoading,
   isFetchingList,
+  isErrored = false,
   allowBrowserPermissionPrompt,
   onRefresh,
   onOpenPermissionModal,
@@ -66,12 +69,20 @@ export const NotificationDrawer = memo(function NotificationDrawer({
       position="bottom"
       className="rounded-t-xl !z-[60]"
     >
-      <div className="h-[80vh] max-h-[80vh] flex flex-col bg-white rounded-t-xl overflow-hidden">
+      {/* F-1111: WAI-ARIA Dialog Pattern + 다크 토큰 회귀 (bg-white → bg-paper-card dark:bg-background) */}
+      <div
+        id="notification-popover"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="notification-heading"
+        className="h-[80vh] max-h-[80vh] flex flex-col bg-paper-card dark:bg-background rounded-t-xl overflow-hidden"
+      >
         <NotificationList
           notifications={notifications}
           unreadCount={unreadCount}
           isInitialLoading={isInitialLoading}
           isFetchingList={isFetchingList}
+          isErrored={isErrored}
           allowBrowserPermissionPrompt={allowBrowserPermissionPrompt}
           onRefresh={onRefresh}
           onOpenPermissionModal={onOpenPermissionModal}

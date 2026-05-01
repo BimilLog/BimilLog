@@ -40,6 +40,7 @@ const staticPageConfig = {
   "/suggest": { changeFrequency: "weekly" as const, priority: 0.7 },
   "/privacy": { changeFrequency: "monthly" as const, priority: 0.5 },
   "/terms": { changeFrequency: "monthly" as const, priority: 0.5 },
+  "/install": { changeFrequency: "monthly" as const, priority: 0.6 },
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { Bell, BellOff } from "lucide-react";
-import { Button } from "@/components";
+import { Bell, BellOff, Trash2 } from "lucide-react";
+import { Button, ConfirmModal } from "@/components";
 import { Badge } from "flowbite-react";
 import { NotificationPermissionModal } from "@/components/organisms/notification";
 import { NotificationPopover } from "./NotificationPopover";
@@ -22,6 +22,7 @@ export function NotificationBell() {
     unreadCount,
     isFetchingList,
     isInitialLoading,
+    isErrored,
     isSSEConnected,
     connectionState,
     canUseNotifications,
@@ -35,53 +36,75 @@ export function NotificationBell() {
     handleNotificationClick,
     handleMarkAllAsRead,
     handleDeleteAllNotifications,
+    confirmDeleteIds,
+    cancelDeleteAllNotifications,
+    confirmDeleteAllNotifications,
   } = useNotificationBell();
 
   // SSE 연결 상태에 따른 벨 아이콘 결정
   const bellInfo = useMemo(() => {
     if (connectionState === "CONNECTING") {
       return {
-        icon: <Bell className="w-5 h-5 text-gray-400 animate-pulse" />,
+        icon: <Bell className="w-5 h-5 text-gray-400 animate-pulse" aria-hidden="true" />,
         tooltip: "실시간 알림 연결 중...",
         className: "opacity-60",
       };
     } else if (connectionState === "DISCONNECTED" || connectionState === "CLOSED") {
       return {
-        icon: <BellOff className="w-5 h-5 text-red-500" />,
+        icon: <BellOff className="w-5 h-5 text-stamp-red" aria-hidden="true" />,
         tooltip: "실시간 알림 연결 실패 (클릭하여 새로고침)",
         className: "",
       };
     } else if (isSSEConnected) {
       return {
-        icon: <Bell className="w-5 h-5 text-purple-500 animate-pulse" />,
+        icon: <Bell className="w-5 h-5 text-purple-500 animate-pulse" aria-hidden="true" />,
         tooltip: `실시간 알림 활성화 ${unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""}`,
         className: "",
       };
     } else {
       return {
-        icon: <BellOff className="w-5 h-5 text-brand-secondary" />,
+        icon: <BellOff className="w-5 h-5 text-brand-secondary" aria-hidden="true" />,
         tooltip: "실시간 알림 비활성화",
         className: "",
       };
     }
   }, [connectionState, isSSEConnected, unreadCount]);
 
-  if (!canUseNotifications) return null;
+  // F-1112: notificationListProps 객체 useMemo — memo 처리된 Popover/Drawer 가 매 렌더 리렌더 방지
+  const notificationListProps = useMemo(
+    () => ({
+      notifications,
+      unreadCount,
+      isInitialLoading,
+      isFetchingList,
+      isErrored,
+      allowBrowserPermissionPrompt,
+      onRefresh: handleRefresh,
+      onOpenPermissionModal: () => setShowPermissionModal(true),
+      onMarkAsRead: markAsRead,
+      onDelete: deleteNotification,
+      onNotificationClick: handleNotificationClick,
+      onMarkAllAsRead: handleMarkAllAsRead,
+      onDeleteAll: handleDeleteAllNotifications,
+    }),
+    [
+      notifications,
+      unreadCount,
+      isInitialLoading,
+      isFetchingList,
+      isErrored,
+      allowBrowserPermissionPrompt,
+      handleRefresh,
+      setShowPermissionModal,
+      markAsRead,
+      deleteNotification,
+      handleNotificationClick,
+      handleMarkAllAsRead,
+      handleDeleteAllNotifications,
+    ]
+  );
 
-  const notificationListProps = {
-    notifications,
-    unreadCount,
-    isInitialLoading,
-    isFetchingList,
-    allowBrowserPermissionPrompt,
-    onRefresh: handleRefresh,
-    onOpenPermissionModal: () => setShowPermissionModal(true),
-    onMarkAsRead: markAsRead,
-    onDelete: deleteNotification,
-    onNotificationClick: handleNotificationClick,
-    onMarkAllAsRead: handleMarkAllAsRead,
-    onDeleteAll: handleDeleteAllNotifications,
-  } as const;
+  if (!canUseNotifications) return null;
 
   return (
     <div className="relative" ref={triggerRef}>
@@ -95,6 +118,10 @@ export function NotificationBell() {
         }${bellInfo.className}`}
         aria-label="알림"
         title={bellInfo.tooltip}
+        // F-1111: WAI-ARIA Disclosure / Dialog Pattern
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        aria-controls="notification-popover"
       >
         {bellInfo.icon}
         {unreadCount > 0 && (
@@ -123,6 +150,19 @@ export function NotificationBell() {
           {...notificationListProps}
         />
       )}
+
+      {/* F-1102: 전체 삭제 확인 모달 — destructive 액션 두 단계 확인 (Nielsen Norman) */}
+      <ConfirmModal
+        isOpen={(confirmDeleteIds?.length ?? 0) > 0}
+        onClose={cancelDeleteAllNotifications}
+        onConfirm={confirmDeleteAllNotifications}
+        title="받은 편지함을 비울까요?"
+        message={"삭제된 알림은 복구할 수 없어요."}
+        confirmText="비우기"
+        cancelText="취소"
+        confirmButtonVariant="destructive"
+        icon={<Trash2 className="h-8 w-8 stroke-stamp-red" aria-hidden="true" />}
+      />
 
       {/* 알림 권한 요청 모달 */}
       {allowBrowserPermissionPrompt && (

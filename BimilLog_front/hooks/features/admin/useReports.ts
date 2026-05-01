@@ -59,6 +59,51 @@ export function useReports(options: UseReportsOptions = {}) {
     fetchReports();
   }, [fetchReports]);
 
+  /**
+   * 라운드 16 F-16-036 옵션 B (백엔드 변경 보류 → 프론트 옵티미스틱):
+   * 차단 / 강제탈퇴 mutation 성공 시 동일 targetId 의 신고를 RESOLVED 처리한 것처럼 즉시 제거.
+   * 백엔드 응답이 신고 목록을 갱신해주지 않으므로 클라이언트에서만 옵티미스틱하게 정리.
+   *
+   * @param targetId 처리된 대상 사용자 ID
+   * @param reportType 처리된 신고 종류 (POST/COMMENT — 같은 reportType + targetId 조합)
+   * @returns 옵티미스틱하게 제거된 신고 개수
+   */
+  const removeResolvedReports = useCallback(
+    (targetId: number, reportType: string): number => {
+      let removedCount = 0;
+      setReports((prev) => {
+        if (!prev) return prev;
+        const filtered = prev.content.filter((r) => {
+          // 동일 targetId 이면서 (POST/COMMENT 류) 같은 reportType 인 신고 제거
+          const isSameTarget =
+            r.targetId === targetId &&
+            (r.reportType === "POST" || r.reportType === "COMMENT") &&
+            r.reportType === reportType;
+          if (isSameTarget) removedCount += 1;
+          return !isSameTarget;
+        });
+        if (filtered.length === prev.content.length) return prev;
+        return {
+          ...prev,
+          content: filtered,
+          // totalElements 도 줄여 헤더/뱃지 즉시 반영
+          totalElements: Math.max(0, (prev.totalElements ?? 0) - removedCount),
+          empty: filtered.length === 0,
+        } as PageResponse<Report>;
+      });
+      return removedCount;
+    },
+    [],
+  );
+
+  // 라운드 16 F-16-029: 페이지 N 마지막 항목 처리 후 빈 페이지 회귀 방지.
+  // 옵티미스틱 제거 후 현재 페이지가 비고 page > 0 이면 자동으로 한 페이지 후퇴.
+  useEffect(() => {
+    if (!isLoading && reports && reports.content.length === 0 && page > 0) {
+      setPage((p) => Math.max(0, p - 1));
+    }
+  }, [isLoading, reports, page]);
+
   const totalElements = reports?.totalElements || 0;
   const totalPages = reports?.totalPages || 0;
 
@@ -73,5 +118,6 @@ export function useReports(options: UseReportsOptions = {}) {
     totalElements,
     totalPages,
     refetch: fetchReports,
+    removeResolvedReports,
   };
 }

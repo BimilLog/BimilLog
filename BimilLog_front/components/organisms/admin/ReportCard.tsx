@@ -3,45 +3,42 @@
 import React from "react";
 import { Badge, Button } from "@/components";
 import { Calendar, FileText, Eye } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatRelativeDate, formatKoreanDateTime } from "@/lib/utils/date";
+import {
+  getReportTypeLabel,
+  getReportTypeBadgeColor,
+} from "@/lib/utils/admin/config";
 import type { Report } from "@/types/domains/admin";
 
 interface ReportCardProps {
   report: Report;
   onView: () => void;
+  /** 진행 중인 액션이 있으면 다른 카드 클릭을 차단 (F-16-037) */
+  disabled?: boolean;
 }
 
-export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
-  const getReportTypeLabel = (type: string) => {
-    switch(type) {
-      case "POST": return "게시글";
-      case "COMMENT": return "댓글";
-      case "ERROR": return "오류";
-      case "IMPROVEMENT": return "개선";
-      default: return type;
-    }
-  };
+/**
+ * 신고 카드 (데스크톱 — 테이블 row).
+ * 라운드 16 F-16-018~027 종합 적용.
+ */
+export const ReportCard = React.memo<ReportCardProps>(({ report, onView, disabled = false }) => {
+  const typeLabel = getReportTypeLabel(report.reportType);
+  const typeColor = getReportTypeBadgeColor(report.reportType);
 
-  const getReportTypeColor = (type: string) => {
-    switch(type) {
-      case "POST": return "bg-yellow-100 text-yellow-700";
-      case "COMMENT": return "bg-green-100 text-green-700";
-      case "ERROR": return "bg-red-100 text-red-700";
-      case "IMPROVEMENT": return "bg-blue-100 text-blue-700";
-      default: return "bg-gray-100 text-brand-primary";
-    }
-  };
+  const isDeletedTarget =
+    (report.reportType === "POST" || report.reportType === "COMMENT") &&
+    !report.targetAuthorName;
 
   return (
-    <tr className="hover:bg-gray-50 transition-colors">
+    <tr className="hover:bg-paper-soft transition-colors">
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center gap-3">
           <div>
-            <div className="text-sm font-medium text-brand-primary">
+            <div className="text-sm font-medium text-ink dark:text-foreground">
               #{report.id}
             </div>
-            <Badge className={`text-xs ${getReportTypeColor(report.reportType)}`}>
-              {getReportTypeLabel(report.reportType)}
+            <Badge className={`text-xs ${typeColor}`}>
+              {typeLabel}
             </Badge>
           </div>
         </div>
@@ -49,33 +46,59 @@ export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
       <td className="px-6 py-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-brand-secondary">신고자:</span>
-            <span className="text-sm text-brand-primary">
-              {report.reporterName || "익명"}
-            </span>
+            <span className="text-xs text-ink-soft dark:text-muted-foreground">신고자:</span>
+            {/* F-16-023: 익명 폴백 시각 분리 (italic + ink-soft) */}
+            {report.reporterName ? (
+              <span className="text-sm text-ink dark:text-foreground">
+                {report.reporterName}
+              </span>
+            ) : (
+              <span className="text-sm italic text-ink-soft dark:text-muted-foreground">
+                익명
+              </span>
+            )}
           </div>
           {(report.reportType === "POST" || report.reportType === "COMMENT") && (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-brand-secondary">대상:</span>
-              <span className="text-sm text-brand-primary font-medium">
-                {report.targetAuthorName || "삭제됨"}
-              </span>
+              <span className="text-xs text-ink-soft dark:text-muted-foreground">대상:</span>
+              {isDeletedTarget ? (
+                <span
+                  className="text-sm italic text-stamp-red"
+                  aria-label="신고 대상 사용자 삭제됨"
+                >
+                  삭제됨
+                </span>
+              ) : (
+                <span className="text-sm text-ink dark:text-foreground font-medium">
+                  {report.targetAuthorName}
+                </span>
+              )}
             </div>
           )}
         </div>
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 stroke-blue-600 fill-blue-100" />
-          <span className="text-sm text-brand-muted line-clamp-2">
+          <FileText className="w-4 h-4 stroke-postal-navy shrink-0" aria-hidden="true" />
+          {/* F-16-020: line-clamp 위 SR 보호용 aria-label 로 전체 콘텐츠 노출 */}
+          <span
+            className="text-sm text-ink-soft dark:text-muted-foreground line-clamp-2"
+            aria-label={report.content}
+          >
             {report.content}
           </span>
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center gap-2 text-sm text-brand-secondary">
-          <Calendar className="w-4 h-4 stroke-indigo-600 fill-indigo-100" />
-          {formatDate(report.createdAt)}
+        <div className="flex items-center gap-2 text-sm text-ink-soft dark:text-muted-foreground">
+          <Calendar className="w-4 h-4 stroke-postal-navy" aria-hidden="true" />
+          {/* F-16-021/022: time dateTime + relative + 정확한 ISO title */}
+          <time
+            dateTime={report.createdAt}
+            title={formatKoreanDateTime(report.createdAt)}
+          >
+            {formatRelativeDate(report.createdAt)}
+          </time>
         </div>
       </td>
       <td className="px-6 py-4 text-right">
@@ -83,9 +106,10 @@ export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
           variant="ghost"
           size="sm"
           onClick={onView}
-          className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+          disabled={disabled}
+          className="text-stamp-red hover:text-stamp-red hover:bg-stamp-red/10 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Eye className="w-4 h-4 mr-1 stroke-purple-600 fill-purple-100" />
+          <Eye className="w-4 h-4 mr-1 stroke-stamp-red" aria-hidden="true" />
           상세보기
         </Button>
       </td>

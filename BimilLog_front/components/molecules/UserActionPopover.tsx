@@ -100,7 +100,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
       confirmText: "취소",
       cancelText: "돌아가기",
       confirmButtonVariant: "destructive",
-      icon: <UserMinus className="h-8 w-8 stroke-red-600 fill-red-100" />,
+      icon: <UserMinus className="h-8 w-8 stroke-stamp-red" />,
     });
 
     if (confirmed) {
@@ -124,7 +124,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
       confirmText: "거절",
       cancelText: "돌아가기",
       confirmButtonVariant: "destructive",
-      icon: <X className="h-8 w-8 stroke-red-600 fill-red-100" />,
+      icon: <X className="h-8 w-8 stroke-stamp-red" />,
     });
 
     if (confirmed) {
@@ -132,15 +132,15 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     }
   };
 
-  // 핸들러 5: 블랙리스트 추가
+  // 핸들러 5: 블랙리스트 추가 (라운드 15 F-15-BUG-14/17: paper 토큰 + 편지 메타포)
   const handleAddToBlacklist = async () => {
     const confirmed = await confirm({
-      title: "블랙리스트 추가",
-      message: `'${memberName}' 님을 블랙리스트에 추가하시겠습니까?\n\n이 사용자는 회원님의 롤링페이퍼에 메시지를 남길 수 없게 됩니다.`,
-      confirmText: "추가",
-      cancelText: "취소",
+      title: "발신인 차단",
+      message: `${memberName}님의 편지를 더 이상 받지 않을게요.\n차단하면 회원님의 롤링페이퍼에 메시지를 남길 수 없어요.`,
+      confirmText: "차단",
+      cancelText: "돌아가기",
       confirmButtonVariant: "destructive",
-      icon: <UserX className="h-8 w-8 stroke-red-600 fill-red-100" />,
+      icon: <UserX className="h-8 w-8 stroke-stamp-red" />,
     });
 
     if (confirmed) {
@@ -148,16 +148,16 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     }
   };
 
-  // 핸들러 6: 블랙리스트 제거
+  // 핸들러 6: 블랙리스트 제거 (라운드 15 F-15-BUG-14/17: postal-navy + 편지 메타포)
   const handleRemoveFromBlacklist = async () => {
     if (!blacklistId) return;
 
     const confirmed = await confirm({
-      title: "블랙리스트 제거",
-      message: `'${memberName}' 님을 블랙리스트에서 제거하시겠습니까?`,
-      confirmText: "제거",
-      cancelText: "취소",
-      icon: <UserCheck className="h-8 w-8 stroke-green-600 fill-green-100" />,
+      title: "차단 해제",
+      message: `${memberName}님 차단을 풀어드릴까요?\n다시 편지를 받을 수 있어요.`,
+      confirmText: "차단 해제",
+      cancelText: "돌아가기",
+      icon: <UserCheck className="h-8 w-8 stroke-postal-navy" />,
     });
 
     if (confirmed) {

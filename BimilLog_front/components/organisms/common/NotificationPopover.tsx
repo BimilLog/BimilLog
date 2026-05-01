@@ -21,6 +21,8 @@ interface NotificationPopoverProps {
   isInitialLoading: boolean;
   /** 패칭 중 여부 */
   isFetchingList: boolean;
+  /** F-1110: fetch 에러 상태 */
+  isErrored?: boolean;
   /** 브라우저 알림 허용 프롬프트 표시 가능 여부 */
   allowBrowserPermissionPrompt: boolean;
   /** 새로고침 핸들러 */
@@ -48,6 +50,7 @@ export const NotificationPopover = memo(function NotificationPopover({
   unreadCount,
   isInitialLoading,
   isFetchingList,
+  isErrored = false,
   allowBrowserPermissionPrompt,
   onRefresh,
   onOpenPermissionModal,
@@ -61,6 +64,11 @@ export const NotificationPopover = memo(function NotificationPopover({
 
   return createPortal(
     <div
+      // F-1111: WAI-ARIA Dialog Pattern
+      id="notification-popover"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="notification-heading"
       className="notification-popover z-[70]"
       style={{
         position: "fixed",
@@ -69,12 +77,14 @@ export const NotificationPopover = memo(function NotificationPopover({
         transform: "translateX(-100%)",
       }}
     >
-      <Card className="w-80 shadow-brand-xl border-0 bg-white/90 backdrop-blur-sm">
+      {/* 다크 토큰 회귀: bg-white/90 → bg-paper-card/95 dark:bg-background/95 */}
+      <Card className="w-80 shadow-brand-xl border-0 bg-paper-card/95 dark:bg-background/95 backdrop-blur-sm">
         <NotificationList
           notifications={notifications}
           unreadCount={unreadCount}
           isInitialLoading={isInitialLoading}
           isFetchingList={isFetchingList}
+          isErrored={isErrored}
           allowBrowserPermissionPrompt={allowBrowserPermissionPrompt}
           onRefresh={onRefresh}
           onOpenPermissionModal={onOpenPermissionModal}

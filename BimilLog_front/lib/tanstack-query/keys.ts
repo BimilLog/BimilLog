@@ -86,9 +86,14 @@ export const queryKeys = {
   },
 
   // Blacklist
+  // 라운드 15 F-15-BUG-1/2: useBlacklistQueries 와 invalidate 키가 어긋나 옵티미스틱 적용 후
+  // invalidate 가 실제 캐시 슬롯을 건드리지 못하던 회귀를 수정. lists() 가 page/size 무시하는
+  // 부모 키이고, list(p,s) 는 페이지별 캐시 슬롯.
   blacklist: {
     all: ['blacklist'] as const,
-    list: (page?: number, size?: number) => ['blacklist', 'list', page, size] as const,
+    lists: () => [...queryKeys.blacklist.all, 'list'] as const,
+    list: (page: number = 0, size: number = 20) =>
+      [...queryKeys.blacklist.all, 'list', page, size] as const,
   },
 } as const;
 

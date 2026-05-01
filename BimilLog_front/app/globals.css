@@ -879,3 +879,121 @@
   max-height: 240px !important;
   overflow-y: auto !important;
 }
+
+/* ============================================================
+ * 인쇄 친화 스타일 (라운드 14: F-14-BUG-4)
+ *
+ * 정책 페이지 (privacy/terms) 가 주 대상이지만 모든 페이지에서
+ * Ctrl+P 시 깔끔한 흑백 출력이 되도록 글로벌로 정의.
+ *
+ * 규칙:
+ *  - .no-print 클래스는 인쇄에서 제외 (헤더/푸터/광고/decoration/ToC)
+ *  - paper 토큰 배경 → 흰 종이로 평탄화 (토너 절약)
+ *  - 본문 색상 → 흑백 평탄화
+ *  - 외부 URL 은 footnote 형태로 자동 표기
+ *  - 섹션 단위 page-break 회피
+ * ============================================================ */
+@media print {
+  /* 1. 인쇄 제외 영역 */
+  .no-print,
+  [data-no-print="true"],
+  nav[role="navigation"],
+  [data-toast-anchor],
+  [class*="adfit"],
+  [class*="ResponsiveAdFitBanner"] {
+    display: none !important;
+  }
+
+  /* 2. 본문 평탄화 */
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* 3. paper / postal 토큰 배경 → 흰 종이 */
+  .bg-paper,
+  .bg-paper-50,
+  .bg-paper-100,
+  .bg-paper-card,
+  .bg-paper-aged,
+  .bg-paper-soft,
+  [class*="bg-paper"] {
+    background: white !important;
+    box-shadow: none !important;
+  }
+
+  /* 4. 카드 / decoration shadow 제거 */
+  .shadow-brand-xs,
+  .shadow-brand-sm,
+  .shadow-brand-md,
+  .shadow-brand-lg,
+  .shadow-brand-xl,
+  .shadow-brand-2xl {
+    box-shadow: none !important;
+  }
+
+  /* 5. 메타포 강조 색상 → 흑백 */
+  .text-stamp-red,
+  .text-postal-navy,
+  .text-ink,
+  .text-ink-soft,
+  .text-foreground,
+  .text-muted-foreground {
+    color: black !important;
+  }
+
+  /* 6. 링크: 본문 흐름 유지 + 외부 URL 자동 표기 */
+  a {
+    color: black !important;
+    text-decoration: underline !important;
+  }
+  a[href^="http"]:not([href*="grow-farm.com"]):after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #555;
+  }
+  a[href^="mailto:"]:after {
+    content: "";
+  }
+  /* 페이지 내 앵커는 footnote 출력 안 함 */
+  a[href^="#"]:after {
+    content: "";
+  }
+
+  /* 7. 섹션 page-break 제어 */
+  section,
+  [data-policy-section],
+  .policy-section {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+  h1,
+  h2,
+  h3 {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+
+  /* 8. 도장(스탬프) decoration 흑백 */
+  .stamp-circle {
+    background: transparent !important;
+    color: black !important;
+    border-color: black !important;
+  }
+
+  /* 9. 폼/버튼 흔적 제거 (정책 페이지에는 거의 없지만 안전망) */
+  button,
+  [role="button"] {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* 10. 컨테이너 폭 풀기 */
+  .container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

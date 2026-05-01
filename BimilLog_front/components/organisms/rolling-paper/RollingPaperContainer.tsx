@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Heart, Search, LogIn, User as UserIcon } from "lucide-react";
 import { useRollingPaperData } from "@/hooks/features/useRollingPaperData";
 import { useRollingPaperActions } from "@/hooks/features/useRollingPaper";
 import { useRollingPaperGrid } from "@/hooks/features/useRollingPaperGrid";
-import { useToast } from "@/hooks";
+import { useToast, useAuth } from "@/hooks";
 import { RollingPaperView } from "@/components/organisms/rolling-paper/RollingPaperView";
+import { NotFoundView } from "@/components/molecules/feedback";
 import type { RollingPaperMessage, VisitMessage, VisitPaperResult, DecoType } from "@/types/domains/paper";
 import { BlockedToastRedirect } from "@/components/molecules/alerts/BlockedToastRedirect";
 
@@ -21,6 +22,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = React
 }) => {
   const targetNickname = nickname || "";
   const { toasts, removeToast, showSuccess, showError } = useToast();
+  const { isAuthenticated } = useAuth();
 
   // 롤링페이퍼 데이터 조회 (본인/타인 구분)
   const {
@@ -120,51 +122,95 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = React
   }
 
   if (isError) {
+    // 도메인 인라인 not-found 도 글로벌 RETURN 도장 메타포 사용 (F-13-BUG-6)
     return (
-      <div className="min-h-screen bg-paper flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <div
-            className="w-16 h-16 bg-stamp-red rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-brand-lg"
-            aria-hidden="true"
-          >
-            <MessageSquare className="w-9 h-9 stroke-white fill-white/30" />
-          </div>
-          <h2 className="font-display text-2xl font-bold text-ink dark:text-foreground mb-3">
-            롤링페이퍼를 찾을 수 없습니다
-          </h2>
-          <p className="text-ink-soft dark:text-muted-foreground mb-2">
-            <span className="font-semibold text-stamp-red">{targetNickname}</span>님의 롤링페이퍼가 존재하지 않습니다.
-          </p>
-          <p className="text-sm text-ink-soft/80 dark:text-muted-foreground mb-6">
-            닉네임을 다시 확인해주세요.
-          </p>
-          <button
-            onClick={() => window.history.back()}
-            className="px-6 py-3 bg-paper-button hover:bg-paper-hover text-white rounded-xl font-medium transition-colors duration-200 shadow-brand-md hover:shadow-brand-lg active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stamp-red focus-visible:ring-offset-2"
-          >
-            돌아가기
-          </button>
-        </div>
-      </div>
+      <NotFoundView
+        stampCode="404"
+        stampLabel="수신인 없음"
+        title="롤링페이퍼를 찾을 수 없어요"
+        description={
+          <>
+            <span className="font-semibold text-stamp-red">{targetNickname}</span>
+            님의 롤링페이퍼가 존재하지 않거나 삭제되었어요.
+            <br />
+            닉네임을 다시 확인하거나 다른 친구를 찾아보세요.
+          </>
+        }
+        extraActions={[
+          {
+            label: "친구 찾기",
+            href: "/visit",
+            icon: <Search className="w-4 h-4 mr-2" aria-hidden="true" />,
+            variant: "outline",
+          },
+          {
+            label: "내 페이지",
+            href: "/mypage",
+            icon: <Heart className="w-4 h-4 mr-2 text-stamp-red" aria-hidden="true" />,
+            variant: "outline",
+          },
+        ]}
+      />
     );
   }
 
   // 인증 체크: 비공개 롤링페이퍼는 소유자만 볼 수 있음
   if (!isPublic && !isOwner) {
+    // 비공개 풀화면 — PRIVATE 도장 메타포 + 회복 액션 명시 (F-13-BUG-7)
     return (
-      <div className="min-h-screen bg-paper flex items-center justify-center px-4">
-        <div className="text-center">
-          <div
-            className="w-12 h-12 bg-postal-navy rounded-xl flex items-center justify-center mx-auto mb-4 shadow-brand-md"
-            aria-hidden="true"
-          >
-            <MessageSquare className="w-7 h-7 stroke-white fill-white/30" />
-          </div>
-          <p className="text-ink-soft dark:text-muted-foreground font-medium">
-            이 롤링페이퍼는 비공개입니다.
-          </p>
-        </div>
-      </div>
+      <NotFoundView
+        stampCode="비공개"
+        stampLabel="PRIVATE"
+        title="이 편지는 주인만 열어볼 수 있어요"
+        description={
+          isAuthenticated ? (
+            <>
+              <span className="font-semibold text-stamp-red">{targetNickname}</span>
+              님의 롤링페이퍼는 비공개로 설정되어 있어요.
+              <br />
+              내 페이지에서 내가 받은 편지를 확인해 보세요.
+            </>
+          ) : (
+            <>
+              <span className="font-semibold text-stamp-red">{targetNickname}</span>
+              님의 롤링페이퍼는 비공개로 설정되어 있어요.
+              <br />
+              로그인하시면 내 페이지에서 내가 받은 편지를 확인할 수 있어요.
+            </>
+          )
+        }
+        extraActions={
+          isAuthenticated
+            ? [
+                {
+                  label: "내 페이지",
+                  href: "/mypage",
+                  icon: <UserIcon className="w-4 h-4 mr-2" aria-hidden="true" />,
+                  variant: "outline",
+                },
+                {
+                  label: "친구 찾기",
+                  href: "/visit",
+                  icon: <Search className="w-4 h-4 mr-2" aria-hidden="true" />,
+                  variant: "outline",
+                },
+              ]
+            : [
+                {
+                  label: "로그인",
+                  href: "/login",
+                  icon: <LogIn className="w-4 h-4 mr-2" aria-hidden="true" />,
+                  variant: "outline",
+                },
+                {
+                  label: "친구 찾기",
+                  href: "/visit",
+                  icon: <Search className="w-4 h-4 mr-2" aria-hidden="true" />,
+                  variant: "outline",
+                },
+              ]
+        }
+      />
     );
   }
 

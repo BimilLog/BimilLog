@@ -18,6 +18,11 @@ interface ConfirmModalProps {
   isLoading?: boolean;
 }
 
+/**
+ * 확인 다이얼로그 (라운드 16 F-16-038):
+ * - paper 토큰 일괄 적용 (bg-gray-100 / text-gray-900 / text-gray-500 → paper-aged + ink/ink-soft)
+ * - 라운드 1 메타포 일관 (다크 변형 포함)
+ */
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   isOpen,
   onClose,
@@ -41,13 +46,18 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       <ModalHeader />
       <ModalBody>
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
-            {icon || <AlertCircle className="h-8 w-8 stroke-red-600 fill-red-100" />}
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-paper-aged border-2 border-dashed border-stamp-red/40 dark:bg-stamp-red/15">
+            {icon || (
+              <AlertCircle
+                className="h-8 w-8 stroke-stamp-red"
+                aria-hidden="true"
+              />
+            )}
           </div>
-          <h3 className="mb-5 text-lg font-bold text-gray-900">
+          <h3 className="mb-5 text-lg font-bold font-display text-ink dark:text-foreground break-keep">
             {title}
           </h3>
-          <p className="mb-5 text-sm text-gray-500 whitespace-pre-line">
+          <p className="mb-5 text-sm text-ink-soft dark:text-muted-foreground whitespace-pre-line break-keep">
             {message}
           </p>
           <div className="flex justify-center gap-4">
@@ -55,6 +65,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               variant="outline"
               onClick={onClose}
               disabled={isLoading}
+              className="min-h-[44px]"
             >
               {cancelText}
             </Button>
@@ -62,6 +73,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               variant={confirmButtonVariant}
               onClick={onConfirm}
               disabled={isLoading}
+              className="min-h-[44px]"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">

@@ -23,14 +23,18 @@ export function Loading({
           "min-h-screen bg-paper flex items-center justify-center",
           className
         )}
+        role="status"
+        aria-live="polite"
       >
         <div className="flex flex-col items-center">
           <FlowbiteSpinner
-            color="pink"
+            color="failure"
             size="xl"
             aria-label={message || "로딩 중..."}
           />
-          <p className="mt-4 font-display text-ink-soft text-lg">{message || "로딩 중..."}</p>
+          <p className="mt-4 font-display text-ink-soft dark:text-muted-foreground text-lg break-keep">
+            {message || "로딩 중..."}
+          </p>
         </div>
       </div>
     );
@@ -39,13 +43,19 @@ export function Loading({
   if (type === "card") {
     return (
       <Card variant="elevated" className={className}>
-        <CardContent className="p-8 flex flex-col items-center">
+        <CardContent
+          className="p-8 flex flex-col items-center"
+          role="status"
+          aria-live="polite"
+        >
           <FlowbiteSpinner
-            color="pink"
+            color="failure"
             size="xl"
             aria-label={message || "로딩 중..."}
           />
-          <p className="mt-4 text-brand-muted">{message || "로딩 중..."}</p>
+          <p className="mt-4 font-body text-ink-soft dark:text-muted-foreground break-keep">
+            {message || "로딩 중..."}
+          </p>
         </CardContent>
       </Card>
     );
@@ -53,9 +63,13 @@ export function Loading({
 
   if (type === "button") {
     return (
-      <div className={cn("flex items-center justify-center gap-2", className)}>
+      <div
+        className={cn("flex items-center justify-center gap-2", className)}
+        role="status"
+        aria-live="polite"
+      >
         <FlowbiteSpinner
-          color="pink"
+          color="failure"
           size={size === "xl" ? "md" : size}
           aria-label={message || "처리 중..."}
         />
@@ -66,14 +80,22 @@ export function Loading({
 
   // default type
   return (
-    <div className={cn("flex items-center justify-center p-8", className)}>
+    <div
+      className={cn("flex items-center justify-center p-8", className)}
+      role="status"
+      aria-live="polite"
+    >
       <div className="flex flex-col items-center">
         <FlowbiteSpinner
-          color="pink"
+          color="failure"
           size={size === "xl" ? "xl" : size}
           aria-label={message || "로딩 중..."}
         />
-        {message && <p className="mt-2 text-sm text-brand-muted">{message}</p>}
+        {message && (
+          <p className="mt-2 text-sm font-body text-ink-soft dark:text-muted-foreground break-keep">
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );

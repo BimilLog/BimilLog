@@ -41,13 +41,17 @@ export const LazyReportDetailModal = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
-          <div className="p-6 border-b bg-gradient-to-r from-purple-50 to-pink-50">
-            <div className="h-6 bg-purple-200 rounded animate-pulse"></div>
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="bg-paper-card border border-postal-navy/15 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
+          <div className="p-6 border-b border-postal-navy/15 bg-paper-aged dark:bg-postal-navy/15">
+            <div className="h-6 bg-postal-navy/15 rounded animate-pulse"></div>
           </div>
           <div className="flex items-center justify-center min-h-[400px]">
-            <FlowbiteSpinner color="pink" size="xl" aria-label="Loading..." />
+            <FlowbiteSpinner color="failure" size="xl" aria-label="신고 상세 불러오는 중..." />
           </div>
         </div>
       </div>

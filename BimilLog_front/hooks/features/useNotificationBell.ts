@@ -13,7 +13,7 @@ import {
 import { useAuth } from "@/hooks/common/useAuth";
 import { useMediaQuery } from "@/hooks/common/useMediaQuery";
 import { isKakaoInAppBrowser } from "@/lib/utils";
-import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { sseManager } from "@/lib/api";
 
 export function useNotificationBell() {
@@ -22,7 +22,7 @@ export function useNotificationBell() {
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLDivElement | null>(null);
-  const pathname = usePathname();
+  const router = useRouter();
 
   const isMobile = useMediaQuery("(max-width: 767px)");
   const { isAuthenticated } = useAuth();
@@ -34,6 +34,7 @@ export function useNotificationBell() {
   const {
     data: notificationResponse,
     status,
+    error,
     isFetching,
     isRefetching,
     refetch,
@@ -49,11 +50,13 @@ export function useNotificationBell() {
     setPortalContainer(document.body);
   }, []);
 
+  // F-1106: pathname 의존성 제거 — SSE invalidate 가 캐시 갱신을 담당하므로
+  // 라우트 전환마다 burst refetch 불필요. SSE 끊김 시(canUseNotifications true 첫 mount) 만 명시 refetch.
   useEffect(() => {
     if (canUseNotifications) {
       refetch();
     }
-  }, [canUseNotifications, refetch, pathname]);
+  }, [canUseNotifications, refetch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -109,6 +112,9 @@ export function useNotificationBell() {
   );
   const isFetchingList = isFetching || isRefetching;
   const isInitialLoading = status === "pending" && isFetchingList;
+  // F-1110: 빈 상태와 에러 상태 분리 — query status 또는 응답 success === false 체크
+  const isErrored =
+    status === "error" || error != null || notificationResponse?.success === false;
   const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
 
   const handleMarkAllAsRead = useCallback(
@@ -124,6 +130,10 @@ export function useNotificationBell() {
     [notifications, markAllAsRead]
   );
 
+  // F-1102: 전체 삭제 확인 절차 — 실수 클릭 보호. 컴포넌트는 confirmDeleteIds 가 truthy 일 때
+  // ConfirmModal 을 띄우고, 사용자가 "비우기" 누르면 confirmDeleteAllNotifications 호출.
+  const [confirmDeleteIds, setConfirmDeleteIds] = useState<number[] | null>(null);
+
   const handleDeleteAllNotifications = useCallback(
     (e?: React.MouseEvent) => {
       if (e) {
@@ -132,10 +142,23 @@ export function useNotificationBell() {
       }
       const deleteIds = notifications.map((n) => n.id);
       if (deleteIds.length === 0) return;
-      deleteAllNotifications(deleteIds);
+      setConfirmDeleteIds(deleteIds);
     },
-    [notifications, deleteAllNotifications]
+    [notifications]
   );
+
+  const cancelDeleteAllNotifications = useCallback(() => {
+    setConfirmDeleteIds(null);
+  }, []);
+
+  const confirmDeleteAllNotifications = useCallback(() => {
+    if (!confirmDeleteIds || confirmDeleteIds.length === 0) {
+      setConfirmDeleteIds(null);
+      return;
+    }
+    deleteAllNotifications(confirmDeleteIds);
+    setConfirmDeleteIds(null);
+  }, [confirmDeleteIds, deleteAllNotifications]);
 
   // B-305: SSE 가 끊긴 상태에서 클릭 시 재연결 시도. 카피("클릭하여 새로고침")와 실제 동작 일치.
   const tryReconnectSSE = useCallback(() => {
@@ -168,16 +191,29 @@ export function useNotificationBell() {
     }
   }, [canUseNotifications, refetch, tryReconnectSSE]);
 
+  // F-1101 / F-1105: 풀 페이지 리로드 → SPA router.push 로 교체.
+  // 클릭 즉시 popover/drawer 닫기 (SPA 전환은 자동으로 안 닫혀, 명시 호출 필요).
+  // 외부 origin/protocol 인 경우만 window.location.assign 사용.
   const handleNotificationClick = useCallback(
     (notification: { id: number; read: boolean; url?: string }) => {
       if (!notification.read) {
         markAsRead(notification.id);
       }
+      setIsOpen(false);
       if (notification.url) {
-        window.location.href = notification.url;
+        const url = notification.url;
+        const isExternal =
+          /^https?:\/\//i.test(url) &&
+          typeof window !== "undefined" &&
+          !url.startsWith(window.location.origin);
+        if (isExternal) {
+          window.location.assign(url);
+        } else {
+          router.push(url);
+        }
       }
     },
-    [markAsRead]
+    [markAsRead, router]
   );
 
   return {
@@ -194,6 +230,7 @@ export function useNotificationBell() {
     unreadCount,
     isFetchingList,
     isInitialLoading,
+    isErrored,
     // SSE 연결 상태
     isSSEConnected,
     connectionState,
@@ -211,5 +248,9 @@ export function useNotificationBell() {
     handleNotificationClick,
     handleMarkAllAsRead,
     handleDeleteAllNotifications,
+    // F-1102: 전체 삭제 확인 모달 상태
+    confirmDeleteIds,
+    cancelDeleteAllNotifications,
+    confirmDeleteAllNotifications,
   };
 }
