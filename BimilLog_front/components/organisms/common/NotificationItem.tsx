@@ -21,23 +21,32 @@ interface NotificationItemProps {
   onClick: (notification: Notification) => void;
 }
 
-/** 알림 유형별 아이콘 반환 — F-1103: FRIEND 케이스 추가 (NotificationSettings 와 동일 UserPlus). */
+/** 알림 유형별 아이콘 반환 — F-1103: FRIEND 케이스 추가.
+ *  라운드 17 F-17-BUG-4: vanilla green/blue/purple/yellow/brand → paper 메타포 토큰.
+ *  메타포 매핑:
+ *    PAPER         → seal-gold (편지/우편의 봉인 색)
+ *    COMMENT       → postal-navy (우편 인장 색)
+ *    POST_FEATURED → seal-gold (눈에 띄는 인기글 표식)
+ *    FRIEND        → postal-navy (편지 친구 인장)
+ *    ADMIN         → stamp-red (관리자/destructive 톤)
+ *    INITIATE      → stamp-red (첫 환영 도장)
+ */
 const getNotificationIcon = (notificationType: string) => {
   switch (notificationType) {
     case "PAPER":
-      return <Leaf className="w-4 h-4 text-green-600" />;
+      return <Leaf className="w-4 h-4 text-seal-gold" aria-hidden="true" />;
     case "COMMENT":
-      return <MessageSquare className="w-4 h-4 text-blue-600" />;
+      return <MessageSquare className="w-4 h-4 text-postal-navy" aria-hidden="true" />;
     case "POST_FEATURED":
-      return <Star className="w-4 h-4 text-yellow-600" />;
+      return <Star className="w-4 h-4 text-seal-gold" aria-hidden="true" />;
     case "FRIEND":
-      return <UserPlus className="w-4 h-4 text-blue-500" />;
+      return <UserPlus className="w-4 h-4 text-postal-navy" aria-hidden="true" />;
     case "ADMIN":
-      return <Shield className="w-4 h-4 text-purple-600" />;
+      return <Shield className="w-4 h-4 text-stamp-red" aria-hidden="true" />;
     case "INITIATE":
-      return <Bell className="w-4 h-4 text-brand-primary" />;
+      return <Bell className="w-4 h-4 text-stamp-red" aria-hidden="true" />;
     default:
-      return <Bell className="w-4 h-4 text-brand-primary" />;
+      return <Bell className="w-4 h-4 text-postal-navy" aria-hidden="true" />;
   }
 };
 
@@ -116,7 +125,8 @@ export const NotificationItem = memo(function NotificationItem({
                     onMarkAsRead(notification.id);
                   }}
                   // F-1108: 모바일 터치 타겟 44×44px (WCAG 2.5.5)
-                  className="min-h-[44px] min-w-[44px] px-2 text-xs text-blue-600 hover:text-blue-700 touch-manipulation"
+                  // 라운드 17: text-blue-* → text-postal-navy (paper 메타포)
+                  className="min-h-[44px] min-w-[44px] px-2 text-xs text-postal-navy hover:opacity-80 touch-manipulation"
                   aria-label="읽음 처리"
                   title="읽음 처리"
                 >

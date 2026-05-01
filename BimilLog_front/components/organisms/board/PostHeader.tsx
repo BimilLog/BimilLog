@@ -65,11 +65,11 @@ export const PostHeader = React.memo<PostHeaderProps>(({
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">
           {post.password && (
-            <Lock className="w-4 h-4 stroke-red-500 fill-red-100" />
+            <Lock className="w-4 h-4 stroke-stamp-red fill-stamp-red/10" aria-hidden="true" />
           )}
           <FeaturedBadges weekly={post.weekly} legend={post.legend} notice={post.notice} />
         </div>
-        <CardTitle className="text-xl md:text-2xl font-bold text-brand-primary leading-tight break-keep">
+        <CardTitle className="text-xl md:text-2xl font-bold text-ink dark:text-ink-900 leading-tight break-keep">
           {post.title}
         </CardTitle>
       </div>
@@ -78,7 +78,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col space-y-2">
           {/* 작성자와 시간 */}
-          <div className="flex items-center space-x-3 text-sm text-brand-muted">
+          <div className="flex items-center space-x-3 text-sm text-ink-soft">
             <div className="flex items-center space-x-2 min-w-0">
               {post.memberName && post.memberName !== "익명" ? (
                 <UserActionPopover
@@ -86,26 +86,26 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                   memberId={post.memberId}
                   trigger={
                     <button className="truncate max-w-[120px] md:max-w-none hover:text-postal-navy hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
-                      <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
+                      <User className="w-3 h-3 stroke-ink-soft fill-paper-100" aria-hidden="true" />
                       <span>{post.memberName}</span>
                     </button>
                   }
                   placement="bottom"
                 />
               ) : (
-                <span className="truncate max-w-[120px] md:max-w-none text-brand-secondary inline-flex items-center space-x-1">
-                  <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
+                <span className="truncate max-w-[120px] md:max-w-none text-ink-soft inline-flex items-center space-x-1">
+                  <User className="w-3 h-3 stroke-ink-soft fill-paper-100" aria-hidden="true" />
                   <span>{post.memberName || "익명"}</span>
                 </span>
               )}
             </div>
-            <span className="text-xs text-brand-secondary whitespace-nowrap">
+            <span className="text-xs text-ink-soft whitespace-nowrap">
               {formatDateTime(post.createdAt)}
             </span>
           </div>
 
           {/* 통계 정보 */}
-          <div className="flex items-center space-x-4 text-sm text-brand-muted">
+          <div className="flex items-center space-x-4 text-sm text-ink-soft">
             <div className="flex items-center space-x-1">
               <Eye className="w-4 h-4 stroke-ink-soft fill-paper-100" />
               <span suppressHydrationWarning>{post.viewCount}</span>

@@ -20,10 +20,25 @@ const NotificationBell = dynamic(
   () => import("@/components/organisms/common/notification-bell").then(mod => ({ default: mod.NotificationBell })),
   {
     ssr: false,
-    loading: () => <div className="w-6 h-6 animate-pulse bg-gray-200 rounded-full" />
+    // 라운드 17 F-17-BUG-7: vanilla gray-200 → paper 토큰. 알림벨 실제 크기와
+    // 시각 거리 최소화 (실 컴포넌트도 24px 원형이라 동일 스켈레톤).
+    loading: () => <div className="w-6 h-6 animate-pulse bg-paper-200 dark:bg-paper-300 rounded-full" aria-hidden="true" />
   }
 );
 
+/**
+ * NAVBAR_THEME — Flowbite Navbar 의 폐기 토큰을 paper/ink/postal-navy/stamp-red 로 일괄 치환.
+ * 라운드 17 F-17-BUG-4. (Nielsen NN/g — Heuristic #4 Consistency and Standards)
+ *
+ * 매핑:
+ *   bg-brand-primary       → bg-postal-navy (활성 NavLink — 우체국 navy 액센트)
+ *   text-brand-primary     → text-postal-navy
+ *   text-brand-muted       → text-ink-soft
+ *   bg-gray-50/100/700     → bg-paper-soft / bg-paper-aged / bg-paper-300 (paper 톤)
+ *   text-gray-400/500/600  → text-ink-soft / text-ink-300
+ *   border-gray-100/700    → border-postal-navy/15 / border-postal-navy/40
+ *   hover:text-white       → hover:text-postal-navy 또는 paper-50
+ */
 const NAVBAR_THEME = {
   root: {
     base: "px-4 sm:px-6 lg:px-8 py-3 sm:py-4",
@@ -57,16 +72,16 @@ const NAVBAR_THEME = {
   link: {
     base: "block py-2 pr-4 pl-3 md:p-0",
     active: {
-      on: "bg-brand-primary text-white dark:text-white md:bg-transparent md:text-brand-primary",
-      off: "border-b border-gray-100 text-brand-muted hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white md:border-0 md:hover:bg-transparent md:hover:text-brand-primary"
+      on: "bg-postal-navy text-paper-50 md:bg-transparent md:text-postal-navy md:dark:text-stamp-red",
+      off: "border-b border-postal-navy/15 text-ink-soft hover:bg-paper-soft dark:border-postal-navy/40 dark:text-ink-500 dark:hover:bg-paper-200 dark:hover:text-ink-900 md:border-0 md:hover:bg-transparent md:hover:text-postal-navy md:dark:hover:text-stamp-red"
     },
     disabled: {
-      on: "text-gray-400 hover:cursor-not-allowed dark:text-gray-600",
+      on: "text-ink-300 hover:cursor-not-allowed dark:text-ink-300",
       off: ""
     }
   },
   toggle: {
-    base: "inline-flex items-center justify-center min-h-touch min-w-touch p-3 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600",
+    base: "inline-flex items-center justify-center min-h-touch min-w-touch p-3 ml-3 text-sm text-ink-soft rounded-lg md:hidden hover:bg-paper-soft focus:outline-none focus:ring-2 focus:ring-postal-navy/40 dark:text-ink-500 dark:hover:bg-paper-200 dark:focus:ring-postal-navy/60",
     icon: "w-6 h-6"
   }
 } as const;
@@ -88,7 +103,9 @@ export const AuthHeader = React.memo<AuthHeaderProps>(({ disableSticky = false }
     <Navbar
       data-toast-anchor
       fluid
-      className={`${disableSticky ? "relative" : "sticky top-0"} z-50 border-b border-ink-soft dark:border-border bg-paper-soft/85 dark:bg-background/80 backdrop-blur-sm transition-colors duration-300`}
+      // 라운드 17 F-17-BUG-12: print:hidden 명시적 추가 (BaseLayout 미사용 페이지에서도 안전).
+      // 라운드 17 z-50 → z-auth-header (의미적 토큰).
+      className={`${disableSticky ? "relative" : "sticky top-0"} z-auth-header print:hidden border-b border-ink-soft dark:border-border bg-paper-soft/85 dark:bg-background/80 backdrop-blur-sm transition-colors duration-300`}
       theme={NAVBAR_THEME}
     >
       {/* 단순 워드마크 — 종이 톤 + display 폰트 + ink 단색.
@@ -99,7 +116,7 @@ export const AuthHeader = React.memo<AuthHeaderProps>(({ disableSticky = false }
             aria-hidden="true"
             className="inline-block w-2.5 h-2.5 rounded-full bg-stamp-red shadow-[0_0_0_3px_rgba(199,62,62,0.18)]"
           />
-          <span className="font-display text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-gray-100">
+          <span className="font-display text-xl sm:text-2xl font-bold tracking-tight text-ink dark:text-ink-900 break-keep">
             비밀로그
           </span>
         </span>

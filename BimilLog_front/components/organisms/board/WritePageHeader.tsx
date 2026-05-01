@@ -22,7 +22,8 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = memo(({
 }) => {
   return (
     <div
-      className="sticky z-40 border-b border-ink-soft bg-paper-50/85 shadow-sm backdrop-blur-sm transition-colors duration-300 dark:border-postal-navy/40 dark:bg-postal-navy/30 dark:shadow-md dark:shadow-black/20"
+      // 라운드 17 z-40 → z-sticky-header (의미적 elevation 토큰)
+      className="sticky z-sticky-header border-b border-ink-soft bg-paper-50/85 shadow-sm backdrop-blur-sm transition-colors duration-300 dark:border-postal-navy/40 dark:bg-postal-navy/30 dark:shadow-md dark:shadow-black/20"
       style={{ top: "var(--app-header-height)" }}
     >
       <div className="container mx-auto px-4 py-3">
@@ -32,11 +33,11 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = memo(({
             <div className="flex items-center gap-2">
               <Link href="/board">
                 <Button variant="ghost" size="sm" className="pl-0">
-                  <ArrowLeft className="w-4 h-4 mr-1 stroke-slate-600 fill-slate-100" />
+                  <ArrowLeft className="w-4 h-4 mr-1 stroke-ink-soft fill-paper-100" aria-hidden="true" />
                   <span className="hidden sm:inline">게시판</span>
                 </Button>
               </Link>
-              <h1 className="text-lg font-bold text-brand-primary whitespace-nowrap sm:text-xl dark:text-gray-100">
+              <h1 className="text-lg font-bold text-ink whitespace-nowrap sm:text-xl dark:text-ink-900 break-keep">
                 새 글 작성
               </h1>
             </div>

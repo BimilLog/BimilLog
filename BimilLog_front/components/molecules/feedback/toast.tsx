@@ -203,7 +203,7 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-20 right-4 z-50 flex flex-col gap-3 pointer-events-none max-w-md">
+    <div className="fixed top-20 right-4 z-toast flex flex-col gap-3 pointer-events-none max-w-md">
       {toasts.map((toast) => (
         <div key={toast.id} className="pointer-events-auto">
           <ToastComponent toast={toast} onRemove={onRemove} />

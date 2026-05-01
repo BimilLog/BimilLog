@@ -1,38 +1,33 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks";
-import { LoadingSpinner } from "@/components/atoms";
+import { useAuthGuard } from "@/hooks";
+import { AuthLoadingScreen } from "@/components/atoms/feedback/auth-loading-screen";
 import type { AuthLayoutProps } from "@/types/domains/auth";
 
+/**
+ * 인증 필요 라우트 그룹 레이아웃 (라운드 17 — F-17-BUG-1/3 정정)
+ *
+ * 변경:
+ *   - useAuthGuard() 훅으로 redirect 쿼리 자동 부착 (F-17-BUG-1)
+ *   - 그라데이션(pink/purple/indigo) 부활 → AuthLoadingScreen 통일 (F-17-BUG-3)
+ *
+ * 사용자가 /mypage 같은 보호 라우트에 비로그인 진입하면 /login?redirect=/mypage 로
+ * 이동하고, 콜백 후 원위치 복귀가 보장된다.
+ */
 export default function AuthenticatedLayout({ children }: AuthLayoutProps) {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
-
-  const shouldShowLoading = isLoading;
-  const shouldShowContent = !isLoading && isAuthenticated;
-
-  const loadingScreen = useMemo(() => (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
-      <LoadingSpinner
-        variant="gradient"
-        message="로그인 상태를 확인하는 중..."
-      />
-    </div>
-  ), []);
+  const { shouldShowLoading, shouldShowGuardedContent } = useAuthGuard();
 
   if (shouldShowLoading) {
-    return loadingScreen;
+    return (
+      <AuthLoadingScreen
+        message="로그인 상태를 확인하는 중..."
+        subMessage="잠시만 기다려 주세요"
+        variant="primary"
+      />
+    );
   }
 
-  if (!shouldShowContent) {
+  if (!shouldShowGuardedContent) {
     return null;
   }
 

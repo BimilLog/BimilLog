@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MailOpen, Users } from "lucide-react";
 import { Button, Spinner } from "@/components";
+import { EmptyView } from "@/components/molecules/feedback/EmptyView";
 import { useMyFriends } from "@/hooks/api/useFriendQueries";
 import { FriendListItem } from "./FriendListItem";
 import type { PageResponse } from "@/types/common";
@@ -72,20 +73,14 @@ export const FriendList: React.FC<FriendListProps> = React.memo(({ initialData }
         )}
       </div>
 
-      {/* 리스트 */}
+      {/* 리스트 — 라운드 17 F-17-BUG-10: ad-hoc 빈 상태 → EmptyView 통일 */}
       {isEmpty ? (
-        <div
-          className="text-center py-16 bg-paper-100 border border-postal-navy/20 rounded-lg"
-          role="status"
-        >
-          <MailOpen className="w-16 h-16 mx-auto mb-4 text-postal-navy/60" aria-hidden="true" />
-          <p className="text-ink font-medium break-keep">
-            아직 같이 편지를 주고받을 친구가 없어요
-          </p>
-          <p className="text-sm text-ink-soft mt-2 break-keep">
-            추천 탭에서 새로운 인연을 찾아보세요
-          </p>
-        </div>
+        <EmptyView
+          title="아직 같이 편지를 주고받을 친구가 없어요"
+          description="추천 탭에서 새로운 인연을 찾아보세요"
+          icon={<MailOpen className="w-9 h-9" strokeWidth={1.6} aria-hidden="true" />}
+          compact
+        />
       ) : (
         <>
           <ul

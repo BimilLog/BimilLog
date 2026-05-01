@@ -52,15 +52,15 @@ export const CommentList = React.memo<CommentListProps>(({
     <Card variant="elevated">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2 break-keep">
-          <MessageSquare className="w-5 h-5 stroke-blue-600 fill-blue-100" aria-hidden="true" />
+          <MessageSquare className="w-5 h-5 stroke-postal-navy fill-paper-100" aria-hidden="true" />
           <span>
             {/* 라운드 8 B-8-010: 서버 총합을 헤더에 노출 */}
             댓글 {totalCommentCount}개
             {replyCount > 0 && (
-              <span className="text-brand-secondary"> (답글 {replyCount}개)</span>
+              <span className="text-ink-soft"> (답글 {replyCount}개)</span>
             )}
             {showLoadedHint && (
-              <span className="ml-2 text-xs text-brand-muted" aria-live="polite">
+              <span className="ml-2 text-xs text-ink-soft" aria-live="polite">
                 · 현재 {commentCount}건 보는 중
               </span>
             )}
@@ -110,7 +110,7 @@ export const CommentList = React.memo<CommentListProps>(({
             )}
           </>
         ) : (
-          <p className="text-brand-secondary text-center break-keep">
+          <p className="text-ink-soft text-center break-keep">
             첫 번째 댓글을 작성해보세요!
           </p>
         )}

@@ -8,9 +8,26 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* z-index 토큰 (popover/카드 stacking) */
+  /* z-index 토큰 — 라운드 17 (F-17 코드패턴 B): elevation 의미적 토큰화.
+     Material Design Elevation §. 같은 의미는 같은 값.
+     ──────────────────────────────────────────
+     0      base content
+     1      card-stack (카드/플립 스택)
+     40     sticky-header (페이지 자체 헤더)
+     45     dropdown
+     50     auth-header / popover (Flowbite 기본 호환)
+     60     overlay (모달/드로어 backdrop)
+     70     modal (모달 본체)
+     80     toast
+  */
   --z-card-stack: 1;
+  --z-sticky-header: 40;
+  --z-dropdown: 45;
+  --z-auth-header: 50;
   --z-popover: 50;
+  --z-overlay: 60;
+  --z-modal: 70;
+  --z-toast: 80;
 
   /* 비밀로그 브랜드 컬러 (legacy 유지: 호환을 위해 보존)
      단, brand-button/gradient 는 종이/편지 톤(잉크+우표 빨강)으로 재정의됨 (아래 :root 참조) */
@@ -244,30 +261,37 @@
 
 /* 비밀로그 브랜드 유틸리티 클래스 */
 @layer utilities {
-  /* z-index 토큰 유틸리티 (B-M6: 인라인 style 제거) */
+  /* z-index 토큰 유틸리티 (B-M6 + 라운드 17: 의미적 elevation 토큰)
+     - z-50/z-40 직접 사용 → 의미가 드러나는 utility 로 치환 권고. */
   .z-card-stack {
     z-index: var(--z-card-stack);
+  }
+  .z-sticky-header {
+    z-index: var(--z-sticky-header);
+  }
+  .z-dropdown {
+    z-index: var(--z-dropdown);
+  }
+  .z-auth-header {
+    z-index: var(--z-auth-header);
   }
   .z-popover {
     z-index: var(--z-popover);
   }
-
-  /* Gray 색상 유틸리티 클래스 */
-  .bg-gray-800 {
-    background-color: var(--color-gray-800);
+  .z-overlay {
+    z-index: var(--z-overlay);
+  }
+  .z-modal {
+    z-index: var(--z-modal);
+  }
+  .z-toast {
+    z-index: var(--z-toast);
   }
 
-  .text-gray-300 {
-    color: var(--color-gray-300);
-  }
-
-  .text-gray-400 {
-    color: var(--color-gray-400);
-  }
-
-  .border-gray-600 {
-    border-color: var(--color-gray-600);
-  }
+  /* 라운드 17 F-17-BUG-14: vanilla gray utility 제거.
+     기존 .bg-gray-800/.text-gray-300/400/.border-gray-600 정의는
+     폐기 토큰 사용을 묵인하는 효과가 있어 제거.
+     필요 시 paper/ink 토큰 사용. */
 
   .bg-brand-gradient {
     background: var(--gradient-brand);
@@ -296,6 +320,12 @@
   }
   .bg-paper-soft {
     background-color: var(--color-paper-100, #F6EFDE);
+  }
+  /* 라운드 17 F-17-BUG-9: 다크 모드에서 paper-soft 가 페이지 배경과 거의
+     구분되지 않아 footer/secondary 영역 시각 분리 어려움 → border-top 보강. */
+  .dark .bg-paper-soft {
+    background-color: var(--color-paper-100, #221C18);
+    box-shadow: inset 0 1px 0 0 rgba(241, 230, 204, 0.06);
   }
   .bg-paper-card {
     background-color: var(--color-paper-card, #FFFDF7);

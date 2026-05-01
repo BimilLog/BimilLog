@@ -211,8 +211,8 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                     placement="bottom"
                   />
                 ) : (
-                  <span className="font-semibold text-sm sm:text-base inline-flex items-center space-x-1 truncate text-brand-secondary">
-                    <User className="w-3 h-3 flex-shrink-0 stroke-slate-600 fill-slate-100" aria-hidden="true" />
+                  <span className="font-semibold text-sm sm:text-base inline-flex items-center space-x-1 truncate text-ink-soft">
+                    <User className="w-3 h-3 flex-shrink-0 stroke-ink-soft fill-paper-100" aria-hidden="true" />
                     <span className="truncate">{comment.memberName || "익명"}</span>
                   </span>
                 )}

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Button, Spinner } from "@/components";
+import { EmptyView } from "@/components/molecules/feedback/EmptyView";
 import { useRecommendedFriends } from "@/hooks/api/useFriendQueries";
 import { RecommendedFriendItem } from "./RecommendedFriendItem";
 import type { PageResponse } from "@/types/common";
@@ -75,20 +76,14 @@ export const RecommendedFriendList: React.FC<RecommendedFriendListProps> = React
         )}
       </div>
 
-      {/* 리스트 */}
+      {/* 리스트 — 라운드 17 F-17-BUG-10: EmptyView 통일 */}
       {isEmpty ? (
-        <div
-          className="text-center py-16 bg-paper-100 border border-postal-navy/20 rounded-lg"
-          role="status"
-        >
-          <Sparkles className="w-16 h-16 mx-auto mb-4 text-postal-navy/60" aria-hidden="true" />
-          <p className="text-ink font-medium break-keep">
-            지금은 추천할 친구가 없어요
-          </p>
-          <p className="text-sm text-ink-soft mt-2 break-keep">
-            친구가 한 명만 늘어도 새로운 인연이 도착해요
-          </p>
-        </div>
+        <EmptyView
+          title="지금은 추천할 친구가 없어요"
+          description="친구가 한 명만 늘어도 새로운 인연이 도착해요"
+          icon={<Sparkles className="w-9 h-9" strokeWidth={1.6} aria-hidden="true" />}
+          compact
+        />
       ) : (
         <>
           <ul
