@@ -3,6 +3,12 @@ import { ReportType } from './validation';
 export interface ReportTypeConfig {
   label: string;
   description: string;
+  /**
+   * 라운드 16 paper 토큰 + 다크 변형. (F-16-025)
+   * Badge / 카드 / 모달에서 동일하게 사용되도록 통합된 스타일.
+   * 라이트: stamp-red / postal-navy / seal-gold 계열
+   * 다크: ring + 투명도 처리로 가시성 유지
+   */
   color: string;
 }
 
@@ -10,23 +16,27 @@ export const REPORT_TYPE_CONFIGS: Record<ReportType, ReportTypeConfig> = {
   POST: {
     label: "게시글",
     description: "게시글 관련 신고",
-    color: "bg-blue-100 text-blue-800 border-blue-200"
+    color:
+      "bg-seal-gold/20 text-postal-navy ring-1 ring-seal-gold/40 dark:bg-seal-gold/25 dark:text-paper-50 dark:ring-seal-gold/60",
   },
   COMMENT: {
     label: "댓글",
     description: "댓글 관련 신고",
-    color: "bg-green-100 text-green-800 border-green-200"
+    color:
+      "bg-postal-navy/15 text-postal-navy ring-1 ring-postal-navy/30 dark:bg-postal-navy/30 dark:text-paper-50 dark:ring-postal-navy/60",
   },
   ERROR: {
     label: "오류",
     description: "시스템 오류 신고",
-    color: "bg-red-100 text-red-800 border-red-200"
+    color:
+      "bg-stamp-red/15 text-stamp-red ring-1 ring-stamp-red/30 dark:bg-stamp-red/25 dark:text-paper-50 dark:ring-stamp-red/60",
   },
   IMPROVEMENT: {
     label: "개선사항",
     description: "서비스 개선 제안",
-    color: "bg-purple-100 text-purple-800 border-purple-200"
-  }
+    color:
+      "bg-paper-aged text-postal-navy ring-1 ring-postal-navy/20 dark:bg-postal-navy/20 dark:text-paper-50 dark:ring-postal-navy/50",
+  },
 } as const;
 
 export function getReportTypeLabel(type: string): string {
@@ -39,8 +49,17 @@ export function getReportTypeConfig(type: string): ReportTypeConfig {
   return REPORT_TYPE_CONFIGS[reportType] || {
     label: "기타",
     description: "기타 신고",
-    color: "bg-gray-100 text-gray-800 border-gray-200"
+    color:
+      "bg-paper-soft text-ink-soft ring-1 ring-postal-navy/20 dark:bg-postal-navy/15 dark:text-paper-50 dark:ring-postal-navy/40",
   };
+}
+
+/**
+ * 라운드 16 F-16-025: 신고 종류 색상 헬퍼 (paper 토큰 + 다크 변형).
+ * ReportCard / MobileReportCard / ReportDetailModal 3곳의 중복 코드 통합.
+ */
+export function getReportTypeBadgeColor(type: string): string {
+  return getReportTypeConfig(type).color;
 }
 
 export const REPORT_STATUS_CONFIGS = {
