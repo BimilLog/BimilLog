@@ -69,7 +69,7 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
             <div className="space-y-2">
               <Label
                 htmlFor="title"
-                className="text-sm font-medium text-brand-primary"
+                className="text-sm font-medium text-ink dark:text-ink-900"
               >
                 제목
               </Label>
@@ -82,7 +82,7 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
                 className="text-lg font-medium border-2 border-ink-soft focus:border-stamp-red"
               />
               {title.length > 0 && (
-                <p className={`text-xs ${title.length >= 30 ? 'text-red-600' : 'text-brand-muted'}`}>
+                <p className={`text-xs ${title.length >= 30 ? 'text-stamp-red' : 'text-ink-soft'}`}>
                   {title.length}/30자
                 </p>
               )}
@@ -92,7 +92,7 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
             <div className="space-y-2">
               <Label
                 htmlFor="content"
-                className="text-sm font-medium text-brand-primary"
+                className="text-sm font-medium text-ink dark:text-ink-900"
               >
                 내용
               </Label>
@@ -100,10 +100,10 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
               <div className="flex justify-end">
                 <p className={`text-xs ${
                   plainTextLength >= 1000
-                    ? 'text-red-600 font-semibold'
+                    ? 'text-stamp-red font-semibold'
                     : plainTextLength >= 900
-                    ? 'text-orange-500 font-medium'
-                    : 'text-brand-muted'
+                    ? 'text-seal-gold font-medium'
+                    : 'text-ink-soft'
                 }`}>
                   {plainTextLength}/1000자
                 </p>
@@ -115,10 +115,10 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
               <div className="space-y-2 pt-4">
                 <Label
                   htmlFor="password"
-                  className="text-sm font-medium text-brand-primary"
+                  className="text-sm font-medium text-ink dark:text-ink-900"
                 >
                   비밀번호 (1000~9999)
-                  <span className="text-xs text-brand-secondary ml-2 font-normal">
+                  <span className="text-xs text-ink-soft ml-2 font-normal">
                     게시글 수정/삭제 시 필요합니다
                   </span>
                 </Label>
@@ -140,8 +140,8 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
                   }`}
                 />
                 {password && (password.length < 4 || isNaN(parseInt(password)) || parseInt(password) < 1000 || parseInt(password) > 9999) && (
-                  <p className="text-xs text-red-600 flex items-center gap-1">
-                    <span>⚠️</span>
+                  <p className="text-xs text-stamp-red flex items-center gap-1 break-keep">
+                    <span aria-hidden="true">⚠️</span>
                     <span>비밀번호는 1000~9999 범위의 4자리 숫자여야 합니다</span>
                   </p>
                 )}
@@ -158,10 +158,10 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-brand-primary">
+                    <p className="text-sm font-medium text-ink dark:text-ink-900">
                       작성자: {user?.memberName}
                     </p>
-                    <p className="text-xs text-brand-muted">
+                    <p className="text-xs text-ink-soft">
                       게시글은 수정 및 삭제가 가능합니다
                     </p>
                   </div>
@@ -170,10 +170,11 @@ export const WriteForm: React.FC<WriteFormProps> = React.memo(({
             )}
           </>
         ) : (
-          /* 미리보기 모드: 실제 게시글 렌더링 형태로 표시 */
-          <div className="prose max-w-none">
-            <h2 className="text-3xl font-bold mb-4">{title}</h2>
-            <div className="text-sm text-brand-secondary mb-6">
+          /* 미리보기 모드: 실제 게시글 렌더링 형태로 표시.
+             라운드 17 F-17-BUG-8: prose dark:prose-invert + break-keep 추가 (다크 가독성). */
+          <div className="prose dark:prose-invert max-w-none break-keep">
+            <h2 className="text-3xl font-bold mb-4 text-ink dark:text-ink-900">{title}</h2>
+            <div className="text-sm text-ink-soft mb-6">
               {/* 작성자 표시: 인증된 사용자는 이름, 비인증 사용자는 '익명' */}
               작성자: {isAuthenticated ? user?.memberName : "익명"}
             </div>

@@ -42,10 +42,11 @@ export function NotificationBell() {
   } = useNotificationBell();
 
   // SSE 연결 상태에 따른 벨 아이콘 결정
+  // 라운드 17: text-gray-400/text-purple-500/text-brand-secondary → ink/postal-navy 토큰
   const bellInfo = useMemo(() => {
     if (connectionState === "CONNECTING") {
       return {
-        icon: <Bell className="w-5 h-5 text-gray-400 animate-pulse" aria-hidden="true" />,
+        icon: <Bell className="w-5 h-5 text-ink-soft animate-pulse" aria-hidden="true" />,
         tooltip: "실시간 알림 연결 중...",
         className: "opacity-60",
       };
@@ -57,13 +58,13 @@ export function NotificationBell() {
       };
     } else if (isSSEConnected) {
       return {
-        icon: <Bell className="w-5 h-5 text-purple-500 animate-pulse" aria-hidden="true" />,
+        icon: <Bell className="w-5 h-5 text-postal-navy dark:text-stamp-red animate-pulse" aria-hidden="true" />,
         tooltip: `실시간 알림 활성화 ${unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""}`,
         className: "",
       };
     } else {
       return {
-        icon: <BellOff className="w-5 h-5 text-brand-secondary" aria-hidden="true" />,
+        icon: <BellOff className="w-5 h-5 text-ink-soft" aria-hidden="true" />,
         tooltip: "실시간 알림 비활성화",
         className: "",
       };

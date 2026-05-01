@@ -205,7 +205,7 @@ const BoardMobileCard = memo<TableRowProps>(({
       <Link
         href={`/board/post/${post.id}`}
         aria-label={post.title}
-        className="absolute inset-0 z-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary"
+        className="absolute inset-0 z-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-postal-navy"
       />
       <div className="relative z-10 p-3 pointer-events-none">
         <div className="mb-1.5 flex items-start justify-between">
@@ -253,7 +253,7 @@ const BoardMobileCard = memo<TableRowProps>(({
                   memberId={post.memberId}
                   trigger={
                     <button
-                      className="inline-flex max-w-32 cursor-pointer items-center gap-1 truncate transition-colors hover:text-postal-navy hover:underline dark:text-gray-200 dark:hover:text-stamp-red"
+                      className="inline-flex max-w-32 cursor-pointer items-center gap-1 truncate transition-colors hover:text-postal-navy hover:underline dark:text-ink-700 dark:hover:text-stamp-red"
                       aria-label={`작성자 ${post.memberName}`}
                     >
                       <User className="w-3 h-3 flex-shrink-0" />
@@ -419,8 +419,8 @@ export const BoardTable = memo<BoardTableProps>(({
     <>
       {/* 데스크톱 테이블 */}
       <div className="hidden overflow-x-auto sm:block">
-        <Table hoverable className="min-w-full text-brand-primary dark:text-gray-100">
-          <TableHead className="bg-gray-50 text-brand-secondary dark:bg-slate-900/80 dark:text-gray-300">
+        <Table hoverable className="min-w-full text-ink dark:text-ink-900">
+          <TableHead className="bg-paper-soft text-ink-soft dark:bg-paper-200 dark:text-ink-500">
             <TableRow>
               <TableHeadCell className="w-20 text-center">
                 {showRanking ? "순위" : "번호"}
@@ -432,7 +432,7 @@ export const BoardTable = memo<BoardTableProps>(({
               <TableHeadCell className="w-20 text-center">조회</TableHeadCell>
             </TableRow>
           </TableHead>
-          <TableBody className="divide-y divide-gray-100 dark:divide-slate-800">
+          <TableBody className="divide-y divide-postal-navy/15 dark:divide-postal-navy/40">
             {posts.map((post, index) => (
               <BoardTableRow
                 key={post.id}

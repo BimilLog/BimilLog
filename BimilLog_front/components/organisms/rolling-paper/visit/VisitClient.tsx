@@ -90,11 +90,12 @@ export function VisitClient() {
 
   return (
     <div className="min-h-screen bg-paper">
-      {/* Auth Header */}
-      <AuthHeader />
+      {/* Auth Header — 라운드 17 F-17-BUG-2: 자체 sticky 헤더 동시 sticky 해소.
+          AuthHeader 는 disableSticky 로 일반 흐름에 두고, 페이지 자체 헤더만 sticky. */}
+      <AuthHeader disableSticky />
 
-      {/* Page Header - 모바일 최적화 */}
-      <header data-toast-anchor className="sticky top-0 z-40 bg-paper-card/90 backdrop-blur-md border-b border-ink-soft">
+      {/* Page Header - 모바일 최적화. sticky 단독 사용. */}
+      <header data-toast-anchor className="sticky top-0 z-sticky-header bg-paper-card/90 backdrop-blur-md border-b border-ink-soft">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -145,17 +146,18 @@ export function VisitClient() {
           <AllUsersList searchKeyword={effectiveKeyword} />
         </SearchSection>
 
-        {/* Info Section */}
+        {/* Info Section — 라운드 17 F-17-BUG-6: 라이트/다크 비대칭 토큰 정정.
+            paper-aged 는 dark 시 paper-200 으로 자동 전환됨 (globals.css). */}
         <div className="mt-8 text-center">
-          <div className="bg-paper-aged dark:bg-gray-900 border border-postal-navy/30 dark:border-postal-navy/50 rounded-lg p-4">
+          <div className="bg-paper-aged border border-postal-navy/30 dark:border-postal-navy/50 rounded-lg p-4">
             <div className="flex items-start space-x-2">
               <Heart className="w-5 h-5 text-stamp-red mt-0.5 flex-shrink-0" />
-              <div className="text-sm font-body text-ink dark:text-gray-200">
+              <div className="text-sm font-body text-ink dark:text-ink-900">
                 <p className="font-display font-semibold mb-1 flex items-center space-x-2 text-postal-navy dark:text-ink-900">
                   <Mail className="w-4 h-4" />
                   <span>익명으로 메시지를 남겨보세요!</span>
                 </p>
-                <p className="text-ink-soft dark:text-gray-300">
+                <p className="text-ink-soft dark:text-ink-500">
                   로그인 없이도 누구나 따뜻한 메시지를 남길 수 있어요. 다양한
                   귀여운 디자인으로 메시지를 꾸며보세요!
                 </p>

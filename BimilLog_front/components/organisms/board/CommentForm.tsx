@@ -78,7 +78,7 @@ export const CommentForm: React.FC<CommentFormProps> = React.memo(({
             <LazyEditor value={comment} onChange={setComment} />
 
             <div className="flex items-center justify-between">
-              <p className="text-xs text-brand-secondary flex items-center space-x-1 break-keep">
+              <p className="text-xs text-ink-soft flex items-center space-x-1 break-keep">
                 <Lightbulb className="w-3 h-3 stroke-seal-gold fill-paper-100" aria-hidden="true" />
                 <span>다양한 스타일로 댓글을 꾸며보세요.</span>
               </p>
@@ -92,7 +92,7 @@ export const CommentForm: React.FC<CommentFormProps> = React.memo(({
                       ? "text-stamp-red font-semibold"
                       : plainTextLength >= 230
                       ? "text-seal-gold font-medium"
-                      : "text-brand-muted"
+                      : "text-ink-soft"
                   }`}
                 >
                   {plainTextLength}/255자

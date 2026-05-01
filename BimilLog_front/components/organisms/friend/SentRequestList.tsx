@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 import { Button, Spinner } from "@/components";
+import { EmptyView } from "@/components/molecules/feedback/EmptyView";
 import { useSentFriendRequests } from "@/hooks/api/useFriendQueries";
 import { SentRequestItem } from "./SentRequestItem";
 import type { PageResponse } from "@/types/common";
@@ -73,20 +74,14 @@ export const SentRequestList: React.FC<SentRequestListProps> = React.memo(({ ini
         )}
       </div>
 
-      {/* 리스트 */}
+      {/* 리스트 — 라운드 17 F-17-BUG-10: EmptyView 통일 */}
       {isEmpty ? (
-        <div
-          className="text-center py-16 bg-paper-100 border border-postal-navy/20 rounded-lg"
-          role="status"
-        >
-          <Send className="w-16 h-16 mx-auto mb-4 text-postal-navy/60" aria-hidden="true" />
-          <p className="text-ink font-medium break-keep">
-            보낸 친구 요청이 없어요
-          </p>
-          <p className="text-sm text-ink-soft mt-2 break-keep">
-            추천 탭에서 마음 가는 사람에게 먼저 손을 내밀어 보세요
-          </p>
-        </div>
+        <EmptyView
+          title="보낸 친구 요청이 없어요"
+          description="추천 탭에서 마음 가는 사람에게 먼저 손을 내밀어 보세요"
+          icon={<Send className="w-9 h-9" strokeWidth={1.6} aria-hidden="true" />}
+          compact
+        />
       ) : (
         <>
           <ul

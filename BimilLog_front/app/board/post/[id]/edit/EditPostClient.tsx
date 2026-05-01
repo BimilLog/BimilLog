@@ -53,7 +53,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
       <div className="min-h-screen bg-paper dark:bg-background">
         <AuthHeader />
         <div className="container mx-auto flex min-h-[calc(100vh-80px)] flex-col items-center justify-center gap-4 px-4 text-center">
-          <p className="text-brand-muted break-keep">게시글 정보를 찾을 수 없습니다.</p>
+          <p className="text-ink-soft break-keep">게시글 정보를 찾을 수 없습니다.</p>
           <Link href="/board">
             <Button variant="outline" className="bg-paper-50">
               <ArrowLeft className="w-4 h-4 mr-1 stroke-postal-navy" />
@@ -71,10 +71,10 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
       <div className="min-h-screen bg-paper dark:bg-background">
         <AuthHeader />
         <div className="container mx-auto flex min-h-[calc(100vh-80px)] flex-col items-center justify-center gap-4 px-4 text-center">
-          <p className="text-brand-primary font-medium break-keep">
+          <p className="text-ink dark:text-ink-900 font-medium break-keep">
             이 게시글을 수정할 권한이 없습니다.
           </p>
-          <p className="text-sm text-brand-muted break-keep">
+          <p className="text-sm text-ink-soft break-keep">
             본인이 작성한 게시글만 수정할 수 있어요.
           </p>
           <Link href={`/board/post/${resolvedPostId ?? postId}`}>
@@ -97,7 +97,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
             B-7-005: top 좌표를 --app-header-height 토큰으로 통일 (write 페이지와 일치) */}
         <header
           data-toast-anchor
-          className="sticky z-40 bg-paper-50/85 shadow-sm backdrop-blur-md border-b border-ink-soft dark:border-postal-navy/40 dark:bg-postal-navy/30 dark:shadow-md dark:shadow-black/20"
+          className="sticky z-sticky-header bg-paper-50/85 shadow-sm backdrop-blur-md border-b border-ink-soft dark:border-postal-navy/40 dark:bg-postal-navy/30 dark:shadow-md dark:shadow-black/20"
           style={{ top: "var(--app-header-height)" }}
         >
           <div className="container mx-auto px-4 py-3">
@@ -107,11 +107,11 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                 <div className="flex items-center gap-2">
                   <Link href={`/board/post/${resolvedPostId}`}>
                     <Button variant="ghost" size="sm" className="pl-0">
-                      <ArrowLeft className="w-4 h-4 mr-1 stroke-slate-600" />
+                      <ArrowLeft className="w-4 h-4 mr-1 stroke-ink-soft" aria-hidden="true" />
                       <span className="hidden sm:inline">게시글</span>
                     </Button>
                   </Link>
-                  <h1 className="text-lg sm:text-xl font-bold text-brand-primary whitespace-nowrap">
+                  <h1 className="text-lg sm:text-xl font-bold text-ink dark:text-ink-900 whitespace-nowrap">
                     게시글 수정
                   </h1>
                 </div>
@@ -166,7 +166,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
           {(isAutoSaving || formatLastSaved) && (
             <div className="mb-3 flex justify-end" aria-live="polite">
               {isAutoSaving ? (
-                <span className="flex items-center gap-1 text-sm text-brand-muted">
+                <span className="flex items-center gap-1 text-sm text-ink-soft">
                   <span
                     aria-hidden="true"
                     className="w-2 h-2 bg-postal-navy/60 rounded-full animate-pulse"
@@ -174,7 +174,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                   편지지에 임시 보관 중...
                 </span>
               ) : formatLastSaved ? (
-                <span className="flex items-center gap-1 text-sm text-brand-muted">
+                <span className="flex items-center gap-1 text-sm text-ink-soft">
                   <Save className="w-3.5 h-3.5 stroke-postal-navy fill-paper-100" />
                   {formatLastSaved}
                 </span>
@@ -196,7 +196,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                   <div className="space-y-2">
                     <Label
                       htmlFor="title"
-                      className="text-sm font-medium text-brand-primary"
+                      className="text-sm font-medium text-ink dark:text-ink-900"
                     >
                       제목
                     </Label>
@@ -213,7 +213,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                   <div className="space-y-2">
                     <Label
                       htmlFor="content"
-                      className="text-sm font-medium text-brand-primary"
+                      className="text-sm font-medium text-ink dark:text-ink-900"
                     >
                       내용
                     </Label>
@@ -226,7 +226,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                     <div className="space-y-2">
                       <Label
                         htmlFor="edit-password"
-                        className="text-sm font-medium text-brand-primary"
+                        className="text-sm font-medium text-ink dark:text-ink-900"
                       >
                         비밀번호 (1000~9999 4자리 숫자)
                       </Label>
@@ -244,7 +244,7 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                         }}
                         className="border-2 border-ink-soft focus:border-stamp-red"
                       />
-                      <p className="text-xs text-brand-secondary break-keep">
+                      <p className="text-xs text-ink-soft break-keep">
                         게시글 작성 시 설정한 비밀번호를 입력해주세요.
                       </p>
                     </div>
@@ -260,14 +260,14 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-brand-primary">
+                        <p className="text-sm font-medium text-ink dark:text-ink-900">
                           작성자: {post.memberName}
                         </p>
-                        <p className="text-xs text-brand-muted">
+                        <p className="text-xs text-ink-soft">
                           원본 작성일: {formatRelativeDate(post.createdAt)}
                         </p>
                         {post.updatedAt && post.updatedAt !== post.createdAt && (
-                          <p className="text-xs text-brand-muted">
+                          <p className="text-xs text-ink-soft">
                             마지막 수정: {formatRelativeDate(post.updatedAt)}
                           </p>
                         )}
@@ -279,10 +279,10 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                 /* 미리보기 — B-7-006: SafeHTML 로 HTML 서식 그대로 렌더 */
                 <div className="space-y-6">
                   <div className="border-b border-ink-soft pb-4">
-                    <h2 className="text-2xl font-bold text-brand-primary mb-2 break-keep">
+                    <h2 className="text-2xl font-bold text-ink dark:text-ink-900 mb-2 break-keep">
                       {title || "제목을 입력하세요"}
                     </h2>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-brand-muted">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-soft">
                       <span>작성자: {post.memberName}</span>
                       <span>작성일: {formatRelativeDate(post.createdAt)}</span>
                       {post.updatedAt && post.updatedAt !== post.createdAt && (
@@ -297,10 +297,10 @@ export default function EditPostClient({ initialPost, postId }: EditPostClientPr
                     {content ? (
                       <SafeHTML
                         html={content}
-                        className="text-brand-primary leading-relaxed"
+                        className="text-ink dark:text-ink-900 leading-relaxed"
                       />
                     ) : (
-                      <p className="text-brand-muted">내용을 입력하세요</p>
+                      <p className="text-ink-soft">내용을 입력하세요</p>
                     )}
                   </div>
                 </div>

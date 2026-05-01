@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Mail, UserPlus } from "lucide-react";
 import { Button, Spinner } from "@/components";
+import { EmptyView } from "@/components/molecules/feedback/EmptyView";
 import { useReceivedFriendRequests } from "@/hooks/api/useFriendQueries";
 import { ReceivedRequestItem } from "./ReceivedRequestItem";
 import type { PageResponse } from "@/types/common";
@@ -72,20 +73,14 @@ export const ReceivedRequestList: React.FC<ReceivedRequestListProps> = React.mem
         )}
       </div>
 
-      {/* 리스트 */}
+      {/* 리스트 — 라운드 17 F-17-BUG-10: EmptyView 통일 */}
       {isEmpty ? (
-        <div
-          className="text-center py-16 bg-paper-100 border border-postal-navy/20 rounded-lg"
-          role="status"
-        >
-          <Mail className="w-16 h-16 mx-auto mb-4 text-postal-navy/60" aria-hidden="true" />
-          <p className="text-ink font-medium break-keep">
-            도착한 친구 요청이 없어요
-          </p>
-          <p className="text-sm text-ink-soft mt-2 break-keep">
-            새 편지를 기다려볼까요?
-          </p>
-        </div>
+        <EmptyView
+          title="도착한 친구 요청이 없어요"
+          description="새 편지를 기다려볼까요?"
+          icon={<Mail className="w-9 h-9" strokeWidth={1.6} aria-hidden="true" />}
+          compact
+        />
       ) : (
         <>
           <ul

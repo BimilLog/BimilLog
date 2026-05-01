@@ -146,8 +146,11 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* 라운드 17 F-17-BUG-11: Flowbite Tabs 는 자체적으로 role=tablist/tab/tabpanel +
+          aria-controls/aria-selected/aria-labelledby 를 자동 부여 (검증됨).
+          aria-label 을 한국어 + 도메인 명시로 개선해 스크린리더 가독성 향상. */}
       <Tabs
-        aria-label="Board tabs"
+        aria-label="게시판 카테고리 탭 — 전체/실시간/주간/명예의 전당"
         variant="fullWidth"
         onActiveTabChange={handleTabChange}
         theme={tabsTheme}
