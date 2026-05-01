@@ -31,7 +31,7 @@ export default function SuggestPage() {
               아이디어를 들려주세요
             </h1>
           </div>
-          <p className="text-base md:text-lg text-brand-muted mx-auto max-w-2xl leading-relaxed">
+          <p className="text-base md:text-lg text-brand-muted mx-auto max-w-[42rem] leading-relaxed break-keep">
             비밀로그를 더 좋은 곳으로 만드는 데 함께해 주세요. 남기신 한 줄이 다음 편지를 더 따뜻하게 만들어요.
           </p>
         </div>
