@@ -4,7 +4,8 @@ import jaeik.bimillog.domain.friend.entity.jpa.FriendDlqStatus;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.domain.friend.repository.FriendEventDlqRepository;
 import jaeik.bimillog.domain.friend.scheduler.FriendEventDlqScheduler;
-import jaeik.bimillog.domain.friend.rebuild.FriendRebuildFlag;
+import jaeik.bimillog.domain.friend.rebuild.FriendshipRebuild;
+import jaeik.bimillog.domain.friend.rebuild.InteractionScoreRebuild;
 import jaeik.bimillog.infrastructure.redis.RedisCheck;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
@@ -62,7 +63,10 @@ class FriendRequestEventDlqSchedulerTest {
     private RedisFriendRestore redisFriendRestore;
 
     @Mock
-    private FriendRebuildFlag friendRebuildFlag;
+    private FriendshipRebuild friendshipRebuild;
+
+    @Mock
+    private InteractionScoreRebuild interactionScoreRebuild;
 
     @BeforeEach
     void setUp() {

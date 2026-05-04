@@ -2,7 +2,8 @@ package jaeik.bimillog.domain.friend.scheduler;
 
 import jaeik.bimillog.domain.friend.entity.jpa.FriendDlqStatus;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
-import jaeik.bimillog.domain.friend.rebuild.FriendRelationRebuild;
+import jaeik.bimillog.domain.friend.rebuild.FriendshipRebuild;
+import jaeik.bimillog.domain.friend.rebuild.InteractionScoreRebuild;
 import jaeik.bimillog.domain.friend.repository.FriendEventDlqRepository;
 import jaeik.bimillog.infrastructure.redis.RedisCheck;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
@@ -39,7 +40,8 @@ public class FriendEventDlqScheduler {
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
     private final RedisFriendRestore redisFriendRestore;
-    private final FriendRelationRebuild friendRelationRebuild;
+    private final FriendshipRebuild friendshipRebuild;
+    private final InteractionScoreRebuild interactionScoreRebuild;
 
     private static final int MAX_RETRY = 3;
 
@@ -51,7 +53,7 @@ public class FriendEventDlqScheduler {
     @Transactional
     public void processDlq() {
         if (!redisCheck.isRedisHealthy()) return;
-        if (friendRelationRebuild.isRebuilding()) return;
+        if (friendshipRebuild.isRebuilding() || interactionScoreRebuild.isRebuilding()) return;
 
         while (true) {
             List<FriendEventDlq> events = repository.findPendingEvents(FriendDlqStatus.PENDING, MAX_RETRY, PIPELINE_BATCH_SIZE);

@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.friend.controller;
 
-import jaeik.bimillog.domain.friend.rebuild.FriendRelationRebuild;
+import jaeik.bimillog.domain.friend.rebuild.FriendshipRebuild;
+import jaeik.bimillog.domain.friend.rebuild.InteractionScoreRebuild;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin/friend")
 public class FriendAdminController {
 
-    private final FriendRelationRebuild friendRelationRebuild;
+    private final FriendshipRebuild friendshipRebuild;
+    private final InteractionScoreRebuild interactionScoreRebuild;
 
     /**
      * <h3>친구 관계 Redis 전체 재구축 API</h3>
@@ -35,7 +37,7 @@ public class FriendAdminController {
     @PostMapping("/friendship/rebuild")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> rebuildFriendship() {
-        friendRelationRebuild.getFriendshipDB();
+        friendshipRebuild.rebuild();
         return ResponseEntity.ok().build();
     }
 
@@ -48,7 +50,7 @@ public class FriendAdminController {
     @PostMapping("/interaction-score/rebuild")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> rebuildInteractionScore() {
-        friendRelationRebuild.rebuildInteractionScoreRedis();
+        interactionScoreRebuild.rebuild();
         return ResponseEntity.ok().build();
     }
 }

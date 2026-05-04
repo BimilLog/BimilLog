@@ -28,7 +28,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Slf4j
 public class FriendRebuildProducer {
     private final FriendAdminQueryRepository friendAdminQueryRepository;
-
     private static final int MEMBER_CHUNK_SIZE = 1000;
     private static final int INTERACTION_CHUNK_SIZE = 500;
 
