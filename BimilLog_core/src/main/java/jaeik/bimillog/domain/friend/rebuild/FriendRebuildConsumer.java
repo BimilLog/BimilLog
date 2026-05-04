@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.async;
+package jaeik.bimillog.domain.friend.rebuild;
 
 import jaeik.bimillog.domain.friend.dto.FriendshipRebuildDTO;
 import jaeik.bimillog.domain.friend.dto.InteractionRebuildDTO;
