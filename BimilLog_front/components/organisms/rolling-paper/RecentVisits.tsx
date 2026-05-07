@@ -99,7 +99,7 @@ export const RecentVisits: React.FC<RecentVisitsProps> = memo(({ dimmed = false 
               >
                 <Link
                   href={`/rolling-paper/${visit.nickname}`}
-                  prefetch={true}
+                  prefetch={false}
                   className="flex items-center justify-between flex-1 min-w-0 text-ink dark:text-foreground hover:text-postal-navy dark:hover:text-postal-navy transition-colors"
                   aria-label={`${visit.displayName}님의 롤링페이퍼로 다시 방문`}
                 >

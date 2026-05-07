@@ -1,6 +1,7 @@
 package jaeik.bimillog.springboot.mysql.performance;
 
-import jaeik.bimillog.domain.friend.rebuild.FriendAdminService;
+import jaeik.bimillog.domain.friend.rebuild.FriendshipRebuild;
+import jaeik.bimillog.domain.friend.rebuild.InteractionScoreRebuild;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 사전 조건: performance-friend-rebuild.sql 시드 데이터가 DB에 삽입되어 있어야 합니다.
  * 실행: LOCAL_MYSQL_PASSWORD=변수 gradlew localIntegrationTest --tests "*.FriendRedisRebuildPerformanceTest"
  */
-@DisplayName("FriendAdminService Redis 재구축 성능 테스트")
+@DisplayName("Friend Redis 재구축 성능 테스트")
 @SpringBootTest(properties = {
         "spring.task.scheduling.enabled=false",
         "spring.scheduling.enabled=false"
@@ -39,7 +40,10 @@ class FriendRedisRebuildPerformanceTest {
     private static final Logger log = LoggerFactory.getLogger(FriendRedisRebuildPerformanceTest.class);
 
     @Autowired
-    private FriendAdminService friendAdminService;
+    private FriendshipRebuild friendshipRebuild;
+
+    @Autowired
+    private InteractionScoreRebuild interactionScoreRebuild;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -59,7 +63,7 @@ class FriendRedisRebuildPerformanceTest {
         log.info("╚══════════════════════════════════════╝");
 
         long start = System.currentTimeMillis();
-        friendAdminService.getFriendshipDB();
+        friendshipRebuild.rebuild();
 
         awaitKeysStable("friend:*");
 
@@ -80,7 +84,7 @@ class FriendRedisRebuildPerformanceTest {
         log.info("╚══════════════════════════════════════╝");
 
         long start = System.currentTimeMillis();
-        friendAdminService.rebuildInteractionScoreRedis();
+        interactionScoreRebuild.rebuild();
 
         awaitKeysStable("interaction:*");
 

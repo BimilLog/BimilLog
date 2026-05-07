@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.rebuild;
+package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.domain.friend.repository.FriendEventDlqRepository;

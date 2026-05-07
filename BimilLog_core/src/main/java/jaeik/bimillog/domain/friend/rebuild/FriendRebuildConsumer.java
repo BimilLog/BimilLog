@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.async;
+package jaeik.bimillog.domain.friend.rebuild;
 
 import jaeik.bimillog.domain.friend.dto.FriendshipRebuildDTO;
 import jaeik.bimillog.domain.friend.dto.InteractionRebuildDTO;
@@ -35,8 +35,7 @@ public class FriendRebuildConsumer {
      * <p>POISON_PILL 수신 시 남은 항목을 처리하고 종료합니다.</p>
      */
     @Async("rebuildConsumerExecutor")
-    public CompletableFuture<Void> consume(BlockingQueue<FriendshipRebuildDTO> queue,
-                        FriendshipRebuildDTO poisonPill) {
+    public CompletableFuture<Void> consume(BlockingQueue<FriendshipRebuildDTO> queue, FriendshipRebuildDTO poisonPill) {
         long count = 0L;
         List<FriendshipRebuildDTO> batch = new ArrayList<>(PIPELINE_BATCH_SIZE);
 
