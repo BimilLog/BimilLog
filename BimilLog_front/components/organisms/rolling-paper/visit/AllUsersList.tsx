@@ -220,7 +220,7 @@ export const AllUsersList = memo(({ searchKeyword = "" }: AllUsersListProps) => 
                   <TableCell className="py-3 text-center">
                     <Link
                       href={`/rolling-paper/${encodeURIComponent(member.memberName)}`}
-                      prefetch={true}
+                      prefetch={false}
                       aria-label={`${member.memberName}님의 롤링페이퍼로 이동`}
                     >
                       <Button
