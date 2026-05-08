@@ -1,10 +1,11 @@
 package jaeik.bimillog.domain.friend.rebuild;
 
 import jaeik.bimillog.domain.friend.dto.InteractionRebuildDTO;
+import jaeik.bimillog.domain.friend.event.FriendEvent.RebuildCompletedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendAdminQueryRepository;
-import jaeik.bimillog.domain.friend.scheduler.FriendEventDlqScheduler;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendRestore;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -27,7 +28,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class InteractionScoreRebuild extends RebuildTemplate {
     private final FriendRebuildProducer friendRebuildProducer;
     private final FriendRebuildConsumer friendRebuildConsumer;
-    private final FriendEventDlqScheduler friendEventDlqScheduler;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final InteractionRebuildDTO POISON_PILL = InteractionRebuildDTO.createDTO(-1L, Map.of());
     private static final int QUEUE_CAPACITY = 10_000;
@@ -37,11 +38,11 @@ public class InteractionScoreRebuild extends RebuildTemplate {
 
     public InteractionScoreRebuild(RedisFriendRestore redisFriendRestore, FriendAdminQueryRepository friendAdminQueryRepository,
                                    FriendRebuildProducer friendRebuildProducer, FriendRebuildConsumer friendRebuildConsumer,
-                                   FriendEventDlqScheduler friendEventDlqScheduler) {
+                                   ApplicationEventPublisher eventPublisher) {
         super(redisFriendRestore, friendAdminQueryRepository);
         this.friendRebuildProducer = friendRebuildProducer;
         this.friendRebuildConsumer = friendRebuildConsumer;
-        this.friendEventDlqScheduler = friendEventDlqScheduler;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -75,8 +76,8 @@ public class InteractionScoreRebuild extends RebuildTemplate {
                         log.error("[상호작용 점수 재구축] 실패, 플래그 해제", ex);
                         return;
                     }
-                    log.info("[상호작용 점수 재구축] 완료, DLQ 재처리 시작");
-                    friendEventDlqScheduler.processDlq();
+                    log.info("[상호작용 점수 재구축] 완료, DLQ 재처리 이벤트 발행");
+                    eventPublisher.publishEvent(new RebuildCompletedEvent());
                 });
     }
 }

@@ -38,4 +38,11 @@ public interface FriendEvent {
      * @param memberId2 친구 ID
      */
     record FriendshipDeletedEvent(Long memberId1, Long memberId2) implements FriendEvent {}
+
+    /**
+     * <h3>친구 도메인 Redis 재구축 완료 이벤트</h3>
+     * <p>친구 관계 또는 상호작용 점수 재구축이 완료되었을 때 발생합니다.</p>
+     * <p>FriendEventDlqScheduler에서 수신하여 DLQ 재처리를 즉시 트리거합니다.</p>
+     */
+    record RebuildCompletedEvent() implements FriendEvent {}
 }
