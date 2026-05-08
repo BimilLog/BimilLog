@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.friend.scheduler;
 
 import jaeik.bimillog.domain.friend.entity.jpa.FriendDlqStatus;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
+import jaeik.bimillog.domain.friend.event.FriendEvent.RebuildCompletedEvent;
 import jaeik.bimillog.domain.friend.rebuild.FriendshipRebuild;
 import jaeik.bimillog.domain.friend.rebuild.InteractionScoreRebuild;
 import jaeik.bimillog.domain.friend.repository.FriendEventDlqRepository;
@@ -11,6 +12,7 @@ import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -44,6 +46,14 @@ public class FriendEventDlqScheduler {
     private final InteractionScoreRebuild interactionScoreRebuild;
 
     private static final int MAX_RETRY = 3;
+
+    /**
+     * 재구축 완료 이벤트 수신 시 DLQ 재처리를 즉시 트리거합니다.
+     */
+    @EventListener
+    public void onRebuildCompleted(RebuildCompletedEvent event) {
+        processDlq();
+    }
 
     /**
      * 5분마다 DLQ 이벤트를 재처리합니다.
