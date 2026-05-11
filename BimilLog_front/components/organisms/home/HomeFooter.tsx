@@ -139,6 +139,33 @@ export const HomeFooter: React.FC = React.memo(() => {
                   비트 만들기
                   <ExternalLink className="w-3 h-3" aria-hidden="true" />
                 </FooterLink>
+                <FooterLink
+                  href="https://energyquiz-dpxg4fxu.manus.space/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground whitespace-nowrap inline-flex items-center gap-1"
+                >
+                  에너지 컬러
+                  <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                </FooterLink>
+                <FooterLink
+                  href="https://mbtimonster-ydzevpxk.manus.space/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground whitespace-nowrap inline-flex items-center gap-1"
+                >
+                  몬스터 MBTI
+                  <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                </FooterLink>
+                <FooterLink
+                  href="https://unmyung-diary-wehuvwe3.manus.space/weekly"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground whitespace-nowrap inline-flex items-center gap-1"
+                >
+                  주간 운세
+                  <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                </FooterLink>
               </FooterLinkGroup>
             </div>
           </div>
