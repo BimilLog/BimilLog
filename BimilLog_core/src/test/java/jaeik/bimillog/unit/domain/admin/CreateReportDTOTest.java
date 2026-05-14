@@ -1,6 +1,6 @@
 package jaeik.bimillog.unit.domain.admin;
 
-import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import jaeik.bimillog.domain.admin.dto.CreateReportDTO;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -20,15 +20,15 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>ReportDTO 검증 테스트</h2>
- * <p>ReportDTO의 교차 필드 검증과 비즈니스 로직을 테스트합니다.</p>
+ * <h2>CreateReportDTO 검증 테스트</h2>
+ * <p>CreateReportDTO의 교차 필드 검증과 비즈니스 로직을 테스트합니다.</p>
  * <p>Bean Validation 어노테이션과 사용자 정의 검증 메서드를 검증</p>
  *
  * @author Jaeik
  */
-@DisplayName("ReportDTO 검증 테스트")
+@DisplayName("CreateReportDTO 검증 테스트")
 @Tag("unit")
-class ReportDTOTest {
+class CreateReportDTOTest {
 
     private Validator validator;
 
@@ -38,12 +38,6 @@ class ReportDTOTest {
         validator = factory.getValidator();
     }
 
-    /**
-     * <h3>신고 타입별 targetId 검증 성공 케이스 제공</h3>
-     * <p>각 신고 타입에 따라 올바른 targetId 조합을 제공합니다.</p>
-     *
-     * @return 신고 타입, targetId, 내용의 조합
-     */
     static Stream<Arguments> provideValidReportScenarios() {
         return Stream.of(
                 Arguments.of(ReportType.POST, 123L, "부적절한 게시글입니다."),
@@ -53,12 +47,6 @@ class ReportDTOTest {
         );
     }
 
-    /**
-     * <h3>신고 타입별 targetId 검증 실패 케이스 제공</h3>
-     * <p>각 신고 타입에 따라 잘못된 targetId 조합을 제공합니다.</p>
-     *
-     * @return 신고 타입, targetId, 예상 에러 메시지의 조합
-     */
     static Stream<Arguments> provideInvalidReportScenarios() {
         return Stream.of(
                 Arguments.of(ReportType.POST, null, "글, 댓글 신고는 신고대상이 필수입니다"),
@@ -73,14 +61,14 @@ class ReportDTOTest {
     @DisplayName("신고 타입별 targetId 검증 - 성공")
     void shouldValidateTargetIdByReportType_Success(ReportType reportType, Long targetId, String content) {
         // Given
-        ReportDTO reportDTO = ReportDTO.builder()
+        CreateReportDTO createReportDTO = CreateReportDTO.builder()
                 .reportType(reportType)
                 .targetId(targetId)
                 .content(content)
                 .build();
 
         // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
+        Set<ConstraintViolation<CreateReportDTO>> violations = validator.validate(createReportDTO);
 
         // Then
         assertThat(violations).isEmpty();
@@ -91,18 +79,18 @@ class ReportDTOTest {
     @DisplayName("신고 타입별 targetId 검증 - 실패")
     void shouldValidateTargetIdByReportType_Failure(ReportType reportType, Long targetId, String expectedMessage) {
         // Given
-        ReportDTO reportDTO = ReportDTO.builder()
+        CreateReportDTO createReportDTO = CreateReportDTO.builder()
                 .reportType(reportType)
                 .targetId(targetId)
                 .content("신고 내용입니다. 최소 10자 이상")
                 .build();
 
         // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
+        Set<ConstraintViolation<CreateReportDTO>> violations = validator.validate(createReportDTO);
 
         // Then
         assertThat(violations).hasSize(1);
-        ConstraintViolation<ReportDTO> violation = violations.iterator().next();
+        ConstraintViolation<CreateReportDTO> violation = violations.iterator().next();
         assertThat(violation.getMessage()).isEqualTo(expectedMessage);
     }
 
@@ -112,14 +100,14 @@ class ReportDTOTest {
     @DisplayName("신고 내용 검증 - 길이 경계값")
     void reportContent_LengthValidation(String content, int expectedViolationCount, String expectedMessage) {
         // Given
-        ReportDTO reportDTO = ReportDTO.builder()
+        CreateReportDTO createReportDTO = CreateReportDTO.builder()
                 .reportType(ReportType.POST)
                 .targetId(123L)
                 .content(content)
                 .build();
 
         // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
+        Set<ConstraintViolation<CreateReportDTO>> violations = validator.validate(createReportDTO);
 
         // Then
         assertThat(violations).hasSize(expectedViolationCount);
@@ -130,11 +118,8 @@ class ReportDTOTest {
 
     static Stream<Arguments> provideContentLengthScenarios() {
         return Stream.of(
-            // 빈 값 (@NotBlank + @Size 둘 다 실패)
             Arguments.of("", 2, "신고 내용은"),
-            // 길이 부족 (2자)
             Arguments.of("짧음", 1, "신고 내용은 10-500자 사이여야 합니다"),
-            // 길이 초과 (501자)
             Arguments.of("a".repeat(501), 1, "신고 내용은 10-500자 사이여야 합니다")
         );
     }
@@ -143,14 +128,14 @@ class ReportDTOTest {
     @DisplayName("신고 타입 검증 - null 실패")
     void reportType_Null_ValidationFailure() {
         // Given
-        ReportDTO reportDTO = ReportDTO.builder()
+        CreateReportDTO createReportDTO = CreateReportDTO.builder()
                 .reportType(null)
                 .targetId(123L)
                 .content("신고 내용입니다.")
                 .build();
 
         // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
+        Set<ConstraintViolation<CreateReportDTO>> violations = validator.validate(createReportDTO);
 
         // Then
         assertThat(violations).hasSizeGreaterThanOrEqualTo(1);

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.member.controller;
 
-import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import jaeik.bimillog.domain.admin.dto.CreateReportDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.web.HTTPCookie;
 import jaeik.bimillog.domain.member.dto.MemberNameDTO;
@@ -84,19 +84,19 @@ public class MemberCommandController {
      *   <li>익명 신고: 인증되지 않은 사용자도 신고 가능</li>
      * </ul>
      *
-     * @param reportDTO 신고 정보 DTO
+     * @param createReportDTO 신고 정보 DTO
      * @return 신고 제출 완료 메시지
      * @author Jaeik
      * @since 2.0.0
      */
     @PostMapping("/report")
-    public ResponseEntity<String> submitReport(@RequestBody @Valid ReportDTO reportDTO) {
+    public ResponseEntity<String> submitReport(@RequestBody @Valid CreateReportDTO createReportDTO) {
         ReportSubmittedEvent event = ReportSubmittedEvent.of(
-                reportDTO.getReporterId(),
-                reportDTO.getReporterName(),
-                reportDTO.getReportType(),
-                reportDTO.getTargetId(),
-                reportDTO.getContent()
+                createReportDTO.getReporterId(),
+                createReportDTO.getReporterName(),
+                createReportDTO.getReportType(),
+                createReportDTO.getTargetId(),
+                createReportDTO.getContent()
         );
         eventPublisher.publishEvent(event);
         return ResponseEntity.ok("신고/건의사항이 접수되었습니다.");

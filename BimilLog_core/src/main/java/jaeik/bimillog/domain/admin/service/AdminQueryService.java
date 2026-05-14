@@ -1,7 +1,7 @@
 
 package jaeik.bimillog.domain.admin.service;
 
-import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import jaeik.bimillog.domain.admin.dto.ReportDetailDTO;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.repository.AdminQueryRepository;
@@ -47,7 +47,7 @@ public class AdminQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<ReportDTO> getReportList(int page, int size, ReportType reportType) {
+    public Page<ReportDetailDTO> getReportList(int page, int size, ReportType reportType) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Report> reports = adminQueryRepository.findReportsWithPaging(reportType, pageable);
 
@@ -69,17 +69,17 @@ public class AdminQueryService {
     }
 
     // 신고 DTO 매핑
-    private Page<ReportDTO> mappingReports(Page<Report> reports, Map<Long, PostSimpleDetail> postMaps, Map<Long, Member> commentMaps) {
+    private Page<ReportDetailDTO> mappingReports(Page<Report> reports, Map<Long, PostSimpleDetail> postMaps, Map<Long, Member> commentMaps) {
         return reports.map(report -> {
             if (report.getReportType() == ReportType.POST) {
                 PostSimpleDetail post = postMaps.get(report.getTargetId());
-                return ReportDTO.from(report,
+                return ReportDetailDTO.from(report,
                         post != null ? post.getMemberId() : null,
                         post != null ? post.getMemberName() : null);
             } else if (report.getReportType() == ReportType.COMMENT) {
-                return ReportDTO.from(report, commentMaps.get(report.getTargetId()));
+                return ReportDetailDTO.from(report, commentMaps.get(report.getTargetId()));
             }
-            return ReportDTO.from(report, (Member) null);
+            return ReportDetailDTO.from(report, (Member) null);
         });
     }
 }

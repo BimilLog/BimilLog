@@ -1,6 +1,6 @@
 package jaeik.bimillog.springboot.h2;
 
-import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import jaeik.bimillog.domain.admin.dto.CreateReportDTO;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.dto.MemberNameDTO;
@@ -153,7 +153,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("신고 제출 통합 테스트 - 성공")
     void submitReport_Success() throws Exception {
         // Given
-        ReportDTO reportDTO = ReportDTO.builder()
+        CreateReportDTO createReportDTO = CreateReportDTO.builder()
                 .reportType(ReportType.POST)
                 .targetId(123L)
                 .content("테스트 신고 내용입니다.")
@@ -166,7 +166,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
         // When & Then
         mockMvc.perform(post("/api/member/report")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .content(objectMapper.writeValueAsString(createReportDTO))
                         .with(user(userDetails))
                         .with(csrf()))
                 .andDo(print())
@@ -178,7 +178,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("신고 제출 - 빈 내용 - 400 Bad Request")
     void submitReport_EmptyContent_BadRequest() throws Exception {
         // Given
-        ReportDTO reportDTO = ReportDTO.builder()
+        CreateReportDTO createReportDTO = CreateReportDTO.builder()
                 .reportType(ReportType.POST)
                 .targetId(123L)
                 .content("") // 빈 내용
@@ -191,7 +191,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
         // When & Then
         mockMvc.perform(post("/api/member/report")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .content(objectMapper.writeValueAsString(createReportDTO))
                         .with(user(userDetails))
                         .with(csrf()))
                 .andDo(print())

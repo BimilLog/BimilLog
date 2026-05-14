@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.admin.controller;
 
-import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import jaeik.bimillog.domain.admin.dto.ReportDetailDTO;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.service.AdminQueryService;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -37,14 +37,14 @@ public class AdminQueryController {
      * @param page 페이지 번호 (0부터 시작, 기본값: 0)
      * @param size 페이지당 신고 수 (기본값: 20, 최대 100)
      * @param reportType 필터링할 신고 유형 (POST, COMMENT, ERROR, IMPROVEMENT 중 선택, null이면 전체)
-     * @return ResponseEntity<Page<ReportDTO>> 페이지네이션된 신고 목록과 메타데이터
+     * @return ResponseEntity<Page<ReportDetailDTO>> 페이지네이션된 신고 목록과 메타데이터
      */
     @GetMapping("/reports")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam(defaultValue = "0") int page,
-                                                         @RequestParam(defaultValue = "20") int size,
-                                                         @RequestParam(required = false) ReportType reportType) {
-        Page<ReportDTO> reportList = adminQueryService.getReportList(page, size, reportType);
+    public ResponseEntity<Page<ReportDetailDTO>> getReportList(@RequestParam(defaultValue = "0") int page,
+                                                               @RequestParam(defaultValue = "20") int size,
+                                                               @RequestParam(required = false) ReportType reportType) {
+        Page<ReportDetailDTO> reportList = adminQueryService.getReportList(page, size, reportType);
         return ResponseEntity.ok(reportList);
     }
 }
