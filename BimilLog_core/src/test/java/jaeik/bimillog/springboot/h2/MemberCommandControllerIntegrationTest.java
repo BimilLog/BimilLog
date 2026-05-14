@@ -153,11 +153,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("신고 제출 통합 테스트 - 성공")
     void submitReport_Success() throws Exception {
         // Given
-        CreateReportDTO createReportDTO = CreateReportDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(123L)
-                .content("테스트 신고 내용입니다.")
-                .build();
+        CreateReportDTO createReportDTO = new CreateReportDTO(null, null, ReportType.POST, 123L, "테스트 신고 내용입니다.");
 
         Member testMember = TestMembers.createUnique();
         testMember = saveMember(testMember);
@@ -178,11 +174,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("신고 제출 - 빈 내용 - 400 Bad Request")
     void submitReport_EmptyContent_BadRequest() throws Exception {
         // Given
-        CreateReportDTO createReportDTO = CreateReportDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(123L)
-                .content("") // 빈 내용
-                .build();
+        CreateReportDTO createReportDTO = new CreateReportDTO(null, null, ReportType.POST, 123L, "");
 
         Member testMember = TestMembers.createUnique();
         testMember = saveMember(testMember);

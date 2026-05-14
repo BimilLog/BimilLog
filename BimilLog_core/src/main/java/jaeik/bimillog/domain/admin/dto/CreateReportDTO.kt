@@ -1,38 +1,25 @@
-package jaeik.bimillog.domain.admin.dto;
+package jaeik.bimillog.domain.admin.dto
 
-import jaeik.bimillog.domain.admin.entity.ReportType;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.*;
+import jaeik.bimillog.domain.admin.entity.ReportType
+import jakarta.validation.constraints.AssertTrue
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
-/**
- * <h2>신고 생성 DTO</h2>
- * <p>신고/건의사항 제출 요청에 사용되는 데이터 전송 객체</p>
- * <p>신고 타입에 따른 targetId 교차 검증 포함</p>
- *
- * @author Jaeik
- * @version 2.0.0
- */
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateReportDTO {
+data class CreateReportDTO(
 
-    private Long reporterId;
-    private String reporterName;
+    val reporterId: Long?,
+    val reporterName: String?,
 
-    @NotNull(message = "신고 유형은 필수입니다")
-    private ReportType reportType;
+    @field:NotNull(message = "신고 유형은 필수입니다")
+    val reportType: ReportType,
 
-    private Long targetId;
+    val targetId: Long?,
 
-    @NotBlank(message = "신고 내용은 필수입니다")
-    @Size(min = 10, max = 500, message = "신고 내용은 10-500자 사이여야 합니다")
-    private String content;
+    @field:NotBlank(message = "신고 내용은 필수입니다")
+    @field:Size(min = 10, max = 500, message = "신고 내용은 10-500자 사이여야 합니다")
+    val content: String
+) {
 
     /**
      * <h3>POST/COMMENT 신고 시 targetId 필수 검증</h3>
@@ -41,11 +28,11 @@ public class CreateReportDTO {
      * @return boolean POST/COMMENT 타입일 때 targetId가 null이 아니면 true, 그 외 타입은 항상 true
      */
     @AssertTrue(message = "글, 댓글 신고는 신고대상이 필수입니다")
-    public boolean isTargetIdRequiredForContentReport() {
+    fun isTargetIdRequiredForContentReport(): Boolean {
         if (reportType == ReportType.POST || reportType == ReportType.COMMENT) {
-            return targetId != null;
+            return targetId != null
         }
-        return true;
+        return true
     }
 
     /**
@@ -55,10 +42,10 @@ public class CreateReportDTO {
      * @return boolean ERROR/IMPROVEMENT 타입일 때 targetId가 null이면 true, 그 외 타입은 항상 true
      */
     @AssertTrue(message = "에러, 개선 신고는 신고대상이 없어야 합니다")
-    public boolean isTargetIdNotAllowedForSystemReport() {
+    fun isTargetIdNotAllowedForSystemReport(): Boolean {
         if (reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) {
-            return targetId == null;
+            return targetId == null
         }
-        return true;
+        return true
     }
 }

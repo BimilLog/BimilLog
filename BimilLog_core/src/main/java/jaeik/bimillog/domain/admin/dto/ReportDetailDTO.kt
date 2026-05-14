@@ -1,11 +1,8 @@
-package jaeik.bimillog.domain.admin.dto;
+package jaeik.bimillog.domain.admin.dto
 
-import jaeik.bimillog.domain.admin.entity.Report;
-import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.member.entity.Member;
-import lombok.*;
-
-import java.time.Instant;
+import jaeik.bimillog.domain.admin.entity.Report
+import jaeik.bimillog.domain.admin.entity.ReportType
+import java.time.Instant
 
 /**
  * <h2>신고 상세 DTO</h2>
@@ -15,48 +12,39 @@ import java.time.Instant;
  * @author Jaeik
  * @version 2.0.0
  */
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ReportDetailDTO {
+data class ReportDetailDTO(
+    val id: Long,
+    val reporterId: Long?,
+    val reporterName: String,
+    val reportType: ReportType,
+    val targetId: Long?,
+    val targetAuthorId: Long?,
+    val targetAuthorName: String,
+    val content: String,
+    val createdAt: Instant
+) {
+    companion object {
 
-    private Long id;
-    private Long reporterId;
-    private String reporterName;
-    private ReportType reportType;
-    private Long targetId;
-    private Long targetAuthorId;
-    private String targetAuthorName;
-    private String content;
-    private Instant createdAt;
-
-    /**
-     * <h3>Report 엔티티와 신고 대상 작성자 정보로부터 ReportDetailDTO 생성</h3>
-     *
-     * @param report 신고 엔티티
-     * @param targetAuthor 신고 대상 작성자 (게시글 또는 댓글 작성자)
-     * @return ReportDetailDTO 변환된 DTO 객체
-     */
-    public static ReportDetailDTO from(Report report, Member targetAuthor) {
-        return from(report,
-                targetAuthor != null ? targetAuthor.getId() : null,
-                targetAuthor != null ? targetAuthor.getMemberName() : null);
-    }
-
-    public static ReportDetailDTO from(Report report, Long targetAuthorId, String targetAuthorName) {
-        Member reporter = report.getReporter();
-        return ReportDetailDTO.builder()
-                .id(report.getId())
-                .reporterId(reporter != null ? reporter.getId() : null)
-                .reporterName(reporter != null ? reporter.getMemberName() : "익명")
-                .reportType(report.getReportType())
-                .targetId(report.getTargetId())
-                .targetAuthorId(targetAuthorId)
-                .targetAuthorName(targetAuthorName != null ? targetAuthorName : "익명")
-                .content(report.getContent())
-                .createdAt(report.getCreatedAt())
-                .build();
+        /**
+         * <h3>Report 엔티티와 신고 대상 작성자 정보로부터 ReportDetailDTO 생성</h3>
+         *
+         * @param report 신고 엔티티
+         * @return ReportDetailDTO 변환된 DTO 객체
+         */
+        @JvmStatic
+        fun from(report: Report, targetAuthorId: Long?, targetAuthorName: String?) : ReportDetailDTO {
+            val reporter = report.reporter
+            return ReportDetailDTO(
+                id = report.id,
+                reporterId = reporter?.id,
+                reporterName = reporter?.memberName ?: "익명",
+                reportType = report.reportType,
+                targetId = report.targetId,
+                targetAuthorId = targetAuthorId,
+                targetAuthorName = targetAuthorName?: "익명",
+                content = report.content,
+                createdAt = report.createdAt
+            )
+        }
     }
 }

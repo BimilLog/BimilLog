@@ -77,9 +77,12 @@ public class AdminQueryService {
                         post != null ? post.getMemberId() : null,
                         post != null ? post.getMemberName() : null);
             } else if (report.getReportType() == ReportType.COMMENT) {
-                return ReportDetailDTO.from(report, commentMaps.get(report.getTargetId()));
+                Member author = commentMaps.get(report.getTargetId());
+                return ReportDetailDTO.from(report,
+                        author != null ? author.getId() : null,
+                        author != null ? author.getMemberName() : null);
             }
-            return ReportDetailDTO.from(report, (Member) null);
+            return ReportDetailDTO.from(report, null, null);
         });
     }
 }

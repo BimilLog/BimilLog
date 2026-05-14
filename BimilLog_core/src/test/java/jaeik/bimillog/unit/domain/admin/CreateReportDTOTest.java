@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * <h2>CreateReportDTO 검증 테스트</h2>
@@ -61,11 +62,7 @@ class CreateReportDTOTest {
     @DisplayName("신고 타입별 targetId 검증 - 성공")
     void shouldValidateTargetIdByReportType_Success(ReportType reportType, Long targetId, String content) {
         // Given
-        CreateReportDTO createReportDTO = CreateReportDTO.builder()
-                .reportType(reportType)
-                .targetId(targetId)
-                .content(content)
-                .build();
+        CreateReportDTO createReportDTO = new CreateReportDTO(null, null, reportType, targetId, content);
 
         // When
         Set<ConstraintViolation<CreateReportDTO>> violations = validator.validate(createReportDTO);
@@ -79,11 +76,7 @@ class CreateReportDTOTest {
     @DisplayName("신고 타입별 targetId 검증 - 실패")
     void shouldValidateTargetIdByReportType_Failure(ReportType reportType, Long targetId, String expectedMessage) {
         // Given
-        CreateReportDTO createReportDTO = CreateReportDTO.builder()
-                .reportType(reportType)
-                .targetId(targetId)
-                .content("신고 내용입니다. 최소 10자 이상")
-                .build();
+        CreateReportDTO createReportDTO = new CreateReportDTO(null, null, reportType, targetId, "신고 내용입니다. 최소 10자 이상");
 
         // When
         Set<ConstraintViolation<CreateReportDTO>> violations = validator.validate(createReportDTO);
@@ -100,11 +93,7 @@ class CreateReportDTOTest {
     @DisplayName("신고 내용 검증 - 길이 경계값")
     void reportContent_LengthValidation(String content, int expectedViolationCount, String expectedMessage) {
         // Given
-        CreateReportDTO createReportDTO = CreateReportDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(123L)
-                .content(content)
-                .build();
+        CreateReportDTO createReportDTO = new CreateReportDTO(null, null, ReportType.POST, 123L, content);
 
         // When
         Set<ConstraintViolation<CreateReportDTO>> violations = validator.validate(createReportDTO);
@@ -124,21 +113,15 @@ class CreateReportDTOTest {
         );
     }
 
+    /**
+     * Kotlin data class의 non-null `reportType` 파라미터는 생성자 진입 시점에 NPE를 던집니다.
+     * Bean Validation 단계 전에 차단되므로 타입 시스템 자체가 더 강한 보장을 제공합니다.
+     */
     @Test
-    @DisplayName("신고 타입 검증 - null 실패")
-    void reportType_Null_ValidationFailure() {
-        // Given
-        CreateReportDTO createReportDTO = CreateReportDTO.builder()
-                .reportType(null)
-                .targetId(123L)
-                .content("신고 내용입니다.")
-                .build();
-
-        // When
-        Set<ConstraintViolation<CreateReportDTO>> violations = validator.validate(createReportDTO);
-
-        // Then
-        assertThat(violations).hasSizeGreaterThanOrEqualTo(1);
-        assertThat(violations).anyMatch(v -> v.getMessage().equals("신고 유형은 필수입니다"));
+    @DisplayName("신고 타입 검증 - null 시 Kotlin 타입 시스템이 차단")
+    void reportType_Null_RejectedByTypeSystem() {
+        assertThatThrownBy(
+                () -> new CreateReportDTO(null, null, null, 123L, "신고 내용입니다."))
+                .isInstanceOf(NullPointerException.class);
     }
 }
