@@ -1,18 +1,16 @@
-package jaeik.bimillog.domain.admin.controller;
+package jaeik.bimillog.domain.admin.controller
 
-import jaeik.bimillog.domain.admin.dto.BanUserDTO;
-import jaeik.bimillog.domain.admin.dto.ForceWithdrawDTO;
-import jaeik.bimillog.domain.admin.service.AdminCommandService;
-import jaeik.bimillog.infrastructure.log.Log;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import jaeik.bimillog.domain.admin.dto.BanUserDTO
+import jaeik.bimillog.domain.admin.dto.ForceWithdrawDTO
+import jaeik.bimillog.domain.admin.service.AdminCommandService
+import jaeik.bimillog.infrastructure.log.Log
+import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 /**
  * <h2>관리자 명령 컨트롤러</h2>
@@ -22,14 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
-@Log(level = Log.LogLevel.INFO,
-        logExecutionTime = true,
-        message = "관리자 API 요청")
+
+@Log(level = Log.LogLevel.INFO, logExecutionTime = true, message = "관리자 API 요청")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/admin")
-public class AdminCommandController {
-    private final AdminCommandService adminCommandService;
+class AdminCommandController(private val adminCommandService: AdminCommandService) {
 
     /**
      * <h3>사용자 제재 API</h3>
@@ -40,9 +35,9 @@ public class AdminCommandController {
      */
     @PostMapping("/ban")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> banUser(@RequestBody @Valid BanUserDTO banUserDTO) {
-        adminCommandService.banUser(banUserDTO.getReportType(), banUserDTO.getTargetId());
-        return ResponseEntity.ok("유저를 성공적으로 차단했습니다.");
+    fun banUser(@RequestBody @Valid banUserDTO: BanUserDTO) : ResponseEntity<String> {
+        adminCommandService.banUser(banUserDTO.reportType, banUserDTO.targetId)
+        return ResponseEntity.ok("유저를 성공적으로 차단했습니다.")
     }
 
     /**
@@ -54,8 +49,8 @@ public class AdminCommandController {
      */
     @PostMapping("/withdraw")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> forceWithdrawUser(@RequestBody @Valid ForceWithdrawDTO forceWithdrawDTO) {
-        adminCommandService.forceWithdrawUser(forceWithdrawDTO.getReportType(), forceWithdrawDTO.getTargetId());
-        return ResponseEntity.ok("사용자 탈퇴 처리를 시작했습니다. 백그라운드에서 처리됩니다.");
+    fun forceWithdrawUser(@RequestBody @Valid forceWithdrawDTO: ForceWithdrawDTO) : ResponseEntity<String> {
+        adminCommandService.forceWithdrawUser(forceWithdrawDTO.reportType, forceWithdrawDTO.targetId)
+        return ResponseEntity.ok("사용자 탈퇴 처리를 시작했습니다. 백그라운드에서 처리됩니다.")
     }
 }

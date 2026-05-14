@@ -8,6 +8,8 @@ buildscript {
 
 plugins {
     id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '2.1.21'
+    id 'org.jetbrains.kotlin.plugin.spring' version '2.1.21'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.flywaydb.flyway' version '10.21.0'
@@ -19,6 +21,13 @@ version = '2.8.0'
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll(['-Xjsr305=strict'])
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
     }
 }
 test {
@@ -73,6 +82,10 @@ dependencies {
     // ==== 유효성 검사 및 JSON 처리 ====
     implementation 'org.hibernate.validator:hibernate-validator' // Bean Validation (유효성 검사)
 
+
+    // ==== Kotlin ====
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 
     // ==== Lombok (코드 자동 생성) ====
     compileOnly 'org.projectlombok:lombok' // 컴파일 타임에만 필요한 Lombok

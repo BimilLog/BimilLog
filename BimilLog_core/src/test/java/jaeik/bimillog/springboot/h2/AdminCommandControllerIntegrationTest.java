@@ -56,10 +56,7 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
         Post testPost = PostTestDataBuilder.createPost(testTargetMember, "테스트 게시글", "테스트 내용");
         Post savedPost = postRepository.save(testPost);
 
-        BanUserDTO banUserDTO = BanUserDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(savedPost.getId())
-                .build();
+        BanUserDTO banUserDTO = new BanUserDTO(ReportType.POST, savedPost.getId());
 
         // When & Then
         performPost("/api/admin/ban", banUserDTO, adminUserDetails)
@@ -77,10 +74,7 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
         Post testPost = PostTestDataBuilder.createPost(targetMember, "테스트 게시글", "테스트 내용");
         Post savedPost = postRepository.save(testPost);
 
-        ForceWithdrawDTO forceWithdrawDTO = ForceWithdrawDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(savedPost.getId())
-                .build();
+        ForceWithdrawDTO forceWithdrawDTO = new ForceWithdrawDTO(ReportType.POST, savedPost.getId());
 
         // When & Then
         performPost("/api/admin/withdraw", forceWithdrawDTO, adminUserDetails)
@@ -95,10 +89,7 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
         // Given
         Long nonExistentPostId = 99999L;
 
-        ForceWithdrawDTO forceWithdrawDTO = ForceWithdrawDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(nonExistentPostId)
-                .build();
+        ForceWithdrawDTO forceWithdrawDTO = new ForceWithdrawDTO(ReportType.POST, nonExistentPostId);
 
         // When & Then
         // 존재하지 않는 게시글 조회 실패 시 ADMIN_POST_ALREADY_DELETED 에러 반환 (400 BAD_REQUEST)
