@@ -1,6 +1,6 @@
-package jaeik.bimillog.domain.admin.event;
+package jaeik.bimillog.domain.admin.event
 
-import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.member.entity.SocialProvider
 
 /**
  * <h2>MemberBannedEvent</h2>
@@ -13,4 +13,8 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
  * @author Jaeik
  * @version 2.0.0
  */
-public record MemberBannedEvent(Long memberId, String socialId, SocialProvider provider) {}
+data class MemberBannedEvent(
+    val memberId: Long?,
+    val socialId: String?,
+    val provider: SocialProvider
+)
