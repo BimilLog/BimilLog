@@ -13,6 +13,7 @@ import jaeik.bimillog.domain.member.entity.SocialProvider
  * @author Jaeik
  * @version 2.0.0
  */
+@JvmRecord
 data class MemberBannedEvent(
     val memberId: Long?,
     val socialId: String?,

@@ -1,13 +1,10 @@
-package jaeik.bimillog.domain.admin.adapter;
+package jaeik.bimillog.domain.admin.adapter
 
-import jaeik.bimillog.domain.comment.entity.jpa.Comment;
-import jaeik.bimillog.domain.comment.repository.CommentRepository;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import jaeik.bimillog.domain.comment.entity.jpa.Comment
+import jaeik.bimillog.domain.comment.repository.CommentRepository
+import jaeik.bimillog.infrastructure.exception.CustomException
+import jaeik.bimillog.infrastructure.exception.ErrorCode
+import org.springframework.stereotype.Component
 
 /**
  * <h2>관리자 댓글 조회 어댑터</h2>
@@ -15,10 +12,8 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
-@Repository
-@RequiredArgsConstructor
-public class AdminToCommentAdapter {
-    private final CommentRepository commentRepository;
+@Component
+class AdminToCommentAdapter(private val commentRepository: CommentRepository) {
 
     /**
      * <h3>ID로 댓글 조회</h3>
@@ -29,12 +24,13 @@ public class AdminToCommentAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Comment findById(Long commentId) {
-        return commentRepository.findById(commentId).orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+    fun findById(commentId: Long) : Comment {
+        return commentRepository.findById(commentId).orElseThrow {
+            CustomException(ErrorCode.COMMENT_NOT_FOUND)
+        }
     }
 
-    // CommentIds로 댓글 리스트 조회
-    public List<Comment> findAllByIds(List<Long> commentIds) {
+    fun findAllByIds(commentIds: List<Long>) : List<Comment> {
         return commentRepository.findAllByIdsWithMember(commentIds);
     }
 }
